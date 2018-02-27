@@ -7,11 +7,15 @@
 <body>
 	<p>Please open this file in the developer tools.</p>
 	<script>
-		let state = {};
-		let combine = () => {};
-		let render = () => {};
+		var state = {history:[]};
+		const combine = (state, event) => {
+			const history = state.history.slice();
+			history.push(event);
+			return {history};
+		};
+		const render = (state) => {console.log(state)};
 
-		function handle(event){
+		const handle = (event) => {
 			state = combine(state, event);
 			render(state);
 		}
