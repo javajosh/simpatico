@@ -7,11 +7,19 @@
 <body>
 	<p>Please open this file in the developer tools.</p>
 	<script>
-		var state = {history:[]};
+		var state = {history:[], residue:0};
+
+		const reducer = (residue, event) => {
+			return residue + event;
+		}
+
 		const combine = (state, event) => {
 			const history = state.history.slice();
 			history.push(event);
-			return {history};
+
+			const residue = history.reduce(reducer, 0);
+			
+			return {history, residue};
 		};
 		const render = (state) => {console.log(state)};
 
