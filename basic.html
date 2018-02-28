@@ -6,27 +6,57 @@
 </head>
 <body>
 	<p>Please open this file in the developer tools.</p>
+	<button onclick="start()">start</button>
+	<button onclick="stop()">stop</button>
+	<button onclick="reset()">reset</button>
+	
 	<script>
-		var state = {history:[], residue:0};
+		let state = {};
 
-		const reducer = (residue, event) => {
-			return residue + event;
+		// Some handy predicates
+		const number 	= o => typeof o === 'number';
+		const string 	= o => typeof o === 'string';
+		const fun 		= o => typeof o === 'function';
+		const array 	= o => Array.isArray(o);
+		const object	= o => typeof o === 'object' && !array(o);
+
+		const reducers = {
+			// These reducers are good for numbers
+			adder: 		(residue = 0, event) 	=> residue + event,
+			multiplier: (residue = 1, event) 	=> residue * event,
+			divider: 	(residue = 1e30, event) => residue / event,
+
+			// This one is good for any type
+			rememberer: (residue = [], event) => {
+				const result = residue.slice();
+				result.push(event);
+				return result;
+			}
 		}
 
-		const combine = (state, event) => {
-			const history = state.history.slice();
-			history.push(event);
-
-			const residue = history.reduce(reducer, 0);
-			
-			return {history, residue};
-		};
-		const render = (state) => {console.log(state)};
-
+		// Reduce every member of residue, key-wise.
+		const bigReduce = (reducers, residue, event) => {
+			const result = {};
+			for (key in reducers) {
+				result[key] = reducers[key](residue[key], event);
+			}
+			return result;
+		}
+	
+		let throttle = 0;
+		const combine = (state, event) => bigReduce(reducers, state, event)
+		const render = (state) => { console.log(state)};
 		const handle = (event) => {
 			state = combine(state, event);
 			render(state);
 		}
+
+		// Support for controls
+		let timerId;
+		const start = ()=> timerId = setInterval( ()=>handle(6), 50);
+		const stop  = ()=> clearInterval(timerId || 0);
+		const reset = ()=> state = {};
+
 	</script>
 </body>
 </html>
