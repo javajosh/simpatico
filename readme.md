@@ -44,7 +44,7 @@ I believe that architure is best explored in code, and with a bare minimum of co
 Let's start with this architectural pattern, one of my favorites:
 
 ```
-function hand le(event) {
+function handle(event) {
 	state = combine(state, event);
 	render(state);
 }

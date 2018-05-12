@@ -17,13 +17,17 @@
 <button onclick="stop()">stop</button>
 <button onclick="reset()">reset</button>
 
-<p>This file is a very basic loop:</p>
+<p>This file is a variant of a very basic loop:</p>
 <pre><code>
     function handle(event) {
         state = combine(state, event);
         render(state);
     }
 </code></pre>
+
+<p>This is explored more fully in the readme. Here, the <code>render()</code> is just
+    <code>console.log(state)</code>.
+</p>
 <script>
   let state = {};
 
