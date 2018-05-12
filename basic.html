@@ -6,13 +6,15 @@
 
     <link rel="stylesheet"
           data-href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"
-          href="default.min.css">
+          href="highlight.min.css">
     <script data-src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
             src="highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
 </head>
 <body>
-<p>Please open this file in the developer tools.</p>
+<p>Please open this file in the developer tools, and press the start button. Then press reset as often as you like, and
+    stop.
+    Then hit start again.</p>
 <button onclick="start()">start</button>
 <button onclick="stop()">stop</button>
 <button onclick="reset()">reset</button>
@@ -25,19 +27,22 @@
     }
 </code></pre>
 
-<p>This is explored more fully in the readme. Here, the <code>render()</code> is just
-    <code>console.log(state)</code>.
+<p>The idea behind this code is explored more fully in the readme. Here, the <code>render()</code> is just
+    <code>console.log(state)</code>, and the event is just the number '6'. State is updated every 50ms.
+</p>
+
+<p>Another thought that has been on my mind is this: how far can you get on the modern web without resorting to
+    build-tools? No modules, no linters, no bundlers, minifiers, no transpiled languages of any kind. Avoid libraries,
+    both JS and CSS, but if added add by hand, and serve from the origin host (no CDN). On the plus side,
+    you can assume only modern browsers, which means modern tools like ES6, CSS3, and HTML5, and all the modern
+    DOM API features you could ever want. How far can you get? What would your code look like?
 </p>
 <script>
+  // State is reassigned on every handle() call, so it can't be a const.
+  // This approach will, in general, put pressure on the garbage collector.
   let state = {};
 
-  // Some handy predicates
-  const number = o => typeof o === 'number';
-  const string = o => typeof o === 'string';
-  const fun = o => typeof o === 'function';
-  const array = o => Array.isArray(o);
-  const object = o => typeof o === 'object' && !array(o);
-
+  // One reduction per key; residue is a synonym for "accumulator" here
   const reducers = {
     // These reducers are good for numbers
     adder: (residue = 0, event) => residue + event,
@@ -52,7 +57,8 @@
     }
   }
 
-  // Reduce every member of residue, key-wise.
+  // Reduce every member of residue, key-wise. Note that this only works because
+  // all reductions are over compatible data-structures, in this case, integers.
   const bigReduce = (reducers, residue, event) => {
     const result = {};
     for (let key in reducers) {
@@ -61,17 +67,21 @@
     return result;
   }
 
-  let throttle = 0;
-  const combine = (state, event) => bigReduce(reducers, state, event)
+  // Here, the combine function applies big reduce to global state.
+  const combine = (state, event) => bigReduce(reducers, state, event);
+  // Render to the console (this is the simplest renderer).
   const render = (state) => {
     console.log(state)
   };
+
+  // This is the main entry-point of the application, unchanged from application to application.
+  // In a very real sense the combine and render are paramterized, and set by closure, in this case.
   const handle = (event) => {
     state = combine(state, event);
     render(state);
   }
 
-  // Support for controls
+  // Controls are simply global functions we can call from the console or directly from the DOM.
   let timerId;
   const start = () => timerId = setInterval(() => handle(6), 50);
   const stop = () => clearInterval(timerId || 0);
