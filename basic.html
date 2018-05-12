@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Basic</title>
+
+    <link rel="stylesheet"
+          data-href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"
+          href="default.min.css">
+    <script data-src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
+            src="highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 <body>
 <p>Please open this file in the developer tools.</p>
@@ -10,6 +17,13 @@
 <button onclick="stop()">stop</button>
 <button onclick="reset()">reset</button>
 
+<p>This file is a very basic loop:</p>
+<pre><code>
+    function handle(event) {
+        state = combine(state, event);
+        render(state);
+    }
+</code></pre>
 <script>
   let state = {};
 
