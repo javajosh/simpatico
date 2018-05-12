@@ -1,62 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>Basic</title>
+    <meta charset="UTF-8">
+    <title>Basic</title>
 </head>
 <body>
-	<p>Please open this file in the developer tools.</p>
-	<button onclick="start()">start</button>
-	<button onclick="stop()">stop</button>
-	<button onclick="reset()">reset</button>
-	
-	<script>
-		let state = {};
+<p>Please open this file in the developer tools.</p>
+<button onclick="start()">start</button>
+<button onclick="stop()">stop</button>
+<button onclick="reset()">reset</button>
 
-		// Some handy predicates
-		const number 	= o => typeof o === 'number';
-		const string 	= o => typeof o === 'string';
-		const fun 		= o => typeof o === 'function';
-		const array 	= o => Array.isArray(o);
-		const object	= o => typeof o === 'object' && !array(o);
+<script>
+  let state = {};
 
-		const reducers = {
-			// These reducers are good for numbers
-			adder: 		(residue = 0, event) 	=> residue + event,
-			multiplier: (residue = 1, event) 	=> residue * event,
-			divider: 	(residue = 1e30, event) => residue / event,
+  // Some handy predicates
+  const number = o => typeof o === 'number';
+  const string = o => typeof o === 'string';
+  const fun = o => typeof o === 'function';
+  const array = o => Array.isArray(o);
+  const object = o => typeof o === 'object' && !array(o);
 
-			// This one is good for any type
-			rememberer: (residue = [], event) => {
-				const result = residue.slice();
-				result.push(event);
-				return result;
-			}
-		}
+  const reducers = {
+    // These reducers are good for numbers
+    adder: (residue = 0, event) => residue + event,
+    multiplier: (residue = 1, event) => residue * event,
+    divider: (residue = 1e30, event) => residue / event,
 
-		// Reduce every member of residue, key-wise.
-		const bigReduce = (reducers, residue, event) => {
-			const result = {};
-			for (let key in reducers) {
-				result[key] = reducers[key](residue[key], event);
-			}
-			return result;
-		}
-	
-		let throttle = 0;
-		const combine = (state, event) => bigReduce(reducers, state, event)
-		const render = (state) => { console.log(state)};
-		const handle = (event) => {
-			state = combine(state, event);
-			render(state);
-		}
+    // This one is good for any type
+    rememberer: (residue = [], event) => {
+      const result = residue.slice();
+      result.push(event);
+      return result;
+    }
+  }
 
-		// Support for controls
-		let timerId;
-		const start = ()=> timerId = setInterval( ()=>handle(6), 50);
-		const stop  = ()=> clearInterval(timerId || 0);
-		const reset = ()=> state = {};
+  // Reduce every member of residue, key-wise.
+  const bigReduce = (reducers, residue, event) => {
+    const result = {};
+    for (let key in reducers) {
+      result[key] = reducers[key](residue[key], event);
+    }
+    return result;
+  }
 
-	</script>
+  let throttle = 0;
+  const combine = (state, event) => bigReduce(reducers, state, event)
+  const render = (state) => {
+    console.log(state)
+  };
+  const handle = (event) => {
+    state = combine(state, event);
+    render(state);
+  }
+
+  // Support for controls
+  let timerId;
+  const start = () => timerId = setInterval(() => handle(6), 50);
+  const stop = () => clearInterval(timerId || 0);
+  const reset = () => state = {};
+
+</script>
 </body>
 </html>
