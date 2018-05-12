@@ -37,7 +37,7 @@
 		// Reduce every member of residue, key-wise.
 		const bigReduce = (reducers, residue, event) => {
 			const result = {};
-			for (key in reducers) {
+			for (let key in reducers) {
 				result[key] = reducers[key](residue[key], event);
 			}
 			return result;
