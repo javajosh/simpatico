@@ -11,7 +11,7 @@
             src="highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
 </head>
-<body>
+<body >
 <p>Please open this file in the developer tools, and press the start button. Then press reset as often as you like, and
     stop.
     Then hit start again.</p>
@@ -86,6 +86,12 @@
   const start = () => timerId = setInterval(() => handle(6), 50);
   const stop = () => clearInterval(timerId || 0);
   const reset = () => state = {};
+
+  // The window itself is a source of events.
+  const windowSize = () => ({width: window.innerWidth, height: window.innerHeight})
+  const resize = e => console.log({...windowSize(),t: e.timeStamp});
+  window.onresize = resize;
+
 
 </script>
 </body>
