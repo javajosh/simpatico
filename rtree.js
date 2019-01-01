@@ -6,7 +6,7 @@ const STRING = 'string', ANY = '',
       NULL = 'null', UNDEF = 'undefined',
       CALL = 'call', HANDLER = 'handler';
 
-const assert = (a, msg) => {if (!a) throw new Error(msg)};
+const assert = (a, msg) => {if (!a) throw new Error(msg) else return true};
 
 function getType(a){
   let t = typeof a;
@@ -53,12 +53,15 @@ const objectMap = (object, mapFn) => {
 
 // END UTILITY SECTION
 
-
+const between(num, min, max) => assert(min <= num && num <=max, `${min} <= ${num} && ${num} <= ${max}`);
 
 function rtree(){
-	const arr = [];
-	const add = d => arr.push(d);
-	return {add, arr}
+	let currBranch = 0;
+	const branches = [[]];
+	const getPath = () => branches[currBranch];
+	const add = d=> getPath().push(d);
+	const setBranch = i => { between(i, 0, branches.length - 1); currentBranch = i };
+	return {getPath, add, setBranch}
 }
 
 function test(){
@@ -70,8 +73,8 @@ function test(){
   // define & run module/unit tests
   const r = rtree();
   assert(getType(r) === OBJ, 'rtree is an object');
-  assert(r.hasOwnProperty('add') && getType(r.add) === FUN, 'rtree has an "add" function property');
-  assert(r.hasOwnProperty('arr') && getType(r.arr) === ARR, 'rtree has an "arr" array property');
+  assert(r.hasOwnProperty('add') && getType(r.add) === FUN, 'rtree has an "add()" function property');
+  assert(r.hasOwnProperty('nodes') && getType(r.nodes) === FUN, 'rtree has an "nodes()" array property');
 
   equals(r.arr.length, 0);
   r.add('a');
