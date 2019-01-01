@@ -1,47 +1,85 @@
-function rTree(residue = {}, combine = Object.assign) {
-  const nodes = [{}];
-  const branches = [];
-  const residues = [{}];
+console.log('This is going to be a one-shot program thats a test of our new data-structure, rtree()');
 
-  let target = 0;
+const STRING = 'string', ANY = '',
+      NUM = 'number', OBJ = 'object',
+      FUN = 'function', ARR = 'array',
+      NULL = 'null', UNDEF = 'undefined',
+      CALL = 'call', HANDLER = 'handler';
+
+const assert = (a, msg) => {if (!a) throw new Error(msg)};
+
+function getType(a){
+  let t = typeof a;
+  if (t !== OBJ) return t;
   
-  const move = (nodeCode) => {
-    if (!int(nodeCode)) throw `nodeCode should be an int, but '${nodeIndex}' wasn't`;
-
-    if (nodeCode <= 0){
-      if (!between(nodeCode, 0, branches.length)){
-        throw `branch nodeCode ${nodeCode} outside allowed interval (-${branches.length},0] [-branches.length,0]`
-      }
-      target = branches[-nodeCode]; //so, negative codes point to a branch;
-    } else if (between(nodeCode, 1, nodes.length)){
-      target = nodeCode //positive codes point to a node
-    } else {
-      throw `nodeCode out of bounds ${parent}; use negative numbers for branches`;
-    }
-  };
-  const add = (node) => {
-    if (target === nodes.length - 1)
-    nodes.push(node);
-    relations.push
-    measurements.push({t: Date.now() , measurement});
-    state = num(measurement) ? combine(state, m);
-  };
-
-  return {add, state};
+  if (Array.isArray(a)) return ARR;
+  if (a===null) return NULL;
+  if (a===undefined) return UNDEF;
+  
+  if (a.hasOwnProperty(CALL)) return CALL;
+  if (a.hasOwnProperty(HANDLER)) return HANDLER;
+  
+  return OBJ;
 }
 
-// Push with an optional parent. If given (and not eq arr.len-1) then wrap the payload in
-// an array of length two. This implies that we cannot/should not support arrays as raw payloads
-// which is fine because I only see this as needing numbers and objects.
-function push2(arr, payload, branches, parent){
-  if (int(parent)) arr.push([arr[parent], payload])
-  const node = parent ? {payload, branches}
-  arr.push(parent ? [parent, payload] : payload)
+
+// Generally useful functions on arrays.
+const zip = (a, b) => a.map((d, i) => [d, b[i]]);
+const add = (a, b) => zip(a,b).map(d => d[0] + d[1]);
+const dot = (a, b) => zip(a,b).map(c => d[0] * d[1]);
+const mul = (arr, c) => arr.map(d => c * d);
+// These functions on arrays return scalars
+const get = (arr, pos) => pos.length ? get(arr[pos.shift()], pos) : arr;
+const all = (arr) => arr.reduce((a,b) => (a !== null && a===b) ? a : false, arr[0]);
+const eq  = (a, b) => a.length === b.length && all(zip(a,b).map(d => d[0] === d[1]));
+// This is a very simple curry for two variables. Pareto principal!
+const curry = (f, a) => b => f(a,b);
+
+(() => {
+  	//Type tests - these are wierd because they will fail on module load in node!
+	let testValues = ['',1,[],{},()=>{},null,undefined];
+	let expected = ["string", "number", "array", "object", "function", "null", "undefined"];
+	let results = testValues.map(a => getType(a));
+	assert(eq(expected, results));
+})()
+
+
+const objectMap = (object, mapFn) => {
+    return Object.keys(object).reduce((result, key) =>{
+        result[key] = mapFn(key, object[key])
+        return result
+    }, {})
 }
 
-let a = rTree();
-// play in dev console.
-a.add()
+// END UTILITY SECTION
 
-// const load = () => {return window.localStorage.get('')};
-// const save = data => {};
+
+
+function rtree(){
+	const arr = [];
+	const add = d => arr.push(d);
+	return {add, arr}
+}
+
+function test(){
+  // define test helpers
+  const equals = (a, b) => assert(a===b, `${a} not equal to ${b}`);
+  const throws = fn => {let a = false; try{fn()} catch(e){a=true}; assert(a, 'fn did not throw')};
+
+
+  // define & run module/unit tests
+  const r = rtree();
+  assert(getType(r) === OBJ, 'rtree is an object');
+  assert(r.hasOwnProperty('add') && getType(r.add) === FUN, 'rtree has an "add" function property');
+  assert(r.hasOwnProperty('arr') && getType(r.arr) === ARR, 'rtree has an "arr" array property');
+
+  equals(r.arr.length, 0);
+  r.add('a');
+  equals(r.arr.length, 1);
+  r.add('a');
+  equals(r.arr.length, 2);
+}
+
+test();
+
+console.log('Success!')
