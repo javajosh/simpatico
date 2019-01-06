@@ -6,7 +6,7 @@ const STRING = 'string', ANY = '',
       NULL = 'null', UNDEF = 'undefined',
       CALL = 'call', HANDLER = 'handler';
 
-const assert = (a, msg) => {if (!a) throw new Error(msg) else return true};
+const assert = (a, msg) => {if (!a) throw new Error(msg)};
 
 function getType(a){
   let t = typeof a;
@@ -53,15 +53,15 @@ const objectMap = (object, mapFn) => {
 
 // END UTILITY SECTION
 
-const between(num, min, max) => assert(min <= num && num <=max, `${min} <= ${num} && ${num} <= ${max}`);
+const between = (num, min, max) => assert(min <= num && num <=max,`${min} <= ${num} && ${num} <= ${max}`);
 
 function rtree(){
-	let currBranch = 0;
-	const branches = [[]];
-	const getPath = () => branches[currBranch];
-	const add = d=> getPath().push(d);
-	const setBranch = i => { between(i, 0, branches.length - 1); currentBranch = i };
-	return {getPath, add, setBranch}
+	let currBranchIndex = 0;
+	const branches = [[0]];
+	const getBranchNodes = (branchIndex = currBranchIndex) => branches[branchIndex];
+	const addNode = d => getBranchNodes().push(d);
+	const setBranchIndex = i => { between(i, 0, branches.length - 1); currBranchIndex = i };
+	return {getBranchNodes, addNode, setBranchIndex}
 }
 
 function test(){
@@ -73,14 +73,14 @@ function test(){
   // define & run module/unit tests
   const r = rtree();
   assert(getType(r) === OBJ, 'rtree is an object');
-  assert(r.hasOwnProperty('add') && getType(r.add) === FUN, 'rtree has an "add()" function property');
-  assert(r.hasOwnProperty('nodes') && getType(r.nodes) === FUN, 'rtree has an "nodes()" array property');
+  assert(r.hasOwnProperty('addNode') && getType(r.addNode) === FUN, 'rtree has an "addNode()" function property');
+  assert(r.hasOwnProperty('getBranchNodes') && getType(r.getBranchNodes) === FUN, 'rtree has an "getBranchNodes()" array property');
 
-  equals(r.arr.length, 0);
-  r.add('a');
-  equals(r.arr.length, 1);
-  r.add('a');
-  equals(r.arr.length, 2);
+  equals(r.getBranchNodes().length, 0);
+  r.addNode('a');
+  equals(r.getBranchNodes().length, 1);
+  r.addNode('a');
+  equals(r.getBranchNodes().length, 2);
 }
 
 test();
