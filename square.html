@@ -25,18 +25,23 @@
   }
 
   // Give the user something to do with the keyboard.
-  document.body.onkeyup = e => {
+  document.body.addEventListener('keyup', e => {
     if (e.key === 'ArrowRight') x(10, true);
     if (e.key === 'ArrowLeft') x(-10, true);
+  });
+
+  function y(val, inc = false) {
+    if (typeof val !== 'number') throw new Error(`${val} is not a number`);
+    const base = inc ? 1 * document.getElementById('1').getAttribute('y') : 0;
+    document.getElementById('1').setAttribute('y', base + val);
   }
 
-  /* 
-    Things I didn't do for a good reason:
-	    1. Factor out the element. x is a stand-alone function.
-	    2. Generalize x() across element id and attribute, and then used the curry version. Fancy, even useful, but really gets in the way of understanding here.
-	    3. Attributes are strings, hence the 1 * to cast it into a number. 
-	    4. No good validation on x's arguments. this would require a predicates/assertion library and I want to keep things simple. 
-  */
+  // Give the user something to do with the keyboard.
+  document.body.addEventListener('keyup', e => {
+    if (e.key === 'ArrowUp') y(-10, true);
+    if (e.key === 'ArrowDown') y(10, true);
+  });
+
   </script>
 </body>
 
