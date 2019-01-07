@@ -11,26 +11,21 @@
   <ol>
     <li><a href="https://duckduckgo.com/?q=how+to+open+browser+developer+console">Open the dev console</a> and invoke <code>x(10)</code> or <code>x(-10)</code></li>
     <li>Hit the left and right arrow keys</li>
+    <li>Start and stop the animation with the 's' key.</li>
+    <li>Start and stop the animation with <code>animate()</code> in the console.</li>
   </ol>
-  <svg>
+  <svg width="500" height="500">
     <rect id="1" x="0" y="0" width="100" height="100" fill="green" />
   </svg>
-
   <script>
   // Give the user something to do at the console.
-  function x(val, inc = false) {
+  function setX(val, inc = true) {
     if (typeof val !== 'number') throw new Error(`${val} is not a number`);
     const base = inc ? 1 * document.getElementById('1').getAttribute('x') : 0;
     document.getElementById('1').setAttribute('x', base + val);
   }
 
-  // Give the user something to do with the keyboard.
-  document.body.addEventListener('keyup', e => {
-    if (e.key === 'ArrowRight') x(10, true);
-    if (e.key === 'ArrowLeft') x(-10, true);
-  });
-
-  function y(val, inc = false) {
+  function setY(val, inc = true) {
     if (typeof val !== 'number') throw new Error(`${val} is not a number`);
     const base = inc ? 1 * document.getElementById('1').getAttribute('y') : 0;
     document.getElementById('1').setAttribute('y', base + val);
@@ -38,9 +33,45 @@
 
   // Give the user something to do with the keyboard.
   document.body.addEventListener('keyup', e => {
-    if (e.key === 'ArrowUp') y(-10, true);
-    if (e.key === 'ArrowDown') y(10, true);
+    if (e.key === 'ArrowUp') setY(-10);
+    if (e.key === 'ArrowDown') setY(10);
   });
+
+  document.body.addEventListener('keyup', e => {
+    if (e.key === 'ArrowRight') setX(10);
+    if (e.key === 'ArrowLeft') setX(-10);
+  });
+
+  // Now lets output circular motion. 
+  const s = 1000;
+  const start = Date.now();
+  const period = 5 * s;
+  const magnitude = 1;
+  const [dx, dy] = [0, 0];
+
+  let timerID = 0;
+
+  function animate() {
+  	if (timerID) return timerID;
+    timerID= setInterval(e => {
+      const elapsed = Date.now() - start;
+      const theta = elapsed * 2 * Math.PI / period;
+      const [x, y] = [Math.cos(theta), Math.sin(theta)];
+      // Yay, we can set the thing.
+      setX(x * magnitude + dx);
+      setY(y * magnitude + dy);
+    }, 17);
+    return timerID;
+  }
+  animate();
+
+  // Allow the user to start and stop with the s key.
+  document.body.addEventListener('keyup',
+    e => {
+      if (e.key === 's') {
+        timerID = timerID ? clearInterval(timerID) : animate();
+      }
+    });
 
   </script>
 </body>
