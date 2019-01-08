@@ -7,7 +7,6 @@
 </head>
 
 <body>
-
   <h2>Things you can do:</h2>
   <ol>
     <li><a href="https://duckduckgo.com/?q=how+to+open+browser+developer+console">Open the dev console</a> and invoke <code>setX(10)</code>, <code>setX(-10)</code>, <code>setY(10)</code> or <code>setY(-10)</code></li>
@@ -18,22 +17,26 @@
   </ol>
 
   <svg width="500" height="500">
-    <rect id="1" x="0" y="0" width="100" height="100" fill="green" />
+    <rect id="1" x="50" y="50" width="100" height="100" fill="green" />
   </svg>
 
   <script>
-  // Give the user something to do at the console.
-  function setX(val, inc = true) {
-    if (typeof val !== 'number') throw new Error(`${val} is not a number`);
-    const base = inc ? 1 * document.getElementById('1').getAttribute('x') : 0;
-    document.getElementById('1').setAttribute('x', base + val);
+  const elt = document.getElementById('1');
+  const number = val => {
+  	if (typeof val !== 'number') throw new Error(`${val} is not a number`);
+  };
+  const string = val => {
+  	if (typeof val !== 'string') throw new Error(`${val} is not a string`);
+  };
+
+  const setAttribute = (elt, attr, value) => {
+  	string(attr) && number(value);
+  	elt.setAttribute(attr, 1 * elt.getAttribute(attr) + value);
   }
 
-  function setY(val, inc = true) {
-    if (typeof val !== 'number') throw new Error(`${val} is not a number`);
-    const base = inc ? 1 * document.getElementById('1').getAttribute('y') : 0;
-    document.getElementById('1').setAttribute('y', base + val);
-  }
+  const setX = x => setAttribute(elt, 'x', x);
+  const setY = y => setAttribute(elt, 'y', y);
+
 
   // Give the user something to do with the keyboard.
   document.body.addEventListener('keyup', e => {
@@ -47,35 +50,42 @@
   });
 
   // Now lets output circular motion. 
-  const ms = 1;
+  function* circlePath(theta = 0, slices = 360){
+  	while (true) {
+  		theta += Math.PI/slices;
+  		yield [Math.cos(theta), Math.sin(theta)]
+  	}
+  }
+  // const slowCircle = circlePath();
+  const fastCircle = circlePath(0, 10)
+
+  const px = ms = 1;
   const s = 1000 * ms;
-  const period = 5 * s;
-  const magnitude = .5;
-  const [dx, dy] = [0, 0];
+  const fps = 60;
+  const animationPeriod = s / fps;
+
+  const magnitude = 1 * px;
 
   let timerID = 0;
-
   function animate() {
   	if (timerID) return timerID;
     timerID = setInterval(e => {
-      const t = Date.now();
-      const theta = t * 2 * Math.PI / period;
-      const [x, y] = [Math.cos(theta), Math.sin(theta)];
-      // Yay, we can set the thing.
-      setX(x * magnitude + dx);
-      setY(y * magnitude + dy);
-    }, 17 * ms);
+      const [x, y] = fastCircle.next().value;
+
+      setX(x * magnitude);
+      setY(y * magnitude);
+    }, animationPeriod);
     return timerID;
   }
-  animate();
 
   // Allow the user to start and stop with the s key.
-  document.body.addEventListener('keyup',
-    e => {
-      if (e.key === 's') {
-        timerID = timerID ? clearInterval(timerID) : animate();
-      }
-    });
+  document.body.addEventListener('keyup', e => {
+    if (e.key === 's') {
+      timerID = timerID ? clearInterval(timerID) : animate();
+    }
+  });
+
+  animate();
 
   </script>
 </body>
