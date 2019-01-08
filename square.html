@@ -21,7 +21,7 @@
   </svg>
 
   <script>
-  const elt = document.getElementById('1');
+  
   const number = val => {
   	if (typeof val !== 'number') throw new Error(`${val} is not a number`);
   };
@@ -34,52 +34,52 @@
   	elt.setAttribute(attr, 1 * elt.getAttribute(attr) + value);
   }
 
-  const setX = x => setAttribute(elt, 'x', x);
-  const setY = y => setAttribute(elt, 'y', y);
+  // Define the basic degrees of freedom in the DOM.
+  const SQUARE = document.getElementById('1');
+  const setX = x => setAttribute(SQUARE, 'x', x);
+  const setY = y => setAttribute(SQUARE, 'y', y);
 
 
   // Give the user something to do with the keyboard.
-  document.body.addEventListener('keyup', e => {
+  document.body.addEventListener('keydown', e => {
     if (e.key === 'ArrowUp') setY(-10);
     if (e.key === 'ArrowDown') setY(10);
   });
 
-  document.body.addEventListener('keyup', e => {
+  document.body.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') setX(10);
     if (e.key === 'ArrowLeft') setX(-10);
   });
 
   // Now lets output circular motion. 
-  function* circlePath(theta = 0, slices = 360){
+  function* circlePath(stepsPerRotation = 60, theta = 0){
   	while (true) {
-  		theta += Math.PI/slices;
+  		theta += 2 * Math.PI/stepsPerRotation;
   		yield [Math.cos(theta), Math.sin(theta)]
   	}
   }
-  // const slowCircle = circlePath();
-  const fastCircle = circlePath(0, 10)
 
-  const px = ms = 1;
-  const s = 1000 * ms;
-  const fps = 60;
-  const animationPeriod = s / fps;
-
-  const magnitude = 1 * px;
+  // Animation is a little more involved.
+  const px = ms = 1, s = 1000 * ms, fps = 60;
+  const animationRate = s / fps;
+  const [cx,cy] = [1,1];
+  const stepsPerRotation = 120;
 
   let timerID = 0;
+  const path = circlePath(stepsPerRotation);
+
   function animate() {
   	if (timerID) return timerID;
     timerID = setInterval(e => {
-      const [x, y] = fastCircle.next().value;
-
-      setX(x * magnitude);
-      setY(y * magnitude);
-    }, animationPeriod);
+      const [x, y] = path.next().value;
+      setX(x * cx);
+      setY(y * cy);
+    }, animationRate);
     return timerID;
   }
 
   // Allow the user to start and stop with the s key.
-  document.body.addEventListener('keyup', e => {
+  document.body.addEventListener('keydown', e => {
     if (e.key === 's') {
       timerID = timerID ? clearInterval(timerID) : animate();
     }
