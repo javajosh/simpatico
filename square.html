@@ -118,6 +118,17 @@
   	combine(state, input);
   });
 
+  const observer = new MutationObserver((mutations, observer) => {
+  	if (state.rotating) return;
+  	for (const mutation of mutations){
+  		if (mutation.type === 'attributes'){
+  			gather(SQUARE, state);
+  			//console.log(mutation.attributeName, mutation.target.getAttribute(mutation.attributeName));
+  		}
+  	}
+  });
+  observer.observe(SQUARE, {attributes: true, childList: false, subtree: false});
+
   animate();
 
   </script>
