@@ -21,27 +21,26 @@
   </svg>
 
   <script>
-  /// These functions are assertions and belong in a library.
+
   const number = val => {
   	if (typeof val !== 'number') throw new Error(`${val} is not a number`);
   };
   const string = val => {
   	if (typeof val !== 'string') throw new Error(`${val} is not a string`);
   };
-  /// This is a handy utility function that belongs in a library
+
   const setAttribute = (elt, attr, value) => {
   	string(attr) && number(value);
   	elt.setAttribute(attr, 1 * elt.getAttribute(attr) + value);
   }
-  /// Usually I like to put DOM dependencies at the very top
-  /// But we had library functions to define.
+
+
   // Define the basic degrees of freedom in the DOM.
   const SQUARE = document.getElementById('1');
   const setX = x => setAttribute(SQUARE, 'x', x);
   const setY = y => setAttribute(SQUARE, 'y', y);
 
-  /// I really wanted to avoid tricks and advanced JS for this
-  /// But a generator fits so perfectly, and I think it's pretty.
+
   // Now lets output circular motion. 
   function* circlePath(stepsPerRotation = 60, theta = 0){
   	while (true) {
@@ -52,18 +51,15 @@
 
   // Animation is a little more involved.
   const [cx,cy] = [1,1];
-  /// I found this to be a little awkward since it's inversely proportional to angular velocity.
   const stepsPerRotation = 120; //the more steps, the slower.
-  /// It's important that the generator be instantiated outside if
-  /// you want continuity of motion.
+
   const path = circlePath(stepsPerRotation);
   let animating = true;
-  /// A very pretty animation function, now, if I do say so myself.
+
   function animate() {
     const [x, y] = path.next().value;
     setX(x * cx);
     setY(y * cy);
-    /// May I say that RAF looks really, really good compared to the setInterval code.
     if (animating) requestAnimationFrame(animate);
   }
 
@@ -71,19 +67,15 @@
 	docs.push('Press the left, right up, down arrow key to move');
 	docs.push('Press the "s" key to start and stop the animation');
 
-	/// Now, here what I really want is to have a list of objects that declare what the degrees of freedom are for this program. 
-	/// That will be the next step, right after extracting all state from the DOM.
   // Give the user something to do with the keyboard.
   document.body.addEventListener('keydown', e => {
   	if (e.key === 'ArrowRight') setX(10);
     if (e.key === 'ArrowLeft') setX(-10);
   	if (e.key === 'ArrowUp') setY(-10);
     if (e.key === 'ArrowDown') setY(10);
-    
     if (e.key === 's') {
-    	// animate(); //this will speed up rotation in chrome!
       animating = !animating;
-      if (animating) animate();
+      animate();
     }
   });
 
