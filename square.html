@@ -16,15 +16,15 @@
     <li>Read the code and maybe send me a tweet @javajosh!</li>
   </ol>
 
-  <svg width="500" height="500">
-    <rect id="1" x="50" y="50" width="100" height="100" fill="green" animating="true" />
+  <svg id="0" width="500" height="500">
+    <rect id="1" x="50" y="50" width="100" height="100" fill="green" rotating="true" />
   </svg>
 
   <script>
   'use strict';
 
 	if (navigator.userAgent.indexOf("MSIE") > -1) 
-		window.alert('IE not supported.');
+		window.alert('IE is not supported.');
 
   const number = val => {
   	if (typeof val !== 'number') 
@@ -35,7 +35,7 @@
   		throw new Error(`${val} is not a string`);
   };
 
-  // A generator function that slices a circle into pieces.
+  // A generator function that returns a rotating vector
   function* circlePath(stepsPerRotation = 60, theta = 0){
   	while (true) {
   		theta += 2 * Math.PI / stepsPerRotation;
@@ -43,8 +43,10 @@
   	}
   }
 
+  const BOARD = document.getElementById('0');
   const SQUARE = document.getElementById('1');
-  const state = {x: 'number', y: 'number', animating: 'boolean'};
+  const state = {x: 'number', y: 'number', rotating: 'boolean'};
+  const board = {width: 'number', height: 'number'};
 
   // Load the initial values of state from the DOM!
   const gather = (elt, obj) => {
@@ -59,7 +61,8 @@
   			obj[key] = val;
   	}
   };
-  gather(SQUARE, state); 
+  gather(SQUARE, state);
+  gather(BOARD, board);
 
   // Combine two objects, mutating target
   // Similar to Object.assign, but uses the target values
@@ -78,8 +81,11 @@
 
   // Render an object as svg attributes
   const render = (elt, obj) => {
-  	for (const key in obj)
-  		elt.setAttribute(key, obj[key]);
+  	for (const key in obj){
+  		const old = elt.getAttribute(key);
+  		if (obj[key] + '' !== old)
+  			elt.setAttribute(key, obj[key]);
+  	}
   }
 
   // The central loop, always running.
@@ -89,7 +95,7 @@
   const path = circlePath(stepsPerRotation);
 
   const animate = ()=>{
-  	if (state.animating){
+  	if (state.rotating){
 	    let [dx, dy] = path.next().value;
 	    [dx, dy] = [dx * cx, dy * cy];
 	    combine (state, {x:dx, y:dy});
@@ -104,16 +110,15 @@
     'a' : {x:-10},
   	'w' : {y:-10},
     's' : {y:10},
-    ' ' : {animating: 'toggle'},
+    ' ' : {rotating: 'false'},
 	};
 
   document.body.addEventListener('keydown', e => {
-  	const obj = inputs[e.key];
-  	combine(state, obj);
+  	const input = inputs[e.key];
+  	combine(state, input);
   });
 
   animate();
-  console.info(inputs);
 
   </script>
 </body>
