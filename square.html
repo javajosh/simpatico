@@ -7,16 +7,20 @@
 </head>
 
 <body>
+
   <h2>Things you can do:</h2>
   <ol>
-    <li><a href="https://duckduckgo.com/?q=how+to+open+browser+developer+console">Open the dev console</a> and invoke <code>x(10)</code> or <code>x(-10)</code></li>
+    <li><a href="https://duckduckgo.com/?q=how+to+open+browser+developer+console">Open the dev console</a> and invoke <code>setX(10)</code>, <code>setX(-10)</code>, <code>setY(10)</code> or <code>setY(-10)</code></li>
     <li>Hit the left and right arrow keys</li>
+    <li>Watch the pretty animation.</li>
     <li>Start and stop the animation with the 's' key.</li>
     <li>Start and stop the animation with <code>animate()</code> in the console.</li>
   </ol>
+
   <svg width="500" height="500">
     <rect id="1" x="0" y="0" width="100" height="100" fill="green" />
   </svg>
+
   <script>
   // Give the user something to do at the console.
   function setX(val, inc = true) {
@@ -43,24 +47,24 @@
   });
 
   // Now lets output circular motion. 
-  const s = 1000;
-  const start = Date.now();
+  const ms = 1;
+  const s = 1000 * ms;
   const period = 5 * s;
-  const magnitude = 1;
+  const magnitude = .5;
   const [dx, dy] = [0, 0];
 
   let timerID = 0;
 
   function animate() {
   	if (timerID) return timerID;
-    timerID= setInterval(e => {
-      const elapsed = Date.now() - start;
-      const theta = elapsed * 2 * Math.PI / period;
+    timerID = setInterval(e => {
+      const t = Date.now();
+      const theta = t * 2 * Math.PI / period;
       const [x, y] = [Math.cos(theta), Math.sin(theta)];
       // Yay, we can set the thing.
       setX(x * magnitude + dx);
       setY(y * magnitude + dy);
-    }, 17);
+    }, 17 * ms);
     return timerID;
   }
   animate();
