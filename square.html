@@ -9,11 +9,9 @@
 <body>
   <h2>Things you can do:</h2>
   <ol>
-    <li><a href="https://duckduckgo.com/?q=how+to+open+browser+developer+console">Open the dev console</a> and invoke <code>setX(10)</code>, <code>setX(-10)</code>, <code>setY(10)</code> or <code>setY(-10)</code></li>
-    <li>Hit the left and right arrow keys</li>
     <li>Watch the pretty animation.</li>
-    <li>Start and stop the animation with the 's' key.</li>
-    <li>Start and stop the animation with <code>animate()</code> in the console.</li>
+    <li>Start and stop the animation with the space bar.</li>
+    <li>Interact with the dev console.</li>
   </ol>
 
   <svg width="500" height="500">
@@ -21,6 +19,9 @@
   </svg>
 
   <script>
+  'use strict';
+
+	if (navigator.userAgent.indexOf("MSIE") > -1) window.alert('IE not supported. Use Firefox, Chrome, Opera, Safari or Edge');
 
   const number = val => {
   	if (typeof val !== 'number') throw new Error(`${val} is not a number`);
@@ -29,22 +30,13 @@
   	if (typeof val !== 'string') throw new Error(`${val} is not a string`);
   };
 
-  const setAttribute = (elt, attr, value) => {
-  	string(attr) && number(value);
-  	elt.setAttribute(attr, 1 * elt.getAttribute(attr) + value);
-  }
-
-
   // Define the basic degrees of freedom in the DOM.
   const SQUARE = document.getElementById('1');
-  const setX = x => setAttribute(SQUARE, 'x', x);
-  const setY = y => setAttribute(SQUARE, 'y', y);
-
 
   // Now lets output circular motion. 
   function* circlePath(stepsPerRotation = 60, theta = 0){
   	while (true) {
-  		theta += 2 * Math.PI/stepsPerRotation;
+  		theta += 2 * Math.PI / stepsPerRotation;
   		yield [Math.cos(theta), Math.sin(theta)];
   	}
   }
@@ -54,33 +46,53 @@
   const stepsPerRotation = 120; //the more steps, the slower.
 
   const path = circlePath(stepsPerRotation);
-  let animating = true;
+  const state = {x: 0, y: 0, animating: true}
 
-  function animate() {
-    const [x, y] = path.next().value;
-    setX(x * cx);
-    setY(y * cy);
-    if (animating) requestAnimationFrame(animate);
+  // Combine two objects, mutating target
+  const combine = (target, obj) => {
+  	if (typeof obj === 'undefined') return;
+  	for (const key in obj){
+  		if (typeof target[key] === 'boolean'){
+  			target[key] = !target[key];
+  		} else {
+  			target[key] = target[key] + obj[key];
+  		}
+  	}
   }
 
-	const docs = ['Green Square'];
-	docs.push('Press the left, right up, down arrow key to move');
-	docs.push('Press the "s" key to start and stop the animation');
+  // Render an object as svg attributes
+  const render = (elt, obj) => {
+  	for (const key in obj)
+  		elt.setAttribute(key, obj[key]);
+  }
+
+  // The central loop, always running.
+  const animate = ()=>{
+  	if (state.animating){
+	    let [dx, dy] = path.next().value;
+	    [dx, dy] = [dx * cx, dy * cy];
+	    combine (state, {x:dx, y:dy});
+  	}
+  	render (SQUARE, state);
+  	requestAnimationFrame(animate);
+  }
 
   // Give the user something to do with the keyboard.
+	const inputs = {
+		'd' : {x:10},
+    'a' : {x:-10},
+  	'w' : {y:-10},
+    's' : {y:10},
+    ' ' : {animating: 'toggle'},
+	};
+
   document.body.addEventListener('keydown', e => {
-  	if (e.key === 'ArrowRight') setX(10);
-    if (e.key === 'ArrowLeft') setX(-10);
-  	if (e.key === 'ArrowUp') setY(-10);
-    if (e.key === 'ArrowDown') setY(10);
-    if (e.key === 's') {
-      animating = !animating;
-      animate();
-    }
+  	const obj = inputs[e.key];
+  	combine(state, obj);
   });
 
   animate();
-  console.info(docs);
+  console.info(inputs);
 
   </script>
 </body>
