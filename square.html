@@ -40,17 +40,6 @@
   const setY = y => setAttribute(SQUARE, 'y', y);
 
 
-  // Give the user something to do with the keyboard.
-  document.body.addEventListener('keydown', e => {
-    if (e.key === 'ArrowUp') setY(-10);
-    if (e.key === 'ArrowDown') setY(10);
-  });
-
-  document.body.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight') setX(10);
-    if (e.key === 'ArrowLeft') setX(-10);
-  });
-
   // Now lets output circular motion. 
   function* circlePath(stepsPerRotation = 60, theta = 0){
   	while (true) {
@@ -60,32 +49,38 @@
   }
 
   // Animation is a little more involved.
-  const px = ms = 1, s = 1000 * ms, fps = 60;
-  const animationRate = s / fps;
   const [cx,cy] = [1,1];
-  const stepsPerRotation = 120;
+  const stepsPerRotation = 120; //the more steps, the slower.
 
-  let timerID = 0;
   const path = circlePath(stepsPerRotation);
-
+  let animating = true;
+  
   function animate() {
-  	if (timerID) return timerID;
-    timerID = setInterval(e => {
-      const [x, y] = path.next().value;
-      setX(x * cx);
-      setY(y * cy);
-    }, animationRate);
-    return timerID;
+    const [x, y] = path.next().value;
+    setX(x * cx);
+    setY(y * cy);
+    if (animating) requestAnimationFrame(animate);
   }
 
-  // Allow the user to start and stop with the s key.
+	const docs = ['Green Square'];
+	docs.push('Press the left, right up, down arrow key to move');
+	docs.push('Press the "s" key to start and stop the animation');
+  // Give the user something to do with the keyboard.
   document.body.addEventListener('keydown', e => {
+  	if (e.key === 'ArrowRight') setX(10);
+    if (e.key === 'ArrowLeft') setX(-10);
+  	if (e.key === 'ArrowUp') setY(-10);
+    if (e.key === 'ArrowDown') setY(10);
+    
     if (e.key === 's') {
-      timerID = timerID ? clearInterval(timerID) : animate();
+    	// animate(); //this will speed up rotation in chrome!
+      animating = !animating;
+      if (animating) animate();
     }
   });
 
   animate();
+  console.info(docs);
 
   </script>
 </body>
