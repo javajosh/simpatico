@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="description" content="This file conforms to the conventions set forth in simpatico.io/docs/component_conventions.html">
+	<meta name="description" content="combine.js test file. This file conforms to the conventions set forth in simpatico.io/docs/component_conventions.html">
 	<meta name="keywords" content="HTML,CSS,JavaScript">
 	<meta name="author" content="Josh Rehman">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="refresh" content="2">
-	<title>Combine</title>
+	<!-- <meta http-equiv="refresh" content="2"> -->
+	<title>Combine.js</title>
 
 </head>
 <body>
 	<h1>Combine.js</h1>
 	<p>Josh Rehman <i>20 Jan 2019</i></p>
 	
+	<p>we could do some more stuff with <code>init()</code> and also pre- and post-conditions on handler installation and invocation.</p>
 	<svg id="0" width="500" height="500" viewBox="-250 -250 500 500" style="border:1px solid black" >
 		<rect id="1" x="0" y="-20" width="10" height="10" fill="green" rotating="true" />
 		<rect id="2" x="0" y="0" width="10" height="10" fill="blue" rotating="false" />
@@ -24,6 +25,83 @@
 	<script>
 		"use strict";
 
+		install(window, assertions);
+		console.log('Starting');
+
+
+		let count = 0;
+		const test= (target, msg, expected, print=true) => {
+			// if (print) log('target', target, 'msg', msg);
+			const result = combine(target, msg);
+			if (print) log(count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
+			deepEquals(expected, result);
+		};
+		const UNIT = {};
+
+		// NUMBERS add
+		test(1,1,2);
+		// numbers zeroed with null
+		test(9,null,0);
+
+		// strings are replaced
+		test('a','b','b');
+
+		// ARRAYS
+		// scalars are pushed
+		test([],1,[1]);
+		test([],'a',['a']);
+		// arrays are concatenated
+		test([1],[2],[1,2]);
+		// can be emptied with null
+		test([1,2], null, []);
+
+		// OBJECTS use all the scalar rules for their leaf keys.
+		test({},{},{});
+		test({},{a:1},{a:1});
+		test({a:1},{a:1},{a:2});
+		// test({a:1},{b:2},{a:1, b:2}); my bad deepEquals function makes this fail :(
+		test({a:99}, {a:null}, {a:0});
+		test({a:[]}, {a:1}, {a:[1]});
+
+		// We can reach in deeply without touching the rest of the object.
+		test({a:{b:1}, c:2}, {a:{b:1}}, {a: {b:2}, c:2})
+		
+		// Functions are invoked.
+		test(a=>a+1, 1, 2);
+		// Nulling out a function makes it the identity
+		let result = combine(a=>a+1, null, false);
+		assertEquals(result(1), 1);
+		// Functions are composed, with the right most coming first
+		result = combine(a=>a+1, a=>2*a);
+		assertEquals(result(2),5);
+
+		// Handlers are objects with the 'handle' property and react to 'msg' objects.
+		// This is handler registration
+		test(UNIT, {name:'test', handle: (ctx, msg) => ({a:1})}, {"handlers":{"test":{"name":"test"}}});
+
+		// Register a handler and keep it around.
+		result = combine(UNIT, {name:'test', handle: (ctx, msg) => ({a:1})});
+		result = combine(result, {msg: 'test'}, false);
+		assert(result.a === 1);
+		result = combine(result, {a: 1}, false);
+		assert(result.a === 2);
+		// Invoke the handler a second time.
+		result = combine(result, {msg: 'test'}, false);
+		assert(result.a === 3);
+
+
+		// Handlers can call each other- forming a message cascade.
+		result = combine(UNIT, {
+			name:'a', 
+			handle: (ctx, msg) => [{a:1},{msg:'b'}],
+		});
+		result = combine(result, {
+			name:'b', 
+			handle: (ctx, msg) => [{b:1}],
+		});
+		result = combine(result, {msg: 'a'});
+		assert(result.a === 1 && result.b === 1);
+		log('tests succeeded!');
 	</script>
 </body>
 </html>

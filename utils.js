@@ -15,9 +15,12 @@ const TYPES = {
   ARR: 'array',
   NULL: 'null',
   UNDEF: 'undefined',
-  CALL: 'call',
-  HANDLER: 'handler',
+  MSG: 'msg',
+  HANDLER: 'handle',
 };
+
+const log = console.log.bind(console);
+Array.prototype.peek = function(){return this.length ? this[this.length-1] : null};
 
 const assert = (a, msg) => {
   if (!a) throw new Error(msg)
@@ -58,8 +61,8 @@ const getType = (a) => {
   if (a === null) return TYPES.NULL;
   if (a === undefined) return TYPES.UNDEF;
 
-  if (a.hasOwnProperty(TYPES.CALL)) return TYPES.CALL;
-  if (a.hasOwnProperty(TYPES.HANDLER)) return TYPES.HANDLER;
+  if (a.hasOwnProperty(TYPES.MSG) && typeof a[TYPES.MSG] === TYPES.STR) return TYPES.MSG;
+  if (a.hasOwnProperty(TYPES.HANDLER) && typeof a[TYPES.HANDLER] === TYPES.FUN) return TYPES.HANDLER;
 
   return TYPES.OBJ;
 };
@@ -86,6 +89,7 @@ const predicates = {
   contains: (arr, a) => arr.contains(a),
   between: (min, max, num) => min <= num && num <= max,
   deepEquals : (a,b) => JSON.stringify(a) === JSON.stringify(b),
+  defined: (a) => getType(a) !== TYPES.NULL && getType(a) !== TYPES.UNDEF,
 };
 
 // Generally useful functions on arrays.
@@ -94,6 +98,8 @@ const arrays = {
   add: (a, b) => arrays.zip(a, b).map(d => d[0] + d[1]),
   dot: (a, b) => arrays.zip(a, b).map(c => d[0] * d[1]),
   mul: (arr, c) => arr.map(d => c * d),
+  peek:(arr) => arr.length ? arr[arr.length -1] : null,
+  push: (arr, a) => {arr.push(a); return arr},
   _f : (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e)))),
   cartesian : (a, b, ...c) => (b ? arrays.cartesian(arrays._f(a, b), ...c) : a),
 };
@@ -105,7 +111,7 @@ const assertions = {
   eq: (a, b) => assert(predicates.eq(a, b), `Expected arrays to be equal [${a}] and [${b}]`),
   contains: (arr, a) => assert(predicates.contains(arr, a), `Expected array [${arr}] to contain value ${a}, but it didn't`),
   between: (min, max, num) => assert(predicates.between(min, max, num), `Middle number out of bounds: ${min} <= ${num} && ${num} <= ${max}`),
-  deepEquals: (a,b) => assert(predicates.deepEquals(a,b), `${a} is not deeply equal to ${b}`),
+  deepEquals: (a,b) => assert(predicates.deepEquals(a,b), `${JSON.stringify(a)} is not deeply equal to ${JSON.stringify(b)}`),
 }
 
 // Add all the types to the assertion object too.
@@ -124,7 +130,7 @@ const install = (target, source) => Object.keys(source).forEach(key => {
 // Combine two objects, mutating target
 // Similar to Object.assign, but use the target values
 // (The only time we don't use the value is when the target is a string)
-const combine = (target, obj, print=false) => {
+const combine_basic = (target, obj, print=false) => {
   if (typeof obj === 'undefined') return;
   for (const key in obj){
     if (typeof target[key] === 'boolean'){
