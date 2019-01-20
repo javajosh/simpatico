@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="description" content="Title">
+	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
+	<meta name="author" content="Josh Rehman">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- <meta http-equiv="refresh" content="2"> -->
+	<title>Utils</title>
+
+</head>
+<body>
+	<h1>Utils</h1>
+	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<script src="./utils.js"></script>
+	<script>
+		"use strict";
+		console.log('Begin tests for utils.js');
+
+		install(window, assertions);
+
+		str('foobar');
+		num(1);
+		bool(false);
+		fun(()=>{});
+		obj({});
+		arr([]);
+		between(0,10,5);
+
+		all([1,1,1], 1);
+
+		same([true, true]);
+		same([false, false]);
+		same([1,1,1,1,1]);
+		
+		assertThrows(()=>num('1'));
+		assertThrows(()=>bool('1'));
+		assertThrows(()=>obj([]));
+		assertThrows(()=>between(0,10,11));
+		assertThrows(()=>between(0,10,'a'));
+		assertThrows(()=>same([false, true]));
+		assertThrows(()=>all([1,1,2]));
+
+		console.log('Tests succeeded!');
+	</script>
+</body>
+</html>

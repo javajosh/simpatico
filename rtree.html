@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="description" content="Title">
+	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
+	<meta name="author" content="Josh Rehman">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="refresh" content="2">
+	<title>Rehman Tree</title>
+
+</head>
+<body>
+	<h1>Rehman Tree</h1>
+	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<script src="./rtree.js"></script>
+	<script>
+		"use strict";
+		function test(){
+		  // define test helpers
+		  const equals = (a, b) => assert(a===b, `${a} not equal to ${b}`);
+		  const throws = fn => {let a = false; try{fn()} catch(e){a=true}; assert(a, 'fn did not throw')};
+
+
+		  // define & run module/unit tests
+		  const r = rtree();
+		  assert(getType(r) === OBJ, 'rtree is an object');
+		  assert(r.hasOwnProperty('addNode') && getType(r.addNode) === FUN, 'rtree has an "addNode()" function property');
+		  assert(r.hasOwnProperty('getBranchNodes') && getType(r.getBranchNodes) === FUN, 'rtree has an "getBranchNodes()" array property');
+
+		  equals(r.getBranchNodes().length, 0);
+		  r.addNode('a');
+		  equals(r.getBranchNodes().length, 1);
+		  r.addNode('a');
+		  equals(r.getBranchNodes().length, 2);
+		}
+
+		test();
+
+		console.log('Success!')
+
+	</script>
+</body>
+</html>
