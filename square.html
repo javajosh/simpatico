@@ -17,103 +17,53 @@
   </ol>
 
   <svg id="0" width="500" height="500" viewBox="-250 -250 500 500" style="border:1px solid black" >
-    <rect id="1" x="0" y="-20" width="10" height="10" fill="green" rotating="true" />
+    <rect id="1" x="0" y="-20" width="10" height="10" fill="green" rotating="true" stepsPerRotation = "120" />
     <rect id="2" x="0" y="0" width="10" height="10" fill="blue" rotating="false" />
   </svg>
 
   <p>It's still not good yet. The problem is that the state (in this case the three degrees of freedom of the animation, x, y and 'rotating') isn't really bounded, and the state does not output a description of allowable bounds. It would be possible to add some ad hoc handlers, but they would end up looking more like Redux reducers because our <code>combine</code> function here is so simple and weak. It's possible to put more validation in a wide variety of places, but each of those options comes with significant drawbacks. </p>
 
+  <script>
+    // The other script tags probably won't even parse.
+    if (navigator.userAgent.indexOf("MSIE") > -1) 
+      window.alert('IE is not supported.');
+  </script>
   <script src="utils.js"></script>
-
   <script>
   'use strict';
 
-
-  // Capabilities check
-	if (navigator.userAgent.indexOf("MSIE") > -1) 
-		window.alert('IE is not supported.');
-
   install(window, assertions);
-  
-	// Assertion library
-  const number = val => {
-  	if (typeof val !== 'number') 
-  		throw new Error(`${val} is not a number`);
-  };
-  const string = val => {
-  	if (typeof val !== 'string') 
-  		throw new Error(`${val} is not a string`);
-  };
+
+  // Convention: define references to declared markup as constants.
+  // const BOARD = document.getElementById('0');
+  const SQUARE = document.getElementById('1');
+  // Note that the values don't really matter, but the types should be accurate.
+  const state = {x: 0, y: 0, rotating: true, scale:1, stepsPerRotation: 120};
+  // const board = {width: 500, height: 500};
+
+  gather(SQUARE, state);
+  // gather(BOARD, board);
+
 
   // A generator function that returns a rotating vector
   function* circlePath(stepsPerRotation = 60, theta = 0){
-  	while (true) {
-  		theta += 2 * Math.PI / stepsPerRotation;
-  		yield [Math.cos(theta), Math.sin(theta)];
-  	}
+    while (true) {
+      theta += 2 * Math.PI / stepsPerRotation;
+      yield [Math.cos(theta), Math.sin(theta)];
+    }
   }
 
-  // Convention: define references to declared markup as constants.
-  const BOARD = document.getElementById('0');
-  const SQUARE = document.getElementById('1');
-  const state = {x: 'number', y: 'number', rotating: 'boolean', scale:'number'};
-  const board = {width: 'number', height: 'number'};
-
-  // Load the initial values of state from the DOM!
-  const gather = (elt, obj) => {
-  	for (const key in obj){
-  		const type = obj[key];
-  		const val = elt.getAttribute(key);
-  		// TODO: switch on getType.
-  		if (type === 'number') 
-  			obj[key] = 1 * val;
-  		if (type === 'boolean') 
-  			obj[key] = (val === 'true') ? true : false ;
-  		if (type === 'string') 
-  			obj[key] = val;
-  	}
-  };
-  gather(SQUARE, state);
-  gather(BOARD, board);
-
-  // Combine two objects, mutating target
-  // Similar to Object.assign, but uses the target values
-  const combine = (target, obj) => {
-  	if (typeof obj === 'undefined') return;
-  	for (const key in obj){
-  		if (typeof target[key] === 'boolean'){
-  			target[key] = !target[key];
-  		} else if (typeof target[key] === 'number'){
-  			target[key] = target[key] + obj[key];
-  		} else {
-  			target[key] = obj[key]
-  		}
-  	}
-  	console.log(target);
-  }
-
-  // Render an object as svg attributes
-  const render = (elt, obj) => {
-  	for (const key in obj){
-  		const old = elt.getAttribute(key);
-  		if (obj[key] + '' !== old)
-  			elt.setAttribute(key, obj[key]);
-  	}
-  }
+  const path = circlePath(state.stepsPerRotation);
 
   // The central loop, always running.
-  state.scale=1;
-  const stepsPerRotation = 120; //the more steps, the slower.
-  const path = circlePath(stepsPerRotation);
-
   const animate = ()=>{
   	if (state.rotating){
 	    let [dx, dy] = path.next().value;
 	    let c = state.scale;
 	    [dx, dy] = [dx * c, dy * c];
-	    combine (state, {x:dx, y:dy});
+	    combine(state, {x:dx, y:dy});
   	}
-  	render (SQUARE, state);
+  	scatter(SQUARE, state);
   	requestAnimationFrame(animate);
   }
 
@@ -131,9 +81,10 @@
   document.body.addEventListener('keydown', e => {
   	const input = inputs[e.key];
   	combine(state, input);
+    scatter(SQUARE, state);
   });
 
-  // animate();
+  animate();
 
   </script>
 </body>

@@ -28,11 +28,16 @@
 		arr([]);
 		between(0,10,5);
 
+		bool(cast('boolean', 'false'));
+		num(cast('number', "1234"));
+
 		all([1,1,1], 1);
 
 		same([true, true]);
 		same([false, false]);
 		same([1,1,1,1,1]);
+
+		deepEquals({a:1, b:[2,3]},{a:1, b:[2,3]})
 		
 		assertThrows(()=>num('1'));
 		assertThrows(()=>bool('1'));
@@ -41,6 +46,8 @@
 		assertThrows(()=>between(0,10,'a'));
 		assertThrows(()=>same([false, true]));
 		assertThrows(()=>all([1,1,2]));
+		assertThrows(()=>num(cast('number', 'a')));
+		assertThrows({a:1, b:[2,3]},{a:1, b:[2,3, false]});
 
 		console.log('Tests succeeded!');
 	</script>
