@@ -22,7 +22,11 @@
 		deepEquals(r.tip(), {});
 
 		r.add(1); r.add(2); r.add(3); r.add(4);
+		let result = r.add(5);
+		arr(result);
+		assertEquals(6, result.length);
 
+		
 
 		log('tests succeeded!');
 

@@ -3,7 +3,7 @@ const rtree = (root = {})=>{
 	const nodes = [root];
 
 	const tip = () => nodes.peek();
-	const add = (val) => nodes.push({parent: tip(), val});
+	const add = (val) => {nodes.push({parent: tip(), val}); return nodes;};
 	return {nodes, tip, add};
 }
 
