@@ -1,10 +1,54 @@
 // Lets start with a simple single-linked list.
-const rtree = (root = {})=>{
-	const nodes = [root];
+install(window, assertions);
+install(window, arrays);
 
-	const tip = () => nodes.peek();
-	const add = (val) => {nodes.push({parent: tip(), val}); return nodes;};
-	return {nodes, tip, add};
+const rtree = (val = null)=>{
+	const root = {parent: null, val};
+	const nodes = [root];
+	const tips = [root];
+	let tipIndex = 0;
+
+	const tip = () => tips[tipIndex];
+
+	const add = (val, parent = tip()) => {
+		contains(nodes, parent);
+		const node = {parent, val};
+		const i = tips.indexOf(parent);
+		if (i !== -1){
+			tips[i] = node;
+		} else {
+			tips.push(node);
+			tipIndex = tips.length - 1;
+		}
+		nodes.push(node);
+		return node;
+	};
+
+	const setTipIndex = index => {
+		between(0, tips.length - 1, index);
+		tipIndex = index;
+		return tip();
+	}
+
+	const path = (node = tip()) => {
+		const result = [node];
+		while(node.parent) {
+			node = node.parent;
+			result.push(node);
+		}
+		return result.reverse();
+	}
+
+	const valuePath = (node = tip()) => path(node).map(n => n.val);
+
+	// This is the only place rtree depends on combine!!
+	const residue = (node = tip(), base = 0) => 
+		valuePath(node).reduce((acc, val) => combine(acc, val), base);
+
+	const paths = () => tips.reduce((acc, tip) => push(acc, path(tip)) , []);
+	const residues = (base = 0) => tips.reduce((acc, tip) => push(acc, residue(tip)) , []);
+
+	return {nodes, add, tip, tips, setTipIndex, path, paths, valuePath, residue, residues};
 }
 
 

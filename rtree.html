@@ -8,25 +8,45 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- <meta http-equiv="refresh" content="2"> -->
 	<title>Rehman Tree</title>
+
 </head>
 <body>
 	<h1>Rehman Tree</h1>
 	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<p>Not super happy with this right now in a few ways:</p>
+	<ol>
+		<li>The tests are bad - very few assertions. Need to add more specific path stuff</li>
+		<li>The implementation uses references and (new) objects around everything. I'm not sure if I olke that. I sort of liked my array-based index-based API from before, and it certaily serializes better, and potentially saves a lot of space when there are long runs on the same branch.</li>
+		<li>I can't help but think I'm missing something very elegant - my previous "offset" solution was actually rather elegant, after all.</li>
+		<li>I am, however, totally happy that this data-structure is totally independent of <code>combine()</code> - it really is different. Eventually there will be a cool data-structure associated with the tips, but that's strictly a composite data-structure</li>
+		<li>I still want to get clever with the coordinate system, using positive numbers for node parents and negative for branch parents, for example.</li>
+		<li>I don't mind the statefulness of the tipIndex. I thought i would, but I don't.</li>
+	</ol>
 	<script src='./utils.js'></script>
 	<script src="./rtree.js"></script>
+	<script src="./combine.js"></script>
+
 	<script>
 		"use strict";
 		install(window, assertions);
 
-		const r = rtree();
-		deepEquals(r.tip(), {});
+		// The basic rtree has an empty object as root
+		let r = rtree();
+		deepEquals(r.tip(), {parent:null, val:null});
 
+		// Without a parent argument, each value is set to the previous value
 		r.add(1); r.add(2); r.add(3); r.add(4);
-		let result = r.add(5);
-		arr(result);
-		assertEquals(6, result.length);
+		arr(r.nodes);
+		assertEquals(5, r.nodes.length);
 
-		
+		// If we store a reference to the node, we can later add nodes to it.
+		r = rtree(0);
+		let n = r.add(1);
+		r.add(2);
+		r.add(3, n);
+		n = r.add(4, n);
+
+		let path = r.path(n).map(n => n.val);
 
 		log('tests succeeded!');
 

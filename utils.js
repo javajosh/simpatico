@@ -86,7 +86,7 @@ const predicates = {
   all: (arr, val) => arr.reduce((acc, a) => (a === val) && acc, true),
   same: (arr) => predicates.all(arr, arr[0]),
   eq: (a, b) => a.length === b.length && predicates.all(zip(a, b).map(d => d[0] === d[1])),
-  contains: (arr, a) => arr.contains(a),
+  contains: (arr, a) => arr.includes(a),
   between: (min, max, num) => min <= num && num <= max,
   deepEquals : (a,b) => JSON.stringify(a) === JSON.stringify(b),
   defined: (a) => getType(a) !== TYPES.NULL && getType(a) !== TYPES.UNDEF,
