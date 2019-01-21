@@ -73,12 +73,13 @@
 
   // The central loop, always running.
   const animate = ()=>{
-  	if (state.rotating){
-	    let [dx, dy] = path.next().value;
-	    let c = state.scale;
-	    [dx, dy] = [dx * c, dy * c];
-	    state = combine(state, {msg: 'pos', dx, dy});
-  	}
+    if (!state.rotating) return;
+
+    let [dx, dy] = path.next().value;
+    let c = state.scale;
+    [dx, dy] = [dx * c, dy * c];
+    state = combine(state, {msg: 'pos', dx, dy});
+
   	scatter(SQUARE, state);
   	requestAnimationFrame(animate);
   }
@@ -99,6 +100,7 @@
     if (!input) return;
   	state = combine(state, input);
     scatter(SQUARE, state);
+    if (e.key === ' ' && state.rotating) animate();
   });
 
   animate();

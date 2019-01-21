@@ -3,12 +3,11 @@
 install(window, TYPES);
 
 const combine = (target, msg, print=false) => {
-  let tmsg = getType(msg), ttarget = getType(target);
-  if (ttarget === ARR){
-    if (tmsg !== ARR && tmsg !== NULL) tmsg = ANY; 
-  }
-  if (ttarget === FUN){
-    if (tmsg !== FUN && tmsg !== NULL) tmsg = ANY; 
+  let ttarget = getType(target);
+  let tmsg = getType(msg); 
+  if ((ttarget === ARR || ttarget === FUN) && (tmsg !== ARR && tmsg !== NULL)) {
+    // virtual rule: function or array target 
+    tmsg = ANY; 
   }
   const ruleKey = ttarget + tmsg;
   const rule = rules[ruleKey];

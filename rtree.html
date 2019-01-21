@@ -6,16 +6,25 @@
 	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
 	<meta name="author" content="Josh Rehman">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="refresh" content="2">
+	<!-- <meta http-equiv="refresh" content="2"> -->
 	<title>Rehman Tree</title>
 </head>
 <body>
 	<h1>Rehman Tree</h1>
 	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<script src='./utils.js'></script>
 	<script src="./rtree.js"></script>
 	<script>
 		"use strict";
-		
+		install(window, assertions);
+
+		const r = rtree();
+		deepEquals(r.tip(), {});
+
+		r.add(1); r.add(2); r.add(3); r.add(4);
+
+
+		log('tests succeeded!');
 
 	</script>
 </body>
