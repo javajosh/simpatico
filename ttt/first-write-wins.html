@@ -1,0 +1,30 @@
+<h4>Click Add</h6>
+<form action="#">
+  <input name="userId" value="alice"/>
+  <input name="timeStamp" value="123123"/>
+  <input name="id" value="12355"/>
+  <input name="first" value="asdf"/>
+  <input name="last" value="jkl;"/>
+  <input name="dob" value="4-12-1900"/>
+  <input type="button" value="Add" onclick="clickAdd(event)"/>
+  <input type="button" value="Reset" onclick="clickReset(event)"/>
+</form>
+
+<h4>Summary</h4>
+<div id="summary"></div>
+
+<h4>Log</h4>
+<div id="output"></div>
+
+<p>Create an in-memory "database" of tuples, and then produce a summary row, computed by using the most recent non-empty value in that column. One limitation is that if there is no baseline value there will be an exception.</p>
+<h4>Improvements</h4>
+<ol>
+  <li>Reverse sort the log.</li>
+  <li>Highlight the summary values in the log.</li>
+  <li>Select a row in the log to see the summary at that point in time.</li>
+  <li>Add property protection for a fixed subset of fields (e.g. user and timestamp).</li>
+  <li>Model a sensor workflow by filling out one or two fields at a time, from left to right.</li>
+  <li>Add a boolean, date, select input</li>
+  <li>Add placeholder text to inputs</li>
+  <li>Add JSON input: scatter fields to the form.</li>
+</ol>
