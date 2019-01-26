@@ -6,20 +6,22 @@
 	<meta name="keywords" content="HTML,CSS,JavaScript">
 	<meta name="author" content="Josh Rehman">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<!-- <meta http-equiv="refresh" content="2"> -->
+	<link id="favicon" rel="icon" type="image/png" href="white.png" />
+	<meta id="refresh" http-equiv="refresh" content="2">
 	<title>Combine.js</title>
 
 </head>
 <body>
 	<h1>Combine.js</h1>
 	<p>Josh Rehman <i>20 Jan 2019</i></p>
-	
-	<p>we could do some more stuff with <code>init()</code> and also pre- and post-conditions on handler installation and invocation.</p>
-	<svg id="0" width="500" height="500" viewBox="0 0 500 500" style="border:1px solid black" >
-		<rect id="1" x="0" y="-20" width="10" height="10" fill="green" rotating="true" />
-		<rect id="2" x="0" y="0" width="10" height="10" fill="blue" rotating="false" />
-	</svg>
+	<p>deps: utils.js</p>
+	<button onclick="window.stop()">Stop 2s Refresh</button>
 
+	<p>we could do some more stuff with <code>init()</code> and also pre- and post-conditions on handler installation and invocation.</p>
+
+	<script>
+		window.onerror = e => document.getElementById('favicon').href='red.png';
+	</script>
 	<script src="./utils.js"></script>
 	<script src="./combine.js"></script>
 	<script>
@@ -103,7 +105,10 @@
 		});
 		result = combine(result, {msg: 'a'});
 		assert(result.a === 1 && result.b === 1);
-		log('tests succeeded!');
+		
+
+		console.log('Tests succeeded!');
+		document.getElementById('favicon').href='green.png';
 	</script>
 </body>
 </html>

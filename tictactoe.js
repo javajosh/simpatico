@@ -2,7 +2,7 @@
 // The state itself is stored in a closure. A nice property if you were to remove the wrapper
 // you would still have (one) working game. The wrapper allows you to create more than
 // one game.
-function createGame(initialState, debug = true){
+function TicTacToe(initialState, debug = true){
   const X = 1, O = 2;
   const board = initialState || [[0,0,0],[0,0,0],[0,0,0]];
   let turn = debug ? true : Math.random() > .5;
@@ -26,11 +26,6 @@ function createGame(initialState, debug = true){
   if (debug) console.log(count++, board);
   return {move, getCurrentPlayer, getBoard}
 }
-
-const g1 = createGame();
-g1.move(0,0); 
-g1.move(0,1);
-
 
 // The simplest is to list all possibilities.
 // The coolest is to use a magic square.

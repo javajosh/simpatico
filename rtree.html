@@ -6,13 +6,16 @@
 	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
 	<meta name="author" content="Josh Rehman">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<!-- <meta http-equiv="refresh" content="2"> -->
+	<link id="favicon" rel="icon" type="image/png" href="white.png" />
+	<meta id="refresh" http-equiv="refresh" content="2">
 	<title>Rehman Tree</title>
 
 </head>
 <body>
 	<h1>Rehman Tree</h1>
 	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<p>deps: utils, combine</p>
+	<button onclick="window.stop()">Stop 2s Refresh</button>
 	<p>Not super happy with this right now in a few ways:</p>
 	<ol>
 		<li>The tests are bad - very few assertions. Need to add more specific path stuff</li>
@@ -23,9 +26,13 @@
 		<li>I don't mind the statefulness of the tipIndex. I thought i would, but I don't.</li>
 		<li>We now have support for residue but it's not really involved in adding yet.</li>
 	</ol>
+
+	<script>
+		window.onerror = e => document.getElementById('favicon').href='red.png';
+	</script>
 	<script src='./utils.js'></script>
-	<script src="./rtree.js"></script>
 	<script src="./combine.js"></script>
+	<script src="./rtree.js"></script>
 
 	<script>
 		"use strict";
@@ -49,7 +56,8 @@
 
 		let path = r.path(n).map(n => n.val);
 
-		log('tests succeeded!');
+		console.log('Tests succeeded!');
+		document.getElementById('favicon').href='green.png';
 
 	</script>
 </body>
