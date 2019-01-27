@@ -7,7 +7,7 @@
 
 const TYPES = {
   STR: 'string',
-  ANY: '',
+  ANY: 'any',
   NUM: 'number',
   BOOL: 'boolean',
   OBJ: 'object',

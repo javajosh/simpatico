@@ -77,6 +77,16 @@ console.log('get', [[0,0],[0,3]], [1,1], get([[0,0],[2,4]], [1,0]));
 console.log('all', all([true, true, true]), all([true, false, true]));
 console.log('eq', all([1,2,3], [1,2,3]))
 
+
+const coord0 = [
+  [0,1,2],
+  [3,4,5],
+  [6,7,8],
+];
+
+
+
+
 // Empty isn't used, but it turns out this string is really handy
 const empty = [
   [[],[],[]],
