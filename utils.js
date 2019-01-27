@@ -42,8 +42,6 @@ const assertThrows = fn => {
   assert(throws, `Expected fn to throw, but it didn't`);
 };
 
-// This is a very simple curry for two variables. Pareto principal!
-const curry = (f, a) => b => f(a, b);
 
 // Map over all entries passing (key,val) into the mapFn
 const objectMap = (object, mapFn) => Object.keys(object).reduce(
@@ -81,12 +79,16 @@ const cast = (type, str) => {
   }
 };
 
+const functions = {
+  curry : (f, a) => b => f(a,b),
+  compose : (f, g) => a => f(g(a)),
+}
+
+const objects = {
+
+}
+
 const predicates = {
-  get: (arr, pos) => pos.length ? get(arr[pos.shift()], pos) : arr,
-  all: (arr, val) => arr.reduce((acc, a) => (a === val) && acc, true),
-  same: (arr) => predicates.all(arr, arr[0]),
-  eq: (a, b) => a.length === b.length && predicates.all(zip(a, b).map(d => d[0] === d[1])),
-  contains: (arr, a) => arr.includes(a),
   between: (min, max, num) => min <= num && num <= max,
   deepEquals : (a,b) => JSON.stringify(a) === JSON.stringify(b),
   defined: (a) => getType(a) !== TYPES.NULL && getType(a) !== TYPES.UNDEF,
@@ -94,28 +96,36 @@ const predicates = {
 
 // Generally useful functions on arrays.
 const arrays = {
+  all: (arr, val) => arr.reduce((acc, a) => (a === val) && acc, true),
+  same: (arr) => arrays.all(arr, arr[0]),
+  eq: (a, b) => a.length === b.length && arrays.all(arrays.zip(a, b).map(d => d[0] === d[1])),
+  contains: (arr, a) => arr.includes(a),
   zip: (a, b) => a.map((d, i) => [d, b[i]]),
   add: (a, b) => arrays.zip(a, b).map(d => d[0] + d[1]),
   dot: (a, b) => arrays.zip(a, b).map(c => d[0] * d[1]),
+  get: (arr, pos) => pos.length ? arrays.get(arr[pos.shift()], pos) : arr,
   mul: (arr, c) => arr.map(d => c * d),
   peek:(arr) => arr.length ? arr[arr.length -1] : null,
   push: (arr, a) => {arr.push(a); return arr},
-  _f : (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e)))),
+  _f: (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e)))),
   cartesian : (a, b, ...c) => (b ? arrays.cartesian(arrays._f(a, b), ...c) : a),
+  copy1: a => [...a],
+  copy2: a => a.slice(),
+  copy3: a => JSON.parse(JSON.stringify(a)),
 };
 
 
 const assertions = {
-  all: (arr, val) => assert(predicates.all(arr, val), `Expected all array values [${arr}] to be ${val} but they weren't`),
-  same: (arr) => assert(predicates.same(arr), `Expected all values in array [${arr}] to be the same, but they weren't`),
-  eq: (a, b) => assert(predicates.eq(a, b), `Expected arrays to be equal [${a}] and [${b}]`),
-  contains: (arr, a) => assert(predicates.contains(arr, a), `Expected array [${arr}] to contain value ${a}, but it didn't`),
+  all: (arr, val) => assert(arrays.all(arr, val), `Expected all array values [${arr}] to be ${val} but they weren't`),
+  same: (arr) => assert(arrays.same(arr), `Expected all values in array [${arr}] to be the same, but they weren't`),
+  eq: (a, b) => assert(arrays.eq(a, b), `Expected arrays to be equal [${a}] and [${b}]`),
+  contains: (arr, a) => assert(arrays.contains(arr, a), `Expected array [${arr}] to contain value ${a}, but it didn't`),
   between: (min, max, num) => assert(predicates.between(min, max, num), `Middle number out of bounds: ${min} <= ${num} && ${num} <= ${max}`),
   deepEquals: (a,b) => assert(predicates.deepEquals(a,b), `${JSON.stringify(a)} is not deeply equal to ${JSON.stringify(b)}`),
 }
 
 // Add all the types to the assertion object too.
-objectMap(TYPES, (typeHandle, type) => assertions[typeHandle.toLowerCase()] = curry(assertType, type))
+objectMap(TYPES, (typeHandle, type) => assertions[typeHandle.toLowerCase()] = functions.curry(assertType, type));
 
 // This is basically an object.assign that prints out an error if the target doesn't permit setting the key
 const install = (target, source) => Object.keys(source).forEach(key => {

@@ -1,7 +1,6 @@
-// The createGame function returns the functions needed to examine and change the state.
-// The state itself is stored in a closure. A nice property if you were to remove the wrapper
-// you would still have (one) working game. The wrapper allows you to create more than
-// one game.
+install(window, arrays);
+install(window, functions);
+
 function TicTacToe(initialState, debug = true){
   const X = 1, O = 2;
   const board = initialState || [[0,0,0],[0,0,0],[0,0,0]];
@@ -55,37 +54,6 @@ function getWinner1(board){
     fail = false;
   }
 }
-
-// Generally useful functions on arrays.
-const zip = (a, b) => a.map((d, i) => [d, b[i]]);
-const add = (a, b) => zip(a,b).map(d => d[0] + d[1]);
-const dot = (a, b) => zip(a,b).map(c => d[0] * d[1]);
-const mul = (arr, c) => arr.map(d => d * c);
-const addc = (arr, c) => arr.map(d => d + c);
-// These functions on arrays return scalars
-const get = (arr, pos) => pos.length ? get(arr[pos.shift()], pos) : arr;
-const all = (arr) => arr.reduce((a,b) => (a !== null && a===b) ? a : false, arr[0]);
-const eq  = (a, b) => a.length === b.length && all(zip(a,b).map(d => d[0] === d[1]));
-const peek = (arr) => arr[arr.length-1];
-// This is a very simple curry for two variables. Pareto principal!
-const curry = (f, a) => b => f(a,b);
-const compose = (f, g) => a => f(g(a))
-
-// Some fast and dirty tests
-console.log('add', add([1,2], [3,4]));
-console.log('get', [[0,0],[0,3]], [1,1], get([[0,0],[2,4]], [1,0]));
-console.log('all', all([true, true, true]), all([true, false, true]));
-console.log('eq', all([1,2,3], [1,2,3]))
-
-
-const coord0 = [
-  [0,1,2],
-  [3,4,5],
-  [6,7,8],
-];
-
-
-
 
 // Empty isn't used, but it turns out this string is really handy
 const empty = [
@@ -171,13 +139,8 @@ const sketch = [
   ]
 ];
 
-const copy1 = a => [...a];
-const copy2 = a => a.slice();
-const copy3 = a => JSON.parse(JSON.stringify(a));
 
-console.log('copy1', copy1([1,2]), 'copy2', copy2([1,2]), 'copy3', copy3([1,2,[3,4]]));
-
-// Okay so the basic idea is to copy the first element, then append and modify the copy.
+// Copy the first element, then append and modify the copy.
 
 let spot = [];
 let clone;
@@ -264,11 +227,4 @@ console.log('hyperhypercube', JSON.stringify(hyperhypercube));
 //   add(board, pos);
 // }
 
-
-
-
-
-
 console.log('everything worked!')
-
-

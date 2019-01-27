@@ -3,9 +3,16 @@
 <head>
 	<meta charset="UTF-8">
 	<title>TicTacToe</title>
+	<link id="favicon" rel="icon" type="image/png" href="white.png" />
+	<meta id="refresh" http-equiv="refresh" content="2">
 </head>
 <body>
-	<h1>Tic-Tac-Toe in functional ES6</h1>
+	<h1>TicTacToe.js</h1>
+	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<p>deps: utils.js</p>
+	<button onclick="window.stop()">Stop 2s Refresh</button>
+
+	<h2>Tic-Tac-Toe in functional ES6</h2>
 	<p>Once upon a time a recruiter asked me to code up tic-tac-toe in some language or another. Maybe python or java. But anyway I really like ES6 and wanted to take a stab at it. Generally, I'm very pleased with this overall code. *The vast majority of complexity is in the winner computation*. So the strategy here is to get all the other computation out of the way, and then play around with winner algorithms.</p>
 
 	<p>One way to think about the algorithm is very close to the metal, and compute it in three phases: across, down, and diagonals. This can be computed on any board and doesn't use the last move as an optimization. It even generalizes pretty well over different board sizes.
@@ -13,11 +20,42 @@
 
 <p>Another approach is to start with the last move, and then take 'slices' of the board in various directions that include that move, and then analyze those slices.</p>
 
+<script src='utils.js'></script>
 <script src='tictactoe.js'></script>
 <script>
-	const g1 = TicTacToe();
-	g1.move(0,0); 
-	g1.move(0,1);
+	"use strict";
+
+	install(window, assertions);
+
+	console.log('Starting tests');
+	window.onerror = e => document.getElementById('favicon').href='red.png';
+	const skipTo = 0;
+	let count = 0;
+	const test = (target, msg, expected, print=true) => {
+		if (skipTo && count < skipTo){
+			count++; 
+			return;
+		}
+
+		const result = combine(target, msg);
+
+		if (print) log(count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
+
+		if (getType(expected) === FUN) expected(result); 
+		else deepEquals(expected, result);
+
+		return result;
+	};
+
+	const UNIT = {};
+	let result;
+
+	result = TicTacToe();
+	result.move(0,0); 
+	result.move(0,1);
+
+	console.log('Tests succeeded!');
+	document.getElementById('favicon').href='green.png';
 </script>
 </body>
 </html>
