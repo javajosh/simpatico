@@ -9,16 +9,18 @@
 <body>
 	<h1>TicTacToe.js</h1>
 	<p>Josh Rehman <i>20 Jan 2019</i></p>
-	<p>deps: utils.js</p>
+	<p>deps: utils.js, combine.js</p>
 	<button onclick="window.stop()">Stop 2s Refresh</button>
 
-	<h2>Tic-Tac-Toe in functional ES6</h2>
-	<p>Once upon a time a recruiter asked me to code up tic-tac-toe in some language or another. Maybe python or java. But anyway I really like ES6 and wanted to take a stab at it. Generally, I'm very pleased with this overall code. *The vast majority of complexity is in the winner computation*. So the strategy here is to get all the other computation out of the way, and then play around with winner algorithms.</p>
+	<h2>Tic-Tac-Toe using Combine.js</h2>
+	<p>
+		Putting aside some interesting things about the winner algorithm (here I opted for the simplest possible thing, a straight-forward, easy string matching problem), this demo is really about using <code>combine()</code> with a finite state machine that halts. This demo has a lot of features, like a turn counter, complete input validation. 
+	</p>
 
-	<p>One way to think about the algorithm is very close to the metal, and compute it in three phases: across, down, and diagonals. This can be computed on any board and doesn't use the last move as an optimization. It even generalizes pretty well over different board sizes.
-</p>
+	<p>
+		One of the things I wanted but didn't do yet is implement the "friendly function convention", where the handlers would <i>tell</i> the world what they expect for messages, both statically and dynamically. However, the predicate language isn't quite ready so that will have to wait. In the meantime this demo demonstrates the ease with which new variations of FSMs can be constructed, at runtime, without traditional inheritence. Next I want to build a visual test harness that lets people build test cases, but also game variations without coding.
+	</p>
 
-<p>Another approach is to start with the last move, and then take 'slices' of the board in various directions that include that move, and then analyze those slices.</p>
 
 <script src='utils.js'></script>
 <script src='combine.js'></script>
@@ -51,10 +53,12 @@
 	const UNIT = {};
 	let state;
 
+	// Begin actual tic tac toe!
+
 	state = combine(UNIT, {
 		turn: 1, 
-		moves: [3,4,1],
-		winner: null
+		moves: [],
+		winner: -1,
 	});
 
 
@@ -62,58 +66,50 @@
 		name: 'move',
 		example: {msg: 'move', val: 8},
 		handle: function (game, msg) {
-			// Sadly I can't do null(game.winner) because null is a reserved word
-			assertEquals(game.winner, null, 'Game already won!');
+			assert(game.winner === -1, `Game already won by player ${game.winner}!`);
 
 			const move = msg.val;
 			between(0,8,move);
 			excludes(game.moves, move);
 
-			return [{turn: 1}, {moves: move}, {msg: 'winner', val: 1}];
+			return [{turn: 1}, {moves: move}, {msg: 'winner'}];
 		},
 	};
 
 	const winnerHandler = {
 		name: 'winner',
-		example: {msg: 'winner', val: null},
+		example: {msg: 'winner'},
 		/*
 			0 1 2
 			3 4 5
 			6 7 8
 		*/
-		winConditions: '012-345-678-036-147-258-048-246',
+		winConditions: '012-345-678-036-147-258-048-246'.split('-'),
 		handle: function(game, msg){
-			const conditions = this.winConditions.split('-');
+			// Odd moves are for player one, even for player two
+			const p0 = game.moves.filter((move, i) => i % 2 - 1).sort().join('');
+			const p1 = game.moves.filter((move, i) => i % 2).sort().join('');
 
-			const m0 = game.moves.filter((move, i) => i % 2).sort().join('');
-			const m1 = game.moves.filter((move, i) => i % 2 - 1).sort().join('');
-			console.log('hey', m0, m1);	
-			return [];
+			for (const pattern of this.winConditions){
+				if (p0.match(pattern)) return {winner: 1};
+				if (p1.match(pattern)) return {winner: 2};
+			}
 		}
 	};
 
 	state = combine(state, moveHandler);
 	state = combine(state, winnerHandler);
 
-
-
+	// In this game, p0 wins with 012
+	state = combine(state, {msg: 'move', val: 0});
+	state = combine(state, {msg: 'move', val: 3});
+	state = combine(state, {msg: 'move', val: 1});
 	state = combine(state, {msg: 'move', val: 8});
-	// test(state, game => game.turn === 2, true);
-	// test(state, game => game.moves[0] === 8, true);
-	// test(state, game => game.winner === null, true);
+	state = combine(state, {msg: 'move', val: 2});
 
-	// Doesn't allow non integer, or out of bound moves
-	// assertThrows(()=>combine(state, {msg: 'move', val: 'a'}));
-	// assertThrows(()=>combine(state, {msg: 'move', val: 18}));
+	// Game is won, so no more moves are allowed.
+	assertThrows(()=>combine(state, {msg: 'move', val: 7}));
 
-	// // Doesn't allow duplicate moves
-	// assertThrows(()=>combine(state, {msg: 'move', val: 8}));
-
-
-
-	// result = TicTacToe();
-	// result.move(0,0); 
-	// result.move(0,1);
 
 	console.log('Tests succeeded!');
 	document.getElementById('favicon').href='green.png';
