@@ -29,6 +29,8 @@ const assertEquals = (expected, actual) => {
   if (actual !== expected) assert(false, `expected [${expected}] but got [${actual}]`)
 };
 
+const isType = (type, a) => getType(a) === type;
+
 const assertType = (type, a) => assert(getType(a) === type, `Expected ${a} to be of type ${type} but was of type ${getType(a)}`);
 
 const assertThrows = fn => {
@@ -84,15 +86,32 @@ const functions = {
   compose : (f, g) => a => f(g(a)),
 }
 
+const size = (a) => {
+  const t = getType(a);
+  switch (t){
+    case TYPES.NUM:
+      return a;
+    case TYPES.STR:
+      return a.length;
+    case TYPES.ARR:
+      return a.length;
+    case TYPES.OBJ:
+      return Object.keys(a).length;
+    default:
+      return 0;
+  }
+}
 const objects = {
 
 }
 
 const predicates = {
-  between: (min, max, num) => min <= num && num <= max,
+  between: (min, max, num) => min <= size(num) && size(num) <= max,
   deepEquals : (a,b) => JSON.stringify(a) === JSON.stringify(b),
   defined: (a) => getType(a) !== TYPES.NULL && getType(a) !== TYPES.UNDEF,
 };
+
+objectMap(TYPES, (typeHandle, type) => predicates[typeHandle.toLowerCase()] = functions.curry(isType, type));
 
 // Generally useful functions on arrays.
 const arrays = {
@@ -100,6 +119,7 @@ const arrays = {
   same: (arr) => arrays.all(arr, arr[0]),
   eq: (a, b) => a.length === b.length && arrays.all(arrays.zip(a, b).map(d => d[0] === d[1])),
   contains: (arr, a) => arr.includes(a),
+  excludes: (arr, a) => !arr.includes(a),
   zip: (a, b) => a.map((d, i) => [d, b[i]]),
   add: (a, b) => arrays.zip(a, b).map(d => d[0] + d[1]),
   dot: (a, b) => arrays.zip(a, b).map(c => d[0] * d[1]),
@@ -120,6 +140,7 @@ const assertions = {
   same: (arr) => assert(arrays.same(arr), `Expected all values in array [${arr}] to be the same, but they weren't`),
   eq: (a, b) => assert(arrays.eq(a, b), `Expected arrays to be equal [${a}] and [${b}]`),
   contains: (arr, a) => assert(arrays.contains(arr, a), `Expected array [${arr}] to contain value ${a}, but it didn't`),
+  excludes: (arr, a) => assert(arrays.excludes(arr, a), `Expected array [${arr}] to exclude value ${a}, but it didn't`),
   between: (min, max, num) => assert(predicates.between(min, max, num), `Middle number out of bounds: ${min} <= ${num} && ${num} <= ${max}`),
   deepEquals: (a,b) => assert(predicates.deepEquals(a,b), `${JSON.stringify(a)} is not deeply equal to ${JSON.stringify(b)}`),
 }

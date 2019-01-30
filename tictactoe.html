@@ -21,6 +21,7 @@
 <p>Another approach is to start with the last move, and then take 'slices' of the board in various directions that include that move, and then analyze those slices.</p>
 
 <script src='utils.js'></script>
+<script src='combine.js'></script>
 <script src='tictactoe.js'></script>
 <script>
 	"use strict";
@@ -48,11 +49,70 @@
 	};
 
 	const UNIT = {};
-	let result;
+	let state;
 
-	result = TicTacToe();
-	result.move(0,0); 
-	result.move(0,1);
+	state = combine(UNIT, {
+		turn: 1, 
+		moves: [3,4,1],
+		winner: null
+	});
+
+
+	const moveHandler = {
+		name: 'move',
+		example: {msg: 'move', val: 8},
+		handle: function (game, msg) {
+			// Sadly I can't do null(game.winner) because null is a reserved word
+			assertEquals(game.winner, null, 'Game already won!');
+
+			const move = msg.val;
+			between(0,8,move);
+			excludes(game.moves, move);
+
+			return [{turn: 1}, {moves: move}, {msg: 'winner', val: 1}];
+		},
+	};
+
+	const winnerHandler = {
+		name: 'winner',
+		example: {msg: 'winner', val: null},
+		/*
+			0 1 2
+			3 4 5
+			6 7 8
+		*/
+		winConditions: '012-345-678-036-147-258-048-246',
+		handle: function(game, msg){
+			const conditions = this.winConditions.split('-');
+
+			const m0 = game.moves.filter((move, i) => i % 2).sort().join('');
+			const m1 = game.moves.filter((move, i) => i % 2 - 1).sort().join('');
+			console.log('hey', m0, m1);	
+		}
+	};
+
+	state = combine(state, moveHandler);
+	state = combine(state, winnerHandler);
+
+
+
+	state = combine(state, {msg: 'move', val: 8});
+	// test(state, game => game.turn === 2, true);
+	// test(state, game => game.moves[0] === 8, true);
+	// test(state, game => game.winner === null, true);
+
+	// Doesn't allow non integer, or out of bound moves
+	// assertThrows(()=>combine(state, {msg: 'move', val: 'a'}));
+	// assertThrows(()=>combine(state, {msg: 'move', val: 18}));
+
+	// // Doesn't allow duplicate moves
+	// assertThrows(()=>combine(state, {msg: 'move', val: 8}));
+
+
+
+	// result = TicTacToe();
+	// result.move(0,0); 
+	// result.move(0,1);
 
 	console.log('Tests succeeded!');
 	document.getElementById('favicon').href='green.png';

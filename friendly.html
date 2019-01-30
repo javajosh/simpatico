@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="description" content="">
+	<meta name="keywords" content="HTML,CSS,JavaScript">
+	<meta name="author" content="Josh Rehman">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link id="favicon" rel="icon" type="image/png" href="white.png" />
+	<meta id="refresh" http-equiv="refresh" content="2">
+	<title>Friendly.js</title>
+
+</head>
+<body>
+	<h1>Friendly.js</h1>
+	<p>Josh Rehman <i>27 Jan 2019</i></p>
+	<p>deps: utils.js</p>
+	<button onclick="window.stop()">Stop 2s Refresh</button>
+
+	<p>A friendly function is one that tells you how to call it. If you call it with nothing, it returns a <i>pattern</i> describing how to call it. If you call it with an object that matches the pattern, then, great! If you call it with an object that only partially matches the pattern, it will return an object representing the partially collapsed pattern.</p>
+
+	<p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an important part of the convention: return something other than an object! For various reasons, I like array.</p>
+
+	<script src="./utils.js"></script>
+	<script src="./combine.js"></script>
+	<script>
+		"use strict";
+
+		install(window, predicates);
+
+
+		console.log('Starting tests');
+		window.onerror = e => document.getElementById('favicon').href='red.png';
+		const skipTo = 0;
+		let count = 0;
+		const test = (target, msg, expected, print=true) => {
+			if (skipTo && count < skipTo){count++; return;}
+			const result = combine(target, msg);
+			if (print) log(count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
+			if (getType(expected) === FUN) expected(result); 
+			else assertions.deepEquals(expected, result);
+			return result;
+		};
+
+		const UNIT = {};
+		let result;
+
+		// Tests here
+		function friendly(o){
+			const pattern = {};
+
+			return [];
+		}
+		result = friendly();
+
+		const optional = () => null;
+		// Here's an example of a pattern:
+		const foo = {
+			a: [num, between, 0, 10],
+			b: [str],
+			c: [optional, str, between, 0, 10],
+			d: {
+				e: [num, between, 0, 10],
+				f: [optional, str, between, 3, 8],
+			}
+		};
+
+		// Here's a value that matches
+		const bar = {
+			a: 5,
+			b: 'hi',
+			d: {
+				e: 3, 
+				f: 'abcd'
+			}
+		};
+
+		// Here's one that doesn't
+		const baz = {
+			a: 5,
+			b: 'hi',
+			d: {
+				e: 11, 
+				f: 'abcd'
+			}
+		};
+
+		// Remove any non-function value by currying them with the previous function
+		const reducePredicateArray = (arr) => {
+			let fn = arr[0];
+			assertions.fun(fn); // The first element *must* be a function
+			const result = [];
+			let args = [];
+
+			for (const item of arr){
+				if (typeof item === 'function') { //TODO add types to predicates
+					if (args.length){
+						result.push();
+					}
+					result.push(item)
+					args = [];
+				} else {
+
+					const fn = result.pop();
+					result.push(functions.curry(fn, item));
+				}
+
+			}
+			return result;
+		}
+
+		assertions.arr(reducePredicateArray([str]))
+
+		// Given a list of predicates and a value, map onto a boolean array
+		const mapPredicateResult = (preds, a) => preds.map(pred=>pred(a));
+		assertions.deepEquals(mapPredicateResult([num, str],1), [true, false]);
+
+		// Given a pattern array, build a predictate from it.
+		// It is a sequence of functions that all must be true.
+		// If there are any non-function values, we curry them with the previous function.
+		const bigPredicate = (predArray) => {
+			const reducedPreds = reducePredicateArray(predArray);
+			return a => arrays.all(mapPredicateResult(reducedPreds, a), true);
+		};
+		let a = bigPredicate([str]);
+		assert(a('foo'));
+
+		a = bigPredicate([str, between, 3, 5]);
+		assert(a('asd'));
+		assertThrows(()=>a(''));
+		assertThrows(()=>a(1));
+		assertThrows(()=>a('asdf'));
+
+
+		console.log('Tests succeeded!');
+		document.getElementById('favicon').href='green.png';
+	</script>
+</body>
+</html>
