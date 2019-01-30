@@ -62,7 +62,8 @@ rules[OBJ+MSG] = (core, msg) => { //handler invocation
   if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
 
   let results = handler[HANDLER](core, msg);
-  if (getType(results) !== ARR) results = [results];
+  if (predicates.undef(results)) results = [];
+  if (!predicates.arr(results)) results = [results];
 
   for (const result of results) 
     core = combine(core, result); //recurse
