@@ -28,25 +28,26 @@ const combine = (target, msg, print=false) => {
 //Rules for combining things. The first arg is the target
 //We proceed from the "natural" types to the synthetic types introduced by Simpatico.
 const rules = {};
-rules[STR+STR] = (s1,s2) => s2;
+rules[STR+STR] = (_,b) => b;
+rules[STR+NULL] = () => '';
 
-rules[NUM+NUM] = (i1,i2) => i1 + i2;
-rules[NUM+NULL] = () => 0;
-rules[NUM+STR] = (n, s) => cast(TYPES.NUM, s);
+rules[NUM+NUM]  = (a, b) => a+b;
+rules[NUM+STR]  = (_, b) => cast(TYPES.NUM, b);
+rules[NUM+NULL] = ()     => 0;
 
-rules[BOOL+BOOL] = (b1, b2) => b2;
-rules[BOOL+STR] = (b, s) => cast(TYPES.BOOL, s);
-rules[BOOL+NULL] = b => !b;
+rules[BOOL+BOOL] = (a,b) => b;
+rules[BOOL+STR]  = (_,b) => cast(TYPES.BOOL, b);
+rules[BOOL+NULL] = (a,_) => !a;
 
-rules[ARR+ARR] = (arr1,arr2) => arr1.concat(arr2);
-rules[ARR+NULL] = () => [];
-rules[ARR+ANY] = (arr,a) => {arr.push(a); return arr;};
+rules[ARR+ARR]  = (a,b) => a.concat(b);
+rules[ARR+ANY]  = (a,b) => {a.push(b); return a;};
+rules[ARR+NULL] = ()    => [];
 
-rules[ANY+FUN] = (a, fn) => fn(a);
-rules[FUN+ANY] = (fn, a) => fn(a);
-rules[FUN+FUN] = (f1,f2) => a => f1(f2(a));
-rules[FUN+NULL] = () => null;
-rules[NULL+FUN] = (a, fn) => fn;
+rules[FUN+FUN]  = (f1,f2) => a => f1(f2(a));
+rules[ANY+FUN]  = (a, fn) => fn(a);
+rules[FUN+ANY]  = (fn, b) => fn(b);
+rules[FUN+NULL] = ()      => null;
+rules[NULL+FUN] = (_,fn)  => fn;
 
 rules[OBJ+OBJ] = (a,b) => {
   b = Object.assign({},b);
@@ -57,6 +58,7 @@ rules[OBJ+OBJ] = (a,b) => {
   }
   return b;
 };
+
 rules[OBJ+MSG] = (core, msg) => { //handler invocation
   let handler = core.handlers[msg.msg];
   if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
