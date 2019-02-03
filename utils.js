@@ -69,6 +69,7 @@ const getType = (a) => {
 
 // Cast a string to a particular type
 const cast = (type, str) => {
+  assertions.str(str);
   switch (type) {
     case TYPES.STRING:
       return str;
@@ -131,7 +132,7 @@ const arrays = {
   cartesian : (a, b, ...c) => (b ? arrays.cartesian(arrays._f(a, b), ...c) : a),
   copy1: a => [...a],
   copy2: a => a.slice(),
-  copy3: a => JSON.parse(JSON.stringify(a)),
+  copy: a => JSON.parse(JSON.stringify(a)),
 };
 
 
