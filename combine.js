@@ -2,6 +2,8 @@
 
 install(window, TYPES);
 
+const combineAll = (state, arr) => arr.reduce(combine, state);
+
 const combine = (target, msg, print=false) => {
   let ttarget = getType(target);
   let tmsg = getType(msg);

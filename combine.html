@@ -119,7 +119,9 @@
 		});
 		result = combine(result, {msg: 'a'});
 		assert(result.a === 1 && result.b === 1);
-		
+
+		result = combineAll({}, [{a:1},{b:2},{c:3}]);
+		deepEquals(result, {c: 3, b:2, a: 1});
 
 		console.log('Tests succeeded!');
 		document.getElementById('favicon').href='green.png';
