@@ -83,14 +83,10 @@
 		// Functions are invoked.
 		test(1, a=>a+1, 2);
 		test(a=>a+1, 1, 2);
-		// Nulling out a function 
-		test(a=>a+1, null, null);
 
 		// Setting a function
 		test(null, a=>a+1, result => assertEquals(result(1), 2));
 
-		// Functions are composed, with the right most applied first
-		test(a=>a+1, a=>2*a, result => assertEquals(result(2),5));
 
 
 		// Handlers are objects with the 'handle' property and react to 'msg' objects.

@@ -45,11 +45,13 @@ rules[ARR+ARR]  = (a,b) => a.concat(b);
 rules[ARR+ANY]  = (a,b) => {a.push(b); return a;};
 rules[ARR+NULL] = ()    => [];
 
-rules[FUN+FUN]  = (f1,f2) => a => f1(f2(a));
-rules[ANY+FUN]  = (a, fn) => fn(a);
+
 rules[FUN+ANY]  = (fn, b) => fn(b);
-rules[FUN+NULL] = ()      => null;
+rules[ANY+FUN]  = (a, fn) => fn(a);
+
 rules[NULL+FUN] = (_,fn)  => fn;
+
+
 
 rules[OBJ+OBJ] = (a,b) => {
   b = Object.assign({},b);
