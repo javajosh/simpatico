@@ -48,7 +48,7 @@ rules[FUN+ANY]  = (a,b) => a(b);
 rules[ANY+FUN]  = (a,b) => b(a);
 
 rules[OBJ+OBJ]  = (a,b) => {
-  const b = Object.assign({},b);
+  b = Object.assign({},b);
   for (let prop in a){
     b[prop] = b.hasOwnProperty(prop) ?
       combine(a[prop],b[prop]): //recurse
