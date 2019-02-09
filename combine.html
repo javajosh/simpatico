@@ -14,13 +14,16 @@
 <body>
 	<h1>Combine.js</h1>
 	<p>Josh Rehman <i>20 Jan 2019</i></p>
-	<p>deps: utils.js</p>
+	<p>deps: utils.js, combine.js, <a href="https://ramdajs.com/">ramda</a></p>
 	<button onclick="window.stop()">Stop 2s Refresh</button>
 
 	<p>we could do some more stuff with <code>init()</code> and also pre- and post-conditions on handler installation and invocation.</p>
 
-	<script>
-		
+
+	<script src="./lib/ramda-0.26.1.js">
+		// Note that, at least for now, I'm only using R.equals
+		// Why not lodash? I like Ramda's default currying behavior!
+		// There are lots of other things from this lib I could use, too! But for now, just that
 	</script>
 	<script src="./utils.js"></script>
 	<script src="./combine.js"></script>
@@ -44,7 +47,7 @@
 			if (print) log(count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
 
 			if (getType(expected) === FUN) expected(result); 
-			else deepEquals(expected, result);
+			else R.equals(expected, result);
 
 			return result;
 		};
@@ -82,8 +85,7 @@
 
 		test({},{},{});
 
-		// TODO: use a better deepEquals
-		// test({a:1, b:2}, {c: 3, d: 4}, {a:1, b:2, c:3, d:4});
+		test({a:1, b:2}, {c: 3, d: 4}, {a:1, b:2, c:3, d:4});
 		
 		// Functions are invoked.
 		test(1, a=>a+1, 2);
@@ -91,7 +93,6 @@
 
 		// Setting a function
 		test(null, a=>a+1, result => assertEquals(result(1), 2));
-
 
 
 		// Handlers are objects with the 'handle' property and react to 'msg' objects.

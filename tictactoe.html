@@ -87,6 +87,7 @@
 		winConditions: '012-345-678-036-147-258-048-246'.split('-'),
 		handle: function(game, msg){
 			// Odd moves are for player one, even for player two
+			// Also, lodash has _.partition([1, 2, 3, 4], n => n % 2);
 			const p0 = game.moves.filter((move, i) => i % 2 - 1).sort().join('');
 			const p1 = game.moves.filter((move, i) => i % 2).sort().join('');
 
