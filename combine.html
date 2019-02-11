@@ -126,6 +126,10 @@
 		result = combine(result, {msg: 'a'});
 		assert(result.a === 1 && result.b === 1);
 
+		// Combine leaves it's arguments untouched
+		let a = {a: 1};
+		test(a, a, {a:2});
+		assert(R.equals(a, {a: 1}));
 
 		console.log('Tests succeeded!');
 		document.getElementById('favicon').href='green.png';
