@@ -175,12 +175,6 @@
   })(EventTarget.prototype);
 </script>
 
-<script>
-    function combine(a,b){
-
-    }
-</script>
-
 <script id="D3js" class="install" src="./lib/d3.v5.js" source="https://cdnjs.cloudflare.com/ajax/libs/d3/..."
         retrieved="24 Nov 2017 5pm" user="josh">
   // This space won't get interpreted in a browser as source, but it's not a terrible place to include snippets of code, and
@@ -193,12 +187,12 @@
     length: {type: number, min: 0, max: 10000, step: 1},
     width: {type: number, min: 1, max: 100, step: 1},
     height: {type: number, min: 1, max: 100, step: 1},
+    locked: {type: boolean, title: 'lock height and width together'},
     rx: {type: number, min: 0, max: 20, step: 1},
     W: {type: number, min: 1, max: 2000, step: 10},
     H: {type: number, min: 1, max: 2000, step: 10},
     offset: {type: number, min: 0, max: 100, step: 1},
-    interpolation: {type: number, min: 0, max: interpolations.length, step: 1},
-    locked: {type: boolean, title: 'lock height and width together'},
+    interpolation: {type: number, min: 0, max: interpolations.length - 1, step: 1},
     showNums: {type: boolean, title: 'show numbers'},
     seed: {type: number, min: 1, max: 25, step: 1},
     branchChance: {type: number, min: 0, max: 1, step: 0.01},
@@ -293,13 +287,6 @@
       }
     }
     return result;
-  }
-
-  //We now integrate this data in a novel way
-
-  function combine(residue, data, parent) {
-    residue = residue || {};
-
   }
 
   function circles(n) {
@@ -458,7 +445,9 @@
   }
 
   function input({name, title = null, type = number, value = 0, min = 0, max = 100, step = 1}) {
-    let result = `<input name="${name}" id="${name}" `;
+    let result = `<label title="${title}" for="${name}">${name}</label>`;
+
+    result += `<input name="${name}" id="${name}" `;
     switch (type) {
       case number:
         result += `type="range" min=${min} max=${max} step="${step}" value=${value} oninput="add({${name}:this.valueAsNumber})">`;
@@ -470,7 +459,7 @@
         result += `type="text" value="${value}" oninput="add({${name}:this.value})">`;
         break;
     }
-    result += `<label title="${title}" for="${name}">${name}</label>`;
+    result += '<br/>'
     return result;
   }
 
