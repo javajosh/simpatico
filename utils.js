@@ -85,7 +85,17 @@ const cast = (type, str) => {
 const functions = {
   curry : (f, a) => b => f(a,b),
   compose : (f, g) => a => f(g(a)),
-}
+};
+
+const math = {
+  randomIntBetween: (min = 1, max = 10) => {
+    assertions.int(min);
+    assertions.int(max);
+    assert(min <= max);
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  },
+
+};
 
 const size = (a) => {
   const t = getType(a);
@@ -101,15 +111,17 @@ const size = (a) => {
     default:
       return 0;
   }
-}
+};
+
 const objects = {
 
-}
+};
 
 const predicates = {
   between: (min, max, num) => min <= size(num) && size(num) <= max,
   deepEquals : (a,b) => JSON.stringify(a) === JSON.stringify(b),
   defined: (a) => getType(a) !== TYPES.NULL && getType(a) !== TYPES.UNDEF,
+  int: (a) => getType(a) === TYPES.NUM && (a % 1 === 0),
 };
 
 objectMap(TYPES, (typeHandle, type) => predicates[typeHandle.toLowerCase()] = functions.curry(isType, type));
@@ -133,6 +145,16 @@ const arrays = {
   copy1: a => [...a],
   copy2: a => a.slice(),
   copy: a => JSON.parse(JSON.stringify(a)),
+  shuffle : (arr)=> {
+    // Fisher-Yates shuffle using ES6 swap (possibly slow)
+    // A lovely little algo that starts at the last index.
+    // This loop's last iteration is when right = 1.
+    let right, left;
+    for (right = arr.length - 1; right > 0; right--) {
+      left = Math.floor(Math.random() * (right + 1));
+      [arr[left], arr[right]] = [arr[right], arr[left]];
+    }
+  }
 };
 
 
@@ -144,6 +166,7 @@ const assertions = {
   excludes: (arr, a) => assert(arrays.excludes(arr, a), `Expected array [${arr}] to exclude value ${a}, but it didn't`),
   between: (min, max, num) => assert(predicates.between(min, max, num), `Middle number out of bounds: ${min} <= ${num} && ${num} <= ${max}`),
   deepEquals: (a,b) => assert(predicates.deepEquals(a,b), `${JSON.stringify(a)} is not deeply equal to ${JSON.stringify(b)}`),
+  int : (a) => assert(predicates.int(a), `expected ${a} to be an int, but it wasn't`),
 }
 
 // Add all the types to the assertion object too.
@@ -194,3 +217,32 @@ const scatter = (elt, obj) => {
       elt.setAttribute(key, obj[key]);
   }
 }
+
+// A simple PRNG inside the browser. 
+function RNG(seed) {
+    // A simple seedable RNG based on https://en.wikipedia.org/wiki/Linear_congruential_generator
+    // LCG using GCC's constants
+    this.m = 0x80000000; // 2**31;
+    this.a = 1103515245;
+    this.c = 12345;
+    this.state = seed ? seed : Math.floor(Math.random() * (this.m - 1));
+  }
+
+  RNG.prototype.nextInt = function () {
+    this.state = (this.a * this.state + this.c) % this.m;
+    return this.state;
+  }
+  RNG.prototype.nextFloat = function () {
+    // returns in range [0,1]
+    return this.nextInt() / (this.m - 1);
+  }
+  RNG.prototype.nextRange = function (start, end) {
+    // returns in range [start, end): including start, excluding end
+    // can't modulu nextInt because of weak randomness in lower bits
+    const rangeSize = end - start;
+    const randomUnder1 = this.nextInt() / this.m;
+    return start + Math.floor(randomUnder1 * rangeSize);
+  }
+  RNG.prototype.choice = function (array) {
+    return array[this.nextRange(0, array.length)];
+  }
