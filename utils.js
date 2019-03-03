@@ -122,6 +122,8 @@ const predicates = {
   deepEquals : (a,b) => JSON.stringify(a) === JSON.stringify(b),
   defined: (a) => getType(a) !== TYPES.NULL && getType(a) !== TYPES.UNDEF,
   int: (a) => getType(a) === TYPES.NUM && (a % 1 === 0),
+  t: a => a === true,
+  f: a => a === false,
 };
 
 objectMap(TYPES, (typeHandle, type) => predicates[typeHandle.toLowerCase()] = functions.curry(isType, type));
@@ -167,6 +169,8 @@ const assertions = {
   between: (min, max, num) => assert(predicates.between(min, max, num), `Middle number out of bounds: ${min} <= ${num} && ${num} <= ${max}`),
   deepEquals: (a,b) => assert(predicates.deepEquals(a,b), `${JSON.stringify(a)} is not deeply equal to ${JSON.stringify(b)}`),
   int : (a) => assert(predicates.int(a), `expected ${a} to be an int, but it wasn't`),
+  t: a => assert(a === true, `${a} is not true`),
+  f: a => assert(a === false, `${a} is not false`),
 }
 
 // Add all the types to the assertion object too.
