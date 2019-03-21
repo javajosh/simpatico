@@ -1,4 +1,3 @@
-// Lets start with a simple single-linked list.
 install(window, assertions);
 install(window, arrays);
 

@@ -23,10 +23,12 @@
 
 	<script src="./utils.js"></script>
 	<script src="./combine.js"></script>
+	<script src="./lib/ramda-0.26.1.js"></script>
 	<script>
 		"use strict";
 
 		install(window, predicates);
+		install(window, arrays);
 
 
 		console.log('Starting tests');
@@ -45,17 +47,10 @@
 		const UNIT = {};
 		let result;
 
-		// Tests here
-		function friendly(o){
-			const pattern = {};
+		const optional = () => {};
 
-			return [];
-		}
-		result = friendly();
-
-		const optional = () => null;
 		// Here's an example of a pattern:
-		const foo = {
+		const pattern1 = {
 			a: [num, between, 0, 10],
 			b: [str],
 			c: [optional, str, between, 0, 10],
@@ -63,10 +58,10 @@
 				e: [num, between, 0, 10],
 				f: [optional, str, between, 3, 8],
 			}
-		};
+		}; //also in() and match()
 
 		// Here's a value that matches
-		const bar = {
+		const valueMatch = {
 			a: 5,
 			b: 'hi',
 			d: {
@@ -76,7 +71,7 @@
 		};
 
 		// Here's one that doesn't
-		const baz = {
+		const valueNoMatch = {
 			a: 5,
 			b: 'hi',
 			d: {
@@ -85,51 +80,84 @@
 			}
 		};
 
-		// Remove any non-function value by currying them with the previous function
-		const reducePredicateArray = (arr) => {
-			let fn = arr[0];
-			assertions.fun(fn); // The first element *must* be a function
+		//match a single predicate
+		const match1 = (pred, val) => pred(val) ? undefined : pred;
+
+		//match an array of predicates
+		const match2 = (arr, val) => {
+			assertions.arr(arr);
 			const result = [];
-			let args = [];
-
-			for (const item of arr){
-				if (typeof item === 'function') { //TODO add types to predicates
-					if (args.length){
-						result.push();
-					}
-					result.push(item)
-					args = [];
-				} else {
-
-					const fn = result.pop();
-					result.push(functions.curry(fn, item));
-				}
-
+			for (const pred of arr) {
+				if (!pred(val)) 
+					result.push(pred);
 			}
 			return result;
-		}
-
-		assertions.arr(reducePredicateArray([str]))
-
-		// Given a list of predicates and a value, map onto a boolean array
-		const mapPredicateResult = (preds, a) => preds.map(pred=>pred(a));
-		assertions.deepEquals(mapPredicateResult([num, str],1), [true, false]);
-
-		// Given a pattern array, build a predictate from it.
-		// It is a sequence of functions that all must be true.
-		// If there are any non-function values, we curry them with the previous function.
-		const bigPredicate = (predArray) => {
-			const reducedPreds = reducePredicateArray(predArray);
-			return a => arrays.all(mapPredicateResult(reducedPreds, a), true);
 		};
-		let a = bigPredicate([str]);
-		assert(a('foo'));
 
-		a = bigPredicate([str, between, 3, 5]);
-		assert(a('asd'));
-		assertThrows(()=>a(''));
-		assertThrows(()=>a(1));
-		assertThrows(()=>a('asdf'));
+		// match an object of predicate arrays
+		const match3 = (obj, val) => {
+			for (let prop in obj){
+				obj[prop] = match2(obj[prop])
+			}
+
+		};
+
+		assertions.undef(match1(str, 'hey'));
+		assertions.fun(match1(str, 3));
+
+		assertions.undef(match2([str, a=>a.length===3], 'abc'));
+
+		//match an object. this 
+
+		// We can think of this as something like combine, where the pattern is the target, and the base rule is always [pred] + value = [failing preds].
+
+
+
+		// Remove any non-function value by currying them with the previous function
+		// const reducePredicateArray = (arr) => {
+		// 	let fn = arr[0];
+		// 	assertions.fun(fn); // The first element *must* be a function
+		// 	const result = [];
+		// 	let args = [];
+
+		// 	for (const item of arr){
+		// 		if (fun(item)) { 
+		// 			if (args.length){
+		// 				result.push();
+		// 			}
+		// 			result.push(item)
+		// 			args = [];
+		// 		} else {
+
+		// 			const fn = result.pop();
+		// 			result.push(functions.curry(fn, item));
+		// 		}
+
+		// 	}
+		// 	return result;
+		// }
+
+		// assertions.arr(reducePredicateArray([str]))
+
+		// // Given a list of predicates and a value, map onto a boolean array
+		// const mapPredicateResult = (preds, a) => preds.map(pred=>pred(a));
+		// assertions.deepEquals(mapPredicateResult([num, str],1), [true, false]);
+
+		// // Given a pattern array, build a predictate from it.
+		// // It is a sequence of functions that all must be true.
+		// // If there are any non-function values, we curry them with the previous function.
+		// const bigPredicate = (predArray) => {
+		// 	const reducedPreds = reducePredicateArray(predArray);
+		// 	return a => arrays.all(mapPredicateResult(reducedPreds, a), true);
+		// };
+		// let a = bigPredicate([str]);
+		// assert(a('foo'));
+
+		// a = bigPredicate([str, between, 3, 5]);
+		// assert(a('asd'));
+		// assertThrows(()=>a(''));
+		// assertThrows(()=>a(1));
+		// assertThrows(()=>a('asdf'));
 
 
 		console.log('Tests succeeded!');

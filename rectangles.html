@@ -131,6 +131,7 @@
     any: arr => arr.reduce((prev, pred) => prev || pred, false),
     scalar: d => Preds.scalars.indexOf(typeof d) !== -1,
     vector: d => Preds.vectors.indexOf(typeof d) !== -1,
+    matches : (pattern, d) => Preds.string(pattern) && Preds.string(d) && new RegExp(pattern, 'g').test(d),
   }
 
   // Some would call this messy, in bad taste. I call it structuring my work environment the way I like.
@@ -197,6 +198,7 @@
     seed: {type: number, min: 1, max: 25, step: 1},
     branchChance: {type: number, min: 0, max: 1, step: 0.01},
     focus: {type: number, min: 0, max: 10000, step: 1},
+    str: {type: string, pattern: '[a-zA-Z]'}
   };
 
   addNames(preds);
@@ -475,6 +477,12 @@
   document.querySelectorAll('.input')[0].innerHTML = allInputs(state);
   window.onscroll = scroll;
   // setInterval(()=>render({length: state.length + 1}), 1000);
+
+  function test(){
+    Preds.assert(Preds.matches('^[a-c]*$', 'aabbc'));
+  }
+
+  test();
 </script>
 </body>
 </html>
