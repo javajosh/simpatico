@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel='shortcut icon' type='image/x-icon' href='./favicon.ico' />
     <title>Events</title>
-    
+
     <script src="./lib/d3.v5.js"></script>
     <script src="./lib/seedrandom.js"></script>
     <style>
@@ -27,7 +27,7 @@
 </head>
 
   <body>
-    <div id="content">  
+    <div id="content">
       <!-- <h1>Simpatico</h1> -->
 
       <p>
@@ -36,10 +36,10 @@
 
       <svg id="d3_input" width="800px" height="200px"></svg>
       <br>
-      <svg class="flag" width="50" height="50" onclick="app({type: 'flag'})"></svg>
+      <svg class="flag" width="50" height="50" ownclick="app({type: 'flag'})"></svg>
 
       <p>
-        Number of events recorded: <span id="dom_count">0</span>, flag:<span class="flag">false</span>
+        Number of events recorded: <span id="dom_count">0</span>N, flag:<span class="flag">false</span>
       </p>
 
       <code id="dom_json"><pre>
@@ -78,26 +78,26 @@
         (This SVG element is there so I have a safe place to write straightforward SVG, because I always forget attribute names!)
       </p>
 
-      <svg 
+      <svg
         width="50"
         height="50">
 
-          <rect 
+          <rect
             x="10"
             y="10"
             width="10"
             height="10"
-            fill="green" 
+            fill="green"
           />
 
-          <circle 
+          <circle
             cx="30"
             cy="30"
             r="10"
-            fill="red" 
+            fill="red"
           />
 
-          <text 
+          <text
             x="10"
             y="40"
             font-size=".5rem"
@@ -107,13 +107,13 @@
             Josh
           </text>
 
-          <line 
+          <line
             x1="40"
             y1="10"
             x2="40"
             y2="40"
             stroke="blue"
-            stroke-width="2" 
+            stroke-width="2"
           />
 
       </svg>
@@ -199,16 +199,16 @@
         }
 
         // Define the top-level shape of this particular application; note that all branches are immutable, but all leaves are mutable. There is no good way to represent this in JavaScript so we use convention.
-        let state = { 
-          input: [], 
+        let state = {
+          input: [],
           residue: {
-            flag: false, 
+            flag: false,
             count: 0,
             startTimer: false,
             stopTimer: false,
             timers: [],
             tick: null,
-          }, 
+          },
           logging: false,
           focus: {},
         };
@@ -226,13 +226,13 @@
           target: e.target,
         });
 
-        const key = e =>({ 
+        const key = e =>({
           type: e.type,
           key: e.key,
           keyCode: e.keyCode,
           location: e.location,
-          t: e.timeStamp, 
-          target: e.target, 
+          t: e.timeStamp,
+          target: e.target,
         });
 
         const move = e => ({
@@ -295,39 +295,39 @@
           // e is a kind of simplified, more convenient representation of the raw event.
           const e = events[etype](event);
           e.id = input.length;
-          
+
           console.debug('combine() event e', event, e);
 
           // Store all low-level inputs. Not very efficient but useful for pedagogy.
           input.push(e);
 
-          // An example of dependant data - just the length of input so far 
+          // An example of dependant data - just the length of input so far
           residue.count = input.length;
 
           // Set 'flag' based on key presses
           if (etype === 'keydown')
-            residue.flag = 
-              (e.key === "t") ? true : 
+            residue.flag =
+              (e.key === "t") ? true :
               (e.key === "f") ? false : residue.flag;
 
           // Set 'flag' based on mouse movement
           if (etype === 'mousemove')
-            residue.flag = 
-              (e.dy < 0) ? true : 
+            residue.flag =
+              (e.dy < 0) ? true :
               (e.dy > 0) ? false : residue.flag;
 
           // Set 'flag' based on mousewheel events
           if (etype === 'mousewheel')
-            residue.flag = 
-              (e.dy < 0) ? true : 
+            residue.flag =
+              (e.dy < 0) ? true :
               (e.dy > 0) ? false : residue.flag;
 
           // Do stuff on click
           if (etype === 'click'){
             // Toggle the flag if you click on it
             console.log(e.target);
-            residue.flag = 
-              e.target.id === 'flag' ? 
+            residue.flag =
+              e.target.id === 'flag' ?
               !residue.flag : residue.flag;
             // If you click on a rectangle, set the focus
             // If it's a timer, also cancel the timer.
@@ -378,7 +378,7 @@
           ],
           keys: {
             escape: '⎋',
-            meta: '⌘', 
+            meta: '⌘',
             control: '⌃',
             alt: '⌥',
             shift: '⇧',
@@ -418,7 +418,7 @@
           const residue = state.residue;
 
           if (state.logging) console.log(input.length, residue);
-          
+
           // Render the input array as SVG using D3
           const w = 10, h = 10;
           const { width, height } = d3_input.node().getBoundingClientRect();
@@ -426,7 +426,7 @@
           const rows = Math.ceil(height / h);
           const colors = d3.schemeCategory10;
           const max = cols * rows;
-          
+
           // Draw the rectangles
           const rect = d3_input.selectAll("rect").data(state.input);
           rect.exit().remove();
@@ -455,11 +455,11 @@
                 return lookupKeySymbol(d.key);
               }
               if (d.hasOwnProperty('dx') && d.hasOwnProperty('dy')){
-                const i = 
-                  (d.dx > 0) ? 2 : 
+                const i =
+                  (d.dx > 0) ? 2 :
                   (d.dx < 0) ? 0 : 1;
-                const j = 
-                  (d.dy > 0) ? 2 : 
+                const j =
+                  (d.dy > 0) ? 2 :
                   (d.dy < 0) ? 0 : 1;
                 return symbols.arrows[j][i];
               }
@@ -512,12 +512,12 @@
         // Create a timer that increments a counter every interval ms.
         function getTimer(timerID = 0, interval = 100){
           let i = 0;
-          return window.setInterval(() => 
+          return window.setInterval(() =>
             application({
-              type: 'tick', 
-              timerID, 
-              i: ++i, 
-              t: Date.now(), 
+              type: 'tick',
+              timerID,
+              i: ++i,
+              t: Date.now(),
               rng: Math.random()
             })
             , interval
