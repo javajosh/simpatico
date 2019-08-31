@@ -2,7 +2,7 @@
 install(window, assertions);
 install(window, arrays);
 
-const rtree = (val = null)=>{
+const rtree = (val = null) => {
 	const root = {parent: null, val};
 	const nodes = [root];
 	const tips = [root];
@@ -42,6 +42,8 @@ const rtree = (val = null)=>{
 	const valuePath = (node = tip()) => path(node).map(n => n.val);
 
 	// This is the only place rtree depends on combine!!
+	// Also note that base should probably be the empty object, but the tests expect numbers, 
+	// Which is probably misleading.
 	const residue = (node = tip(), base = 0) => 
 		valuePath(node).reduce((acc, val) => combine(acc, val), base);
 

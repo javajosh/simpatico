@@ -81,11 +81,17 @@
 		test({a:[]}, {a:1}, {a:[1]});
 
 		// We can reach in deeply without touching the rest of the object.
-		test({a:{b:1}, c:2}, {a:{b:1}}, {a: {b:2}, c:2});
+		test(
+			{a:{b:1}, c:2}, 
+			{a:{b:1}}, 
+			{a:{b:2}, c:2});
 
 		test({},{},{});
 
-		test({a:1, b:2}, {c: 3, d: 4}, {a:1, b:2, c:3, d:4});
+		test(
+			{a:1, b:2}, 
+			{c:3, d:4}, 
+			{a:1, b:2, c:3, d:4});
 		
 		// Functions are invoked.
 		test(1, a=>a+1, 2);

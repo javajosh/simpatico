@@ -18,9 +18,12 @@
 	<button onclick="window.stop()">Stop 2s Refresh</button>
 
 	<h2>What is it</h2>
+
 	<p>Well, it's a kind of tree that is built up in a particular way. It's a constrained kind of n-arry tree, which is optimized for long runs. We imagine the tree composed of rows, and each row has a parent, rather than each node. Moreover, we introduce a special coordinate system that supports rows and nodes as parents, and provide a (stateful) pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent. Otherwise, you're just adding to the row.</p>
 
-	<p></p>
+	
+
+
 	<p>Not super happy with this right now in a few ways:</p>
 	<ol>
 		<li>The tests are bad - very few assertions. Need to add more specific path stuff</li>

@@ -203,7 +203,7 @@ const combine_basic = (target, obj, print=false) => {
   if (print) console.log(target, obj);
 }
 
-// Gather data from the (SVG) DOM into obj, casting them according to initial values in obj.
+// Gather element attributes into object properties.
 const gather = (elt, obj) => {
   for (const key in obj){
     if (!elt.hasAttribute(key)) continue;
@@ -213,7 +213,7 @@ const gather = (elt, obj) => {
   }
 };
 
-// Scatter data from an obj onto the (SVG) DOM, writing only if the values differ.
+// Scatter object properties as element attributes
 const scatter = (elt, obj) => {
   for (const key in obj){
     const old = elt.getAttribute(key);
