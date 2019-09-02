@@ -9,12 +9,6 @@
 	</style>
 </head>
 <body>
-	<h1>Self Describing HTML!</h1>
-	<p>What the world needs is self-describing HTML. This file (resource) meets that need!</p>
-	<p>I am a program, and right now I am just repeating to you something my programmer typed into me. But soon, I will have reactions of my own, that, perhaps, my programmer didn't anticipate (which is as often a bug as it is a delight!)</p>
-	<p>To react to you, to the outside world, I need input. I need to measure the world around me, by registering for access to sensor data. (Even if I am a demo, I will still need a great deal of input, a vast number of clock ticks!)</p>
-	<p>First, I need your informed consent to run.</p>
-	<p>Just kidding! I already ran, and am already initialized and listening to events from this browser tab.</p>
 
 	<style>
 		.msg{fill:purple;}
@@ -22,19 +16,21 @@
 		.square:hover{border:'1px solid black';}
 	</style>
 
-	<div>
-		<svg width='100' height='100' style='border:1px solid black; display:inline' viewbox="0 0 1000 1000">
+<div class='rows'>
+	<div class='row'>
+		<svg width='100' height='100' style='border:1px solid black; display:inline-block' viewbox="0 0 1000 1000">
 			<g transform='translate(50,50)'>
 				<rect class='g-background' width="400" height="400" fill="pink" opacity=".5" stroke="black"/>
 				<rect class='green square' x="50" y="50" width="100" height="100" fill="green" stroke="black" josh-attribute="foo"/>
 			</g>
 		</svg>
 	</div>
+</div>
 
 
 	<script>
 		// You can interact with SVG anyway you like, including vanilla JS.
-
+		'use strict';
 		
 		const svg = document.querySelector('svg');
 		const g0 = svg.children[0]; //svgs first child, which we know is a 
@@ -46,40 +42,146 @@
 		// to do this guaranteeisng no damage to the user experience.
 
 		// Our only changable state, focus. it is the last element that recieved mousemove events.
-		let focus = null;
+		let focus = null; //which element has the focus, via onmousemove.
+		let focusLock = false;
+		let svgFocus = null; //
+
+		const log = [];
 		// DELTA is configuration parameter that defines how far objects move.
 		const DELTA = 50;
+
+		// Moving the mouse sets a focused element. 
 		window['onmousemove'] = e => {
-			if (!e.target) return;
+			if (!e.target || focusLock) return;
 			//Mostly just set focus equal to event target
 			focus = e.target;
 			// In the special case of a background element for a g, focus on the g. This is a workaround for G's not being targetable (I don't know how to make them be)
 			if (focus.classList[0] === 'g-background') focus = focus.parentElement;
-
-
 		};
 
-		function childIndexPath(elt){
-			// Return the index of the child in the parents children collection.
-			// This seems quite wasteful
-			function childIndexInParent (child) {
-				const sibs = child.parentElement.children;
-				for (let i = 0; i < sibs.length; i++) {
-					if (sibs[i] === child) return i;
-				}
-				console.error("child not found in parent", child, parent);
-				throw "child not found in parent. check logs for details.";
+		// Keypresses are directed at the focused element, 
+		// and each one produces a cool effect:
+		// c -clone the focus into a new element on top of it and set focus to the new elt. (also works with dom elments)
+		// z -zoom out, combining all top-level siblings into a focusable element.
+		// wsad - move the focus. only works with svg.
+		// f - lock focus until you hit f again
+		window['onkeypress'] = e => {
+			console.debug('onkeypress', e);
+			if (!focus) return;
+			svgFocus = findAncestor(focus, e => e.tagName === 'svg');
+			if (!svgFocus) return; // ignore focus elements that aren't svg
+
+			// If we aren't focused on the root of the row, create a new row
+			// with a new root that we will mutate.
+			// const focusOnRoot = childIndexInParent(focus) === 0;
+			// if (!focusOnRoot){
+			// 	// create a new row elt and add it to row
+			// 	const newRow = document.querySelector('.row').cloneNode();
+			// 	document.querySelector('.rows').appendChild(newRow);
+			// 	// clone the focus elt into the row as the new root
+			// 	const clone = focus.cloneNode(); //TODO store a link back here
+			// 	clone.innerHTML = focus.innerHTML;
+			// 	newRow.appendChild(clone);
+			// 	//set focus to the new root in the new row
+			// 	focus = clone;
+			// }
+			const k = e.key;
+
+			if (k === 'c') {
+				const clone = focus.cloneNode();
+				clone.innerHTML = focus.innerHTML; // odd we have to do this
+				focus.parentNode.appendChild(clone);
+				focus = clone;
 			}
 
+			// Zoom: Wrap all my children in another g layer.
+			// A good rule of thumb is to (at least) double the viewport dimensions for 
+			// the new level. This gives room to clone and move around. Even 10x is quite good.
+			if (k === 'z') { // zoom out
+				svgFocus.innerHTML = `<g transform='translate(${DELTA},${DELTA})'>
+					<rect class='g-background' width="50%" height="50%" fill="blue" opacity='.5' stroke="black"/>
+					${svg.innerHTML}
+				</g>`;
+			}
+
+			// Focus Lock - a simple toggle.
+			if (k === 'f') { 
+				focusLock = !focusLock;
+				console.debug('focusLock', focusLock);
+			}
+
+			// Movement can be done in many ways in SVG, and here are two that work for shapes and g.
+			if (focus.hasAttribute('transform')) {
+				const [x,y] = focus.getAttribute('transform').substr(9).slice(1,-1).split(',').map(e=>e*1);
+				if (k === 'd') focus.setAttribute('transform', `translate(${x + DELTA},${y})`);
+				if (k === 'a') focus.setAttribute('transform', `translate(${x - DELTA},${y})`);
+				if (k === 'w') focus.setAttribute('transform', `translate(${x},${y - DELTA})`);
+				if (k === 's') focus.setAttribute('transform', `translate(${x},${y + DELTA})`);
+			} else if (focus.hasAttribute('x')) {
+				const x = focus.getAttribute('x') * 1;
+				const y = focus.getAttribute('y') * 1;
+				if (k === 'd') focus.setAttribute('x', x + DELTA);
+				if (k === 'a') focus.setAttribute('x', x - DELTA);
+				if (k === 'w') focus.setAttribute('y', y - DELTA);
+				if (k === 's') focus.setAttribute('y', y + DELTA);
+			} else {
+				throw 'Cannot determine position for element. Has neither x nor transform/translate'
+			}
+
+			const logPathToConsole = true;
+			if (logPathToConsole) {
+				const event = childIndexPath(focus, e.key);
+				log.push(event);
+				console.info(event);
+			}
+			
+			const copySVGOnWrite = true;
+			if (copySVGOnWrite){
+				let row = svgFocus.parentNode;
+
+				const clone = svgFocus.cloneNode();
+				clone.innerHTML = svgFocus.innerHTML;
+				row.appendChild(clone);
+			}
+		};
+
+		// Return the index of the child in the parents children collection.
+		// This seems quite wasteful
+		function childIndexInParent (child) {
+			const sibs = child.parentElement.children;
+			for (let i = 0; i < sibs.length; i++) {
+				if (sibs[i] === child) return i;
+			}
+			console.error("child not found in parent", child, parent);
+			throw "child not found in parent. check logs for details.";
+		}
+
+		function childIndexPath(elt, last){
 			const path = [];
 			let cursor = focus;
-			while (cursor.parentElement){
+			while (cursor !== document.body){ // body doesn't have a parentElt
 				const index = childIndexInParent(cursor, cursor.parentElement);
 				path.push(index);
 				cursor = cursor.parentElement;
 			}
+			if (last) path.push(last);
 			return path;
 		}
+
+		// Helper functions, defined with old school function notation so they'll be hoisted 
+		// and usable by the entire script.
+		// An event path looks something like  [1,0,0,0,7,1,"d"]
+		function playbackEventPath(eventPath){
+			// pick out the right node
+			let cursor = document.body;
+			for (let i = 0; i < logEvent.length -1 ; i++){
+				cursor = cursor.children[i];
+			}
+			console.log('playback selected', cursor)
+		}
+
+		// TODO: get event playback working.
+		// playbackEventPath([1,0,0,0,7,1,"d"]);
 
 		function findAncestor(elt, pred=()=>false){
 			if (pred(elt)) return elt;
@@ -90,58 +192,9 @@
 			return null;
 		}
 
-		window['onkeypress'] = e => {
-			if (!focus) return;
 
-			if (e.key === 'c') { // clone
-				const clone = focus.cloneNode();
-				clone.innerHTML = focus.innerHTML;
-				focus.parentNode.appendChild(clone);
-				focus = clone;
-				return;
-			}
-
-			// This is no longer correct.
-			if (e.key === 'z') { // zoom out
-				svg.innerHTML = `<g transform='translate(${DELTA},${DELTA})'>
-					<rect class='g-background' width="50%" height="50%" filsl="blue" opacity='.5' stroke="black"/>
-					${svg.innerHTML}
-				</g>`;
-			}
-
-			if (focus.hasAttribute('transform')) {
-				const [x,y] = focus.getAttribute('transform').substr(9).slice(1,-1).split(',').map(e=>e*1);
-				if (e.key === 'd') focus.setAttribute('transform', `translate(${x + DELTA},${y})`);
-				if (e.key === 'a') focus.setAttribute('transform', `translate(${x - DELTA},${y})`);
-				if (e.key === 'w') focus.setAttribute('transform', `translate(${x},${y - DELTA})`);
-				if (e.key === 's') focus.setAttribute('transform', `translate(${x},${y + DELTA})`);
-			} else if (focus.hasAttribute('x')) {
-				const x = focus.getAttribute('x') * 1;
-				const y = focus.getAttribute('y') * 1;
-				if (e.key === 'd') focus.setAttribute('x', x + DELTA);
-				if (e.key === 'a') focus.setAttribute('x', x - DELTA);
-				if (e.key === 'w') focus.setAttribute('y', y - DELTA);
-				if (e.key === 's') focus.setAttribute('y', y + DELTA);
-			} else {
-				throw 'Cannot determine position for element. Has neither x nor transform/translate'
-			}
-
-			const logPathToConsole = true;
-			if (logPathToConsole) {
-				console.log(childIndexPath(focus), e.key);
-			}
-
-			const logChangesToSVG = true;
-			if (logChangesToSVG){
-				let svgFocus = findAncestor(focus, e => e.tagName === 'svg')
-				const clone = svgFocus.cloneNode();
-				clone.innerHTML = svgFocus.innerHTML;
-				svgFocus.parentNode.appendChild(clone);
-			}
-		};
-
-
-
+		// For later...
+		const rect = {x:0, y:0, width:100, height:100, fill:"green", stroke:"solid", 'stroke-width':1};
 
 		// Zooming out, some sequence of input messaged caused us to be in this state.
 		// We show this as a tail of objects to the left. 
@@ -162,15 +215,19 @@
 
 
 
-
-
-		// For later...
-
-		const rect = {x:0, y:0, width:100, height:100, fill:"green", stroke:"solid", 'stroke-width':1};
+		
 
 	</script>
 </body>
 </html>
+
+<!-- 	<h1>Self Describing HTML!</h1>
+	<p>What the world needs is self-describing HTML. This file (resource) meets that need!</p>
+	<p>I am a program, and right now I am just repeating to you something my programmer typed into me. But soon, I will have reactions of my own, that, perhaps, my programmer didn't anticipate (which is as often a bug as it is a delight!)</p>
+	<p>To react to you, to the outside world, I need input. I need to measure the world around me, by registering for access to sensor data. (Even if I am a demo, I will still need a great deal of input, a vast number of clock ticks!)</p>
+	<p>First, I need your informed consent to run.</p>
+	<p>Just kidding! I already ran, and am already initialized and listening to events from this browser tab.</p> -->
+
 
 <!-- 	<svg id='svg' width='800' height='500' style='border:1px solid black'>
 		<g id='0'>
