@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SVG stuff</title>
+  <style>
+    svg {display: block; margin: '50px';}
+  </style>
+</head>
+<body>
+
+<h3>Compute Overlap Color of two SVG Rects using Canvas</h3>
+<img src="" alt="">
+  <svg 
+    width=150 height=150 viewbox="0 0 150 150" 
+    style="float: left; border: 1px solid black" >
+    
+    <g>
+      <rect width=100 height=100 fill="rgba(128,128,0,.5)" />
+      <rect width=100 height=100 fill="rgba(128,128,128,.5)" x=50 y=50 />
+    </g>
+  </svg>
+</img>
+
+<canvas 
+  width=150 height=150
+  style="display: none" >
+</canvas>
+
+
+<p>The overlap color is computed to be: <code id="out"></code></p>
+
+<h3>Notes</h3>
+<ul>
+  <li><a class="external" href="https://stackoverflow.com/questions/51943273/how-can-i-measure-the-output-color-of-a-region-of-svg">This all started as a StackOverflow question!</a></li>
+  <li><a class="external" href="https://developer.mozilla.org/en-US/docs/Web/API/ImageData">Information about the ImageData API from MDN</a></li>
+</ul>
+
+<script>
+function computeOverlapColor(svg, canvas, cb){
+  const xml = new XMLSerializer().serializeToString(svg);
+  const svgToBase64 = 'data:image/svg+xml;base64,' + btoa(xml);
+
+  const width = svg.getAttribute('width');
+  const height = svg.getAttribute('height');
+
+  const img = new Image();
+  img.src = svgToBase64; 
+  img.onload = () => {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const rgba = ctx.getImageData(width/2, height/2, 1, 1).data;
+    const color = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
+    cb(color);
+  }
+}
+
+const svg = document.querySelector('svg');
+const canvas = document.querySelector('canvas');
+const output = document.querySelector('#out');
+
+computeOverlapColor(svg, canvas, color=>out.innerHTML = color);
+</script>
+  
+<script>
+// https://github.com/trinary/d3-transform/blob/master/src/d3-transform.js
+function d3Transform(chain) {
+  var transforms = [];
+  if (chain !== undefined) { transforms.push(chain);  }
+
+  function push(kind, args) {
+    var n = args.length;
+
+    transforms.push(function() {
+      if (kind == 'seq') {
+        return args[0].apply(this, arr(arguments));
+      } else {
+        return kind + '(' + (n == 1 && typeof args[0] == 'function'
+          ? args[0].apply(this, arr(arguments)) : args) + ')';
+      }
+    });
+  }
+
+  function arr(args) {
+    return Array.prototype.slice.call(args);
+  }
+
+  var my = function() {
+    var that = this,
+      args = arr(arguments);
+
+    return transforms.map(function(f) {
+      return f.apply(that, args);
+    }).join(' ');
+  };
+
+  ['translate', 'rotate', 'scale', 'matrix', 'skewX', 'skewY', 'seq'].forEach(function(t) {
+    my[t] = function() {
+      push(t, arr(arguments));
+      return my;
+    };
+  });
+
+  return my;
+}
+</script>
+</body>
+</html>

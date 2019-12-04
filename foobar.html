@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>çlock</title>
+	<style>
+		body {margin: 0; font-family: arial}
+		rect {width: 10, height: 10, fill:#000099;}
+	</style>
+</head>
+<body>
+	<p>open dev tools</p>
+
+	<svg id='coord1' width="1000" height="1000" 
+		viewBox="-100 -100 200 200" transform="scale(1,-1)"
+		style="background-color: #7df"
+	>
+    	<rect fill="#482" />
+    	<g transform='translate(1,1)'><rect/></g>
+    	<g transform='translate(99,0)'><rect width=1 height=1 /></g>
+    	<g transform='translate(0,99)'><rect width=1 height=1 /></g>
+    	<g transform='translate(-100,0)'><rect width=1 height=1 /></g>
+    	<g transform='translate(0,-100)'><rect width=1 height=1 /></g>
+
+		<!-- <polyline points="50 50, 100 100, -100 50" fill=none stroke="gray" stroke-width=1 /> -->
+
+    	<g class='clock' 
+    		transform='translate(50,50) scale(.5,.5)'
+    	>
+			<circle class='unit-circle' r=100 fill="none" stroke="#292911" stroke-width=1 />
+			<g class='radius' transform='rotate(1rad)'>
+				<line class='arm' x1=0 y1=0 x2=100 y2=0 stroke="#093232" stroke-width=1 />
+				<circle class='intersectin' r=5 cx=100 cy=0 fill="red" stroke="none" stroke-width="0" />
+			</g>
+    	</g>
+		
+
+		
+	</svg>
+
+	<!-- assume px units -->
+	<!-- <svg id='core' width='1000' height='500' viewBox='0 0 1000 500' >
+
+		<rect width="100" height="50" style="stroke: #000000; fill:none;"/>
+
+		<g id='root' transform='translate(0,0)' >
+			<g class='entry' transform='translate(0,0)' >
+				<g class='key' transform='translate(0,0)' >
+					<text class='name'><tspan font-weight="bold">Name:</tspan></text>
+				</g>
+				<g class='value' transform='translate(100,0)' >
+					<text class='name'>Josh</text>
+				</g>
+			</g>
+		</g>
+	</svg>
+
+	<svg viewBox="0 0 1000 100">
+		<g>
+		<desc>Female human</desc>
+	    <circle cx="110" cy="56" r="10"/>
+	    <polyline points="110 66, 110 80, 100 90, 120 90, 110 80"/>
+	    <line x1="104" y1="104" x2="108" y2="90"/>
+	    <line x1="112" y1="90" x2="116" y2="104"/>
+	    <polyline points="101 70, 110 76, 119 70" />
+		</g>
+	</svg> -->
+
+<script>
+	'use strict';
+	let loglevel = 3;
+
+
+	const error = a => {throw new Error(a)}
+	const assert = (a, msg) => a ? true : error(msg)
+	const now = a => a ? Date.now() - a : Date.now()
+	const and = (a,b) => a && b
+	const all = arr => arr.reduce(and, true)
+	const log = console.log.bind(console)
+	const debug = console.debug.bind(console)
+	const info = console.info.bind(console)
+
+	// This is a clock that runs for a finite time
+	// It is very short and expects the user to know what they are doing, 
+	// I have opted to NOT make the clock immutable, but some mutations will
+	// obviously break things; you'll need to restart your browser.
+	let clock = {
+		interval: 17, limit: 1000, //config
+		intervalId: null, ticks: 0, err: null, 
+		started: null, stopped: null, duration: null,
+
+		tickHandlers: [ //side-effects with double duty as predicates
+			ctx => ctx.ticks++ || true,
+			ctx => ctx.ticks < ctx.limit,
+			// ctx => log(ctx.ticks) || true,
+			// ctx => document.getElementById('square').setAttribute('transform', 
+			// 	`scale(${ctx.ticks/100},${ctx.ticks/100})rotate(${ctx.ticks/1})`
+			// 	) || true,
+		],
+
+		_ontick: (ctx) => { 
+			let checks = ctx.tickHandlers.map(fn => fn(ctx));
+			debug(checks);
+			if (!all(checks)) ctx.cancel(ctx);
+		},
+
+		// TODO Write a version that pumps using this.
+		start2 :  (ctx) => {
+			window.requestAnimationFrame(()=>clock._ontick(ctx));
+		},
+
+		start	: (ctx) => {
+			assert(ctx, 'You start a clock with an instance via clock.start(clock)');
+			ctx.intervalId = window.setInterval(()=>ctx._ontick(ctx), ctx.interval);
+			ctx.started = now();
+			return ctx;
+		},
+		cancel	: (ctx) => {
+			assert(ctx, 'You cancel a clock with an instance via clock.cancel(clock)');
+			window.clearInterval(ctx.intervalId);
+			ctx.stopped = now();
+			ctx.duration = ctx.stopped - ctx.started; //dependent data!
+			return ctx;
+		},
+		reset 	: (ctx) => {
+			assert(ctx, 'You reset a clock with an instance via clock.reset(clock)');
+			ctx.intervalId = null;
+			ctx.ticks = 0; ctx.err = null; ctx.started = null; ctx.stopped = null;
+			return ctx;
+		},
+	};
+
+	clock.start(clock);
+
+	// Sadly, for animation this isn't good enough. We don't get good enough guarantees
+	// out of the setInterval; for that we want a requestAnimationFrame() pump. 
+	// Does that consume stack space? 
+
+	// Sub-resources, fetch/XHR, WebSockets and WebRTC are all ways to get network input
+	// All require client initiated action, and only the last two leave a connection in place.
+
+
+
+</script>
+</body>
+</html>
