@@ -4,8 +4,7 @@
 	<meta charset="UTF-8">
 	<title>çlock</title>
 	<style>
-		body {margin: 0; font-family: arial}
-		rect {width: 10, height: 10, fill:#000099;}
+		body {margin: 0; font-family: arial; color: white; background-color: black;}
 	</style>
 </head>
 <body>
@@ -13,29 +12,26 @@
 
 	<svg id='coord1' width="1000" height="1000" 
 		viewBox="-100 -100 200 200" transform="scale(1,-1)"
-		style="background-color: #7df"
+		style="background-color: #66b7ff"
 	>
     	<rect fill="#482" />
     	<g transform='translate(1,1)'><rect/></g>
     	<g transform='translate(99,0)'><rect width=1 height=1 /></g>
-    	<g transform='translate(0,99)'><rect width=1 height=1 /></g>
-    	<g transform='translate(-100,0)'><rect width=1 height=1 /></g>
+    	<g transform='translate(0,99)'><rect width=1 height=1 fill='#a30033' /></g>
+    	<g transform='translate(-100,0)'><rect width=1 height=1 fill='#402002' /></g>
     	<g transform='translate(0,-100)'><rect width=1 height=1 /></g>
 
 		<!-- <polyline points="50 50, 100 100, -100 50" fill=none stroke="gray" stroke-width=1 /> -->
 
     	<g class='clock' 
-    		transform='translate(50,50) scale(.5,.5)'
+    		transform1='translate(50,50) scale(.5,.5)'
     	>
-			<circle class='unit-circle' r=100 fill="none" stroke="#292911" stroke-width=1 />
-			<g class='radius' transform='rotate(1rad)'>
-				<line class='arm' x1=0 y1=0 x2=100 y2=0 stroke="#093232" stroke-width=1 />
+			<circle class='unit-circle' r=100 fill="none" stroke="#292911" stroke-width=.1 />
+			<g class='radius' transform='rotate(60)'>
+				<line class='arm' x1=0 y1=0 x2=100 y2=0 stroke="#093232" stroke-width=.1 />
 				<circle class='intersectin' r=5 cx=100 cy=0 fill="red" stroke="none" stroke-width="0" />
 			</g>
     	</g>
-		
-
-		
 	</svg>
 
 	<!-- assume px units -->
@@ -70,22 +66,229 @@
 	'use strict';
 	let loglevel = 3;
 
-
 	const error = a => {throw new Error(a)}
 	const assert = (a, msg) => a ? true : error(msg)
-	const now = a => a ? Date.now() - a : Date.now()
-	const and = (a,b) => a && b
+	const and = (a,b) => !!a && !!b
+	const or = (a,b) => !!a || !!b
+	const equals = (a,b) => a === b
+  const identity = a => a
 	const all = arr => arr.reduce(and, true)
+	const any = arr => arr.reduce(or, false)
+	const same = arr => arr.reduce(equals, arr[0])
+  const peek = arr => arr.length ? arr[arr.length -1] : null
+  const push = (arr, a) => {arr.push(a); return arr} //mutating
+  const hasProp = (a, prop) => a.hasOwnProperty(prop)
+  const propType = (a, prop) => getType(a[prop])
+
+	const now = a => a ? Date.now() - a : Date.now()
 	const log = console.log.bind(console)
 	const debug = console.debug.bind(console)
 	const info = console.info.bind(console)
+
+  const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn))
+
+	const assertEquals = (expected, actual) => {
+	  assert(expected === actual, `expected [${expected}] but got [${actual}]`)
+	};
+
+  // A safer stringify that takes into account circular references.
+  const tryToStringify = obj => {
+    let result = '<Circular>';
+    try{ result = JSON.stringify(obj); } catch (ignored) {}
+    return result;
+  }
+
+	const TYPES = {
+    // These are the 7 basic JS types, excluding void
+    UNDEF: 'undefined',
+    NUL: 'null',
+    STR: 'string',
+    NUM: 'number',
+    BOOL: 'boolean',
+    FUN: 'function',
+    OBJ: 'object',
+
+    // Special types
+    ARR: 'array',
+    ANY: 'any',
+    ELT: 'element', //useful in browsers
+
+    //Simpatico types
+    CORE: 'handlers', //a core has handlers
+    HANDLER: 'handle', //a hander has a handle function
+    MSG: 'handler', //a message points to a handler
+	};
+
+	const getType = (a) => {
+    const {UNDEF,NUL,STR,OBJ,ARR,ELT,CORE,HANDLER,MSG} = TYPES;
+
+	  let t = typeof a;
+	  if (t !== OBJ)  return t;
+
+	  if (a === null) return NUL;
+	  if (a === undefined) return UNDEF;
+	  if (Array.isArray(a)) return ARR;
+    if (window && (a instanceof Element)) return ELT;
+
+    // Simpatico stuff
+	  if (propType(a, HANDLER) === FUN) return HANDLER;
+    // if (propType(a, CORE) === OBJ) return CORE;
+    if (propType(a, MSG) === STR) return MSG;
+
+	  return OBJ;
+	};
+
+  // These type predicates are a map from TYPES to an object where the keys 
+  // are [lower cased - maybe?] and the values are functions that check getType 
+  const PREDS = mapObject(TYPES,([k,v])=>[k, a => getType(a) === v])
+
+  // Cast a string to a particular type
+  const cast = (type, str) => {
+    const {STR,NUM,BOOL} = TYPES;
+    assert(PREDS.STR(str), `string value required; called with [${getType(str)}]`);
+
+    switch (type) {
+      case STRING:
+        return str;
+      case NUM:
+        const result = 1 * str;
+        if (Number.isNaN(result)) throw new Error(`Cannot convert ${str} into a number`);
+        return result;
+      case BOOL:
+        return (str === 'true') ? true : false;
+      default:
+        throw `casting to type ${type} not supported`
+    }
+  };
+
+  // Integrate msg into target, producing a new target.
+  // Note that there are mutating versions of this floating around,
+  // and this version misses the very nice feature of showing the message cascade
+  const combine = (target, msg) => {
+    let ttarget = getType(target);
+    let tmsg = getType(msg);
+
+    // In some cases we erase type (set to "ANY")
+    // This saves us from repetative rule writing
+    if (ttarget === NUL){
+      tmsg = ANY; 
+    } else if (tmsg !== NUL) {
+      // Functions just invoke, so erase the counter type
+      if      (tmsg    === FUN) ttarget = ANY;
+      else if (ttarget === FUN) tmsg = ANY;
+      // Arrays push, so erase the message type
+      else if (ttarget === ARR && tmsg !== ARR) tmsg = ANY;
+
+      // else if (ttarget === CORE) tmsg = ANY;
+      // else if (ttarget === HANDLER) tmsg = ANY;
+    }
+
+    // Lookup the rule, throw if you can't find it.
+    const ruleKey = ttarget + tmsg;
+    const rule = rules[ruleKey];
+    if (!rule) {
+      throw `rule not found. rule[${ruleKey}] target[${tryToStringify(target)}] msg[${tryToStringify(msg)}]`;
+    }
+
+    // Invoke the rule and return
+    debug('combine()=>', 'rule:', ruleKey, 'target:', target, 'msg:', msg );
+    const result = rule(target, msg, print);
+    // debug(`result[${tryToStringify(result)}] rule[${ruleKey}] target[${tryToStringify(target)}] msg[${tryToStringify(msg)}]` );
+    return result;
+  }
+
+  const combineAll = (arr, core={}) => arr.reduce(combine, core)
+
+  //Rules for combining things. The first arg is the target, second the message
+  //We proceed from the "natural" types to the synthetic types introduced by Simpatico.
+  const {UNDEF,NUL,STR,NUM,BOOL,FUN,OBJ,ARR,ELT,ANY,CORE,HANDLER,MSG} = TYPES;
+  const rules = {};
+  rules[NUL+ANY] = (_,b) => b;
+
+  rules[STR+STR]  = (_,b) => b;
+  rules[STR+NUL]  = ()    => '';
+
+  rules[NUM+NUM]  = (a,b) => a + b;
+  rules[NUM+STR]  = (_,b) => cast(TYPES.NUM, b);
+  rules[NUM+NUL]  = ()    => 0;
+
+  rules[BOOL+BOOL]= (a,b) => b;
+  rules[BOOL+STR] = (_,b) => cast(TYPES.BOOL, b);
+  rules[BOOL+NUL] = (a,_) => !a;
+
+  rules[ARR+ARR]  = (a,b) => a.concat(b);
+  rules[ARR+ANY]  = (a,b) => [...a,b];
+  rules[ARR+NUL]  = ()    => [];
+
+  rules[FUN+ANY]  = (a,b) => a(b);
+  rules[ANY+FUN]  = (a,b) => b(a);
+
+  rules[OBJ+OBJ]  = (a,b) => {
+    // B is defensively copied, mutated and returned, not A!
+    b = Object.assign({},b);
+    for (let prop in a){
+      b[prop] = b.hasOwnProperty(prop) ?
+        combine(a[prop],b[prop]): //recurse
+        a[prop]; 
+    }
+    return b;
+  };
+
+  //handler invocation
+  //mutation: core.msgs will get a push,
+  //mutation: msg will get an id, time and children
+  //mutation: all results will get the id of the parent
+  rules[OBJ+MSG] = (core, msg) => { 
+    const {UNDEF, ARR, OBJ} = PREDS;
+
+    msg.id = core.msgs.length;
+    // msg.time = now();
+    core.msgs.push(msg);
+
+    //Find the named handler
+    const handler = core.handlers[msg.handler];
+    if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
+
+    // Invoke the handler.
+    // Results should always be an array, so help sloppy handlers
+    const results = handler[TYPES.HANDLER](core, msg);
+    if (UNDEF(results)) results = [];
+    if (!ARR(results))  results = [results];
+
+    // Build up some more info about the message cascade.
+    msg.children = results;
+
+    //Recurse for each result
+    for (const result of results){
+      // Store the id of the parent to avoid cycles that stop stringification
+      if (OBJ(result)) result.parent = msg.id;
+      core = combine(core, result); //recurse
+    }
+    return core;
+  };
+
+  //handler registration
+  rules[OBJ+HANDLER] = (core, handler) => {
+    core = combine(core, {handlers:{}, msgs:[]}); 
+    core.handlers[handler.name] = handler;
+    return core;
+  };
+
+
+
+  let foo = {name: 'foo', handle: (core, {d}) => [{a:1}, {c:2, d}]}
+  let msg = {handler:'foo', d:3};
+  combineAll([foo, msg]);
+
+
+
 
 	// This is a clock that runs for a finite time
 	// It is very short and expects the user to know what they are doing, 
 	// I have opted to NOT make the clock immutable, but some mutations will
 	// obviously break things; you'll need to restart your browser.
 	let clock = {
-		interval: 17, limit: 1000, //config
+		interval: 17, limit: 1, //config
 		intervalId: null, ticks: 0, err: null, 
 		started: null, stopped: null, duration: null,
 

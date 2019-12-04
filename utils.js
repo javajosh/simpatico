@@ -15,16 +15,16 @@ const TYPES = {
   ARR: 'array',
   NULL: 'null',
   UNDEF: 'undefined',
+
   MSG: 'msg',
   HANDLER: 'handle',
 };
 
 const log = console.log.bind(console);
-Array.prototype.peek = function(){return this.length ? this[this.length-1] : null};
+Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null};
 
-const assert = (a, msg) => {
-  if (!a) throw new Error(msg)
-};
+const assert = (a, msg) => if (!a) throw new Error(msg);
+
 const assertEquals = (expected, actual) => {
   if (actual !== expected) assert(false, `expected [${expected}] but got [${actual}]`)
 };
@@ -55,11 +55,10 @@ const objectMap = (object, mapFn) => Object.keys(object).reduce(
 
 const getType = (a) => {
   let t = typeof a;
-  if (t !== TYPES.OBJ) return t;
-
+  if (t !== TYPES.OBJ)  return t;
+  if (a === null)       return TYPES.NULL;
+  if (a === undefined)  return TYPES.UNDEF;
   if (Array.isArray(a)) return TYPES.ARR;
-  if (a === null) return TYPES.NULL;
-  if (a === undefined) return TYPES.UNDEF;
 
   if (a.hasOwnProperty(TYPES.MSG) && typeof a[TYPES.MSG] === TYPES.STR) return TYPES.MSG;
   if (a.hasOwnProperty(TYPES.HANDLER) && typeof a[TYPES.HANDLER] === TYPES.FUN) return TYPES.HANDLER;
@@ -84,7 +83,7 @@ const cast = (type, str) => {
 
 const functions = {
   curry : (f, a) => b => f(a,b),
-  compose : (f, g) => a => f(g(a)),
+  compose : (f, g) => a => g(f(a)),
 };
 
 const math = {
@@ -111,10 +110,6 @@ const size = (a) => {
     default:
       return 0;
   }
-};
-
-const objects = {
-
 };
 
 const predicates = {
@@ -148,9 +143,7 @@ const arrays = {
   copy2: a => a.slice(),
   copy: a => JSON.parse(JSON.stringify(a)),
   shuffle : (arr)=> {
-    // Fisher-Yates shuffle using ES6 swap (possibly slow)
-    // A lovely little algo that starts at the last index.
-    // This loop's last iteration is when right = 1.
+    // Fisher-Yates shuffle using ES6 swap
     let right, left;
     for (right = arr.length - 1; right > 0; right--) {
       left = Math.floor(Math.random() * (right + 1));
@@ -224,29 +217,28 @@ const scatter = (elt, obj) => {
 
 // A simple PRNG inside the browser. 
 function RNG(seed) {
-    // A simple seedable RNG based on https://en.wikipedia.org/wiki/Linear_congruential_generator
-    // LCG using GCC's constants
-    this.m = 0x80000000; // 2**31;
-    this.a = 1103515245;
-    this.c = 12345;
-    this.state = seed ? seed : Math.floor(Math.random() * (this.m - 1));
-  }
-
-  RNG.prototype.nextInt = function () {
-    this.state = (this.a * this.state + this.c) % this.m;
-    return this.state;
-  }
-  RNG.prototype.nextFloat = function () {
-    // returns in range [0,1]
-    return this.nextInt() / (this.m - 1);
-  }
-  RNG.prototype.nextRange = function (start, end) {
-    // returns in range [start, end): including start, excluding end
-    // can't modulu nextInt because of weak randomness in lower bits
-    const rangeSize = end - start;
-    const randomUnder1 = this.nextInt() / this.m;
-    return start + Math.floor(randomUnder1 * rangeSize);
-  }
-  RNG.prototype.choice = function (array) {
-    return array[this.nextRange(0, array.length)];
-  }
+  // A simple seedable RNG based on https://en.wikipedia.org/wiki/Linear_congruential_generator
+  // LCG using GCC's constants
+  this.m = 0x80000000; // 2**31;
+  this.a = 1103515245;
+  this.c = 12345;
+  this.state = seed ? seed : Math.floor(Math.random() * (this.m - 1));
+}
+RNG.prototype.nextInt = function () {
+  this.state = (this.a * this.state + this.c) % this.m;
+  return this.state;
+}
+RNG.prototype.nextFloat = function () {
+  // returns in range [0,1]
+  return this.nextInt() / (this.m - 1);
+}
+RNG.prototype.nextRange = function (start, end) {
+  // returns in range [start, end): including start, excluding end
+  // can't modulu nextInt because of weak randomness in lower bits
+  const rangeSize = end - start;
+  const randomUnder1 = this.nextInt() / this.m;
+  return start + Math.floor(randomUnder1 * rangeSize);
+}
+RNG.prototype.choice = function (arr) {
+  return arr[this.nextRange(0, arr.length)];
+}
