@@ -298,7 +298,7 @@
 
   // The second part of Simpatico is the Rehman Tree, or RTree.
   // It's an n-array tree with some extras.
-  const rtree = (rootval = {}, reducer = combine) => {
+  const rtree1 = (rootval = {}, reducer = combine) => {
     let branchIndex = 0;
 
     const {OBJ, NUM, NUL} = PREDS;
@@ -396,59 +396,128 @@
     return {add, branch, setBranch, branches, residues, path, values, valuePath, residue, computeAllResidues, nodes, print};
   }
 
+  /*
+     This rtree is implemented with arrays.
+     The data-structure looks like this:
+
+     0 - 0 1 2 3 8 {}
+     1 - 2 4 5 {}
+     2 - 4 6 7 {}
+     focus: 0 
+
+     The first column is the row number (included for readability)
+     The next number is the parent node for the row.
+     The next numbers indicate the values in the order they came in.
+     The last object is the residue of the row all the way back to root.
+
+     For example, row 1 {} is ∫[0 1 2 4 5], and row 2 {} is ∫[0 1 2 4 6 7]
+
+     The RTree has a mutable state, the focus, which determines what happens on the next add.
+
+    Row focus is just a number. This is the default.
+    Branching focus is an array: [row,col] or [node]
+
+    row ={row, parent, values, residue}
+  */
+  const rtree = (base = {}, reducer = combine) => {
+    let foc = 0;
+
+    const values = [];
+    const rows = [{row:0, parent: null, values:[], residue: base}];
+
+    const add = value => {
+      const i = values.length;
+      const branching = PREDS.ARR(foc);
+      values.push(value);
+      if (!branching){
+        const row = rows[foc];
+        row.values.push(i);
+        row.residue = reducer(row.residue, value);
+      } else {
+        // The interesting case - we are branching!
+        // TODO - decide if supporting columns is actually worth it. This impl is so nice...
+        const [rowi, coli] = foc;
+        const parentRow = rows[rowi];
+        foc = rows.length;
+        rows.push({
+          row:rows.length, 
+          parent: rowi, 
+          values:[value], 
+          residue: reducer(parentRow.residue, value)
+        });
+      }
+      return print();
+    }
+
+    const focus = (a,b) => {
+      foc = PREDS.ARR(a) ? foc = a : foc = [a,b];
+      return print();
+    }
+
+    const residues = () => rows.map(row=>row.residue);
+
+    const printRow = row => `${row.row} - ${row.parent === null ? 'n' : row.parent} ${row.values.join(' ')} [${row.residue}]`;
+    const print = ()=> '\n' + rows.map(printRow).join('\n') + `\n focus: ${foc}`;
+
+
+    return {values, rows, add, focus, residues, print};
+  }
+
   // Basic Tests
   let sum = (a,b) => a+b;
   let t = rtree(0,sum);
-  assertEquals(t.residues[0], 0)
+  assertEquals(t.residues()[0], 0)
   t.add(1); // default is branch 0
-  assertEquals(t.residues[0], 1)
+  assertEquals(t.residues()[0], 1)
   t.add(1); 
-  assertEquals(t.residues[0], 2)
+  assertEquals(t.residues()[0], 2)
 
-  t.add(1,null) //branch from the root node
-  assertEquals(t.residues[0], 2)
-  assertEquals(t.residues[1], 1)
+  //branch from the root node
+  t.focus([0,0])
+  t.add(1) 
+  assertEquals(t.residues()[0], 2)
+  assertEquals(t.residues()[1], 1)
   t.add(1) // add to the branch
-  assertEquals(t.residues[0], 2)
-  assertEquals(t.residues[1], 2)
+  assertEquals(t.residues()[0], 2)
+  assertEquals(t.residues()[1], 2)
   t.add(1) // add to the branch
-  assertEquals(t.residues[0], 2)
-  assertEquals(t.residues[1], 3)
+  assertEquals(t.residues()[0], 2)
+  assertEquals(t.residues()[1], 3)
 
   t.add(1,0) // go back to branch 0
-  assertEquals(t.residues[0], 3)
-  assertEquals(t.residues[1], 3)
+  assertEquals(t.residues()[0], 3)
+  assertEquals(t.residues()[1], 3)
   t.add(1)
-  assertEquals(t.residues[0], 4)
-  assertEquals(t.residues[1], 3)
+  assertEquals(t.residues()[0], 4)
+  assertEquals(t.residues()[1], 3)
 
   // Branch index tests
-  t = rtree({a:0})
-  assertEquals(t.residues[0].branchIndex, 0, 'The default branch index is 0')
-  assertEquals(t.residues[0].a, 0)
-  t.add({a:1})
-  assertEquals(t.residues[0].branchIndex, 0, 'The branch index does not change on add')
-  assertEquals(t.residues[0].a, 1)
+  // t = rtree({a:0})
+  // assertEquals(t.residues()[0].branchIndex, 0, 'The default branch index is 0')
+  // assertEquals(t.residues[0].a, 0)
+  // t.add({a:1})
+  // assertEquals(t.residues[0].branchIndex, 0, 'The branch index does not change on add')
+  // assertEquals(t.residues[0].a, 1)
 
-  t.add({a:1}, null) //branch from the root node, creating branch 1
-  assertEquals(t.residues[1].branchIndex, 1, 'The new branch gets a new index')
-  assertEquals(t.residues[1].a, 1)
-  assertEquals(t.residues[0].a, 1)
+  // t.add({a:1}, null) //branch from the root node, creating branch 1
+  // assertEquals(t.residues[1].branchIndex, 1, 'The new branch gets a new index')
+  // assertEquals(t.residues[1].a, 1)
+  // assertEquals(t.residues[0].a, 1)
 
-  t.add({a:1})  // add to branch 1
-  assertEquals(t.residues[0].branchIndex, 0)
-  assertEquals(t.residues[1].branchIndex, 1)
-  assertEquals(t.residues[0].a, 1)
-  assertEquals(t.residues[1].a, 2)
+  // t.add({a:1})  // add to branch 1
+  // assertEquals(t.residues[0].branchIndex, 0)
+  // assertEquals(t.residues[1].branchIndex, 1)
+  // assertEquals(t.residues[0].a, 1)
+  // assertEquals(t.residues[1].a, 2)
 
-  t.add({a:1},0) // add to branch 0
-  assertEquals(t.residues[0].branchIndex, 0)
-  assertEquals(t.residues[1].branchIndex, 1)
-  assertEquals(t.residues[0].a, 2)
-  assertEquals(t.residues[1].a, 2)
-  assertEquals(t.nodes.length, 5)
+  // t.add({a:1},0) // add to branch 0
+  // assertEquals(t.residues[0].branchIndex, 0)
+  // assertEquals(t.residues[1].branchIndex, 1)
+  // assertEquals(t.residues[0].a, 2)
+  // assertEquals(t.residues[1].a, 2)
+  // assertEquals(t.nodes.length, 5)
 
-  t.add({a:1},-t.nodes.length) //branch off the last node
+  // t.add({a:1},-t.nodes.length) //branch off the last node
 
 
 
