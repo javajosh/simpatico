@@ -63,8 +63,9 @@
 	</svg> -->
 
 <script>
+  // Simpatico has three parts: combine, the rtree, and friendly functions.
+  // but first we need to normalize the environment in a readable, terse way.
 	'use strict';
-	let loglevel = 3;
 
 	const error = a => {throw new Error(a)}
 	const assert = (a, msg) => a ? true : error(msg)
@@ -161,6 +162,7 @@
     }
   };
 
+  // The first part of Simpatico is the combine function.
   // Integrate msg into target, producing a new target.
   // Note that there are mutating versions of this floating around,
   // and this version misses the very nice feature of showing the message cascade
@@ -191,13 +193,11 @@
     }
 
     // Invoke the rule and return
-    debug('combine()=>', 'rule:', ruleKey, 'target:', target, 'msg:', msg );
-    const result = rule(target, msg, print);
+    // debug('combine()=>', 'rule:', ruleKey, 'target:', target, 'msg:', msg );
+    const result = rule(target, msg);
     // debug(`result[${tryToStringify(result)}] rule[${ruleKey}] target[${tryToStringify(target)}] msg[${tryToStringify(msg)}]` );
     return result;
   }
-
-  const combineAll = (arr, core={}) => arr.reduce(combine, core)
 
   //Rules for combining things. The first arg is the target, second the message
   //We proceed from the "natural" types to the synthetic types introduced by Simpatico.
@@ -241,6 +241,9 @@
   rules[OBJ+MSG] = (core, msg) => { 
     const {UNDEF, ARR, OBJ} = PREDS;
 
+    // World event - defensively copy because we mutate
+    if (UNDEF(msg.parent)) msg = Object.assign({}, msg);
+
     msg.id = core.msgs.length;
     // msg.time = now();
     core.msgs.push(msg);
@@ -251,7 +254,7 @@
 
     // Invoke the handler.
     // Results should always be an array, so help sloppy handlers
-    const results = handler[TYPES.HANDLER](core, msg);
+    let results = handler[TYPES.HANDLER](core, msg);
     if (UNDEF(results)) results = [];
     if (!ARR(results))  results = [results];
 
@@ -274,13 +277,118 @@
     return core;
   };
 
+  // Convenience functions that wrap combine
+  const combineAll = (arr, core={}) => arr.reduce(combine, core)
+  const S = (...args) => combineAll(Array.from(args))
 
-
+  // Tests
   let foo = {name: 'foo', handle: (core, {d}) => [{a:1}, {c:2, d}]}
   let msg = {handler:'foo', d:3};
-  combineAll([foo, msg]);
+
+  let fib = {name:'fib', handle: ({a=1,b=1})=>[{a:b,b:a+b}]};
+  let next = {handler:'fib'};
+  // S(fib, next, next, next).a;
+
+  // The second part of Simpatico is the Rehman Tree, or RTree.
+  // It's an n-array tree with some extras.
+  const rtree = (rootval = {}) => {
+    let branchIndex = 0; 
+
+    const root = {parent: null, val: rootval};
+    const nodes = [root];
+    const branches = [root];
+    // const residues = [root];
+
+    const branch = () => branches[branchIndex];
+    const setBranch = a => branchIndex = a;
+
+    const add = (val={}, parent=branch()) => {
+      if (typeof parent === 'number') {
+        // Positive parent is a node, negative is a branch;
+        // TODO figure out how to handle 0. for now it's branch only also asserts
+        parent = (parent > 0) ? nodes[parent] : branches[-parent];
+      }
+      const node = {parent, val};
+
+      // If the parent is already a branch, then replace parent with the new node
+      const i = branches.indexOf(parent);
+      if (i !== -1){
+        branches[i] = node;
+        // residues[i] = residue(node); // a performant map
+      } else {
+        // Otherwise, add a new branch and set the branchIndex
+        branches.push(node);
+        branchIndex = branches.length - 1;
+        // residues.push(residue(node));
+      }
+      nodes.push(node);
+      node.residue = residue(node); //stateful
+      return node;
+    };
+
+    // The remaining functions are where we deviate from an ordinary n-arry tree
+
+    // Return the list of nodes from root to the given node
+    const path = (node = branch()) => {
+      const result = [node];
+      while(node.parent) {
+        node = node.parent;
+        result.push(node);
+      }
+      return result.reverse();
+    }
+
+    // Return the list of values from root to given node
+    const valuePath = (node = branch()) => path(node).map(n => n.val);
+
+    // Residue is the reduction of all values to the given node.
+    const residue = (node = branch(), base = {}, reducer = combine) => 
+      valuePath(node).reduce(reducer, base);
+    
+    const computeAllResidues = (base={}, reducer = combine) => 
+      branches.map(branch => residue(branch,base,reducer));
+
+    return {add, branch, setBranch, branches, path, valuePath, residue, computeAllResidues, nodes};
+  }
+
+  // Tests
+  let t = rtree(1);
+  let sum = (a,b) => a+b;
+  //  t.add(1) t.residues(0,sum) t.add(1,t.nodes[0]) etc
+
+  // With a working RTree we can implement unified inheretence/instantiation.
+  // We define a type as a set of handlers
+  // We add handlers one at a time, and then branch to create an instance.
+  // We can also branch to create a subtype, if the new branch also has handlers.
 
 
+  // Let's start with a clock.
+  t = rtree();
+  t.add({
+    interval: 1000, limit: 10, //config
+    intervalId: null, ticks: 0, err: null, 
+    started: null, stopped: null, duration: null
+  });
+  t.add({name: 'start', handle:(c,m)=>{
+    if (c.started) return;
+    const intervalId = window.setInterval(() => t.add({handler:'tick'}));
+    const started = now();
+    return [{intervalId}, {started}];
+  }});
+
+  t.add({name: 'stop', handle:(c,m)=>{
+    if (c.stopped) return;
+    window.clearInterval(c.intervalId);
+    const stopped = now();
+    return [{stopped},{duration:stopped-c.started}];
+  }});
+
+  t.add({name: 'tick', handle:(c,m)=>{
+    debug(c.ticks, c.limit, c.intervalId);
+    return (c.ticks >= c.limit) ? {handler:'stop'} : {ticks:1}
+  }});
+
+  // t.add({handler:'start'}) t.residue()
 
 
 	// This is a clock that runs for a finite time
