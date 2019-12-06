@@ -142,6 +142,7 @@
   // These type predicates are a map from TYPES to an object where the keys 
   // are [lower cased - maybe?] and the values are functions that check getType 
   const PREDS = mapObject(TYPES,([k,v])=>[k, a => getType(a) === v])
+  const ASSERT = mapObject(TYPES,([k,v])=>[k, (a, msg) => assert(getType(a) === v, msg)])
 
   // Cast a string to a particular type
   const cast = (type, str) => {
@@ -180,9 +181,6 @@
       else if (ttarget === FUN) tmsg = ANY;
       // Arrays push, so erase the message type
       else if (ttarget === ARR && tmsg !== ARR) tmsg = ANY;
-
-      // else if (ttarget === CORE) tmsg = ANY;
-      // else if (ttarget === HANDLER) tmsg = ANY;
     }
 
     // Lookup the rule, throw if you can't find it.
@@ -209,11 +207,11 @@
   rules[STR+NUL]  = ()    => '';
 
   rules[NUM+NUM]  = (a,b) => a + b;
-  rules[NUM+STR]  = (_,b) => cast(TYPES.NUM, b);
+  rules[NUM+STR]  = (_,b) => cast(NUM, b);
   rules[NUM+NUL]  = ()    => 0;
 
   rules[BOOL+BOOL]= (a,b) => b;
-  rules[BOOL+STR] = (_,b) => cast(TYPES.BOOL, b);
+  rules[BOOL+STR] = (_,b) => cast(BOOL, b);
   rules[BOOL+NUL] = (a,_) => !a;
 
   rules[ARR+ARR]  = (a,b) => a.concat(b);
@@ -254,7 +252,7 @@
 
     // Invoke the handler.
     // Results should always be an array, so help sloppy handlers
-    let results = handler[TYPES.HANDLER](core, msg);
+    let results = handler[HANDLER](core, msg);
     if (UNDEF(results)) results = [];
     if (!ARR(results))  results = [results];
 
@@ -287,26 +285,60 @@
 
   let fib = {name:'fib', handle: ({a=1,b=1})=>[{a:b,b:a+b}]};
   let next = {handler:'fib'};
+
+
+
+
+
+
+
+
+
   // S(fib, next, next, next).a;
 
   // The second part of Simpatico is the Rehman Tree, or RTree.
   // It's an n-array tree with some extras.
-  const rtree = (rootval = {}) => {
-    let branchIndex = 0; 
+  const rtree = (rootval = {}, reducer = combine) => {
+    let branchIndex = 0;
+
+    const {OBJ, NUM, NUL} = PREDS;
+    // mutation: put the branch index into node's value (only if an object)
+    if (OBJ(rootval)) rootval.branchIndex = 0;
 
     const root = {parent: null, val: rootval};
+
     const nodes = [root];
     const branches = [root];
-    // const residues = [root];
+    const residues = [root.val];
 
     const branch = () => branches[branchIndex];
+    const residue = () => residues[branchIndex];
+
     const setBranch = a => branchIndex = a;
 
+    /** 
+    parent can be 
+       a node,
+       a pos number (branchIndex), 
+       neg number (-nodeIndex)
+       null (root node)
+    if the node is not the tip of a branch, then a new branch is made
+    */
     const add = (val={}, parent=branch()) => {
-      if (typeof parent === 'number') {
-        // Positive parent is a node, negative is a branch;
-        // TODO figure out how to handle 0. for now it's branch only also asserts
-        parent = (parent > 0) ? nodes[parent] : branches[-parent];
+      if (NUM(parent)) {
+        if (parent >= 0){ // select a branch
+          assert(parent < branches.length, 
+            `invalid positive parent [${parent}] < [${branches.length}]`);
+          branchIndex = parent;
+          parent = branches[parent];
+        } else { // select a node, creating a branch
+          assert(parent < nodes.length, 
+            `invalid negative parent [${parent}] < [${branches.length}]`);
+
+          parent = nodes[-parent]; //we will be branching
+        }
+      } else if(NUL(parent)){
+        parent = root;
       }
       const node = {parent, val};
 
@@ -314,19 +346,20 @@
       const i = branches.indexOf(parent);
       if (i !== -1){
         branches[i] = node;
-        // residues[i] = residue(node); // a performant map
+        residues[i] = reducer(residues[i], node.val);
       } else {
         // Otherwise, add a new branch and set the branchIndex
+        branchIndex = branches.length; //we will be adding one
+        // mutation: put the branch index into the node's value.
+        if (OBJ(node.val)) node.val.branchIndex = branchIndex;
         branches.push(node);
-        branchIndex = branches.length - 1;
-        // residues.push(residue(node));
+        residues.push(computeResidue(node, rootval, reducer)); 
+        // Note: because we re-reduce the parent, the user must be careful to branch
+        // from a point that doesn't have side-effects.
       }
       nodes.push(node);
-      node.residue = residue(node); //stateful
-      return node;
+      return node; //would be nice to return "this" but I'm not sure how...
     };
-
-    // The remaining functions are where we deviate from an ordinary n-arry tree
 
     // Return the list of nodes from root to the given node
     const path = (node = branch()) => {
@@ -338,23 +371,89 @@
       return result.reverse();
     }
 
+    const print = (summarize = identity) => {
+      const docs = `0 - 0 1 2 3 8 {}
+ 1 - 2 4 5 {}
+ 2 - 4 6 7 {}`
+      const nodeIndex = node => nodes.indexOf(node);
+      const row = path => path.map(nodeIndex).join(' ');
+      const all = branches.map(b=>row(path(b)));
+      return all.join('\n');
+    }
+    // Return all the values
+    const values = () => nodes.map(n=>n.val);
+
     // Return the list of values from root to given node
     const valuePath = (node = branch()) => path(node).map(n => n.val);
 
     // Residue is the reduction of all values to the given node.
-    const residue = (node = branch(), base = {}, reducer = combine) => 
+    const computeResidue = (node = branch(), base = {}, reducer = combine) => 
       valuePath(node).reduce(reducer, base);
     
     const computeAllResidues = (base={}, reducer = combine) => 
       branches.map(branch => residue(branch,base,reducer));
 
-    return {add, branch, setBranch, branches, path, valuePath, residue, computeAllResidues, nodes};
+    return {add, branch, setBranch, branches, residues, path, values, valuePath, residue, computeAllResidues, nodes, print};
   }
 
-  // Tests
-  let t = rtree(1);
+  // Basic Tests
   let sum = (a,b) => a+b;
-  //  t.add(1) t.residues(0,sum) t.add(1,t.nodes[0]) etc
+  let t = rtree(0,sum);
+  assertEquals(t.residues[0], 0)
+  t.add(1); // default is branch 0
+  assertEquals(t.residues[0], 1)
+  t.add(1); 
+  assertEquals(t.residues[0], 2)
+
+  t.add(1,null) //branch from the root node
+  assertEquals(t.residues[0], 2)
+  assertEquals(t.residues[1], 1)
+  t.add(1) // add to the branch
+  assertEquals(t.residues[0], 2)
+  assertEquals(t.residues[1], 2)
+  t.add(1) // add to the branch
+  assertEquals(t.residues[0], 2)
+  assertEquals(t.residues[1], 3)
+
+  t.add(1,0) // go back to branch 0
+  assertEquals(t.residues[0], 3)
+  assertEquals(t.residues[1], 3)
+  t.add(1)
+  assertEquals(t.residues[0], 4)
+  assertEquals(t.residues[1], 3)
+
+  // Branch index tests
+  t = rtree({a:0})
+  assertEquals(t.residues[0].branchIndex, 0, 'The default branch index is 0')
+  assertEquals(t.residues[0].a, 0)
+  t.add({a:1})
+  assertEquals(t.residues[0].branchIndex, 0, 'The branch index does not change on add')
+  assertEquals(t.residues[0].a, 1)
+
+  t.add({a:1}, null) //branch from the root node, creating branch 1
+  assertEquals(t.residues[1].branchIndex, 1, 'The new branch gets a new index')
+  assertEquals(t.residues[1].a, 1)
+  assertEquals(t.residues[0].a, 1)
+
+  t.add({a:1})  // add to branch 1
+  assertEquals(t.residues[0].branchIndex, 0)
+  assertEquals(t.residues[1].branchIndex, 1)
+  assertEquals(t.residues[0].a, 1)
+  assertEquals(t.residues[1].a, 2)
+
+  t.add({a:1},0) // add to branch 0
+  assertEquals(t.residues[0].branchIndex, 0)
+  assertEquals(t.residues[1].branchIndex, 1)
+  assertEquals(t.residues[0].a, 2)
+  assertEquals(t.residues[1].a, 2)
+  assertEquals(t.nodes.length, 5)
+
+  t.add({a:1},-t.nodes.length) //branch off the last node
+
+
+
+
+
 
   // With a working RTree we can implement unified inheretence/instantiation.
   // We define a type as a set of handlers
@@ -365,15 +464,21 @@
   // Let's start with a clock.
   t = rtree();
   t.add({
-    interval: 1000, limit: 10, //config
+    interval: 1000, limit: 3, //config
     intervalId: null, ticks: 0, err: null, 
     started: null, stopped: null, duration: null
   });
+
   t.add({name: 'start', handle:(c,m)=>{
     if (c.started) return;
-    const intervalId = window.setInterval(() => t.add({handler:'tick'}));
-    const started = now();
-    return [{intervalId}, {started}];
+    debug('start', now(), c.branchIndex);
+
+    const intervalId = window.setInterval( 
+      () => t.add({handler:'tick'}, c.branchIndex), 
+      c.interval
+    );
+
+    return [{intervalId}, {started:now()}];
   }});
 
   t.add({name: 'stop', handle:(c,m)=>{
@@ -384,9 +489,14 @@
   }});
 
   t.add({name: 'tick', handle:(c,m)=>{
-    debug(c.ticks, c.limit, c.intervalId);
-    return (c.ticks >= c.limit) ? {handler:'stop'} : {ticks:1}
+    debug('tick', c.ticks, c.limit, c.intervalId, c.branchIndex);
+    return (c.ticks < c.limit) ? {ticks:1} : {handler:'stop'};
   }});
+
+  let branchPoint = t.nodes.length-1;
+  t.add({handler:'start'}, -branchPoint);
+
+  // t.add({handler:'start'});
 
   // t.add({handler:'start'}) t.residue()
 
@@ -395,53 +505,53 @@
 	// It is very short and expects the user to know what they are doing, 
 	// I have opted to NOT make the clock immutable, but some mutations will
 	// obviously break things; you'll need to restart your browser.
-	let clock = {
-		interval: 17, limit: 1, //config
-		intervalId: null, ticks: 0, err: null, 
-		started: null, stopped: null, duration: null,
+	// let clock = {
+	// 	interval: 17, limit: 1, //config
+	// 	intervalId: null, ticks: 0, err: null, 
+	// 	started: null, stopped: null, duration: null,
 
-		tickHandlers: [ //side-effects with double duty as predicates
-			ctx => ctx.ticks++ || true,
-			ctx => ctx.ticks < ctx.limit,
-			// ctx => log(ctx.ticks) || true,
-			// ctx => document.getElementById('square').setAttribute('transform', 
-			// 	`scale(${ctx.ticks/100},${ctx.ticks/100})rotate(${ctx.ticks/1})`
-			// 	) || true,
-		],
+	// 	tickHandlers: [ //side-effects with double duty as predicates
+	// 		ctx => ctx.ticks++ || true,
+	// 		ctx => ctx.ticks < ctx.limit,
+	// 		// ctx => log(ctx.ticks) || true,
+	// 		// ctx => document.getElementById('square').setAttribute('transform', 
+	// 		// 	`scale(${ctx.ticks/100},${ctx.ticks/100})rotate(${ctx.ticks/1})`
+	// 		// 	) || true,
+	// 	],
 
-		_ontick: (ctx) => { 
-			let checks = ctx.tickHandlers.map(fn => fn(ctx));
-			debug(checks);
-			if (!all(checks)) ctx.cancel(ctx);
-		},
+	// 	_ontick: (ctx) => { 
+	// 		let checks = ctx.tickHandlers.map(fn => fn(ctx));
+	// 		debug(checks);
+	// 		if (!all(checks)) ctx.cancel(ctx);
+	// 	},
 
-		// TODO Write a version that pumps using this.
-		start2 :  (ctx) => {
-			window.requestAnimationFrame(()=>clock._ontick(ctx));
-		},
+	// 	// TODO Write a version that pumps using this.
+	// 	start2 :  (ctx) => {
+	// 		window.requestAnimationFrame(()=>clock._ontick(ctx));
+	// 	},
 
-		start	: (ctx) => {
-			assert(ctx, 'You start a clock with an instance via clock.start(clock)');
-			ctx.intervalId = window.setInterval(()=>ctx._ontick(ctx), ctx.interval);
-			ctx.started = now();
-			return ctx;
-		},
-		cancel	: (ctx) => {
-			assert(ctx, 'You cancel a clock with an instance via clock.cancel(clock)');
-			window.clearInterval(ctx.intervalId);
-			ctx.stopped = now();
-			ctx.duration = ctx.stopped - ctx.started; //dependent data!
-			return ctx;
-		},
-		reset 	: (ctx) => {
-			assert(ctx, 'You reset a clock with an instance via clock.reset(clock)');
-			ctx.intervalId = null;
-			ctx.ticks = 0; ctx.err = null; ctx.started = null; ctx.stopped = null;
-			return ctx;
-		},
-	};
+	// 	start	: (ctx) => {
+	// 		assert(ctx, 'You start a clock with an instance via clock.start(clock)');
+	// 		ctx.intervalId = window.setInterval(()=>ctx._ontick(ctx), ctx.interval);
+	// 		ctx.started = now();
+	// 		return ctx;
+	// 	},
+	// 	cancel	: (ctx) => {
+	// 		assert(ctx, 'You cancel a clock with an instance via clock.cancel(clock)');
+	// 		window.clearInterval(ctx.intervalId);
+	// 		ctx.stopped = now();
+	// 		ctx.duration = ctx.stopped - ctx.started; //dependent data!
+	// 		return ctx;
+	// 	},
+	// 	reset 	: (ctx) => {
+	// 		assert(ctx, 'You reset a clock with an instance via clock.reset(clock)');
+	// 		ctx.intervalId = null;
+	// 		ctx.ticks = 0; ctx.err = null; ctx.started = null; ctx.stopped = null;
+	// 		return ctx;
+	// 	},
+	// };
 
-	clock.start(clock);
+	// clock.start(clock);
 
 	// Sadly, for animation this isn't good enough. We don't get good enough guarantees
 	// out of the setInterval; for that we want a requestAnimationFrame() pump. 
