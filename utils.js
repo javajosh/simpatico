@@ -181,7 +181,7 @@ const install = (target, source) => Object.keys(source).forEach(key => {
 
 // Combine two objects, mutating target
 // Similar to Object.assign, but use the target values
-// (The only time we don't use the value is when the target is a string)
+// (The only time we don't use the value is when the tar  get is a string)
 const combine_basic = (target, obj, print=false) => {
   if (typeof obj === 'undefined') return;
   for (const key in obj){

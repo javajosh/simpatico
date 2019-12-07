@@ -8,63 +8,32 @@
 	</style>
 </head>
 <body>
-	<p>open dev tools</p>
-
-	<svg id='coord1' width="1000" height="1000" 
-		viewBox="-100 -100 200 200" transform="scale(1,-1)"
+	<svg width="1000" height="1000" 
+		viewBox="-1 -1 2 2" 
+    transform="scale(1,-1)"
 		style="background-color: #66b7ff"
 	>
-    	<rect fill="#482" />
-    	<g transform='translate(1,1)'><rect/></g>
-    	<g transform='translate(99,0)'><rect width=1 height=1 /></g>
-    	<g transform='translate(0,99)'><rect width=1 height=1 fill='#a30033' /></g>
-    	<g transform='translate(-100,0)'><rect width=1 height=1 fill='#402002' /></g>
-    	<g transform='translate(0,-100)'><rect width=1 height=1 /></g>
+    <rect class='background' fill="#482" />
 
-		<!-- <polyline points="50 50, 100 100, -100 50" fill=none stroke="gray" stroke-width=1 /> -->
+    <g transform='translate(.99,0)'><rect width=.01 height=.01 /></g>
+    <g transform='translate(0,.99)'><rect width=.01 height=.01 fill='#a30033' /></g>
+    <g transform='translate(-1,0)'><rect width=.01 height=.01 fill='#402002' /></g>
+    <g transform='translate(0,-1)'><rect width=.01 height=.01 /></g>
 
-    	<g class='clock' 
-    		transform1='translate(50,50) scale(.5,.5)'
-    	>
-			<circle class='unit-circle' r=100 fill="none" stroke="#292911" stroke-width=.1 />
-			<g class='radius' transform='rotate(60)'>
-				<line class='arm' x1=0 y1=0 x2=100 y2=0 stroke="#093232" stroke-width=.1 />
-				<circle class='intersectin' r=5 cx=100 cy=0 fill="red" stroke="none" stroke-width="0" />
-			</g>
-    	</g>
+  	<g class='clock' 
+  		transform1='translate(.5,.5) scale(.5,.5)'
+  	>
+  		<circle class='unit-circle' r=1 fill="none" stroke="#292911" stroke-width=.001 />
+  		<g class='radius' transform='rotate(60)'>
+  			<line class='arm' x1=0 y1=0 x2=1 y2=0 stroke="#093232" stroke-width=.001 />
+  			<circle class='intersection' r=.05 cx=1 cy=0 fill="red" stroke="none" stroke-width="0" />
+  		</g>
+  	</g>
 	</svg>
-
-	<!-- assume px units -->
-	<!-- <svg id='core' width='1000' height='500' viewBox='0 0 1000 500' >
-
-		<rect width="100" height="50" style="stroke: #000000; fill:none;"/>
-
-		<g id='root' transform='translate(0,0)' >
-			<g class='entry' transform='translate(0,0)' >
-				<g class='key' transform='translate(0,0)' >
-					<text class='name'><tspan font-weight="bold">Name:</tspan></text>
-				</g>
-				<g class='value' transform='translate(100,0)' >
-					<text class='name'>Josh</text>
-				</g>
-			</g>
-		</g>
-	</svg>
-
-	<svg viewBox="0 0 1000 100">
-		<g>
-		<desc>Female human</desc>
-	    <circle cx="110" cy="56" r="10"/>
-	    <polyline points="110 66, 110 80, 100 90, 120 90, 110 80"/>
-	    <line x1="104" y1="104" x2="108" y2="90"/>
-	    <line x1="112" y1="90" x2="116" y2="104"/>
-	    <polyline points="101 70, 110 76, 119 70" />
-		</g>
-	</svg> -->
-
 <script>
   // Simpatico has three parts: combine, the rtree, and friendly functions.
   // but first we need to normalize the environment in a readable, terse way.
+
 	'use strict';
 
 	const error = a => {throw new Error(a)}
@@ -142,7 +111,7 @@
   // These type predicates are a map from TYPES to an object where the keys 
   // are [lower cased - maybe?] and the values are functions that check getType 
   const PREDS = mapObject(TYPES,([k,v])=>[k, a => getType(a) === v])
-  const ASSERT = mapObject(TYPES,([k,v])=>[k, (a, msg) => assert(getType(a) === v, msg)])
+  const ASSERT = mapObject(TYPES,([k,v])=>[k, (a, msg) => {assert(getType(a) === v, msg);return true}])
 
   // Cast a string to a particular type
   const cast = (type, str) => {
@@ -162,6 +131,7 @@
         throw `casting to type ${type} not supported`
     }
   };
+
 
   // The first part of Simpatico is the combine function.
   // Integrate msg into target, producing a new target.
@@ -464,6 +434,7 @@
   }});
 
   const start = {handler:'start'}
+  const stop = {handler:'stop'}
 
   // Tests
   // let reps = 10
@@ -484,6 +455,7 @@
     interval: 0, limit: 20, delay:0, //config
     intervalId: null, ticks: 0, err: null, 
     started: null, stopped: null, duration: null, row: null,
+    debug: false, onTick: null,
   });
 
   t.add({name: 'start', handle:(c,m)=>{
@@ -517,22 +489,103 @@
     return [{stopped}, {duration: (stopped - started) }];
   }});
 
-  t.add({name: 'tick', handle:(c,m)=>{
-    const {ticks, limit, stopped} = c;
-    if (c.stopped) return; // the pump is often sloppy by one tick - can we avoid this?
-    debug(t.print());
-    return (ticks < limit) ? {ticks:1} : {handler:'stop'};
+  // Gotcha: by using a static 'tick' we save considerable memory
+  t.add({name: 'tick', tick: {ticks: 1}, handle: function(c,m){
+    const {ticks, limit, stopped, onTick, debug:deb} = c;
+    if (c.stopped) return; // the pump is often sloppy by one tick - can we avoid this? 
+    // Fun: it's cool to put stuff here to drive it. there are better ways, but it's fun.
+    if (onTick) onTick(c);
+    if (deb) debug(t.print());
+    return (limit === -1 || ticks < limit) ? this.tick : {handler:'stop'};
   }});
 
-  // Tests
-  let reps = 10
-  while(reps--){
-    t.focus([0])
-    t.add({delay:reps*500 + ''})
-    t.add(start)
+  // Tests - Fun this one sets up a bunch of clocks with staggered starts 
+  // let reps = 10
+  // while(reps--){
+  //   t.focus([0])
+  //   t.add({debug:true, delay: reps * 500 + ''})
+  //   t.add(start)
+  // }
+  
+  // Test - fun, move a clock around. also demonstrates custom values in the clock
+  // this one is brittle because it depends on a DOM elt.
+  t.focus([0])
+  t.add({
+    limit:'-1', 
+    elt: document.getElementsByClassName('radius')[0],
+    onTick: c => SVG.scatter(c.elt, {transform:`rotate(${c.ticks})`}),
+  });
+  t.add(start)
+  document.onclick = e => t.add(stop)
+
+  /**
+    SVG is my favorite browser display technology for applications. But it's 
+    pretty hard to use natively. Here are some helper functions that make it 
+    easier to use!
+
+    TODO: add better support for complex attributes like transform and path
+    TODO: this doesn't really fit here in the mainline, perhaps factor it out
+  */
+  const SVG = {
+    // Scatter Object properties to Element attributes
+    // Do not set an attribute if it isn't different
+    scatter : (elt, obj) => {
+      ASSERT.ELT(elt) && ASSERT.OBJ(obj);
+      for (const key in obj){
+        const old = elt.getAttribute(key);
+        if (obj[key] + '' !== old) 
+          elt.setAttribute(key, obj[key]);
+      }
+    },
+    // Gather Element attributes to Object properties
+    // Only gather attributes when we have a named property
+    // Cast the atttribute according to be consistent with the type of the object value
+    gather : (elt, obj) => {
+      ASSERT.ELT(elt) && ASSERT.OBJ(obj);
+      for (const key in obj){
+        if (!elt.hasAttribute(key)) continue;
+        const val = elt.getAttribute(key);
+        const type = getType(obj[key]);
+        obj[key] = cast(type, val);
+      }
+      return obj;
+    },
+    // TODO is this worth the complexity?
+    parseTransform: (elt) => {
+      const result = {};
+      const transformList = elt.transform.baseVal;
+      for (let transform of transformList){
+        const m = transform.matrix;
+        switch (transform.type) {
+          case 2: result.translate = {x:m.e, y:m.f}; break;
+          case 3: result.scale = {x:m.a, y:m.d}; break;
+          case 4: result.rotate = {angle: transform.angle}; break; //TODO handle rotate(angle, x, y) form
+          case 5: break; // TODO skewX() 
+          case 6: break; // TODO skewY(()
+          case 1: break; // probably the matrix form.
+          default:
+        }
+      }
+      return result;
+    },
+    renderTransform: obj => {
+      let result = '';
+      Object.entries(obj).forEach(([key, value]) => {
+        const inside = Object.values(value).join(',');
+        result += `${key}(${inside})`;
+      });
+      return result;
+    }
   }
 
+  // Tests - SVG
+  let radius = document.getElementsByClassName('radius')[0]
+  let transform = SVG.parseTransform(radius)
+  let transformString = SVG.renderTransform(transform)
 
+  // Define more devices: keyboard, mouse. And also: screen, disk, and network
+
+  // Let's do some friendly functions.
 
 
 
