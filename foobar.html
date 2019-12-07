@@ -150,7 +150,7 @@
     assert(PREDS.STR(str), `string value required; called with [${getType(str)}]`);
 
     switch (type) {
-      case STRING:
+      case STR:
         return str;
       case NUM:
         const result = 1 * str;
@@ -232,7 +232,7 @@
     return b;
   };
 
-  //handler invocation
+  //Gotcha: handler invocation does mutation
   //mutation: core.msgs will get a push,
   //mutation: msg will get an id, time and children
   //mutation: all results will get the id of the parent
@@ -287,116 +287,7 @@
   let next = {handler:'fib'};
 
 
-
-
-
-
-
-
-
-  // S(fib, next, next, next).a;
-
-  // The second part of Simpatico is the Rehman Tree, or RTree.
-  // It's an n-array tree with some extras.
-  const rtree1 = (rootval = {}, reducer = combine) => {
-    let branchIndex = 0;
-
-    const {OBJ, NUM, NUL} = PREDS;
-    // mutation: put the branch index into node's value (only if an object)
-    if (OBJ(rootval)) rootval.branchIndex = 0;
-
-    const root = {parent: null, val: rootval};
-
-    const nodes = [root];
-    const branches = [root];
-    const residues = [root.val];
-
-    const branch = () => branches[branchIndex];
-    const residue = () => residues[branchIndex];
-
-    const setBranch = a => branchIndex = a;
-
-    /** 
-    parent can be 
-       a node,
-       a pos number (branchIndex), 
-       neg number (-nodeIndex)
-       null (root node)
-    if the node is not the tip of a branch, then a new branch is made
-    */
-    const add = (val={}, parent=branch()) => {
-      if (NUM(parent)) {
-        if (parent >= 0){ // select a branch
-          assert(parent < branches.length, 
-            `invalid positive parent [${parent}] < [${branches.length}]`);
-          branchIndex = parent;
-          parent = branches[parent];
-        } else { // select a node, creating a branch
-          assert(parent < nodes.length, 
-            `invalid negative parent [${parent}] < [${branches.length}]`);
-
-          parent = nodes[-parent]; //we will be branching
-        }
-      } else if(NUL(parent)){
-        parent = root;
-      }
-      const node = {parent, val};
-
-      // If the parent is already a branch, then replace parent with the new node
-      const i = branches.indexOf(parent);
-      if (i !== -1){
-        branches[i] = node;
-        residues[i] = reducer(residues[i], node.val);
-      } else {
-        // Otherwise, add a new branch and set the branchIndex
-        branchIndex = branches.length; //we will be adding one
-        // mutation: put the branch index into the node's value.
-        if (OBJ(node.val)) node.val.branchIndex = branchIndex;
-        branches.push(node);
-        residues.push(computeResidue(node, rootval, reducer)); 
-        // Note: because we re-reduce the parent, the user must be careful to branch
-        // from a point that doesn't have side-effects.
-      }
-      nodes.push(node);
-      return node; //would be nice to return "this" but I'm not sure how...
-    };
-
-    // Return the list of nodes from root to the given node
-    const path = (node = branch()) => {
-      const result = [node];
-      while(node.parent) {
-        node = node.parent;
-        result.push(node);
-      }
-      return result.reverse();
-    }
-
-    const print = (summarize = identity) => {
-      const docs = `0 - 0 1 2 3 8 {}
- 1 - 2 4 5 {}
- 2 - 4 6 7 {}`
-      const nodeIndex = node => nodes.indexOf(node);
-      const row = path => path.map(nodeIndex).join(' ');
-      const all = branches.map(b=>row(path(b)));
-      return all.join('\n');
-    }
-    // Return all the values
-    const values = () => nodes.map(n=>n.val);
-
-    // Return the list of values from root to given node
-    const valuePath = (node = branch()) => path(node).map(n => n.val);
-
-    // Residue is the reduction of all values to the given node.
-    const computeResidue = (node = branch(), base = {}, reducer = combine) => 
-      valuePath(node).reduce(reducer, base);
-    
-    const computeAllResidues = (base={}, reducer = combine) => 
-      branches.map(branch => residue(branch,base,reducer));
-
-    return {add, branch, setBranch, branches, residues, path, values, valuePath, residue, computeAllResidues, nodes, print};
-  }
-
-  /*
+  /** Docs
      This rtree is implemented with arrays.
      The data-structure looks like this:
 
@@ -419,15 +310,17 @@
 
     row ={row, parent, values, residue}
   */
-  const rtree = (base = {}, reducer = combine) => {
+  const rtree = (base = {}, reducer = combine, writeRowToResidue=true) => {
     let foc = 0;
 
-    const values = [];
-    const rows = [{row:0, parent: null, values:[], residue: base}];
+    const {ARR,OBJ} = PREDS;
+    const values = [base];
+    const rows = [{row:0, parent: null, values:[0], residue: base}];
+    if (writeRowToResidue) rows[0].residue.row = 0;
 
     const add = value => {
       const i = values.length;
-      const branching = PREDS.ARR(foc);
+      const branching = ARR(foc);
       values.push(value);
       if (!branching){
         const row = rows[foc];
@@ -435,118 +328,126 @@
         row.residue = reducer(row.residue, value);
       } else {
         // The interesting case - we are branching!
-        // TODO - decide if supporting columns is actually worth it. This impl is so nice...
         const [rowi, coli] = foc;
         const parentRow = rows[rowi];
+        const residue = reducer(parentRow.residue, value);
+        if (writeRowToResidue) residue.row = rows.length;
         foc = rows.length;
         rows.push({
-          row:rows.length, 
-          parent: rowi, 
-          values:[value], 
-          residue: reducer(parentRow.residue, value)
+          row: rows.length, 
+          parent: peek(parentRow.values), 
+          values: [i], 
+          residue,
         });
       }
       return print();
     }
 
-    const focus = (a,b) => {
-      foc = PREDS.ARR(a) ? foc = a : foc = [a,b];
+    // TODO design - decide if supporting columns is actually worth the complexity. I think no..
+    // to fully support columns requires a partial reduction that looks something like:
+    // partial = (rowi, coli) => row=rows[rowi]; row.values.slice(0,coli).reduce(reducer, partial(row.parent))
+
+    const focus = (a) => {
+      assert(a >= 0 && a < rows.length, `focus must be between [0, ${rows.length-1}]`);
+      foc = ARR(a) ? [a,rows[a].values.length-1] : a;
       return print();
     }
 
+    const residue = (f=foc) => ARR(f) ? rows[f[0]].residue : rows[f].residue;
     const residues = () => rows.map(row=>row.residue);
 
-    const printRow = row => `${row.row} - ${row.parent === null ? 'n' : row.parent} ${row.values.join(' ')} [${row.residue}]`;
+    const printRow = (row, summarize) => `${row.row} - [${row.parent === null ? 'n' : row.parent}] ${row.values.join(' ')} {${OBJ(row.residue) ? Object.entries(row.residue).length : row.residue}}`;
     const print = ()=> '\n' + rows.map(printRow).join('\n') + `\n focus: ${foc}`;
 
+    const rowValues = (f=foc) => rows[f].values.map(i=>values[i])
 
-    return {values, rows, add, focus, residues, print};
+    return {values, rows, add, focus, residue, residues, print, rowValues};
   }
 
   // Basic Tests
   let sum = (a,b) => a+b;
-  let t = rtree(0,sum);
-  assertEquals(t.residues()[0], 0)
+  let t = rtree(0, sum, false);
+  assertEquals(t.residue(0), 0)
   t.add(1); // default is branch 0
-  assertEquals(t.residues()[0], 1)
+  assertEquals(t.residue(0), 1)
   t.add(1); 
-  assertEquals(t.residues()[0], 2)
+  assertEquals(t.residue(0), 2)
 
-  //branch from the root node
-  t.focus([0,0])
+  //create branch 1
+  t.focus([0])
   t.add(1) 
-  assertEquals(t.residues()[0], 2)
-  assertEquals(t.residues()[1], 1)
+  assertEquals(t.residue(0), 2)
+  assertEquals(t.residue(1), 3)
   t.add(1) // add to the branch
-  assertEquals(t.residues()[0], 2)
-  assertEquals(t.residues()[1], 2)
+  assertEquals(t.residue(0), 2)
+  assertEquals(t.residue(1), 4)
   t.add(1) // add to the branch
-  assertEquals(t.residues()[0], 2)
-  assertEquals(t.residues()[1], 3)
+  assertEquals(t.residue(0), 2)
+  assertEquals(t.residue(1), 5)
 
-  t.add(1,0) // go back to branch 0
-  assertEquals(t.residues()[0], 3)
-  assertEquals(t.residues()[1], 3)
+  t.focus(0) // go back to branch 0
   t.add(1)
-  assertEquals(t.residues()[0], 4)
-  assertEquals(t.residues()[1], 3)
-
-  // Branch index tests
-  // t = rtree({a:0})
-  // assertEquals(t.residues()[0].branchIndex, 0, 'The default branch index is 0')
-  // assertEquals(t.residues[0].a, 0)
-  // t.add({a:1})
-  // assertEquals(t.residues[0].branchIndex, 0, 'The branch index does not change on add')
-  // assertEquals(t.residues[0].a, 1)
-
-  // t.add({a:1}, null) //branch from the root node, creating branch 1
-  // assertEquals(t.residues[1].branchIndex, 1, 'The new branch gets a new index')
-  // assertEquals(t.residues[1].a, 1)
-  // assertEquals(t.residues[0].a, 1)
-
-  // t.add({a:1})  // add to branch 1
-  // assertEquals(t.residues[0].branchIndex, 0)
-  // assertEquals(t.residues[1].branchIndex, 1)
-  // assertEquals(t.residues[0].a, 1)
-  // assertEquals(t.residues[1].a, 2)
-
-  // t.add({a:1},0) // add to branch 0
-  // assertEquals(t.residues[0].branchIndex, 0)
-  // assertEquals(t.residues[1].branchIndex, 1)
-  // assertEquals(t.residues[0].a, 2)
-  // assertEquals(t.residues[1].a, 2)
-  // assertEquals(t.nodes.length, 5)
-
-  // t.add({a:1},-t.nodes.length) //branch off the last node
+  assertEquals(t.residue(0), 3)
+  assertEquals(t.residue(1), 5)
+  t.add(1)
+  assertEquals(t.residue(0), 4)
+  assertEquals(t.residue(1), 5)
 
 
 
+  // row index tests
+  t = rtree({a:0})
+  assertEquals(t.residue(0).row, 0, 'The default row is 0')
+  assertEquals(t.residue(0).a, 0)
+
+  t.add({a:1})
+  assertEquals(t.residue(0).row, 0, 'The row does not change on add')
+  assertEquals(t.residue(0).a, 1)
+
+  t.focus([0])
+  t.add({a:1}) //branch from the root node, creating branch 1
+  assertEquals(t.residue(0).row, 0, 'The row does not change on add')
+  assertEquals(t.residue(0).a, 1)
+  assertEquals(t.residue(1).row, 1, 'The new branch gets a new index')
+  assertEquals(t.residue(1).a, 2)
+
+  t.add({a:1})  // add to branch 1
+  assertEquals(t.residue(0).a, 1)
+  assertEquals(t.residue(1).a, 3)
+
+  t.focus(0)
+  t.add({a:1}) // add to branch 0
+  assertEquals(t.residue(0).a, 2)
+  assertEquals(t.residue(1).a, 3)
+
+  assertEquals(t.values.length, 5)
 
 
+  /** Docs
 
-  // With a working RTree we can implement unified inheretence/instantiation.
-  // We define a type as a set of handlers
-  // We add handlers one at a time, and then branch to create an instance.
-  // We can also branch to create a subtype, if the new branch also has handlers.
-
+    With a working RTree we can implement unified inheretence/instantiation.
+    We define a type as a set of handlers
+    We add handlers one at a time, and then branch to create an instance.
+    We can also branch to create a subtype, if the new branch also has handlers.
+  */
 
   // Let's start with a clock.
   t = rtree();
   t.add({
-    interval: 1000, limit: 3, //config
+    interval: 200, limit: 10, phase:0, //config
     intervalId: null, ticks: 0, err: null, 
-    started: null, stopped: null, duration: null
+    started: null, stopped: null, duration: null, row: null
   });
 
   t.add({name: 'start', handle:(c,m)=>{
     if (c.started) return;
-    debug('start', now(), c.branchIndex);
-
+    // TODO: support a one-time delay on starting.
     const intervalId = window.setInterval( 
-      () => t.add({handler:'tick'}, c.branchIndex), 
+      () => {t.focus(c.row); t.add({handler:'tick'});}, 
       c.interval
     );
 
+    debug('start', now(), 'row', c.row, 'intervalId', intervalId);
     return [{intervalId}, {started:now()}];
   }});
 
@@ -558,76 +459,80 @@
   }});
 
   t.add({name: 'tick', handle:(c,m)=>{
-    debug('tick', c.ticks, c.limit, c.intervalId, c.branchIndex);
+    debug(t.print());
     return (c.ticks < c.limit) ? {ticks:1} : {handler:'stop'};
   }});
 
-  let branchPoint = t.nodes.length-1;
-  t.add({handler:'start'}, -branchPoint);
+  const start = {handler:'start'}
 
-  // t.add({handler:'start'});
+  // Tests
+  // let reps = 10
+  // while(reps--){
+  //   t.focus([0])
+  //   // t.add({limit:reps + ''})
+  //   t.add({})
+  //   t.add(start)
+  // }
 
-  // t.add({handler:'start'}) t.residue()
+  /** Docs
+    Clock with a requestAnimationFrame() pump
+    The basic raf pattern is fn(){stuff; raf(fn)}.
+    Generally this is preferred
+  */
+  t = rtree();
+  t.add({
+    interval: 0, limit: 20, delay:0, //config
+    intervalId: null, ticks: 0, err: null, 
+    started: null, stopped: null, duration: null, row: null,
+  });
+
+  t.add({name: 'start', handle:(c,m)=>{
+    const {row, interval, delay, started} = c;
+    if (started) throw `row ${row} already started at ${started}`;
+    const pump = a => {
+      // Gotcha: We cannot access c.ticks and c.stopped directly because 
+      // the 'c' here is as it was at the beginning of the row.
+      t.focus(row);
+      const {ticks, stopped} = t.residue();
+      t.add({handler:'tick'});
+      if (!stopped) {
+        if (interval){
+          // Q: Is there a better way to artificially slow down the interval?
+          window.setTimeout(() => requestAnimationFrame(pump), interval)
+        } else {
+          requestAnimationFrame(pump);
+        }
+      }
+    };
+    window.setTimeout(pump, delay);
+    debug('start', now(), 'row', row);
+    return [{ started:now() }];
+  }});
+
+  t.add({name: 'stop', handle:(c,m)=>{
+    const {started, row} = c;
+    // TODO figure out why this throws periodically
+    if (c.stopped) throw `row ${row} already stopped ${now() -c.stopped}ms ago`;;
+    const stopped = now();
+    return [{stopped}, {duration: (stopped - started) }];
+  }});
+
+  t.add({name: 'tick', handle:(c,m)=>{
+    const {ticks, limit, stopped} = c;
+    if (c.stopped) return; // the pump is often sloppy by one tick - can we avoid this?
+    debug(t.print());
+    return (ticks < limit) ? {ticks:1} : {handler:'stop'};
+  }});
+
+  // Tests
+  let reps = 10
+  while(reps--){
+    t.focus([0])
+    t.add({delay:reps*500 + ''})
+    t.add(start)
+  }
 
 
-	// This is a clock that runs for a finite time
-	// It is very short and expects the user to know what they are doing, 
-	// I have opted to NOT make the clock immutable, but some mutations will
-	// obviously break things; you'll need to restart your browser.
-	// let clock = {
-	// 	interval: 17, limit: 1, //config
-	// 	intervalId: null, ticks: 0, err: null, 
-	// 	started: null, stopped: null, duration: null,
-
-	// 	tickHandlers: [ //side-effects with double duty as predicates
-	// 		ctx => ctx.ticks++ || true,
-	// 		ctx => ctx.ticks < ctx.limit,
-	// 		// ctx => log(ctx.ticks) || true,
-	// 		// ctx => document.getElementById('square').setAttribute('transform', 
-	// 		// 	`scale(${ctx.ticks/100},${ctx.ticks/100})rotate(${ctx.ticks/1})`
-	// 		// 	) || true,
-	// 	],
-
-	// 	_ontick: (ctx) => { 
-	// 		let checks = ctx.tickHandlers.map(fn => fn(ctx));
-	// 		debug(checks);
-	// 		if (!all(checks)) ctx.cancel(ctx);
-	// 	},
-
-	// 	// TODO Write a version that pumps using this.
-	// 	start2 :  (ctx) => {
-	// 		window.requestAnimationFrame(()=>clock._ontick(ctx));
-	// 	},
-
-	// 	start	: (ctx) => {
-	// 		assert(ctx, 'You start a clock with an instance via clock.start(clock)');
-	// 		ctx.intervalId = window.setInterval(()=>ctx._ontick(ctx), ctx.interval);
-	// 		ctx.started = now();
-	// 		return ctx;
-	// 	},
-	// 	cancel	: (ctx) => {
-	// 		assert(ctx, 'You cancel a clock with an instance via clock.cancel(clock)');
-	// 		window.clearInterval(ctx.intervalId);
-	// 		ctx.stopped = now();
-	// 		ctx.duration = ctx.stopped - ctx.started; //dependent data!
-	// 		return ctx;
-	// 	},
-	// 	reset 	: (ctx) => {
-	// 		assert(ctx, 'You reset a clock with an instance via clock.reset(clock)');
-	// 		ctx.intervalId = null;
-	// 		ctx.ticks = 0; ctx.err = null; ctx.started = null; ctx.stopped = null;
-	// 		return ctx;
-	// 	},
-	// };
-
-	// clock.start(clock);
-
-	// Sadly, for animation this isn't good enough. We don't get good enough guarantees
-	// out of the setInterval; for that we want a requestAnimationFrame() pump. 
-	// Does that consume stack space? 
-
-	// Sub-resources, fetch/XHR, WebSockets and WebRTC are all ways to get network input
-	// All require client initiated action, and only the last two leave a connection in place.
 
 
 
