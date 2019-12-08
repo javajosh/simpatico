@@ -293,7 +293,7 @@
     const rows = [{row:0, parent: null, values:[0], residue: base}];
     if (writeRowToResidue) rows[0].residue.row = 0;
 
-    const add = value => {
+    const add = (value, assertion) => {
       const i = values.length;
       const branching = ARR(foc);
       values.push(value);
@@ -315,6 +315,7 @@
           residue,
         });
       }
+      if (assertion) assertion(residue());
       return print();
     }
 
@@ -804,15 +805,18 @@
     dec: {count: -1},
     handle: function(ctx, msg){
       const {pattern, dec} = this;
+      if (ctx.err) throw `halted with error ${tryToStringify(ctx.err.failures)}`
       const failures = validate(pattern, msg);
       return failures ? {err: {msg, failures}} : 
            msg.amount ? {count: -msg.amount} : dec;
     }
   });
-  latch.add({handler: 'dec'}); assertEquals(latch.residue().count, 99)
-  latch.add({handler: 'dec', amount: 5}); assertEquals(latch.residue().count, 94)
-  latch.add({handler: 'dec', amount: 50});
-  assertEquals(latch.residue().err.failures,{amount:['between', 0, 10]})
+
+  // Tests
+  latch.add({handler: 'dec'}, r => assertEquals(r.count, 99)); 
+  latch.add({handler: 'dec', amount: 5}, r => assertEquals(r.count, 94)); 
+  latch.add({handler: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
+  latch.add({handler: 'dec', amount: 3});
 
 </script>
 </body>
