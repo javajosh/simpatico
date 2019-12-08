@@ -643,10 +643,20 @@
     }
   };
 
-  // Validate against a pattern obj. Return undefined if pass; return a descriptive object if failed.
+  /** docs
+    Validate against a pattern obj. Return undefined if pass; return a descriptive object if failed. Special cases: 
+      value != object => nothing passes (return pattern)
+      pattern = null => nothing passes (return {})
+      pattern = {} => everything passes (return undefined)
+
+  */
   const validate = (patternObj, valueObj) => {
-    ASSERT.OBJ(patternObj);
     if (!PREDS.OBJ(valueObj)) return patternObj;
+    if (patternObj === null) return {};
+    if (patternObj === {}) return undefined;
+
+    ASSERT.OBJ(patternObj);
+
     const result = {}
     let objPass = true;
 
@@ -728,6 +738,11 @@
   assertEquals(validate({a: ['num'], b:['num']}, {a: 1, b:1}), undefined, 'multi-key success');
   assertEquals(validate({a: ['num'], b:['num']}, {a: 1, b:''}), {b:['num']}, 'multi-key fail');
 
+  // special cases
+  assertEquals(validate({},{everything:'passes'}), undefined);
+  assertEquals(validate(null, {everything:'fails'}), {});
+  assertEquals(validate({a:['num']}, 'every non-obj value fails'), {a:['num']});
+
 
   assertEquals(validate({
     e: ['num', 'between', 0, 10],
@@ -744,7 +759,11 @@
   assertEquals(validate(testPattern, testValid), undefined, 'full monty should be valid');
   assertEquals(validate(testPattern, testNotValid), {d:{e:['between', 0, 10]}}, 'full monty should NOT be valid');
 
-  // a simple friendly function. Note that friendly functions can only take one object arg.
+  /** docs
+    A simple friendly function. Note that friendly functions can only take one object arg.
+    It's better if they don't return objects if they execute normally.
+    We will see that in a handler context these conditions are very natural and easy
+  */
   const friendly = input => {
     const pattern = {a:['bool']};
     if (!validate(pattern, input)){ // concern: It's not intuitive to check !validate
@@ -760,6 +779,7 @@
   assertEquals(friendly({b:true}), {a:['bool']})
   assertEquals(friendly({a:true}), 2)
 
+  
 
 
 
