@@ -59,10 +59,8 @@
   const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn))
 
 	const assertEquals = (actual, expected, msg) => {
-	  assert(equals(actual, expected), `got [${tryToStringify(actual)}] expected [${tryToStringify(expected)}] ${msg ? msg : ''}`)
+	  assert(equals(actual, expected), `got [${tryToStringify(actual)}] expected [${tryToStringify(expected)}]${msg ? ' msg:' + msg : ''}`)
 	};
-
-
 
   // A safer stringify that takes into account circular references.
   const tryToStringify = obj => {
@@ -94,7 +92,7 @@
 	};
 
 	const getType = (a) => {
-    const {UNDEF,NUL,STR,OBJ,ARR,ELT,CORE,HANDLER,MSG} = TYPES;
+    const {UNDEF,NUL,STR,FUN,OBJ,ARR,ELT,CORE,HANDLER,MSG} = TYPES;
 
 	  let t = typeof a;
 	  if (t !== OBJ)  return t;
@@ -114,7 +112,7 @@
   // These type predicates are a map from TYPES to an object where the keys 
   // are [lower cased - maybe?] and the values are functions that check getType 
   const PREDS = mapObject(TYPES,([k,v])=>[k, a => getType(a) === v])
-  const ASSERT = mapObject(TYPES,([k,v])=>[k, (a, msg) => {assert(getType(a) === v, msg);return true}])
+  const ASSERT = mapObject(TYPES,([k,v])=>[k, (a, msg) => {assert(getType(a) === v, msg);return true}]);
 
   // Cast a string to a particular type
   const cast = (type, str) => {
@@ -140,7 +138,8 @@
   // Integrate msg into target, producing a new target.
   // Note that there are mutating versions of this floating around,
   // and this version misses the very nice feature of showing the message cascade
-  const combine = (target, msg) => {
+  const combine = (target, msg, rules=getRules()) => {
+    const {UNDEF,NUL,STR,NUM,BOOL,FUN,OBJ,ARR,ELT,ANY,CORE,HANDLER,MSG} = TYPES;
     let ttarget = getType(target);
     let tmsg = getType(msg);
 
@@ -170,82 +169,85 @@
     return result;
   }
 
-  //Rules for combining things. The first arg is the target, second the message
-  //We proceed from the "natural" types to the synthetic types introduced by Simpatico.
-  const {UNDEF,NUL,STR,NUM,BOOL,FUN,OBJ,ARR,ELT,ANY,CORE,HANDLER,MSG} = TYPES;
-  const rules = {};
-  rules[NUL+ANY] = (_,b) => b;
+  const getRules = () => {
+    //Rules for combining things. The first arg is the target, second the message
+    //We proceed from the "natural" types to the synthetic types introduced by Simpatico.
+    const {UNDEF,NUL,STR,NUM,BOOL,FUN,OBJ,ARR,ELT,ANY,CORE,HANDLER,MSG} = TYPES;
+    const rules = {};
+    rules[NUL+ANY] = (_,b) => b;
 
-  rules[STR+STR]  = (_,b) => b;
-  rules[STR+NUL]  = ()    => '';
+    rules[STR+STR]  = (_,b) => b;
+    rules[STR+NUL]  = ()    => '';
 
-  rules[NUM+NUM]  = (a,b) => a + b;
-  rules[NUM+STR]  = (_,b) => cast(NUM, b);
-  rules[NUM+NUL]  = ()    => 0;
+    rules[NUM+NUM]  = (a,b) => a + b;
+    rules[NUM+STR]  = (_,b) => cast(NUM, b);
+    rules[NUM+NUL]  = ()    => 0;
 
-  rules[BOOL+BOOL]= (a,b) => b;
-  rules[BOOL+STR] = (_,b) => cast(BOOL, b);
-  rules[BOOL+NUL] = (a,_) => !a;
+    rules[BOOL+BOOL]= (a,b) => b;
+    rules[BOOL+STR] = (_,b) => cast(BOOL, b);
+    rules[BOOL+NUL] = (a,_) => !a;
 
-  rules[ARR+ARR]  = (a,b) => a.concat(b);
-  rules[ARR+ANY]  = (a,b) => [...a,b];
-  rules[ARR+NUL]  = ()    => [];
+    rules[ARR+ARR]  = (a,b) => a.concat(b);
+    rules[ARR+ANY]  = (a,b) => [...a,b];
+    rules[ARR+NUL]  = ()    => [];
 
-  rules[FUN+ANY]  = (a,b) => a(b);
-  rules[ANY+FUN]  = (a,b) => b(a);
+    rules[FUN+ANY]  = (a,b) => a(b);
+    rules[ANY+FUN]  = (a,b) => b(a);
 
-  rules[OBJ+OBJ]  = (a,b) => {
-    // B is defensively copied, mutated and returned, not A!
-    b = Object.assign({},b);
-    for (let prop in a){
-      b[prop] = b.hasOwnProperty(prop) ?
-        combine(a[prop],b[prop]): //recurse
-        a[prop]; 
-    }
-    return b;
-  };
+    rules[OBJ+OBJ]  = (a,b) => {
+      // B is defensively copied, mutated and returned, not A!
+      b = Object.assign({},b);
+      for (let prop in a){
+        b[prop] = b.hasOwnProperty(prop) ?
+          combine(a[prop],b[prop]): //recurse
+          a[prop]; 
+      }
+      return b;
+    };
 
-  //Gotcha: handler invocation does mutation
-  //mutation: core.msgs will get a push,
-  //mutation: msg will get an id, time and children
-  //mutation: all results will get the id of the parent
-  rules[OBJ+MSG] = (core, msg) => { 
-    const {UNDEF, ARR, OBJ} = PREDS;
+    //Gotcha: handler invocation does mutation
+    //mutation: core.msgs will get a push,
+    //mutation: msg will get an id, time and children
+    //mutation: all results will get the id of the parent
+    rules[OBJ+MSG] = (core, msg) => { 
+      const {UNDEF, ARR, OBJ} = PREDS;
 
-    // World event - defensively copy because we mutate
-    if (UNDEF(msg.parent)) msg = Object.assign({}, msg);
+      // World event - defensively copy because we mutate
+      if (UNDEF(msg.parent)) msg = Object.assign({}, msg);
 
-    msg.id = core.msgs.length;
-    // msg.time = now();
-    core.msgs.push(msg);
+      msg.id = core.msgs.length;
+      // msg.time = now();
+      core.msgs.push(msg);
 
-    //Find the named handler
-    const handler = core.handlers[msg.handler];
-    if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
+      //Find the named handler
+      const handler = core.handlers[msg.handler];
+      if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
 
-    // Invoke the handler.
-    // Results should always be an array, so help sloppy handlers
-    let results = handler[HANDLER](core, msg);
-    if (UNDEF(results)) results = [];
-    if (!ARR(results))  results = [results];
+      // Invoke the handler.
+      // Results should always be an array, so help sloppy handlers
+      let results = handler[HANDLER](core, msg);
+      if (UNDEF(results)) results = [];
+      if (!ARR(results))  results = [results];
 
-    // Build up some more info about the message cascade.
-    msg.children = results;
+      // Build up some more info about the message cascade.
+      msg.children = results;
 
-    //Recurse for each result
-    for (const result of results){
-      // Store the id of the parent to avoid cycles that stop stringification
-      if (OBJ(result)) result.parent = msg.id;
-      core = combine(core, result); //recurse
-    }
-    return core;
-  };
+      //Recurse for each result
+      for (const result of results){
+        // Store the id of the parent to avoid cycles that stop stringification
+        if (OBJ(result)) result.parent = msg.id;
+        core = combine(core, result); //recurse
+      }
+      return core;
+    };
 
-  //handler registration
-  rules[OBJ+HANDLER] = (core, handler) => {
-    core = combine(core, {handlers:{}, msgs:[]}); 
-    core.handlers[handler.name] = handler;
-    return core;
+    //handler registration
+    rules[OBJ+HANDLER] = (core, handler) => {
+      core = combine(core, {handlers:{}, msgs:[]}); 
+      core.handlers[handler.name] = handler;
+      return core;
+    };
+    return rules;
   };
 
   // Convenience functions that wrap combine
@@ -284,9 +286,9 @@
     row ={row, parent, values, residue}
   */
   const rtree = (base = {}, reducer = combine, writeRowToResidue=true) => {
+    const {ARR,OBJ} = PREDS;
     let foc = 0;
 
-    const {ARR,OBJ} = PREDS;
     const values = [base];
     const rows = [{row:0, parent: null, values:[0], residue: base}];
     if (writeRowToResidue) rows[0].residue.row = 0;
@@ -651,21 +653,24 @@
 
   */
   const validate = (patternObj, valueObj) => {
-    if (!PREDS.OBJ(valueObj)) return patternObj;
+    //gotcha: do not use getType predicate because handler !== object, etc
+    const isObj = a => typeof a === 'object' && !Array.isArray(a);
+
+    if (!isObj(valueObj)) return patternObj; 
     if (patternObj === null) return {};
     if (patternObj === {}) return undefined;
 
-    ASSERT.OBJ(patternObj);
+    assert(isObj(patternObj), `pattern must be an object but was ${tryToStringify(patternObj)}`)
 
-    const result = {}
+    const result = {};
     let objPass = true;
 
     for (const [patternKey, patternValue] of Object.entries(patternObj)) {
       const value = valueObj[patternKey];
-      let pass = false;
+      let pass = true;
       let failReasons = undefined;
 
-      if (PREDS.OBJ(patternValue)) {
+      if (isObj(patternValue)) {
         failReasons = validate(patternValue, value); //recurse
       } else if (PREDS.ARR(patternValue)){
         failReasons = checkValue(patternValue, value); //normal case
@@ -683,7 +688,8 @@
   // Check the value against the array. If pass, return the value; if fail, return an array of failures.
   const checkValue = (predArray, value) => {
     const failedPreds = [];
-    let pass = false;
+    let pass = true;
+    let allPass = true;
     
     // Loop through the predicates.
     for (let i = 0; i < predArray.length; i++){
@@ -705,8 +711,9 @@
         pass = PREDS[pred.toUpperCase()](value);
         if (!pass) failedPreds.push(pred);
       }
+      allPass = allPass && pass;
     }
-    return pass ? undefined : failedPreds;
+    return allPass ? undefined : failedPreds;
   };
 
   // Tests checkValue()
@@ -726,6 +733,9 @@
   // Optional doesn't mean you can supply a bad value!
   assertEquals(checkValue(['optional', 'num'], 'a'), ['num']);
   assertEquals(checkValue(['optional', 'between', 0, 3], 4), ['between', 0, 3]);
+  assertEquals(checkValue(['optional', 'num', 'between', 0, 3], 'a'), ['num']);
+
+  assertEquals(checkValue(['optional', 'num', 'between', 0, 10], 5), undefined);
 
   // Tests validate()
 
@@ -743,6 +753,9 @@
   assertEquals(validate(null, {everything:'fails'}), {});
   assertEquals(validate({a:['num']}, 'every non-obj value fails'), {a:['num']});
 
+  assertEquals(validate({a: 'dec', b:['optional', 'num', 'between', 0, 10]}, {a:'dec'}), undefined);
+  assertEquals(validate({handler: 'dec', b:['optional', 'num', 'between', 0, 10]}, {handler:'dec'}), undefined);
+
 
   assertEquals(validate({
     e: ['num', 'between', 0, 10],
@@ -758,6 +771,8 @@
   // the full monty
   assertEquals(validate(testPattern, testValid), undefined, 'full monty should be valid');
   assertEquals(validate(testPattern, testNotValid), {d:{e:['between', 0, 10]}}, 'full monty should NOT be valid');
+
+
 
   /** docs
     A simple friendly function. Note that friendly functions can only take one object arg.
@@ -779,9 +794,25 @@
   assertEquals(friendly({b:true}), {a:['bool']})
   assertEquals(friendly({a:true}), 2)
 
-  
-
-
+  // Let's build a little countdown latch
+  const latch = rtree({count: 100});
+  latch.add({
+    name: 'dec',
+    desc: 'A counter that goes to 0 in different intervals',
+    pattern: {amount:['optional', 'num', 'between', 0, 10]},
+    example: {handler: 'dec', amount: 5},
+    dec: {count: -1},
+    handle: function(ctx, msg){
+      const {pattern, dec} = this;
+      const failures = validate(pattern, msg);
+      return failures ? {err: {msg, failures}} : 
+           msg.amount ? {count: -msg.amount} : dec;
+    }
+  });
+  latch.add({handler: 'dec'}); assertEquals(latch.residue().count, 99)
+  latch.add({handler: 'dec', amount: 5}); assertEquals(latch.residue().count, 94)
+  latch.add({handler: 'dec', amount: 50});
+  assertEquals(latch.residue().err.failures,{amount:['between', 0, 10]})
 
 </script>
 </body>
