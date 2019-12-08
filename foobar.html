@@ -24,6 +24,7 @@
   		transform1='translate(.5,.5) scale(.5,.5)'
   	>
   		<circle class='unit-circle' r=1 fill="none" stroke="#292911" stroke-width=.001 />
+
   		<g class='radius' transform='rotate(60)'>
   			<line class='arm' x1=0 y1=0 x2=1 y2=0 stroke="#093232" stroke-width=.001 />
   			<circle class='intersection' r=.05 cx=1 cy=0 fill="red" stroke="none" stroke-width="0" />
@@ -61,6 +62,12 @@
 	const assertEquals = (actual, expected, msg) => {
 	  assert(equals(actual, expected), `got [${tryToStringify(actual)}] expected [${tryToStringify(expected)}]${msg ? ' msg:' + msg : ''}`)
 	};
+
+  const assertThrows = fn => {
+    ASSERT.FUN(fn); let throws = false; let result;
+    try { result = fn() } catch (e) { throws = true }
+    assert(throws, `Expected fn to throw, but it didn't and returned ${result}`);
+  };
 
   // A safer stringify that takes into account circular references.
   const tryToStringify = obj => {
@@ -805,18 +812,66 @@
     dec: {count: -1},
     handle: function(ctx, msg){
       const {pattern, dec} = this;
-      if (ctx.err) throw `halted with error ${tryToStringify(ctx.err.failures)}`
+      if (ctx.count <=0) throw `halted because count ${ctx.count} <=0`;
+      if (ctx.err) throw `halted with error ${tryToStringify(ctx.err.failures)}`;
       const failures = validate(pattern, msg);
       return failures ? {err: {msg, failures}} : 
            msg.amount ? {count: -msg.amount} : dec;
     }
   });
 
-  // Tests
+  // Tests 
   latch.add({handler: 'dec'}, r => assertEquals(r.count, 99)); 
   latch.add({handler: 'dec', amount: 5}, r => assertEquals(r.count, 94)); 
   latch.add({handler: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
-  latch.add({handler: 'dec', amount: 3});
+  assertThrows(()=>latch.add({handler: 'dec', amount: 3}));
+
+
+  // const scene = rtree({
+  //   svg:{
+  //     class: 'clock',
+  //     viewBox: [-1, -1, 2, 2],
+  //     scale: [1,-1],
+  //     children:[
+  //       {class: 'background', t: 'rec', fill:'#455',},
+  //       {class: 'face', t: 'circle', cx:0, cy:0, r:1, stroke:'black', 'stroke-width':0.1, ,},
+  //       {class: 'arm', t: 'g', rotate: 0, children: [
+  //         {t: 'line', x1:0, y1:0, x2:1, y2:0},
+  //         {t: 'circle', cx:1, cy:0, r:0.1, fill:'red',}
+  //       ]},
+  //     ],
+  //   }
+  // });
+
+  // Respect reserved keys, t, viewBox, scale, rotate, translate transform, etc.
+  // Other keys interpreted as class names.
+
+  const scene = rtree({
+    clock:{
+      t: 'svg',
+      dof: {arm:{rotate:['num', 'between', 0, 360]}},
+      viewBox: [-1, -1, 2, 2],
+      scale: [1,-1],
+
+      background: {t: 'rec', fill:'#455' },
+      face: {t: 'circle', cx:0, cy:0, r:1, stroke:'black', 'stroke-width':0.1 },
+
+      arm: {t: 'g', rotate: 0, children: [
+        {t: 'line', x1:0, y1:0, x2:1, y2:0},
+        {t: 'circle', cx:1, cy:0, r:0.1, fill:'red',}
+      ]},
+    }
+  });
+
+  scene.add({
+    name:'render',
+    desc: 'render the scene',
+    handle(ctx, msg)=>{
+      
+    }
+  });
+
+
 
 </script>
 </body>
