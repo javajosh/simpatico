@@ -826,51 +826,51 @@
   latch.add({handler: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
   assertThrows(()=>latch.add({handler: 'dec', amount: 3}));
 
-
-  // const scene = rtree({
-  //   svg:{
-  //     class: 'clock',
-  //     viewBox: [-1, -1, 2, 2],
-  //     scale: [1,-1],
-  //     children:[
-  //       {class: 'background', t: 'rec', fill:'#455',},
-  //       {class: 'face', t: 'circle', cx:0, cy:0, r:1, stroke:'black', 'stroke-width':0.1, ,},
-  //       {class: 'arm', t: 'g', rotate: 0, children: [
-  //         {t: 'line', x1:0, y1:0, x2:1, y2:0},
-  //         {t: 'circle', cx:1, cy:0, r:0.1, fill:'red',}
-  //       ]},
-  //     ],
-  //   }
-  // });
-
-  // Respect reserved keys, t, viewBox, scale, rotate, translate transform, etc.
-  // Other keys interpreted as class names.
-
-  const scene = rtree({
-    clock:{
-      t: 'svg',
-      dof: {arm:{rotate:['num', 'between', 0, 360]}},
-      viewBox: [-1, -1, 2, 2],
-      scale: [1,-1],
-
-      background: {t: 'rec', fill:'#455' },
-      face: {t: 'circle', cx:0, cy:0, r:1, stroke:'black', 'stroke-width':0.1 },
-
-      arm: {t: 'g', rotate: 0, children: [
-        {t: 'line', x1:0, y1:0, x2:1, y2:0},
-        {t: 'circle', cx:1, cy:0, r:0.1, fill:'red',}
-      ]},
-    }
+  // The simplest tictactoe implementation
+  let tictactoe = rtree({
+    turn: 1, 
+    moves: [],
+    winner: -1,
+  });
+  tictactoe.add({
+    name: 'move',
+    example: {handler: 'move', val: 8},
+    pattern: {val:['between', 0, 8]},
+    handle: function (ctx, msg) {
+      assert(ctx.winner === -1, `Game already won by player ${ctx.winner}!`);
+      const failures = validate(this.pattern, msg);
+      const move = msg.val;
+      // TODO: add this to pattern, add includes to predicates.
+      assert(!ctx.moves.includes(move));
+      return [{turn: 1}, {moves: move}, {handler: 'computeWinner'}];
+    },
   });
 
-  scene.add({
-    name:'render',
-    desc: 'render the scene',
-    handle(ctx, msg)=>{
-      
+  /*0 1 2
+    3 4 5
+    6 7 8*/
+  tictactoe.add({
+    name: 'computeWinner',
+    example: {handler: 'computeWinner'},
+    desc: 'find the winner using regular expressions'
+    winConditions: '012-345-678-036-147-258-048-246'.split('-'),
+    handle: function(ctx, msg){
+      if (ctx.winner !== -1) return;
+      // Odd moves are for player one, even for player two
+      const p0 = ctx.moves.filter((move, i) => i % 2 - 1).sort().join('');
+      const p1 = ctx.moves.filter((move, i) => i % 2).sort().join('');
+      for (const pattern of this.winConditions){
+        if (p0.match(pattern)) return {winner: 1};
+        if (p1.match(pattern)) return {winner: 2};
+      }
     }
-  });
+  }); 
 
+  const makeMove = (game, move) => game.add({handler: 'move', val:move});
+  const makeMoves = (game, moves) => moves.forEach(move=>makeMove(game, move));
+  makeMoves(tictactoe, [0,3,1,8,2]);
+  // Game is won, so no more moves are allowed.
+  assertThrows(()=>makeMove(tictactoe, 7));
 
 
 </script>
