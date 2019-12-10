@@ -8,7 +8,8 @@
 	</style>
 </head>
 <body>
-	<svg width="1000" height="1000" 
+  <!-- <img src="t3.svg" alt=""> -->
+	<svg id="svg" width="1000" height="1000" 
 		viewBox="-1 -1 2 2" 
     transform="scale(1,-1)"
 		style="background-color: #66b7ff"
@@ -27,9 +28,11 @@
 
   		<g class='radius' transform='rotate(60)'>
   			<line class='arm' x1=0 y1=0 x2=1 y2=0 stroke="#093232" stroke-width=.001 />
-  			<circle class='intersection' r=.05 cx=1 cy=0 fill="red" stroke="none" stroke-width="0" />
+  			<circle id="target" class='intersection' r=.05 cx=1 cy=0 fill="red" stroke="none" stroke-width="0" />
   		</g>
   	</g>
+    <!-- <image xlink:href="t3.svg" x=-.25 y=-.25 width=".5" height=".5" /> -->
+    <circle id="particle" r=0.1 fill="green">
 	</svg>
 <script>
   // Simpatico has three parts: combine, the rtree, and friendly functions.
@@ -292,7 +295,7 @@
 
     row ={row, parent, values, residue}
   */
-  const rtree = (base = {}, reducer = combine, writeRowToResidue=true) => {
+  const rtree = (base = {}, reducer = combine, writeRowToResidue=true, summarize= a=>a ) => {
     const {ARR,OBJ} = PREDS;
     let foc = 0;
 
@@ -339,8 +342,8 @@
     const residue = (f=foc) => ARR(f) ? rows[f[0]].residue : rows[f].residue;
     const residues = () => rows.map(row=>row.residue);
 
-    const printRow = (row, summarize) => `${row.row} - [${row.parent === null ? 'n' : row.parent}] ${row.values.join(' ')} {${OBJ(row.residue) ? Object.entries(row.residue).length : row.residue}}`;
-    const print = ()=> '\n' + rows.map(printRow).join('\n') + `\n focus: ${foc}`;
+    const printRow = (row) => `${row.row} - [${row.parent === null ? 'n' : row.parent}] ${row.values.join(' ')} {${summarize(row.residue)}}`;
+    const print = ()=> rows.map(printRow).join('\n') + `\nfocus: ${foc}`;
 
     const rowValues = (f=foc) => rows[f].values.map(i=>values[i])
 
@@ -827,12 +830,14 @@
   assertThrows(()=>latch.add({handler: 'dec', amount: 3}));
 
   // The simplest tictactoe implementation
-  let tictactoe = rtree({
-    turn: 1, 
-    moves: [],
-    winner: -1,
-  });
-  tictactoe.add({
+  let t3 = rtree({
+      turn: 1, 
+      moves: [],
+      winner: -1,
+    }, combine, true, 
+    r=>`msgs:${r.msgs.length} turn:${r.turn} winner:${r.winner}` //summarize function to help t3.print()
+  );
+  t3.add({
     name: 'move',
     example: {handler: 'move', val: 8},
     pattern: {val:['between', 0, 8]},
@@ -849,10 +854,10 @@
   /*0 1 2
     3 4 5
     6 7 8*/
-  tictactoe.add({
+  t3.add({
     name: 'computeWinner',
     example: {handler: 'computeWinner'},
-    desc: 'find the winner using regular expressions'
+    desc: 'find the winner using regular expressions',
     winConditions: '012-345-678-036-147-258-048-246'.split('-'),
     handle: function(ctx, msg){
       if (ctx.winner !== -1) return;
@@ -868,10 +873,52 @@
 
   const makeMove = (game, move) => game.add({handler: 'move', val:move});
   const makeMoves = (game, moves) => moves.forEach(move=>makeMove(game, move));
-  makeMoves(tictactoe, [0,3,1,8,2]);
+  makeMoves(t3, [0,3,1,8,2]);
   // Game is won, so no more moves are allowed.
-  assertThrows(()=>makeMove(tictactoe, 7));
+  assertThrows(()=>makeMove(t3, 7));
 
+
+
+  // Let's do some particle stuff. You can move a particle with the mouse and 
+  // it will change color if you intersect the target. Note that this isn't general
+  // because if the collision is caused by the other particle's motion, it won't be 
+  // detected here. Yet another reason to define a coupling reduction between rows...
+  let particle = rtree({x:0,y:0});
+  particle.add({ particleElt: document.getElementById('particle')});
+  particle.add({ targetElt: document.getElementById('target')});
+  particle.add({name:'move', handle: function(ctx, msg) {
+    if (ctx.halted) return;
+    const {x, y, dx,dy} = msg.event;
+    // we have to convert the event to the svg coordinate system, which is centered on 500 500 and inverted. the left is 0, or -1.0. The middle is 500 or 0.
+    const coords = {cx: (x-500)/500, cy:-(y-500)/500};
+    const result ={x:coords.cx,y:coords.cy};
+    const intersects = intersectRect(ctx.particleElt,ctx.targetElt);
+    SVG.scatter(ctx.particleElt, coords);
+    SVG.scatter(ctx.particleElt, intersects ? {fill:'red'} : {fill:'green'} );
+
+    return [result, {halted: intersects}];
+  }});
+
+  // Adapted from events.html, which has some other good ideas.
+  const mousemove = e => ({
+    type: e.type,
+    x: e.clientX,
+    y: e.clientY,
+    dx: e.movementX,
+    dy: e.movementY,
+    t: e.timeStamp,
+  });
+
+  const intersectRect = (elt1, elt2) => {
+    elt1 = elt1.getBoundingClientRect();
+    elt2 = elt2.getBoundingClientRect();
+    return !(elt2.left > elt1.right  || 
+             elt2.top  > elt1.bottom ||
+             elt1.left > elt2.right  || 
+             elt1.top  > elt2.bottom);
+}
+
+  window.onmousemove = e => particle.add({handler:'move', event:mousemove(e)});
 
 </script>
 </body>
