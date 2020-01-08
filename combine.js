@@ -29,7 +29,7 @@ const combine = (target, msg, print=false) => {
   if (!rule) 
     throw `rule not found for ruleKey ${ruleKey} target ${tryToStringify(target)} and msg ${tryToStringify(msg)}`;
   if (print) 
-    log(`combining target ${JSON.stringify(target)} and msg ${JSON.stringify(msg)} with ruleKey ${ruleKey}` );
+    log(`combining target ${tryToStringify(target)} and msg ${tryToStringify(msg)} with ruleKey ${ruleKey}` );
   const result = rule(target, msg);
   return result;
 }
@@ -74,7 +74,7 @@ rules[OBJ+MSG] = (core, msg) => { //handler invocation
   core.msgs.push(msg);
 
   let handler = core.handlers[msg.msg];
-  if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
+  if (!handler) throw `handler not found for call ${tryToStringify(msg)}`;
 
   let results = handler[HANDLER](core, msg);
   if ( predicates.undef(results)) results = [];
@@ -84,7 +84,9 @@ rules[OBJ+MSG] = (core, msg) => { //handler invocation
 
   for (const result of results){
     // Only store the id of the parent to avoid cycles that stop stringification
-    if (predicates.obj(result)) result.parent = msg.id;
+    if (predicates.obj(result)) 
+      result.parent = msg.id;
+
     core = combine(core, result); //recurse
   }
 
@@ -92,7 +94,7 @@ rules[OBJ+MSG] = (core, msg) => { //handler invocation
 };
 
 rules[OBJ+HANDLER] = (core, handler) => { //handler registration
-  core = combine(core, {handlers:{}, msgs:[]});
+  core = combine(core, {handlers:{}, msgs:[]}); // a bit lazy
   core.handlers[handler.name] = handler;
   return core;
 };
