@@ -1,100 +1,127 @@
-'use strict';
+import C from './core.js';
 
-install(window, TYPES);
+const {TYPES, getType, cast} = C.types;
+const {tryToStringify, debug} = C.utils;
 
-const combineAll = (state, arr) => arr.reduce(combine, state);
-
-const tryToStringify = obj => {
-  let result = '<Circular>';
-  try{
-    result = JSON.stringify(obj);
-  } catch (e) {}
-  return result;
-}
-
-const combine = (target, msg, print=false) => {
+const combine = (target, msg, rules=getRules()) => {
+  const {NUL,FUN,ARR,ANY} = TYPES;
   let ttarget = getType(target);
   let tmsg = getType(msg);
 
-  if (ttarget == NULL){
+  // In some cases we erase type (set to "ANY")
+  // This saves us from repetative rule writing
+  if (ttarget === NUL){
     tmsg = ANY;
-  } else if (tmsg !== NULL){
-    if      (tmsg === FUN) ttarget = ANY;
+  } else if (tmsg !== NUL) {
+    // Functions just invoke, so erase the counter type
+    if      (tmsg    === FUN) ttarget = ANY;
     else if (ttarget === FUN) tmsg = ANY;
+    // Arrays push, so erase the message type
     else if (ttarget === ARR && tmsg !== ARR) tmsg = ANY;
   }
 
+  // Lookup the rule, throw if you can't find it.
   const ruleKey = ttarget + tmsg;
   const rule = rules[ruleKey];
-  if (!rule) 
-    throw `rule not found for ruleKey ${ruleKey} target ${tryToStringify(target)} and msg ${tryToStringify(msg)}`;
-  if (print) 
-    log(`combining target ${tryToStringify(target)} and msg ${tryToStringify(msg)} with ruleKey ${ruleKey}` );
+  if (!rule) {
+    throw `rule not found. rule[${ruleKey}] target[${tryToStringify(target)}] msg[${tryToStringify(msg)}]`;
+  }
+
+  // Invoke the rule and return
+  // debug('combine()=>', 'rule:', ruleKey, 'target:', target, 'msg:', msg );
   const result = rule(target, msg);
+  debug(`result[${tryToStringify(result)}] rule[${ruleKey}] target[${tryToStringify(target)}] msg[${tryToStringify(msg)}]` );
   return result;
 }
 
-//Rules for combining things. The first arg is the target
-//We proceed from the "natural" types to the synthetic types introduced by Simpatico.
-const rules = {};
-rules[NULL+ANY] = (_,b) => b;
+const getRules = () => {
+  //Rules for combining things. The first arg is the target, second the message
+  //We proceed from the "natural" types to the synthetic types introduced by Simpatico.
+  /* Docs Comments on the basic rules:
+   Null means "clear". For booleans, it means "toggle".
+   We cannot push null to an array because that will clear the array.
+   Arrays immutable concat (this is one way to get a null in there!)
+ */
+  const {UNDEF,NUL,STR,NUM,BOOL,FUN,OBJ,ARR,ELT,ANY,CORE,HANDLER,MSG} = TYPES;
+  const rules = {};
+  rules[NUL+ANY]  = (_,b) => b;
 
-rules[STR+STR]  = (_,b) => b;
-rules[STR+NULL] = ()    => '';
+  rules[STR+STR]  = (_,b) => b;
+  rules[STR+NUL]  = ()    => '';
 
-rules[NUM+NUM]  = (a,b) => a + b;
-rules[NUM+STR]  = (_,b) => cast(TYPES.NUM, b);
-rules[NUM+NULL] = ()    => 0;
+  rules[NUM+NUM]  = (a,b) => a + b;
+  rules[NUM+STR]  = (_,b) => cast(NUM, b);
+  rules[NUM+NUL]  = ()    => 0;
 
-rules[BOOL+BOOL]= (a,b) => b;
-rules[BOOL+STR] = (_,b) => cast(TYPES.BOOL, b);
-rules[BOOL+NULL]= (a,_) => !a;
+  rules[BOOL+BOOL]= (a,b) => b;
+  rules[BOOL+STR] = (_,b) => cast(BOOL, b);
+  rules[BOOL+NUL] = (a,_) => !a;
 
-rules[ARR+ARR]  = (a,b) => a.concat(b);
-rules[ARR+ANY]  = (a,b) => [...a,b];
-rules[ARR+NULL] = ()    => [];
+  rules[ARR+ARR]  = (a,b) => a.concat(b);
+  rules[ARR+ANY]  = (a,b) => [...a,b];
+  rules[ARR+NUL]  = ()    => [];
 
-rules[FUN+ANY]  = (a,b) => a(b);
-rules[ANY+FUN]  = (a,b) => b(a);
+  rules[FUN+ANY]  = (a,b) => a(b);
+  rules[ANY+FUN]  = (a,b) => b(a);
 
-rules[OBJ+OBJ]  = (a,b) => {
-  // There is some very subtle cool stuff happening here.
-  // B is defensively copied, mutated and returned, not A!
-  b = Object.assign({},b);
-  for (let prop in a){
-    b[prop] = b.hasOwnProperty(prop) ?
-      combine(a[prop],b[prop]): //recurse
-      a[prop]; 
-  }
-  return b;
+  rules[OBJ+OBJ]  = (a,b) => {
+    // B is defensively copied, mutated and returned, not A!
+    b = Object.assign({},b);
+    for (let prop in a){
+      b[prop] = b.hasOwnProperty(prop) ?
+        combine(a[prop],b[prop]): //recurse
+        a[prop];
+    }
+    return b;
+  };
+
+  //Gotcha: handler invocation does some limited mutation!
+  //mutation: core.msgs will get a push,
+  //mutation: msg will get an id, time and children
+  //mutation: all results will get the id of the parent
+  rules[OBJ+MSG] = (core, msg) => {
+    const {UNDEF, ARR, OBJ} = C.preds;
+
+    // World event - defensively copy because we mutate
+    if (UNDEF(msg.parent)) msg = Object.assign({}, msg);
+
+    msg.id = core.msgs.length;
+    // msg.time = now(); // this makes the display quite chatty
+    core.msgs.push(msg);
+
+    //Find the named handler
+    const handler = core.handlers[msg.handler];
+    if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
+
+    // Invoke the handler.
+    // Results should always be an array, so help sloppy handlers
+    let results = handler[HANDLER](core, msg);
+    if (UNDEF(results)) results = [];
+    if (!ARR(results))  results = [results];
+
+    // Build up some more info about the message cascade.
+    msg.children = results;
+
+    //Recurse for each result
+    for (const result of results){
+      // Store the id of the parent to avoid cycles that stop stringification
+      if (OBJ(result)) result.parent = msg.id;
+      core = combine(core, result); //recurse
+    }
+    return core;
+  };
+
+  //handler registration
+  rules[OBJ+HANDLER] = (core, handler) => {
+    core = combine(core, {handlers:{}, msgs:[]});
+    core.handlers[handler.name] = handler;
+    return core;
+  };
+  return rules;
 };
 
-rules[OBJ+MSG] = (core, msg) => { //handler invocation
-  msg.id = core.msgs.length;
-  core.msgs.push(msg);
+// Convenience functions that wrap combine
+const combineAll = (arr, core={}) => arr.reduce(combine, core)
+const combineAllArgs = (...args) => combineAll(Array.from(args))
 
-  let handler = core.handlers[msg.msg];
-  if (!handler) throw `handler not found for call ${tryToStringify(msg)}`;
-
-  let results = handler[HANDLER](core, msg);
-  if ( predicates.undef(results)) results = [];
-  if (!predicates.arr(results))  results = [results];
-
-  msg.children = results;
-
-  for (const result of results){
-    // Only store the id of the parent to avoid cycles that stop stringification
-    if (predicates.obj(result)) 
-      result.parent = msg.id;
-
-    core = combine(core, result); //recurse
-  }
-
-  return core;
-};
-
-rules[OBJ+HANDLER] = (core, handler) => { //handler registration
-  core = combine(core, {handlers:{}, msgs:[]}); // a bit lazy
-  core.handlers[handler.name] = handler;
-  return core;
-};
+export {combine, combineAll, combineAllArgs}

@@ -26,9 +26,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/clock.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo-latch.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo-particles.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo-tic-tac-toe.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/friendly-test.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/friendly-test.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/friendly.mjs" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/readme.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/svg.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/combine.js" beforeDir="false" afterPath="$PROJECT_DIR$/combine.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rtree.js" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/simpatico.js" beforeDir="false" afterPath="$PROJECT_DIR$/simpatico.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,6 +58,9 @@
     <option name="height" value="1177" />
   </component>
   <component name="ProjectId" id="1cjNRZJMRDo8y97aoSJDYNUmGVo" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="autoscrollFromSource" value="true" />
     <option name="autoscrollToSource" value="true" />
@@ -54,6 +68,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
@@ -102,7 +117,7 @@
       <workItem from="1590031444524" duration="581000" />
       <workItem from="1590175962748" duration="216000" />
       <workItem from="1591038037014" duration="3694000" />
-      <workItem from="1593278749414" duration="5145000" />
+      <workItem from="1593278749414" duration="13773000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -139,7 +154,14 @@
       <option name="project" value="LOCAL" />
       <updated>1593289048041</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Disable a not very useful inspection">
+      <created>1593289849621</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1593289849621</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -169,11 +191,13 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Getting it working again; not working with modules is really, really hard." />
     <MESSAGE value="IntelliJ files." />
     <MESSAGE value="Cleanup gitignore." />
     <MESSAGE value="Fix an invalid conditional." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix an invalid conditional." />
+    <MESSAGE value="Disable a not very useful inspection" />
+    <option name="LAST_COMMIT_MESSAGE" value="Disable a not very useful inspection" />
   </component>
   <component name="WindowStateProjectService">
     <state x="594" y="297" key="#Inspections" timestamp="1593287713892">
@@ -188,10 +212,14 @@
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
     <state x="796" y="321" key="RollbackChangesDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1593288751271" />
-    <state x="625" y="288" key="search.everywhere.popup" timestamp="1593287612863">
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1593299256597">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="625" y="288" key="search.everywhere.popup/0.23.1920.1177@0.23.1920.1177" timestamp="1593287612863" />
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1593299256597" />
+    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup" timestamp="1593295104792">
+      <screen x="0" y="23" width="1920" height="1177" />
+    </state>
+    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup/0.23.1920.1177@0.23.1920.1177" timestamp="1593295104792" />
   </component>
   <component name="masterDetails">
     <states>

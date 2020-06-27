@@ -1,123 +1,85 @@
-// import utils
-install(window, assertions);
-install(window, arrays);
+import A from './core.js'
+import {combine} from './combine.js'
 
-const rtree = (val = null) => {
-	const root = {parent: null, val};
-	const nodes = [root];
-	const tips = [root];
-	let tipIndex = 0;
+const {ARR} = A.preds;
+const {assert} = A.asserts;
+const {peek} = A.arrays;
+/** Docs
+ This rtree is implemented with arrays.
+ The data-structure looks like this:
 
-	const tip = () => tips[tipIndex];
+ 0 - 0 1 2 3 8 {}
+ 1 - 2 4 5 {}
+ 2 - 6 7 {}
+ focus: 0
 
-	const add = (val, parent = tip()) => {
-		contains(nodes, parent);
-		const node = {parent, val};
-		const i = tips.indexOf(parent);
-		if (i !== -1){
-			tips[i] = node;
-		} else {
-			tips.push(node);
-			tipIndex = tips.length - 1;
-		}
-		nodes.push(node);
-		return node;
-	};
+ The first column is the row number (included for readability)
+ The next number is the parent node for the row.
+ The next numbers indicate the values in the order they came in.
+ The last object is the residue of the row all the way back to root.
 
-	const setTipIndex = index => {
-		between(0, tips.length - 1, index);
-		tipIndex = index;
-		return tip();
-	}
+ For example, row 1 {} is ∫[0 1 2 4 5], and row 2 {} is ∫[0 1 2 6 7]
 
-	const path = (node = tip()) => {
-		const result = [node];
-		while(node.parent) {
-			node = node.parent;
-			result.push(node);
-		}
-		return result.reverse();
-	}
+ The RTree has a mutable state, the focus, which determines what happens on the next add.
 
-	const valuePath = (node = tip()) => path(node).map(n => n.val);
+ Row focus is just a number. This is the default.
+ Branching focus is an array: [row,col] or [node]
 
-	// This is the only place rtree depends on combine!!
-	// Also note that base should probably be the empty object, but the tests expect numbers, 
-	// Which is probably misleading.
-	const residue = (node = tip(), base = 0) => 
-		valuePath(node).reduce((acc, val) => combine(acc, val), base);
+ row ={row, parent, values, residue}
+ */
+export default (base = {}, reducer = combine, writeRowToResidue=true, summarize= a=>a ) => {
 
-	const paths = () => tips.reduce((acc, tip) => push(acc, path(tip)) , []);
-	const residues = (base = 0) => tips.reduce((acc, tip) => push(acc, residue(tip)) , []);
+  let foc = 0; // focus can also be an array
+  const values = [base];
+  const rows = [{row:0, parent: null, values:[0], residue: base}];
 
-	return {nodes, add, tip, tips, setTipIndex, path, paths, valuePath, residue, residues};
+  if (writeRowToResidue) rows[0].residue.row = 0;
+
+  const add = (value, assertion) => {
+    const i = values.length;
+    values.push(value);
+
+    const branching = ARR(foc);
+    if (!branching){
+      const row = rows[foc];
+      row.values.push(i);
+      row.residue = reducer(row.residue, value);
+    } else {
+      // The interesting case - we are branching!
+      // TODO support column coordinates?
+      const [rowi, coli] = foc;
+      const parentRow = rows[rowi];
+      const residue = reducer(parentRow.residue, value);
+      if (writeRowToResidue) residue.row = rows.length;
+      foc = rows.length;
+      rows.push({
+        row: rows.length,
+        parent: peek(parentRow.values),
+        values: [i],
+        residue,
+      });
+    }
+    if (assertion) assertion(residue()); //TODO: make this better.
+    return print();
+  }
+
+  // TODO design - decide if supporting columns is actually worth the complexity. I think no..
+  // to fully support columns requires a partial reduction that looks something like:
+  // partial = (rowi, coli) => row=rows[rowi]; row.values.slice(0,coli).reduce(reducer, partial(row.parent))
+
+  const focus = (a) => {
+    assert(a >= 0 && a < rows.length, `focus must be between [0, ${rows.length-1}]`);
+    foc = ARR(a) ? [a,rows[a].values.length-1] : a;
+    return print();
+  }
+
+  const residue = (f=foc) => ARR(f) ? rows[f[0]].residue : rows[f].residue;
+  const residues = () => rows.map(row=>row.residue);
+
+  const printRow = (row) => `${row.row} - [${row.parent === null ? 'n' : row.parent}] ${row.values.join(' ')} {${summarize(row.residue)}}`;
+  const print = ()=> rows.map(printRow).join('\n') + `\nfocus: ${foc}`;
+
+  const rowValues = (f=foc) => rows[f].values.map(i=>values[i]);
+
+  return {values, rows, add, focus, residue, residues, print, rowValues};
 }
-
-
-// Import util.js
-
-// function rtree(){
-// 	let currBranchIndex = 0;
-// 	const branches = [[0]];
-// 	const getBranchNodes = (branchIndex = currBranchIndex) => branches[branchIndex];
-// 	const addNode = d => getBranchNodes().push(d);
-// 	const setBranchIndex = i => { between(i, 0, branches.length - 1); currBranchIndex = i };
-// 	return {getBranchNodes, addNode, setBranchIndex}
-// }
-
-// let count = 0;
-// // Form a doubly-linked list where the payload is a reduction over combine since root.
-// function S(prev={}, curr={}, print = true){
-//   let prev_r = prev.r || {};
-//   let r = combine(prev_r, curr);
-//   let m = {prev, curr, r};
-//   if (print) console.log(count++, curr, r);
-//   return m;
-// }
-// //To get the message list for the current residue, we walk back to the root.
-// function msgs(s){
-//   let result = [];
-//   while(s.prev){
-//     result.push(s.curr);
-//     s = s.prev;
-//   }
-//   return result;
-// }
-
-
-// A Core is a collection of related residues, represented by the tip of each branch of messages.
-// Branches are created by moving backward up the chain and then adding a new message.
-// const Core = (tip={}) => {
-//   const tips = [], input = [];
-//   let offset = 0;
-
-//   const add = (msg, targetMsg = tip) => {
-//     input.push(msg);
-//     targetMsg = S(targetMsg, msg, false);
-//     if (offset) {
-//       tips.push(tip);
-//       offset = 0;
-//     }
-//   };
-//   const state = () => tip.r;
-//   const back = offset => {
-//     offset = offset;
-//     while(offset-- && tip.prev)
-//       tip = tip.prev;
-//   };
-//   const select = (tipIndex) => {
-//     tip = tips[tipIndex];
-//     offset = 0;
-//   }
-//   const msgs = () => msgs(tip);
-//   const test = (core)=>{
-//     let tests = this.tips;
-//     for (let test of tests){
-//       let steps = test.msgs();
-//       for (let step of steps){
-//         core.add(step); 
-//       }
-//     }
-//   }
-//   return {add, state, back, select, msgs, test};
-// }

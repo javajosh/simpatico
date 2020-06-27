@@ -1,0 +1,90 @@
+import C from './core.mjs';
+
+const {assert, assertEquals, OBJ} = C.asserts;
+const {ARR, UNDEF,between} = C.preds;
+const {tryToStringify} = C.utils;
+
+/**
+ *  Validate against a pattern obj.
+ *  Special cases:
+ *    value != object => nothing passes (return pattern)
+ *    pattern = null => nothing passes (return {})
+ *    pattern = {} => everything passes (return undefined)
+ *
+ *  Usage as a straight boolean is confusing since !validate() would actually mean it passed.
+ *  Perhaps it needs a rename to "failures" and then it would make more sense.
+ *
+ * @param patternObj
+ * @param valueObj
+ * @returns {{}|undefined|*} undefined if the object passes; an object describing the failure if it fails.
+ */
+export const validate = (patternObj, valueObj) => {
+  //gotcha: do not use getType predicate because handler !== object, etc
+  if (!OBJ(valueObj)) return patternObj;
+  if (patternObj === null) return {};
+  if (patternObj === {}) return undefined;
+
+  assert(OBJ(patternObj), `pattern must be an object but was ${tryToStringify(patternObj)}`)
+
+  const result = {};
+  let objPass = true;
+
+  for (const [patternKey, patternValue] of Object.entries(patternObj)) {
+    const value = valueObj[patternKey];
+    let pass = true;
+    let failReasons = undefined;
+
+    if (OBJ(patternValue)) {
+      failReasons = validate(patternValue, value); //recurse
+    } else if (ARR(patternValue)){
+      failReasons = checkValue(patternValue, value); //normal case
+    } else { // scalar case
+      failReasons = (value === patternValue) ? undefined : ['equals', patternValue];
+    }
+
+    pass = !failReasons;
+    if (!pass) result[patternKey] = failReasons;
+    objPass = objPass && pass;
+  }
+  return objPass ? undefined : result;
+}
+
+/**
+ * This is an internal method exported only to support testing. but it checks a value against an array of predicates.
+ * This function is the one you want to change if you want to add new predicates or features to the system.
+ *
+ * @param predArray
+ * @param value
+ * @returns {undefined|*}
+ */
+export const checkValue = (predArray, value) => {
+  const failedPreds = [];
+  let pass = true;
+  let allPass = true;
+
+  // Loop through the predicates.
+  for (let i = 0; i < predArray.length; i++){
+    let pred = predArray[i].toLowerCase(); // case of preds doesn't matter
+
+    if (pred === 'between'){
+      const lo = predArray[i+1];
+      const hi = predArray[i+2];
+      // Between when applied to an array checks its length
+      value = ARR(value) ? value.length : value;
+      pass = between(lo, hi, value);
+      i += 2;
+      if (!pass) {
+        failedPreds.push(pred, lo, hi);
+      }
+    } else if (pred === 'optional'){ //optional means we skip if it's missing
+      if (UNDEF(value)) {
+        return undefined;
+      }
+    } else { // TODO add support for descriptive values?
+      pass = C.preds[pred.toUpperCase()](value);
+      if (!pass) failedPreds.push(pred);
+    }
+    allPass = allPass && pass;
+  }
+  return allPass ? undefined : failedPreds;
+};
