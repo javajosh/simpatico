@@ -26,16 +26,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/basic.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/readme.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chat/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/chat/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/combine.html" beforeDir="false" afterPath="$PROJECT_DIR$/combine.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/combine.js" beforeDir="false" afterPath="$PROJECT_DIR$/combine.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/foobar.html" beforeDir="false" afterPath="$PROJECT_DIR$/foobar.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/simpatico.js" beforeDir="false" afterPath="$PROJECT_DIR$/simpatico.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,6 +56,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="/usr/local/bin/node" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
@@ -108,8 +102,44 @@
       <workItem from="1590031444524" duration="581000" />
       <workItem from="1590175962748" duration="216000" />
       <workItem from="1591038037014" duration="3694000" />
-      <workItem from="1593278749414" duration="3762000" />
+      <workItem from="1593278749414" duration="5145000" />
     </task>
+    <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
+      <created>1593288580263</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1593288580263</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Getting it working again; not working with modules is really, really hard.">
+      <created>1593288667902</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1593288667902</updated>
+    </task>
+    <task id="LOCAL-00003" summary="IntelliJ files.">
+      <created>1593288784628</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1593288784628</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Cleanup gitignore.">
+      <created>1593288797596</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1593288797596</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Fix an invalid conditional.">
+      <created>1593289048041</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1593289048041</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -138,15 +168,26 @@
       </map>
     </option>
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Getting it working again; not working with modules is really, really hard." />
+    <MESSAGE value="IntelliJ files." />
+    <MESSAGE value="Cleanup gitignore." />
+    <MESSAGE value="Fix an invalid conditional." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix an invalid conditional." />
+  </component>
   <component name="WindowStateProjectService">
     <state x="594" y="297" key="#Inspections" timestamp="1593287713892">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
     <state x="594" y="297" key="#Inspections/0.23.1920.1177@0.23.1920.1177" timestamp="1593287713892" />
-    <state x="100" y="123" width="1720" height="977" key="DiffContextDialog" timestamp="1593284989846">
+    <state x="100" y="123" width="1720" height="977" key="DiffContextDialog" timestamp="1593289076978">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="100" y="123" width="1720" height="977" key="DiffContextDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1593284989846" />
+    <state x="100" y="123" width="1720" height="977" key="DiffContextDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1593289076978" />
+    <state x="796" y="321" key="RollbackChangesDialog" timestamp="1593288751271">
+      <screen x="0" y="23" width="1920" height="1177" />
+    </state>
+    <state x="796" y="321" key="RollbackChangesDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1593288751271" />
     <state x="625" y="288" key="search.everywhere.popup" timestamp="1593287612863">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
