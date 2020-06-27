@@ -23,7 +23,7 @@ const TYPES = {
 const log = console.log.bind(console);
 Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null};
 
-const assert = (a, msg) => if (!a) throw new Error(msg);
+const assert = (a, msg) => {if (!a) throw new Error(msg)};
 
 const assertEquals = (expected, actual) => {
   if (actual !== expected) assert(false, `expected [${expected}] but got [${actual}]`)
@@ -77,7 +77,7 @@ const cast = (type, str) => {
       if (Number.isNaN(result)) throw new Error(`Cannot convert ${str} into a number`);
       return result;
     case TYPES.BOOL:
-      return (str === 'true') ? true : false;
+      return (str === 'true');
   }
 };
 
@@ -215,7 +215,7 @@ const scatter = (elt, obj) => {
   }
 }
 
-// A simple PRNG inside the browser. 
+// A simple PRNG inside the browser.
 function RNG(seed) {
   // A simple seedable RNG based on https://en.wikipedia.org/wiki/Linear_congruential_generator
   // LCG using GCC's constants
