@@ -1,7 +1,7 @@
 import C from './core.mjs';
 
-const {assert, assertEquals, OBJ} = C.asserts;
-const {ARR, UNDEF,between} = C.preds;
+const {assert, assertEquals} = C.asserts;
+const {ARR, OBJ, UNDEF,between} = C.preds;
 const {tryToStringify} = C.utils;
 
 /**

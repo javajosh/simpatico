@@ -17,7 +17,10 @@
     log(now());
     log(BOOL(true));
   </script>
-  <script type="module" src="./friendly-test.mjs"></script>
+  <script type="module" src="./friendly-test.mjs">
+    var foo = validate;
+
+  </script>
 <!--  <script nomodule src="./bundle.js"></script>-->
 </body>
 </html>

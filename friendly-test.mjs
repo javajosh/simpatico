@@ -57,7 +57,7 @@ assertEquals(checkValue(['optional', 'num', 'between', 0, 3], 'a'), ['num']);
 assertEquals(checkValue(['optional', 'num', 'between', 0, 10], 5), undefined);
 
 // Tests validate()
-debugger;
+
 // single key
 assertEquals(validate({a: ['num']}, {a: 1}), undefined, 'passed key');
 assertEquals(validate({a: ['num']}, {a: 'a'}), {a: ['num']}, 'failed key');
@@ -73,6 +73,7 @@ assertEquals(validate(null, {everything:'fails'}), {});
 assertEquals(validate({a:['num']}, 'every non-obj value fails'), {a:['num']});
 
 assertEquals(validate({a: 'dec', b:['optional', 'num', 'between', 0, 10]}, {a:'dec'}), undefined);
+debugger;
 assertEquals(validate({handler: 'dec', b:['optional', 'num', 'between', 0, 10]}, {handler:'dec'}), undefined);
 
 

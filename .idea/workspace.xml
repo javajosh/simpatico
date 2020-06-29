@@ -25,21 +25,12 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/clock.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-latch.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-particles.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-tic-tac-toe.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/friendly-test.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/friendly-test.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/friendly.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/readme.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/svg.js" afterDir="false" />
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/combine.js" beforeDir="false" afterPath="$PROJECT_DIR$/combine.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rtree.js" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/simpatico.js" beforeDir="false" afterPath="$PROJECT_DIR$/simpatico.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/friendly-test.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/friendly-test.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/friendly.html" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/friendly.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.html" beforeDir="false" afterPath="$PROJECT_DIR$/readme.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -117,7 +108,7 @@
       <workItem from="1590031444524" duration="581000" />
       <workItem from="1590175962748" duration="216000" />
       <workItem from="1591038037014" duration="3694000" />
-      <workItem from="1593278749414" duration="13773000" />
+      <workItem from="1593278749414" duration="15343000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -161,7 +152,14 @@
       <option name="project" value="LOCAL" />
       <updated>1593289849621</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work.">
+      <created>1593299292317</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1593299292317</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -197,7 +195,8 @@
     <MESSAGE value="Cleanup gitignore." />
     <MESSAGE value="Fix an invalid conditional." />
     <MESSAGE value="Disable a not very useful inspection" />
-    <option name="LAST_COMMIT_MESSAGE" value="Disable a not very useful inspection" />
+    <MESSAGE value="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work." />
+    <option name="LAST_COMMIT_MESSAGE" value="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work." />
   </component>
   <component name="WindowStateProjectService">
     <state x="594" y="297" key="#Inspections" timestamp="1593287713892">
@@ -212,10 +211,10 @@
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
     <state x="796" y="321" key="RollbackChangesDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1593288751271" />
-    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1593299256597">
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1593299297134">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1593299256597" />
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1593299297134" />
     <state x="625" y="288" width="670" height="676" key="search.everywhere.popup" timestamp="1593295104792">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
