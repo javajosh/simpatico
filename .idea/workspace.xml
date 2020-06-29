@@ -25,21 +25,8 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/clock.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-latch.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-particles.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/demo-tic-tac-toe.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/friendly-test.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/friendly-test.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/friendly.mjs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/readme.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/svg.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/combine.js" beforeDir="false" afterPath="$PROJECT_DIR$/combine.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rtree.js" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/simpatico.js" beforeDir="false" afterPath="$PROJECT_DIR$/simpatico.js" afterDir="false" />
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work.">
+      <change afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,6 +34,11 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="web-native-modules" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
@@ -189,6 +181,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
@@ -197,7 +190,8 @@
     <MESSAGE value="Cleanup gitignore." />
     <MESSAGE value="Fix an invalid conditional." />
     <MESSAGE value="Disable a not very useful inspection" />
-    <option name="LAST_COMMIT_MESSAGE" value="Disable a not very useful inspection" />
+    <MESSAGE value="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work." />
+    <option name="LAST_COMMIT_MESSAGE" value="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work." />
   </component>
   <component name="WindowStateProjectService">
     <state x="594" y="297" key="#Inspections" timestamp="1593287713892">
