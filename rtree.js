@@ -1,9 +1,9 @@
-import A from './core.js'
-import {combine} from './combine.js'
 
-const {ARR} = A.preds;
-const {assert} = A.asserts;
-const {peek} = A.arrays;
+const {ARR} = PREDS;
+// const {assert} = S.ASSERTIONS;
+// const {peek} = S.ARRAYS;
+// const {combine} = S.COMBINE;
+
 /** Docs
  This rtree is implemented with arrays.
  The data-structure looks like this:
@@ -22,64 +22,62 @@ const {peek} = A.arrays;
 
  The RTree has a mutable state, the focus, which determines what happens on the next add.
 
+ The focus can be on any node, using its index "i". Note that this implies that focus and input events happen in a set order, on the same timeline. We could make an arbitrary distinction between strings and numbers, and imagine a single timeline in which they are interleaved, giving rise to a peculiar, but quite compact (and useful) representation of a Tree. In this sense it can be seen as a reduction, or a folding of a list that looks like (a, b, c, 0, d, e, 1, f...) into something that looks like:
+
+ Which in turn represents a tree with 3 branches.
+
+ abc
+ ade
+ bf
+
+ (One clever thing to do (possibly too clever!) is to target either an index or a row by using the negative coordinates to correspond to rows. This would make a very compact focus interface, 2D that takes only 1 integer!)
+
  Row focus is just a number. This is the default.
  Branching focus is an array: [row,col] or [node]
 
  row ={row, parent, values, residue}
+
  */
-export default (base = {}, reducer = combine, writeRowToResidue=true, summarize= a=>a ) => {
 
-  let foc = 0; // focus can also be an array
-  const values = [base];
-  const rows = [{row:0, parent: null, values:[0], residue: base}];
+//
 
-  if (writeRowToResidue) rows[0].residue.row = 0;
+const rtree = (startValue={}) => {
+  let focus = 0;
+  const ROOT = {id:0, branch:0, parent: null, value: startValue, time:now(), children:[], residue:startValue};
+  const measurements= [ROOT];
+  const branches = [ROOT];
 
-  const add = (value, assertion) => {
-    const i = values.length;
-    values.push(value);
-
-    const branching = ARR(foc);
-    if (!branching){
-      const row = rows[foc];
-      row.values.push(i);
-      row.residue = reducer(row.residue, value);
+  const setFocus = (index) => {read(index); focus=index}; //a strange but efficient validation
+  const getFocus = ()=>focus;
+  // Focus is a split coord system with measurements being positive, branches being negative, and branch getting zero. This means that you cannot set focus to the root node, even though it's there. (You can still get to it from measurements[0])
+  const read = (index=focus) => (index <= 0) ? branches[-index] : measurements[index];
+  const add = (value) => {
+    const parent = read();
+    const measurement = {id:measurements.length, value, time:now(), children:[]};
+    parent.children.push(measurement);
+    measurement.parent = parent;
+    measurement.residue = combine(parent.residue, value);
+    if (focus <= 0) {
+      //parent.residue = null; //clean up old references.
+      measurement.branch = -focus;
+      branches[-focus] = measurement;
     } else {
-      // The interesting case - we are branching!
-      // TODO support column coordinates?
-      const [rowi, coli] = foc;
-      const parentRow = rows[rowi];
-      const residue = reducer(parentRow.residue, value);
-      if (writeRowToResidue) residue.row = rows.length;
-      foc = rows.length;
-      rows.push({
-        row: rows.length,
-        parent: peek(parentRow.values),
-        values: [i],
-        residue,
-      });
+      focus = -branches.length;
+      measurement.branch = -focus;
+      branches.push(measurement);
     }
-    if (assertion) assertion(residue()); //TODO: make this better.
-    return print();
+    measurements.push(measurement);
+    return measurement;
   }
-
-  // TODO design - decide if supporting columns is actually worth the complexity. I think no..
-  // to fully support columns requires a partial reduction that looks something like:
-  // partial = (rowi, coli) => row=rows[rowi]; row.values.slice(0,coli).reduce(reducer, partial(row.parent))
-
-  const focus = (a) => {
-    assert(a >= 0 && a < rows.length, `focus must be between [0, ${rows.length-1}]`);
-    foc = ARR(a) ? [a,rows[a].values.length-1] : a;
-    return print();
-  }
-
-  const residue = (f=foc) => ARR(f) ? rows[f[0]].residue : rows[f].residue;
-  const residues = () => rows.map(row=>row.residue);
-
-  const printRow = (row) => `${row.row} - [${row.parent === null ? 'n' : row.parent}] ${row.values.join(' ')} {${summarize(row.residue)}}`;
-  const print = ()=> rows.map(printRow).join('\n') + `\nfocus: ${foc}`;
-
-  const rowValues = (f=foc) => rows[f].values.map(i=>values[i]);
-
-  return {values, rows, add, focus, residue, residues, print, rowValues};
+  return {read, add, measurements, branches, setFocus, getFocus, ROOT};
 }
+
+
+
+//   const printRow = (row) => `${row.row} - [${row.parent === null ? 'n' : row.parent}] ${row.values.join(' ')} {${summarize(row.residue)}}`;
+//   const print = ()=> rows.map(printRow).join('\n') + `\nfocus: ${foc}`;
+
+//   const rowValues = (f=foc) => rows[f].values.map(i=>values[i]);
+
+//   return {values, rows, add, focus, residue, residues, print, rowValues};
+// }
