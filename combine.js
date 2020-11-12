@@ -1,7 +1,8 @@
-import C from './core.js';
+"use strict";
+// import C from './core.js';
 
-const {TYPES, getType, cast} = C.types;
-const {tryToStringify, debug} = C.utils;
+// const {TYPES, getType, cast} = C.types;
+// const {tryToStringify, debug} = C.utils;
 
 const combine = (target, msg, rules=getRules()) => {
   const {NUL,FUN,ARR,ANY} = TYPES;
@@ -15,7 +16,7 @@ const combine = (target, msg, rules=getRules()) => {
   } else if (tmsg !== NUL) {
     // Functions just invoke, so erase the counter type
     if      (tmsg    === FUN) ttarget = ANY;
-    else if (ttarget === FUN) tmsg = ANY;
+    else if (ttarget === FUN && tmsg !== NUL) tmsg = ANY;
     // Arrays push, so erase the message type
     else if (ttarget === ARR && tmsg !== ARR) tmsg = ANY;
   }
@@ -61,6 +62,7 @@ const getRules = () => {
   rules[ARR+ANY]  = (a,b) => [...a,b];
   rules[ARR+NUL]  = ()    => [];
 
+  rules[FUN+NUL]  = (a,b) => null;
   rules[FUN+ANY]  = (a,b) => a(b);
   rules[ANY+FUN]  = (a,b) => b(a);
 
@@ -80,24 +82,21 @@ const getRules = () => {
   //mutation: msg will get an id, time and children
   //mutation: all results will get the id of the parent
   rules[OBJ+MSG] = (core, msg) => {
-    const {UNDEF, ARR, OBJ} = C.preds;
-
     // World event - defensively copy because we mutate
-    if (UNDEF(msg.parent)) msg = Object.assign({}, msg);
+    const isWorldEvent = PREDS.UNDEF(msg.parent);
+    if (isWorldEvent) msg = Object.assign({time:now()}, msg);
 
     msg.id = core.msgs.length;
-    // msg.time = now(); // this makes the display quite chatty
     core.msgs.push(msg);
 
     //Find the named handler
-    const handler = core.handlers[msg.handler];
-    if (!handler) throw `handler not found for call ${JSON.stringify(msg)}`;
+    const handler = core.handlers[msg[TYPES.MSG]];
+    if (!handler) throw `handler not found for msg ${JSON.stringify(msg)}`;
 
     // Invoke the handler.
     // Results should always be an array, so help sloppy handlers
-    let results = handler[HANDLER](core, msg);
-    if (UNDEF(results)) results = [];
-    if (!ARR(results))  results = [results];
+    let results = handler[TYPES.HANDLER](core, msg);
+    if (!PREDS.ARR(results)) results = [results];
 
     // Build up some more info about the message cascade.
     msg.children = results;
@@ -105,7 +104,7 @@ const getRules = () => {
     //Recurse for each result
     for (const result of results){
       // Store the id of the parent to avoid cycles that stop stringification
-      if (OBJ(result)) result.parent = msg.id;
+      if (PREDS.OBJ(result)) result.parent = msg.id;
       core = combine(core, result); //recurse
     }
     return core;
@@ -124,4 +123,4 @@ const getRules = () => {
 const combineAll = (arr, core={}) => arr.reduce(combine, core)
 const combineAllArgs = (...args) => combineAll(Array.from(args))
 
-export {combine, combineAll, combineAllArgs}
+// export {combine, combineAll, combineAllArgs}

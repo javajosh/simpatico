@@ -25,13 +25,20 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work.">
-      <change afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="A few changes">
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -43,11 +50,6 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/simpatico.js" root0="SKIP_INSPECTION" />
-  </component>
-  <component name="ProjectFrameBounds">
-    <option name="y" value="23" />
-    <option name="width" value="1920" />
-    <option name="height" value="1177" />
   </component>
   <component name="ProjectId" id="1cjNRZJMRDo8y97aoSJDYNUmGVo" />
   <component name="ProjectLevelVcsManager">
@@ -61,13 +63,19 @@
   </component>
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="/usr/local/bin/node" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="settings.editor.selected.configurable" value="io.probst.idea.clangformat.ClangFormatConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration default="true" type="Application" factoryName="Application">
@@ -110,6 +118,11 @@
       <workItem from="1590175962748" duration="216000" />
       <workItem from="1591038037014" duration="3694000" />
       <workItem from="1593278749414" duration="13773000" />
+      <workItem from="1595106692280" duration="190000" />
+      <workItem from="1595107079985" duration="138000" />
+      <workItem from="1595107268881" duration="1495000" />
+      <workItem from="1605164535954" duration="4830000" />
+      <workItem from="1605404534781" duration="1181000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -153,7 +166,35 @@
       <option name="project" value="LOCAL" />
       <updated>1593289849621</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Update the README for public release.">
+      <created>1593398358810</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1593398358810</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Add a status and a related technology section to readme.md">
+      <created>1593399573209</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1593399573209</updated>
+    </task>
+    <task id="LOCAL-00009" summary="A few changes">
+      <created>1605164659876</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1605164659876</updated>
+    </task>
+    <task id="LOCAL-00010" summary="A few changes">
+      <created>1605405003617</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1605405003617</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -191,29 +232,24 @@
     <MESSAGE value="Fix an invalid conditional." />
     <MESSAGE value="Disable a not very useful inspection" />
     <MESSAGE value="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work." />
-    <option name="LAST_COMMIT_MESSAGE" value="Major refactor into Browser Native modules! Not quite done but I'm travelling and don't want to lose my work." />
+    <MESSAGE value="Update the README for public release." />
+    <MESSAGE value="Add a status and a related technology section to readme.md" />
+    <MESSAGE value="A few changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="A few changes" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="594" y="297" key="#Inspections" timestamp="1593287713892">
+    <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1605404863026">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="594" y="297" key="#Inspections/0.23.1920.1177@0.23.1920.1177" timestamp="1593287713892" />
-    <state x="100" y="123" width="1720" height="977" key="DiffContextDialog" timestamp="1593289076978">
+    <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1920.1177@0.23.1920.1177" timestamp="1605404863026" />
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1605405731966">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="100" y="123" width="1720" height="977" key="DiffContextDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1593289076978" />
-    <state x="796" y="321" key="RollbackChangesDialog" timestamp="1593288751271">
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1605405731966" />
+    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup" timestamp="1605404723225">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="796" y="321" key="RollbackChangesDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1593288751271" />
-    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1593299256597">
-      <screen x="0" y="23" width="1920" height="1177" />
-    </state>
-    <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1593299256597" />
-    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup" timestamp="1593295104792">
-      <screen x="0" y="23" width="1920" height="1177" />
-    </state>
-    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup/0.23.1920.1177@0.23.1920.1177" timestamp="1593295104792" />
+    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup/0.23.1920.1177@0.23.1920.1177" timestamp="1605404723225" />
   </component>
   <component name="masterDetails">
     <states>

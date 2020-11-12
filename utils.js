@@ -1,90 +1,7 @@
 "use strict";
 
-/**
-    Handy utilities for types, assertions functional programming
-    and array manipulation.
- */
-
-const TYPES = {
-  STR: 'string',
-  ANY: 'any',
-  NUM: 'number',
-  BOOL: 'boolean',
-  OBJ: 'object',
-  FUN: 'function',
-  ARR: 'array',
-  NULL: 'null',
-  UNDEF: 'undefined',
-
-  MSG: 'msg',
-  HANDLER: 'handle',
-};
-
-const log = console.log.bind(console);
-Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null};
-
-const assert = (a, msg) => {if (!a) throw new Error(msg)};
-
-const assertEquals = (expected, actual) => {
-  if (actual !== expected) assert(false, `expected [${expected}] but got [${actual}]`)
-};
-
-const isType = (type, a) => getType(a) === type;
-
-const assertType = (type, a) => assert(getType(a) === type, `Expected ${a} to be of type ${type} but was of type ${getType(a)}`);
-
-const assertThrows = fn => {
-  assertType(TYPES.FUN, fn);
-  let throws = false;
-  try {
-    fn();
-  } catch (e) {
-    throws = true;
-  }
-  assert(throws, `Expected fn to throw, but it didn't`);
-};
 
 
-// Map over all entries passing (key,val) into the mapFn
-const objectMap = (object, mapFn) => Object.keys(object).reduce(
-  (result, key) => {
-    result[key] = mapFn(key, object[key]);
-    return result;
-  }, {});
-
-
-const getType = (a) => {
-  let t = typeof a;
-  if (t !== TYPES.OBJ)  return t;
-  if (a === null)       return TYPES.NULL;
-  if (a === undefined)  return TYPES.UNDEF;
-  if (Array.isArray(a)) return TYPES.ARR;
-
-  if (a.hasOwnProperty(TYPES.MSG) && typeof a[TYPES.MSG] === TYPES.STR) return TYPES.MSG;
-  if (a.hasOwnProperty(TYPES.HANDLER) && typeof a[TYPES.HANDLER] === TYPES.FUN) return TYPES.HANDLER;
-
-  return TYPES.OBJ;
-};
-
-// Cast a string to a particular type
-const cast = (type, str) => {
-  assertions.str(str);
-  switch (type) {
-    case TYPES.STRING:
-      return str;
-    case TYPES.NUM:
-      const result = 1 * str;
-      if (Number.isNaN(result)) throw new Error(`Cannot convert ${str} into a number`);
-      return result;
-    case TYPES.BOOL:
-      return (str === 'true');
-  }
-};
-
-const functions = {
-  curry : (f, a) => b => f(a,b),
-  compose : (f, g) => a => g(f(a)),
-};
 
 const math = {
   randomIntBetween: (min = 1, max = 10) => {
@@ -177,24 +94,6 @@ const install = (target, source) => Object.keys(source).forEach(key => {
     console.error(`Tried to install ${key} but an exception was thrown ${e.message}`);
   }
 });
-
-
-// Combine two objects, mutating target
-// Similar to Object.assign, but use the target values
-// (The only time we don't use the value is when the tar  get is a string)
-const combine_basic = (target, obj, print=false) => {
-  if (typeof obj === 'undefined') return;
-  for (const key in obj){
-    if (typeof target[key] === 'boolean'){
-      target[key] = !target[key];
-    } else if (typeof target[key] === 'number'){
-      target[key] = target[key] + obj[key];
-    } else {
-      target[key] = obj[key]
-    }
-  }
-  if (print) console.log(target, obj);
-}
 
 // Gather element attributes into object properties.
 const gather = (elt, obj) => {
