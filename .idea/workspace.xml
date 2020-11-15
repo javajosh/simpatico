@@ -25,9 +25,7 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="A few changes">
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-    </list>
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="A few changes" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -122,7 +120,7 @@
       <workItem from="1595107079985" duration="138000" />
       <workItem from="1595107268881" duration="1495000" />
       <workItem from="1605164535954" duration="4830000" />
-      <workItem from="1605404534781" duration="1181000" />
+      <workItem from="1605404534781" duration="1903000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -194,7 +192,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605405003617</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="A few changes">
+      <created>1605405756915</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1605405756915</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -242,10 +247,18 @@
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
     <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1920.1177@0.23.1920.1177" timestamp="1605404863026" />
-    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1605405731966">
+    <state x="598" y="380" key="MultipleFileMergeDialog" timestamp="1605405790306">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1605405731966" />
+    <state x="598" y="380" key="MultipleFileMergeDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1605405790306" />
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1605405987959">
+      <screen x="0" y="23" width="1920" height="1177" />
+    </state>
+    <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1605405987959" />
+    <state x="748" y="532" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1605405962625">
+      <screen x="0" y="23" width="1920" height="1177" />
+    </state>
+    <state x="748" y="532" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1920.1177@0.23.1920.1177" timestamp="1605405962625" />
     <state x="625" y="288" width="670" height="676" key="search.everywhere.popup" timestamp="1605404723225">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
