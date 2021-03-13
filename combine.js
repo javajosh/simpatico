@@ -36,11 +36,13 @@ const combine = (target, msg, rules=getRules()) => {
 }
 
 const getRules = () => {
-  //Rules for combining things. The first arg is the target, second the message
-  //We proceed from the "natural" types to the synthetic types introduced by Simpatico.
-  /* Docs Comments on the basic rules:
-   Null means "clear". For booleans, it means "toggle".
-   We cannot push null to an array because that will clear the array.
+  /**
+   * Rules for combining things. The first arg is the target, second the message
+    proceed from the "natural" types to the synthetic types introduced by Simpatico.
+
+   Docs Comments on the basic rules:
+      Null means "clear". For booleans, it means "toggle".
+      We cannot push null to an array because that will clear the array.
    Arrays immutable concat (this is one way to get a null in there!)
  */
   const {UNDEF,NUL,STR,NUM,BOOL,FUN,OBJ,ARR,ELT,ANY,CORE,HANDLER,MSG} = TYPES;

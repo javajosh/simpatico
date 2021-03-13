@@ -1,19 +1,18 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="description" content="Title">
+	<meta name="description" content="Rehman Tree: Definition, application">
 	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
 	<meta name="author" content="Josh Rehman">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link id="favicon" rel="icon" type="image/png" href="white.png" />
 	<meta id="refresh" http-equiv="refresh" content="2">
 	<title>Rehman Tree</title>
-
+  <link rel="stylesheet" type="text/css" href="tufte.css">
 </head>
 <body>
 	<h1>Rehman Tree</h1>
-	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<p>Josh Rehman <i>July 2020</i></p>
 	<p>deps: utils, combine</p>
 	<button onclick="window.stop()">Stop 2s Refresh</button>
 
@@ -22,20 +21,7 @@
 	<p>Well, it's a kind of tree that is built up in a particular way. It's a constrained kind of n-arry tree, which is optimized for long runs. We imagine the tree composed of rows, and each row has a parent, rather than each node. Moreover, we introduce a special coordinate system that supports rows and nodes as parents, and provide a (stateful) pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent. Otherwise, you're just adding to the row.</p>
 
 
-
-
-	<p>Not super happy with this right now in a few ways:</p>
-	<ol>
-		<li>The tests are bad - very few assertions. Need to add more specific path stuff</li>
-		<li>The implementation uses references and (new) objects around everything. I'm not sure if I like that. I sort of liked my array-based index-based API from before, and it certaily serializes better, and potentially saves a lot of space when there are long runs on the same branch.</li>
-		<li>I can't help but think I'm missing something very elegant - my previous "offset" solution was actually rather elegant, after all.</li>
-		<li>I am, however, totally happy that this data-structure is totally independent of <code>combine()</code> - it really is different. Eventually there will be a cool data-structure associated with the tips, but that's strictly a composite data-structure</li>
-		<li>I still want to get clever with the coordinate system, using positive numbers for node parents and negative for branch parents, for example.</li>
-		<li>I don't mind the statefulness of the tipIndex. I thought i would, but I don't.</li>
-		<li>We now have support for residue but it's not really involved in adding yet.</li>
-	</ol>
-
-	<script> // A cool technique that detects compilation errors within following script tags!
+	<script> // Detect compilation errors for following scripts.
 		window.onerror = e => document.getElementById('favicon').href='red.png';
 	</script>
   <script src="./core.js"></script>
@@ -44,58 +30,42 @@
 
 	<script>
 		"use strict";
-    const {} = ASSERT;
     let r = rtree(0);
-    assertEquals(r.branches.length, 1);
-    assertEquals(r.branches[0].residue, 0);
-    assertEquals(r.getFocus(), 0);
+            assertEquals(r.branches.length, 1);
+            assertEquals(r.branches[0].residue, 0);
+            assertEquals(r.getFocus(), 0);
     r.add(1);
-    assertEquals(r.branches.length, 1);
-    assertEquals(r.branches[0].residue, 1);
-    assertEquals(r.getFocus(), 0);
+            assertEquals(r.branches.length, 1);
+            assertEquals(r.branches[0].residue, 1);
+            assertEquals(r.getFocus(), 0);
     r.add(3);
-    assertEquals(r.branches.length, 1);
-    assertEquals(r.branches[0].residue, 4);
-    assertEquals(r.getFocus(), 0);
+            assertEquals(r.branches.length, 1);
+            assertEquals(r.branches[0].residue, 4);
+            assertEquals(r.getFocus(), 0);
     r.setFocus(1);
-    assertEquals(r.branches.length, 1);
-    assertEquals(r.branches[0].residue, 4);
-    assertEquals(r.getFocus(), 1);
+            assertEquals(r.branches.length, 1);
+            assertEquals(r.branches[0].residue, 4);
+            assertEquals(r.getFocus(), 1);
     r.add(5);
-    assertEquals(r.branches.length, 2);
-    assertEquals(r.branches[0].residue, 4);
-    assertEquals(r.branches[1].residue, 6);
-    assertEquals(r.getFocus(), -1);
+            assertEquals(r.branches.length, 2);
+            assertEquals(r.branches[0].residue, 4);
+            assertEquals(r.branches[1].residue, 6);
+            assertEquals(r.getFocus(), -1);
     r.add(5)
-    assertEquals(r.branches.length, 2);
-    assertEquals(r.branches[0].residue, 4);
-    assertEquals(r.branches[1].residue, 11);
-    assertEquals(r.getFocus(), -1);
+            assertEquals(r.branches.length, 2);
+            assertEquals(r.branches[0].residue, 4);
+            assertEquals(r.branches[1].residue, 11);
+            assertEquals(r.getFocus(), -1);
     r.setFocus(2);
     r.add(3);
-    assertEquals(r.branches.length, 3);
-    assertEquals(r.branches[0].residue, 4);
-    assertEquals(r.branches[1].residue, 11);
-    assertEquals(r.branches[2].residue, 7);
-    assertEquals(r.getFocus(), -2);
+            assertEquals(r.branches.length, 3);
+            assertEquals(r.branches[0].residue, 4);
+            assertEquals(r.branches[1].residue, 11);
+            assertEquals(r.branches[2].residue, 7);
+            assertEquals(r.getFocus(), -2);
 
-		// // The basic rtree has an empty object as root
-		// let r = rtree();
-		// assertEquals(r.tip(), {parent:null, val:null});
 
-		// // Without a parent argument, each value is set to the previous value
-		// r.add(1); r.add(2); r.add(3); r.add(4);
-		// ASSERT.arr(r.nodes);
-		// assertEquals(5, r.nodes.length);
-
-		// // If we store a reference to the node, we can later add nodes to it.
-		// r = rtree(0);
-		// let n = r.add(1);
-		// r.add(2);
-		// r.add(3, n);
-		// n = r.add(4, n);
-
-		// let path = r.path(n).map(n => n.val);
+    const r2 = rtree({});
 
 		console.log('Tests succeeded!');
 		document.getElementById('favicon').href='green.png';

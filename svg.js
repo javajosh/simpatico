@@ -1,6 +1,6 @@
-import C from './core.js';
-const {ELT, OBJ} = C.asserts;
-const {getType, cast} = C.types;
+
+const {ELT, OBJ} = ASSERT;
+
 /**
  * Handy SVG utilities.
  */
@@ -119,7 +119,7 @@ const isPointInPoly = (poly, point) => {
   return false;
 }
 
-export {scatter, gather, parseTransform, renderTransform, intersectRect, isPointInPoly};
+// export {scatter, gather, parseTransform, renderTransform, intersectRect, isPointInPoly};
 
 // Ideas for testing.
 // let radius = document.getElementsByClassName('radius')[0]

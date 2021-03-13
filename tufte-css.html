@@ -1,8 +1,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Demonstration of Tufte CSS</title>
-  <link rel="stylesheet" href="tufte.css">
+  <title>A nice webpage</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content=".">
   <meta name="author" content="Josh Rehman">
@@ -10,9 +9,10 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="stylesheet" href="tufte.css">
   <style>
-     /* Useful during debugging to stop 3rd party embedded content from loading */
-    .iframe-wrapper {display: none;}
+    /* Useful during debugging to stop 3rd party embedded content from loading */
+    /* .iframe-wrapper {display: none;} */
   </style>
 </head>
 
@@ -24,7 +24,6 @@
       <li class="menu-item"><a href="#">Contact</a></li>
     </ol>
   </nav>
-
   <section class="browser-defense">
     <noscript><p><mark>Please turn on JavaScript to experience the interactivity in the article</mark>. Note that this page adheres to strict rules that protect your computer and privacy, including the use of only short, simple, elegant resources that are only served from this one domain that I own. I don't use any 3rd party trackers or infrastructure services (like a Content Delivery Network, or ), instead relying on excellent code to make the user experience world-class.</p></noscript>
 
@@ -45,36 +44,48 @@
       if (sum(foo,bar) !== 3) throw 'Bad math processing exception';
     </script>
   </section>
-
   <article class="post">
     <header>
-      <h1 id="a-blog-post">☸ A Blog post</h1>
+      <h1>☸ What are the qualities of a good web page?</h1>
       <p class="subtitle">By Josh Rehman  <time datetime="2020-07-05 21:00">July 5th,2020</time></p>
-
       <div class="epigraph">
         <blockquote>
           <p>The English language . . . becomes ugly and inaccurate because our thoughts are foolish, but the slovenliness of our language makes it easier for us to have foolish thoughts.</p>
           <footer>George Orwell, “Politics and the English Language”</footer>
         </blockquote>
       </div>
+      <p>A short essay (with examples) of what makes a good web page, what doesn't, and why.</p>
     </header>
     <section>
-      <h2 id="overview">Overview</h2>
+      <h2>Overview</h2>
 
-      <p><span class="newthought">In his later books<label for="sn-in-his-later-books" class="margin-toggle sidenote-number"></label></span><input type="checkbox" id="sn-in-his-later-books" class="margin-toggle"><span class="sidenote"><a href="http://www.edwardtufte.com/tufte/books_be"><em>Beautiful Evidence</em></a></span>, Tufte starts each section with a bit of vertical space, a non-indented paragraph, and the first few words of the sentence set in small caps. For this we use a span with the class <code>newthought</code>, as demonstrated at the beginning of this paragraph. Vertical spacing is accomplished separately through <code>&lt;section&gt;</code> tags. Be consistent: though we do so in this paragraph for the purpose of demonstration, do not alternate use of header elements and the <code>newthought</code> technique. Pick one approach and stick to it.</p>
-
+      <p>Over time, your knowledge and taste will change with respect to technology. In general, young people tend to choose a techno-utopian aesthetic which tends toward <i>maximalism</i> in code - more modules, more functions, more objects, more files. More of everything! But as you age, you may find yourself preferring the more elegant code, which is shorter, sometimes even naive-looking.
+      </p>
+      <p>My favorite HTML is a good single file HTML with all the responsible techniques applied, with the addition that I like to ditch IE entirely when thinking about webapps. In fact I like to focus on HTML5, ES6, CSS3, with best practice code for the charset, html element, stylesheet loading, and script loading, and of course a reasonable coding convention.
+      </p>
+      <p>In his later books
+        <label for="sn-in-his-later-books" class="margin-toggle sidenote-number"></label>
+        <input type="checkbox" id="sn-in-his-later-books" class="margin-toggle">
+        <span class="sidenote"><a href="http://www.edwardtufte.com/tufte/books_be"><em>Beautiful Evidence</em></a></span>
+        , Tufte starts each section with a bit of vertical space, a non-indented paragraph, and the first few words of the sentence set in small caps. For this we use a span with the class <code>newthought</code>, as demonstrated at the beginning of this paragraph. Vertical spacing is accomplished separately through <code>&lt;section&gt;</code> tags. Be consistent: though we do so in this paragraph for the purpose of demonstration, do not alternate use of header elements and the <code>newthought</code> technique. Pick one approach and stick to it.
+      </p>
       <p>It's really nice to have good figures.</p>
-
       <figure class="iframe-wrapper">
-        <!-- <iframe width="853" height="480" src="https://www.youtube.com/embed/YslQ2625TR4" frameborder="0" allowfullscreen></iframe> -->
+        <iframe width="500" height="500" src="core.html" frameborder="0" allowfullscreen></iframe>
       </figure>
 
       <p>Lets see how we can do with codepen</p>
 
       <figure class="iframe-wrapper">
-        <label for="svg-animation-checkbox" class="margin-toggle">⊕</label><input type="checkbox" id="svg-animation-checkbox" class="margin-toggle"><span class="marginnote">A wonderful SVG animation From <a href="https://codepen.io/jjperezaguinaga">JJ Perez on CodePen</a>. Note that you can edit this code in place to see how it works.</span>
-
-        <!-- <iframe id="svg-animation" width="853" height="480" scrolling="no" title="SVG Animation" src="https://codepen.io/jjperezaguinaga/embed/yuBdq?height=480&theme-id=light&default-tab=result" frameborder="0" allowtransparency="true" allowfullscreen> -->
+        <label for="svg-animation-checkbox" class="margin-toggle">⊕</label>
+        <input type="checkbox" id="svg-animation-checkbox" class="margin-toggle">
+        <span class="marginnote">A wonderful SVG animation From
+          <a href="https://codepen.io/jjperezaguinaga">JJ Perez on CodePen</a>.
+          Note that you can edit this code in place to see how it works.
+        </span>
+         <iframe id="svg-animation" width="853" height="480" scrolling="no" title="SVG Animation"
+             frameborder="0" allowtransparency="true" allowfullscreen
+             src="https://codepen.io/jjperezaguinaga/embed/yuBdq?height=480&theme-id=light&default-tab=result" >
         </iframe>
       </figure>
 
@@ -177,7 +188,6 @@
           elt('range-y' ).oninput = e => setAttr(circle, 'cy', e.target.value);
 
           // Clicking any circle moves it a little
-          const figure1 = elt('figure1');
           const INC = 1; // depends on the containing transform above
           const isCircle = elt => elt.tagName === 'circle';
           elt('figure-1').onmousedown = e => {

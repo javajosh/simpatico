@@ -30,14 +30,15 @@ const tryToStringify = obj => {
 }
 const copy1 = a => [...a]
 const copy2 = a => a.slice()
-const copy = a => JSON.parse(JSON.stringify(a))
+const copy3 = a => JSON.parse(JSON.stringify(a)) //sadly unstable key order
+const copy = copy3;
 const shuffle = arr => {
-    let right, left; // Fisher-Yates shuffle using ES6 swap
-    for (right = arr.length - 1; right > 0; right--) {
-      left = Math.floor(Math.random() * (right + 1));
-      [arr[left], arr[right]] = [arr[right], arr[left]];
-    }
+  let right, left; // Fisher-Yates shuffle using ES6 swap
+  for (right = arr.length - 1; right > 0; right--) {
+    left = Math.floor(Math.random() * (right + 1));
+    [arr[left], arr[right]] = [arr[right], arr[left]];
   }
+}
 
 // Types
 const TYPES = {
@@ -57,11 +58,9 @@ const TYPES = {
 
   //Simpatico types
   CORE: 'handlers', //a core has handlers
-  HANDLER: 'handle', //a handler has a handler function
+  HANDLER: 'handle', //a handler has a handle function
   MSG: 'msg', //a message has a msg attr
 };
-
-
 
 const getType = (a) => {
   const {UNDEF,NUL,STR,FUN,OBJ,ARR,ELT,CORE,HANDLER,MSG} = TYPES;
@@ -82,6 +81,7 @@ const getType = (a) => {
   // Simpatico stuff
   if (propType(a, HANDLER) === FUN) return HANDLER;
   if (propType(a, MSG) === STR) return MSG;
+  // if (propType(a, CORE) === OBJ) return CORE;
 
   return OBJ;
 };
@@ -107,7 +107,7 @@ const size = (a) => {
   }
 };
 
-
+// Cast a string into any other type
 const cast = (type, str) => {
   const {STR,NUM,BOOL} = TYPES;
   assert(PREDS.STR(str), `string value required; called with [${getType(str)}]`);

@@ -25,7 +25,32 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="A few changes" />
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="How long does a change take to show up in github?">
+      <change afterPath="$PROJECT_DIR$/.idea/ClojureProjectResolveSettings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/josh.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bpm.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/20-11-16 Thoughts on the Internet Service" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test.clj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1.md" beforeDir="false" afterPath="$PROJECT_DIR$/1.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/combine.html" beforeDir="false" afterPath="$PROJECT_DIR$/combine.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/combine.js" beforeDir="false" afterPath="$PROJECT_DIR$/combine.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core.html" beforeDir="false" afterPath="$PROJECT_DIR$/core.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core.js" beforeDir="false" afterPath="$PROJECT_DIR$/core.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/friendly.html" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/new" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rtree.html" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rtree.js" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/square.html" beforeDir="false" afterPath="$PROJECT_DIR$/square.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/svg.js" beforeDir="false" afterPath="$PROJECT_DIR$/svg.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tufte-css.html" beforeDir="false" afterPath="$PROJECT_DIR$/tufte-css.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -62,13 +87,17 @@
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="GoToKeyword.includeLibraries" value="false" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="javascript.nodejs.core.library.configured.version" value="12.17.0" />
+    <property name="nodejs_interpreter_path" value="node" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="/usr/local/bin/node" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="io.probst.idea.clangformat.ClangFormatConfigurable" />
+    <property name="nodejs_package_manager_path" value="yarn" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -81,6 +110,27 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
+    </configuration>
+    <configuration default="true" type="ClojureREPL" factoryName="Local" activateToolWindowBeforeRun="false">
+      <setting name="displayName" value="" />
+      <setting name="replType" value="NREPL" />
+      <setting name="execution" value="LEININGEN" />
+      <setting name="jvmArgs" value="" />
+      <setting name="parameters" value="" />
+      <setting name="workingDir" value="" />
+      <setting name="profiles" value="" />
+      <setting name="aliases" value="" />
+      <setting name="fixLineNumbers" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="ClojureREPL" factoryName="Remote" activateToolWindowBeforeRun="false">
+      <setting name="displayName" value="" />
+      <setting name="host" value="" />
+      <setting name="port" value="0" />
+      <setting name="replType" value="SOCKET" />
+      <setting name="configType" value="SPECIFY" />
+      <setting name="fixLineNumbers" value="false" />
+      <method v="2" />
     </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <option name="TEST_OBJECT" value="class" />
@@ -120,7 +170,15 @@
       <workItem from="1595107079985" duration="138000" />
       <workItem from="1595107268881" duration="1495000" />
       <workItem from="1605164535954" duration="4830000" />
-      <workItem from="1605404534781" duration="1903000" />
+      <workItem from="1605404534781" duration="12616000" />
+      <workItem from="1606787964087" duration="3606000" />
+      <workItem from="1608767730650" duration="302000" />
+      <workItem from="1608768056335" duration="10806000" />
+      <workItem from="1610311319518" duration="61000" />
+      <workItem from="1612404423798" duration="48000" />
+      <workItem from="1612404564267" duration="261000" />
+      <workItem from="1612404886094" duration="81000" />
+      <workItem from="1612406092878" duration="4815000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -199,7 +257,28 @@
       <option name="project" value="LOCAL" />
       <updated>1605405756915</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Fixing up a resource for &quot;publishing&quot;">
+      <created>1605407243108</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1605407243108</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Adding a new node sequence.">
+      <created>1613192752021</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1613192752022</updated>
+    </task>
+    <task id="LOCAL-00014" summary="How long does a change take to show up in github?">
+      <created>1613192839062</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1613192839062</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -240,29 +319,52 @@
     <MESSAGE value="Update the README for public release." />
     <MESSAGE value="Add a status and a related technology section to readme.md" />
     <MESSAGE value="A few changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="A few changes" />
+    <MESSAGE value="Fixing up a resource for &quot;publishing&quot;" />
+    <MESSAGE value="Adding a new node sequence." />
+    <MESSAGE value="How long does a change take to show up in github?" />
+    <option name="LAST_COMMIT_MESSAGE" value="How long does a change take to show up in github?" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1605404863026">
+    <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1608767911750">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1920.1177@0.23.1920.1177" timestamp="1605404863026" />
+    <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1920.1177@0.23.1920.1177" timestamp="1608767911750" />
+    <state x="999" y="481" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1612404720893">
+      <screen x="0" y="23" width="2560" height="1417" />
+    </state>
+    <state x="999" y="481" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.23.2560.1417/2560.499.1920.1177@0.23.2560.1417" timestamp="1612404720893" />
     <state x="598" y="380" key="MultipleFileMergeDialog" timestamp="1605405790306">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
     <state x="598" y="380" key="MultipleFileMergeDialog/0.23.1920.1177@0.23.1920.1177" timestamp="1605405790306" />
-    <state x="560" y="351" key="Vcs.Push.Dialog.v2" timestamp="1605405987959">
-      <screen x="0" y="23" width="1920" height="1177" />
+    <state x="346" y="178" key="SettingsEditor" timestamp="1613192187315">
+      <screen x="0" y="23" width="1440" height="877" />
     </state>
+    <state x="346" y="178" key="SettingsEditor/0.23.1440.877@0.23.1440.877" timestamp="1613192187315" />
+    <state x="461" y="250" key="SettingsEditor/0.23.1920.1177@0.23.1920.1177" timestamp="1608768038735" />
+    <state x="420" y="267" key="Vcs.Push.Dialog.v2" timestamp="1613192840782">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="420" y="267" key="Vcs.Push.Dialog.v2/0.23.1440.877@0.23.1440.877" timestamp="1613192840782" />
     <state x="560" y="351" key="Vcs.Push.Dialog.v2/0.23.1920.1177@0.23.1920.1177" timestamp="1605405987959" />
     <state x="748" y="532" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1605405962625">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
     <state x="748" y="532" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1920.1177@0.23.1920.1177" timestamp="1605405962625" />
-    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup" timestamp="1605404723225">
+    <state x="134" y="210" key="new project wizard" timestamp="1613194951332">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="134" y="210" key="new project wizard/0.23.1440.877@0.23.1440.877" timestamp="1613194951332" />
+    <state x="179" y="274" key="new project wizard/0.23.1920.1177@0.23.1920.1177" timestamp="1608768353655" />
+    <state x="625" y="286" width="670" height="675" key="run.anything.popup" timestamp="1605830214469">
       <screen x="0" y="23" width="1920" height="1177" />
     </state>
-    <state x="625" y="288" width="670" height="676" key="search.everywhere.popup/0.23.1920.1177@0.23.1920.1177" timestamp="1605404723225" />
+    <state x="625" y="286" width="670" height="675" key="run.anything.popup/0.23.1920.1177@0.23.1920.1177" timestamp="1605830214469" />
+    <state x="469" y="220" width="781" height="504" key="search.everywhere.popup" timestamp="1613192066437">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="469" y="220" width="781" height="504" key="search.everywhere.popup/0.23.1440.877@0.23.1440.877" timestamp="1613192066437" />
+    <state x="625" y="288" width="781" height="676" key="search.everywhere.popup/0.23.1920.1177@0.23.1920.1177" timestamp="1609570671437" />
   </component>
   <component name="masterDetails">
     <states>

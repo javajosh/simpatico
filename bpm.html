@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="new.min.css">
+</head>
+<body>
+<p>BPM finder, implemented in a button</p>
+
+<div>
+  <button onclick="fn(event)">Click in time</button>
+</div>
+
+<p>The truth is there are plenty of challenges. But the most interesting one to me boils down to "personal information management". This means using your device to measure your surroundings, and you, and to help you get value from that data. While this sounds bland, consider how many  industries match this pattern. The only difference is that a 3rd party builds tools you can use to analyze yourself, as long as they get to use the data too. </p>
+
+<p>The greatest predictor of success is whether or not you take pleasure in knowing how something is made, and why it is made that way (and not in some other way). If you do not, then your chances of success are slight.
+
+  <p>But if you <i>do</i> take pleasure, then you are in for a treat! For the task of personal information management is nothing less than a detailed exploration into how <i>you</i> think about things.</p>
+
+<p>Much of my time is spent pondering big questions. And railing against broken systems (when rules are not enforced, or enforced unevenly). One big question is about the nature of programs. What a good data structure is, one that works at several levels of abstraction (for the OS process, for the thread, for the lightweight process (core, in simpatico). But why do I care about such rarified topics? Shouldn't I be working on concrete things? Well, I believe that if I can get this right I can solve a wide swath of problems so well, that developers will flock to my platform (because it immediately becomes their platform). </p>
+
+<p>One of the best things about it. Consider the privileged, and unique perspective these programs can get. That's something no-one else provides.</p>
+
+<br>
+
+<svg width=256 height=256 style="border: 1px dotted gray">
+  <rect x=10 y=10 width=100 height=100 fill=green />
+</svg>
+
+<script>
+  let t_last = 0;
+  let sum = 0;
+  let sum10 = 0;
+  let count = 0;
+  const intervals = [];
+  const K = 1000;
+  console.log(new Date().getTime(), count);
+
+  const bpm = ms => +(60 * K / ms).toPrecision(3);
+
+  const fn = ({timeStamp: t}) => {
+    count++;
+    let interval = t - t_last;
+    t_last = t;
+    intervals.push(interval);
+
+    sum += interval;
+    sum10 += interval;
+    sum10 -= (count < 10) ? 0 : intervals[count - 10];
+
+    console.log(
+      interval, 'ms',
+      bpm(interval), 'BPM',
+      bpm(sum / count), 'avg',
+      bpm(sum10 / 10), 'running avg over 10'
+    );
+  }
+
+  // How to convert to BPM?
+  // 1 Minute = 60 seconds = 60,000 ms.
+  // We can devide that by our interval to get BPM
+  // Sadly we get a really long number with a misleading amount of precision. Apart from manually clamping, is there a way to protect the significant digits? Answer: javscript numbers have a built in "toPrecision()" that does what we need, apart from returning a string for some wierd reason.
+
+
+  // The last thing is to keep a running average.
+  // To do this, we keep a running sum
+  const clamp = (num, min, max) => num <= min ? min : num >= max ? max : num;
+
+  let a = [0, 1, 2, 3, 4];
+  let b = [0];
+
+  // Map a into an average over i, where i is the index of the running sum:
+  for (let i = a.length - 1; i < a.length && i < 10; i++) {
+
+    oldestIndex = clamp(intervals.length - i - 1, 0, intervals.length - 1);
+    oldestValue = a[oldestIndex];
+    b.push(a[i] / i);
+  }
+
+  //After a push, we update all running sums. For each sum:
+  //Add the new entry
+  //Subtract the oldest entry, which is (length - 1) - i.
+</script>
+</body>
+</html>

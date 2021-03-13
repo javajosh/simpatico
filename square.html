@@ -24,21 +24,22 @@
 
   <script>
     // The other script tags probably won't even parse.
-    if (navigator.userAgent.indexOf("MSIE") > -1) 
+    if (navigator.userAgent.indexOf("MSIE") > -1)
       window.alert('IE is not supported.');
   </script>
-  <script src="utils.js"></script>
+  <script src="core.js"></script>
   <script src="combine.js"></script>
+  <script src="svg.js"></script>
   <script>
   'use strict';
 
-  install(window, assertions);
-
   // Given two rectangles in the form {top:a, bottom:b, left: c, right: d}
-  const intersect = (r1, r2) => !(r2.left > r1.right || 
-     r2.right < r1.left || 
-     r2.top > r1.bottom ||
-     r2.bottom < r1.top);
+  const intersect = (r1, r2) => !(
+     r2.left   > r1.right  ||
+     r2.right  < r1.left   ||
+     r2.top    > r1.bottom ||
+     r2.bottom < r1.top
+  );
 
   // Do two elements intersect?
   const intersectingElts =  (e1, e2) => intersect(e1.getBoundingClientRect(), e2.getBoundingClientRect());

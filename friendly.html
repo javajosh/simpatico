@@ -21,7 +21,7 @@
 
 	<p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an important part of the convention: return something other than an object! For various reasons, I like array.</p>
 
-	<script src="./utils.js"></script>
+	<script src="./.js"></script>
 	<script src="./combine.js"></script>
 	<script src="./lib/ramda-0.26.1.js"></script>
 	<script>
@@ -39,7 +39,7 @@
 			if (skipTo && count < skipTo){count++; return;}
 			const result = combine(target, msg);
 			if (print) log(count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
-			if (getType(expected) === FUN) expected(result); 
+			if (getType(expected) === FUN) expected(result);
 			else assertions.deepEquals(expected, result);
 			return result;
 		};
@@ -65,7 +65,7 @@
 			a: 5,
 			b: 'hi',
 			d: {
-				e: 3, 
+				e: 3,
 				f: 'abcd'
 			}
 		};
@@ -75,7 +75,7 @@
 			a: 5,
 			b: 'hi',
 			d: {
-				e: 11, 
+				e: 11,
 				f: 'abcd'
 			}
 		};
@@ -88,7 +88,7 @@
 			assertions.arr(arr);
 			const result = [];
 			for (const pred of arr) {
-				if (!pred(val)) 
+				if (!pred(val))
 					result.push(pred);
 			}
 			return result;
@@ -107,7 +107,7 @@
 
 		assertions.undef(match2([str, a=>a.length===3], 'abc'));
 
-		//match an object. this 
+		//match an object. this
 
 		// We can think of this as something like combine, where the pattern is the target, and the base rule is always [pred] + value = [failing preds].
 
@@ -121,7 +121,7 @@
 		// 	let args = [];
 
 		// 	for (const item of arr){
-		// 		if (fun(item)) { 
+		// 		if (fun(item)) {
 		// 			if (args.length){
 		// 				result.push();
 		// 			}

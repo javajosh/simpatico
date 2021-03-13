@@ -38,16 +38,13 @@ const {ARR} = PREDS;
  row ={row, parent, values, residue}
 
  */
-
-//
-
 const rtree = (startValue={}) => {
   let focus = 0;
   const ROOT = {id:0, branch:0, parent: null, value: startValue, time:now(), children:[], residue:startValue};
   const measurements= [ROOT];
   const branches = [ROOT];
 
-  const setFocus = (index) => {read(index); focus=index}; //a strange but efficient validation
+  const setFocus = (index) => {read(index); focus=index}; //if the read doesn't throw, it's a good index.
   const getFocus = ()=>focus;
   // Focus is a split coord system with measurements being positive, branches being negative, and branch getting zero. This means that you cannot set focus to the root node, even though it's there. (You can still get to it from measurements[0])
   const read = (index=focus) => (index <= 0) ? branches[-index] : measurements[index];
