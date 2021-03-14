@@ -1,8 +1,11 @@
+import * as Core from './core.js';
+import * as Combine from './combine.js';
 
-const {ARR} = PREDS;
-// const {assert} = S.ASSERTIONS;
-// const {peek} = S.ARRAYS;
-// const {combine} = S.COMBINE;
+const {ARR} = Core.default.preds;
+const {assert} = Core.default.asserts;
+const {peek} = Core.default.arrays;
+const {now} = Core.default.utils;
+const {combine} = Combine.default;
 
 /** Docs
  This rtree is implemented with arrays.
@@ -38,7 +41,7 @@ const {ARR} = PREDS;
  row ={row, parent, values, residue}
 
  */
-const rtree = (startValue={}) => {
+export const rtree = (startValue={}) => {
   let focus = 0;
   const ROOT = {id:0, branch:0, parent: null, value: startValue, time:now(), children:[], residue:startValue};
   const measurements= [ROOT];
@@ -53,6 +56,7 @@ const rtree = (startValue={}) => {
     const measurement = {id:measurements.length, value, time:now(), children:[]};
     parent.children.push(measurement);
     measurement.parent = parent;
+    // Compute the new residue
     measurement.residue = combine(parent.residue, value);
     if (focus <= 0) {
       //parent.residue = null; //clean up old references.

@@ -19,11 +19,16 @@
 
 	<p>we could do some more stuff with <code>init()</code> and also pre- and post-conditions on handler installation and invocation.</p>
 
+	<script type="module">
+    import Core from './core.js';
+    import Combine from './combine.js';
 
-	<script src="./core.js"></script>
-	<script src="./combine.js"></script>
-	<script>
-		"use strict";
+    const {combine} = Combine;
+    const {TYPES, getType} = Core.types;
+    const {log} = Core.utils;
+    const {EQUALS:deepEquals} = Core.preds;
+    const {assertEquals, assert} = Core.asserts;
+
     window.onerror = e => document.getElementById('favicon').href='red.png';
 		console.log('Starting tests');
 
@@ -84,21 +89,6 @@
 
 		// Setting a function
 		test(null, a=>a+1, fn => assertEquals(fn(1), 2));
-
-		// Handlers are objects with the 'handle' property and react to 'msg' objects.
-		// This is handler registration
-		// test(UNIT, {name:'test', handle: (ctx, msg) => ({a:1})}, {"handlers":{"test":{"name":"test"}}});
-
-		// Register a handler and keep it around.
-		result = combine({handlers:{}}, {name:'test', handle: (ctx, msg) => ({a:1})});
-		// result = combine(result, {msg: 'test'});
-		// assert(result.a === 1);
-		// result = combine(result, {a: 1});
-		// assert(result.a === 2);
-		// // Invoke the handler a second time.
-		// result = combine(result, {msg: 'test'});
-		// assert(result.a === 3);
-
 
 		// Handlers can call each other- forming a message cascade.
 		result = combine(UNIT, {

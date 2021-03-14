@@ -25,13 +25,12 @@
 <!--	<script src="./lib/ramda-0.26.1.js"></script>-->
 	<script type="module">
     import * as Core from './core.js';
-    import * as Friendly from './friendly.js';
+    import {checkValue, validate} from './friendly.js';
 
     const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, UNDEF: undef, undef: pass, ARR: arr, SAME: same, ALL: all, EXISTS: exists, CONTAINS:contains, assertEquals, arrEquals, assertThrows, } = Core.default.asserts;
     const {tryToStringify} = Core.default.utils;
     const {FUN, ARR,between} = Core.default.preds;
     const {TYPES} = Core.default.types;
-    const {checkValue, validate} = Friendly.default;
 
 		console.log('Starting tests');
 		window.onerror = e => document.getElementById('favicon').href='red.png';

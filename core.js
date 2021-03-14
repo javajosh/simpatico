@@ -179,8 +179,9 @@ PREDS.SAME = arr => {
   }
   return true;
 }
-PREDS.CONTAINS = (arr, b) => PREDS.ARR(arr) && arr.includes(b)
-PREDS.ARREQUALS = arrEquals
+PREDS.CONTAINS = (arr, b) => PREDS.ARR(arr) && arr.includes(b);
+PREDS.ARREQUALS = arrEquals;
+PREDS.EQUALS = deepEquals;
 
 const ASSERT = mapObject(PREDS,([k,v]) => [k, (a, b, c, d) => assert(PREDS[k](a,b,c), d)]);
 

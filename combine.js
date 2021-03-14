@@ -1,8 +1,9 @@
-"use strict";
-// import C from './core.js';
+import Core from './core.js';
 
-// const {TYPES, getType, cast} = C.types;
-// const {tryToStringify, debug} = C.utils;
+const {TYPES, getType, cast} = Core.types;
+const {tryToStringify, debug, now} = Core.utils;
+const {assert} = Core.asserts;
+const PREDS = Core.preds;
 
 const combine = (target, msg, rules=getRules()) => {
   const {NUL,FUN,ARR,ANY} = TYPES;
@@ -10,7 +11,7 @@ const combine = (target, msg, rules=getRules()) => {
   let tmsg = getType(msg);
 
   // In some cases we erase type (set to "ANY")
-  // This saves us from repetative rule writing
+  // This saves us from repetitive rule writing
   if (ttarget === NUL){
     tmsg = ANY;
   } else if (tmsg !== NUL) {
@@ -93,7 +94,7 @@ const getRules = () => {
 
     //Find the named handler
     const handler = core.handlers[msg[TYPES.MSG]];
-    if (!handler) throw `handler not found for msg ${JSON.stringify(msg)}`;
+    assert(handler, `handler not found for msg ${tryToStringify(msg)}`);
 
     // Invoke the handler.
     // Results should always be an array, so help sloppy handlers
@@ -125,4 +126,4 @@ const getRules = () => {
 const combineAll = (arr, core={}) => arr.reduce(combine, core)
 const combineAllArgs = (...args) => combineAll(Array.from(args))
 
-// export {combine, combineAll, combineAllArgs}
+export default {combine, combineAll, combineAllArgs}

@@ -24,12 +24,17 @@
 	<script> // Detect compilation errors for following scripts.
 		window.onerror = e => document.getElementById('favicon').href='red.png';
 	</script>
-  <script src="./core.js"></script>
-	<script src="./combine.js"></script>
-	<script src="./rtree.js"></script>
 
-	<script>
-		"use strict";
+	<script type="module">
+    import * as Core from './core.js';
+    import * as Combine from './combine.js';
+    import * as RTree from './rtree.js';
+
+    const {rtree} = RTree;
+    const {combine} = Combine;
+    const {assertEquals} = Core.default.asserts;
+    const {now} = Core.default.utils;
+
     let r = rtree(0);
             assertEquals(r.branches.length, 1);
             assertEquals(r.branches[0].residue, 0);

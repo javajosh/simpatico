@@ -18,7 +18,7 @@ const {tryToStringify} = Core.default.utils;
  * @param valueObj
  * @returns {{}|undefined|*} undefined if the object passes; an object describing the failure if it fails.
  */
-const validate = (patternObj, valueObj) => {
+export const validate = (patternObj, valueObj) => {
   //gotcha: do not use getType predicate because handler !== object, etc
   if (!OBJ(valueObj)) return patternObj;
   if (patternObj === null) return {};
@@ -57,7 +57,7 @@ const validate = (patternObj, valueObj) => {
  * @param value
  * @returns {undefined|*}
  */
-const checkValue = (predArray, value) => {
+export const checkValue = (predArray, value) => {
   const failedPreds = [];
   let pass = true;
   let allPass = true;
@@ -88,5 +88,3 @@ const checkValue = (predArray, value) => {
   }
   return allPass ? undefined : failedPreds;
 };
-
-export default {validate, checkValue}
