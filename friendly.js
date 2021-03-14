@@ -1,8 +1,8 @@
-import C from './core.mjs';
+import * as Core from './core.js';
 
-const {assert, assertEquals, OBJ} = C.asserts;
-const {ARR, UNDEF,between} = C.preds;
-const {tryToStringify} = C.utils;
+const { assert, assertEquals, assertThrows, } = Core.default.asserts;
+const {ARR, OBJ, UNDEF, BETWEEN:between} = Core.default.preds;
+const {tryToStringify} = Core.default.utils;
 
 /**
  *  Validate against a pattern obj.
@@ -18,7 +18,7 @@ const {tryToStringify} = C.utils;
  * @param valueObj
  * @returns {{}|undefined|*} undefined if the object passes; an object describing the failure if it fails.
  */
-export const validate = (patternObj, valueObj) => {
+const validate = (patternObj, valueObj) => {
   //gotcha: do not use getType predicate because handler !== object, etc
   if (!OBJ(valueObj)) return patternObj;
   if (patternObj === null) return {};
@@ -57,7 +57,7 @@ export const validate = (patternObj, valueObj) => {
  * @param value
  * @returns {undefined|*}
  */
-export const checkValue = (predArray, value) => {
+const checkValue = (predArray, value) => {
   const failedPreds = [];
   let pass = true;
   let allPass = true;
@@ -81,10 +81,12 @@ export const checkValue = (predArray, value) => {
         return undefined;
       }
     } else { // TODO add support for descriptive values?
-      pass = C.preds[pred.toUpperCase()](value);
+      pass = Core.default.preds[pred.toUpperCase()](value);
       if (!pass) failedPreds.push(pred);
     }
     allPass = allPass && pass;
   }
   return allPass ? undefined : failedPreds;
 };
+
+export default {validate, checkValue}

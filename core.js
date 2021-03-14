@@ -8,7 +8,9 @@ const info = console.info.bind(console)
 const and = (a,b) => !!a && !!b
 const or = (a,b) => !!a || !!b
 const identity = a => a
-const curry = (f, a) => b => f(a,b)
+const curryLeft = (f, a) => b => f(a,b) //left to right
+const curryRight = (f, a) => b => f(b,a) //right to left
+const curry = curryLeft
 const compose = (f, g) => a => g(f(a))
 
 // Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null}; tempting!
@@ -21,18 +23,23 @@ const propType = (a, prop) => getType(a[prop])
 const getProp = (a, prop) => hasProp(a, prop) ? a[prop] : null;
 const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn))
 const equals = (a,b) => PREDS.OBJ(a) ? tryToStringify(a) === tryToStringify(b) : a === b;
+const arrEquals = (a,b) => ASSERT.ARR(a) && ASSERT.ARR(b) && a.length === b.length &&
+  a.map((v,i) => v === b[i]).reduce(and, true)
 const deepEquals = equals; //a more common name for the same thing
-const tryToStringify = obj => {
-  if (typeof obj !== 'object') return obj;
+const tryToStringify = a => {
+  if (!PREDS.OBJ(a)) return a;
   let result = '<Circular>';
-  try{ result = JSON.stringify(obj); } catch (ignored) {}
+  try{ result = JSON.stringify(a); } catch (ignored) {}
   return result;
 }
 const copy1 = a => [...a]
 const copy2 = a => a.slice()
 const copy3 = a => JSON.parse(JSON.stringify(a)) //sadly unstable key order
-const copy = copy3;
+const copy4 = a => mapObject(a,identity); //shallow copy, but might be extensible.
+const copy = copy3; //TODO: find or make a better copy.
+
 const shuffle = arr => {
+  ASSERT.ARR(arr);
   let right, left; // Fisher-Yates shuffle using ES6 swap
   for (right = arr.length - 1; right > 0; right--) {
     left = Math.floor(Math.random() * (right + 1));
@@ -130,15 +137,13 @@ const cast = (type, str) => {
 const error = a => {throw new Error(a)}
 const assert = (a, msg) => a ? true : error(msg)
 // NB: it occurs to me it would be better to swap actual and expected for easier left currying of the most static argument.
-const assertEquals = (actual, expected, msg) => {
-  assert(equals(actual, expected),
-    `expected ${tryToStringify(expected)} but got ${actual} ${msg ? ' msg:' + msg : ''}`
-  )
-};
+const assertEquals = (actual, expected, msg='') =>
+  assert(equals(actual, expected), `expected ${tryToStringify(expected)} but got [${actual}]. ${msg}`)
+
 const assertThrows = fn => {
   ASSERT.FUN(fn); let throws = false; let result;
   try { result = fn() } catch (e) { throws = true }
-  assert(throws, `Expected fn to throw, but it didn't and returned ${result}`);
+  assert(throws, `Expected fn to throw, but it didn't and returned [${result}]`);
 };
 
 // Valid, but possibly redundant, and therefore confusing.
@@ -151,23 +156,37 @@ const PREDS = mapObject(TYPES,([k,v])=>[k, a => getType(a) === v])
 PREDS.INT = (a, msg) => PREDS.NUM(a,msg) && (a % 1 === 0)
 PREDS.EXISTS = a => (typeof a !== 'undefined') && (a !== null)
 PREDS.BETWEEN = (lo, hi, a) =>
-  PREDS.NUM(lo) && PREDS.NUM(hi) &&
-  lo <= hi &&
-  lo <= size(a) &&
-  hi >= size(a);
+  size(lo) <= size(hi) &&
+  size(lo) <= size(a) &&
+  size(hi) >= size(a);
 
 PREDS.T = a => true
 PREDS.F = a => false
 // Arrays
 PREDS.ALL = arr => ASSERT.ARR(arr) && arr.reduce(and, true)
 PREDS.ANY = arr => ASSERT.ARR(arr) && arr.reduce(or, false)
-PREDS.SAME = arr => ASSERT.ARR(arr) && arr.reduce((a=a[0],b=a[0])=>a===b?a:false)
-PREDS.CONTAINS = (arr, b) => PREDS.ARR(arr) && arr.includes(b)
 
-const ASSERT = mapObject(PREDS,([k,v])=>[k, (a, b, c, d) => assert(PREDS[k](a,b,c), d)]);
+// It would be nice if this was expressable as arr.reduce(equals, true), but I couldn't get it to work.
+// Also, this code is probably a lot more performant.
+PREDS.SAME = arr => {
+  ASSERT.ARR(arr);
+  let prev = arr[0], curr;
+  for(let i = 1; i < arr.length; i++){
+    curr = arr[i];
+    if (!equals(curr, prev)){
+      return false;
+    }
+  }
+  return true;
+}
+PREDS.CONTAINS = (arr, b) => PREDS.ARR(arr) && arr.includes(b)
+PREDS.ARREQUALS = arrEquals
+
+const ASSERT = mapObject(PREDS,([k,v]) => [k, (a, b, c, d) => assert(PREDS[k](a,b,c), d)]);
 
 // A simple PRNG inside the browser.
 // Note that every call increments state exactly once.
+//TODO: convert this into a generator function?
 function RNG(seed) {
   // A simple seedable RNG based on GCC's constants
   // https://en.wikipedia.org/wiki/Linear_congruential_generator
@@ -196,12 +215,24 @@ RNG.prototype.choice = function (arr) {
 }
 
 
-// export default {
-//   utils: {now, log, debug, info, tryToStringify},
-//   logic: {and, or, identity},
-//   arrays: {all, any, same, peek, push},
-//   objects: {hasProp, propType, getProp, mapObject, equals, tryToStringify},
-//   asserts: {error, assert, assertEquals, assertThrows, ...ASSERT},
-//   preds: {int, between, contains, ...PREDS},
-//   types: {TYPES, getType, cast}
-// };
+// This is basically an object.assign that prints out an error if the target doesn't permit setting the key
+const install = (target, source) => Object.keys(source).forEach(key => {
+  try {
+    target[key] = source[key];
+  } catch (e) {
+    console.error(`Tried to install ${key} but an exception was thrown ${e.message}`);
+  }
+});
+
+// This file can be included as is, and will put all of the below symbols in the
+// global space. Or you can import it through browser modules
+export default {
+  utils:    {now, log, install, debug, info, tryToStringify, RNG, size},
+  logic:    {and, or, identity},
+  arrays:   {all:PREDS.ALL, any:PREDS.ANY, same:PREDS.SAME, equals: PREDS.ARREQUALS, peek, push},
+  objects:  {hasProp, propType, getProp, mapObject, equals, tryToStringify},
+  asserts:  {error, assert, assertEquals, assertThrows, arrEquals: ASSERT.ARREQUALS, between:ASSERT.BETWEEN, ...ASSERT},
+  preds:    PREDS,
+  types:    {TYPES, getType, cast},
+};
+

@@ -21,146 +21,142 @@
 
 	<p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an important part of the convention: return something other than an object! For various reasons, I like array.</p>
 
-	<script src="./.js"></script>
-	<script src="./combine.js"></script>
-	<script src="./lib/ramda-0.26.1.js"></script>
-	<script>
-		"use strict";
+<!--	<script src="./combine.js"></script>-->
+<!--	<script src="./lib/ramda-0.26.1.js"></script>-->
+	<script type="module">
+    import * as Core from './core.js';
+    import * as Friendly from './friendly.js';
 
-		install(window, predicates);
-		install(window, arrays);
-
+    const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, UNDEF: undef, undef: pass, ARR: arr, SAME: same, ALL: all, EXISTS: exists, CONTAINS:contains, assertEquals, arrEquals, assertThrows, } = Core.default.asserts;
+    const {tryToStringify} = Core.default.utils;
+    const {FUN, ARR,between} = Core.default.preds;
+    const {TYPES} = Core.default.types;
+    const {checkValue, validate} = Friendly.default;
 
 		console.log('Starting tests');
 		window.onerror = e => document.getElementById('favicon').href='red.png';
 		const skipTo = 0;
 		let count = 0;
-		const test = (target, msg, expected, print=true) => {
+
+		const test = (target, msg, expected, print = true) => {
 			if (skipTo && count < skipTo){count++; return;}
 			const result = combine(target, msg);
 			if (print) log(count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
-			if (getType(expected) === FUN) expected(result);
+			if (FUN(expected)) expected(result);
 			else assertions.deepEquals(expected, result);
 			return result;
 		};
 
-		const UNIT = {};
-		let result;
 
-		const optional = () => {};
+    const testPattern = {
+      a: ['num', 'between', 0, 10],
+      b: ['str'],
+      c: ['optional', 'str', 'between', 0, 10],
+      d: {
+        e: ['num', 'between', 0, 10],
+        f: ['optional', 'str', 'between', 3, 8],
+      }
+    };
 
-		// Here's an example of a pattern:
-		const pattern1 = {
-			a: [num, between, 0, 10],
-			b: [str],
-			c: [optional, str, between, 0, 10],
-			d: {
-				e: [num, between, 0, 10],
-				f: [optional, str, between, 3, 8],
-			}
-		}; //also in() and match()
+    // Here's a value that matches
+    const testValid = {
+      a: 5,
+      b: 'hi',
+      d: {
+        e: 3,
+        f: 'abcd'
+      }
+    };
 
-		// Here's a value that matches
-		const valueMatch = {
-			a: 5,
-			b: 'hi',
-			d: {
-				e: 3,
-				f: 'abcd'
-			}
-		};
+    // Here's one that doesn't
+    const testNotValid = {
+      a: 5,
+      b: 'hi',
+      d: {
+        e: 11, //this one fails.
+        f: 'abcd'
+      }
+    };
 
-		// Here's one that doesn't
-		const valueNoMatch = {
-			a: 5,
-			b: 'hi',
-			d: {
-				e: 11,
-				f: 'abcd'
-			}
-		};
+    // Tests checkValue()
 
-		//match a single predicate
-		const match1 = (pred, val) => pred(val) ? undefined : pred;
+    // The normal happy cases
+    undef(checkValue(['str'], 'a'));
+    undef(checkValue(['num'], 1));
+    undef(checkValue(['bool'], false));
+    undef(checkValue(['between', 0, 3], 2));
+    undef(checkValue(['optional'])/*, undefined*/);
 
-		//match an array of predicates
-		const match2 = (arr, val) => {
-			assertions.arr(arr);
-			const result = [];
-			for (const pred of arr) {
-				if (!pred(val))
-					result.push(pred);
-			}
-			return result;
-		};
+    // Bad scalar matches
+    arrEquals(checkValue(['num'], 'a'), ['num']);
+    arrEquals(checkValue(['str'], 1), ['str']);
+    arrEquals(checkValue(['between', 0, 3], 4), ['between', 0, 3]);
 
-		// match an object of predicate arrays
-		const match3 = (obj, val) => {
-			for (let prop in obj){
-				obj[prop] = match2(obj[prop])
-			}
+    // Optional doesn't mean you can supply a bad value!
+    arrEquals(checkValue(['optional', 'num'], 'a'), ['num']);
+    arrEquals(checkValue(['optional', 'between', 0, 3], 4), ['between', 0, 3]);
+    arrEquals(checkValue(['optional', 'num', 'between', 0, 3], 'a'), ['num']);
 
-		};
+    undef(checkValue(['optional', 'num', 'between', 0, 10], 5), undefined);
 
-		assertions.undef(match1(str, 'hey'));
-		assertions.fun(match1(str, 3));
+    // Tests validate()
+    // single key
+    assertEquals(validate({a: ['num']}, {a: 1}), undefined, 'passed key');
+    assertEquals(validate({a: ['num']}, {a: 'a'}), {a: ['num']}, 'failed key');
+    assertEquals(validate({a: ['num']}, {}), {a: ['num']}, 'missing non-optional');
 
-		assertions.undef(match2([str, a=>a.length===3], 'abc'));
+    // multi key
+    assertEquals(validate({a: ['num'], b:['num']}, {a: 1, b:1}), undefined, 'multi-key success');
+    assertEquals(validate({a: ['num'], b:['num']}, {a: 1, b:''}), {b:['num']}, 'multi-key fail');
 
-		//match an object. this
+    // special cases
+    assertEquals(validate({},{everything:'passes'}), undefined);
+    assertEquals(validate(null, {everything:'fails'}), {});
+    assertEquals(validate({a:['num']}, 'every non-obj value fails'), {a:['num']});
 
-		// We can think of this as something like combine, where the pattern is the target, and the base rule is always [pred] + value = [failing preds].
-
-
-
-		// Remove any non-function value by currying them with the previous function
-		// const reducePredicateArray = (arr) => {
-		// 	let fn = arr[0];
-		// 	assertions.fun(fn); // The first element *must* be a function
-		// 	const result = [];
-		// 	let args = [];
-
-		// 	for (const item of arr){
-		// 		if (fun(item)) {
-		// 			if (args.length){
-		// 				result.push();
-		// 			}
-		// 			result.push(item)
-		// 			args = [];
-		// 		} else {
-
-		// 			const fn = result.pop();
-		// 			result.push(functions.curry(fn, item));
-		// 		}
-
-		// 	}
-		// 	return result;
-		// }
-
-		// assertions.arr(reducePredicateArray([str]))
-
-		// // Given a list of predicates and a value, map onto a boolean array
-		// const mapPredicateResult = (preds, a) => preds.map(pred=>pred(a));
-		// assertions.deepEquals(mapPredicateResult([num, str],1), [true, false]);
-
-		// // Given a pattern array, build a predictate from it.
-		// // It is a sequence of functions that all must be true.
-		// // If there are any non-function values, we curry them with the previous function.
-		// const bigPredicate = (predArray) => {
-		// 	const reducedPreds = reducePredicateArray(predArray);
-		// 	return a => arrays.all(mapPredicateResult(reducedPreds, a), true);
-		// };
-		// let a = bigPredicate([str]);
-		// assert(a('foo'));
-
-		// a = bigPredicate([str, between, 3, 5]);
-		// assert(a('asd'));
-		// assertThrows(()=>a(''));
-		// assertThrows(()=>a(1));
-		// assertThrows(()=>a('asdf'));
+    assertEquals(validate({a: 'dec', b:['optional', 'num', 'between', 0, 10]}, {a:'dec'}), undefined);
+    assertEquals(validate({handler: 'dec', b:['optional', 'num', 'between', 0, 10]}, {handler:'dec'}), undefined);
 
 
-		console.log('Tests succeeded!');
+    assertEquals(validate({
+      e: ['num', 'between', 0, 10],
+      f: ['optional', 'str', 'between', 3, 8],
+    }, { e: 11, f: "abcd" }), {
+      e: ['between', 0, 10]
+    });
+
+    // nested object
+    assertEquals(validate({a:['num'], b:{c:['num']}}, {a: 1, b:{c:  1}}), undefined);
+    assertEquals(validate({a:['num'], b:{c:['num']}}, {a: 1, b:{c: ''}}), {b:{c:['num']}});
+
+    // the full monty
+    assertEquals(validate(testPattern, testValid), undefined, 'full monty should be valid');
+    assertEquals(validate(testPattern, testNotValid), {d:{e:['between', 0, 10]}}, 'full monty should NOT be valid');
+
+
+    /** docs
+     A simple friendly function. Note that friendly functions can only take one object arg.
+     It's better if they don't return objects if they execute normally, since this clashes with the descriptive failure mode
+     We will see that in a handler context these conditions are very natural and easy
+     */
+    const friendly = input => {
+      const pattern = {a:['bool']};
+      if (!validate(pattern, input)){ // concern: It's not intuitive to check !validate. rename to 'invalid'?
+        return 2;
+      } else {
+        return pattern;
+      }
+    }
+
+    assertEquals(friendly(), {a:['bool']})
+    assertEquals(friendly(1), {a:['bool']})
+    assertEquals(friendly({a:1}), {a:['bool']})
+    assertEquals(friendly({b:true}), {a:['bool']})
+    assertEquals(friendly({a:true}), 2)
+
+
+
+    console.log('Tests succeeded!');
 		document.getElementById('favicon').href='green.png';
 	</script>
 </body>

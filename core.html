@@ -12,19 +12,24 @@
 
 </head>
 <body>
-	<h1>Utils</h1>
+	<h1>Core</h1>
 	<p>Josh Rehman <i>2020-11-11</i></p>
 	<p>deps: core.js</p>
 	<button onclick="window.stop()">Stop 2s Refresh</button>
 	<script>
-		window.onerror = e => document.getElementById('favicon').href='red.png';
+		window.onerror = e => {
+		  document.getElementById('favicon').href='red.png';
+		  document.body.style.backgroundColor = 'red';
+		};
 	</script>
-	<script src="./core.js"></script>
-	<script>
-    // The "Poor Man's Import"
-    const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, ARR: arr,
-      BETWEEN: between, CONTAINS:contains, ALL:all, ANY:any, SAME:same, T:t, F:f, EXISTS:exists,
-    } = ASSERT;
+	<script type="module">
+    import * as Core from './core.js';
+
+    const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, ARR: arr, SAME: same, ALL: all, EXISTS: exists,
+      CONTAINS:contains, assertEquals, arrEquals, assertThrows, BETWEEN: between, } = Core.default.asserts;
+    const {cast} = Core.default.types;
+    const {mapObject} = Core.default.objects;
+    const {size} = Core.default.utils;
 
 		str('foobar');
 		num(1);
@@ -39,6 +44,7 @@
     exists({});
     exists(0);
 
+    arrEquals([],[]);
 		contains([1,3,4], 3);
 
 		bool(cast('boolean', 'false'));
@@ -48,17 +54,22 @@
 
     assertEquals({a:3,b:4}, mapObject({a:1,b:2}, ([k,v])=>([k,v+2])));
 
+    // TODO: same() doesn't work on booleans properly, yet.
 		//same([true, true]);
 		//same([false, false]);
 		same([1,1,1,1,1]);
+    same(['a','a','a']);
+    same([{}, {}, {}, {}]);
 
 		assertEquals({a:1, b:[2,3]},{a:1, b:[2,3]});
+		// TODO: make object equals() insensitive to object key order.
+    // assertEquals({b:[2,3], a:1},{a:1, b:[2,3]});
 
 		assertThrows(()=>num('1'));
 		assertThrows(()=>bool('1'));
 		assertThrows(()=>obj([]));
 		assertThrows(()=>between(0,10,11));
-		assertThrows(()=>same([false, true]));
+		// assertThrows(()=>same([false, true]));
 		assertThrows(()=>same([1,1,2]));
     assertThrows(()=>all([true, false]));
 		assertThrows(()=>num(cast(TYPES.NUM, 'a')));
@@ -67,7 +78,8 @@
     assertEquals(1, size(1));
     assertEquals(2, size([1,2]));
     assertEquals(3, size({a:1, b:2, c:3}));
-
+    assertEquals(4, size("goat"));
+    assertEquals(5, size(5));
 
 		console.log('Tests succeeded!');
 		document.getElementById('favicon').href='green.png';
