@@ -1,11 +1,11 @@
-import * as Core from './core.js';
-import * as Combine from './combine.js';
+import Core from './core.js';
+import Combine from './combine.js';
 
-const {ARR} = Core.default.preds;
-const {assert} = Core.default.asserts;
-const {peek} = Core.default.arrays;
-const {now} = Core.default.utils;
-const {combine} = Combine.default;
+const {ARR} = Core.preds;
+const {assert} = Core.asserts;
+const {peek} = Core.arrays;
+const {now} = Core.utils;
+const {combine} = Combine;
 
 /** Docs
  This rtree is implemented with arrays.
@@ -41,28 +41,43 @@ const {combine} = Combine.default;
  row ={row, parent, values, residue}
 
  */
-export const rtree = (startValue={}) => {
-  let focus = 0;
-  const ROOT = {id:0, branch:0, parent: null, value: startValue, time:now(), children:[], residue:startValue};
-  const measurements= [ROOT];
-  const branches = [ROOT];
 
-  const setFocus = (index) => {read(index); focus=index}; //if the read doesn't throw, it's a good index.
-  const getFocus = ()=>focus;
+export const rtree = (startValue= {}, reducer = combine) => {
+  const ROOT = {
+    id: 0, time: now(), branch: 0, parent: null, children: [],
+    value: startValue, residue: startValue,
+  };
+
+  // The state of the RTree is in these two arrays and the focus.
+  // The arrays will increase in size over time; focus will vary between
+  // -branches and +measurements.
+  const measurements = [ROOT];
+  const branches = [ROOT];
+  let focus = 0;
+
   // Focus is a split coord system with measurements being positive, branches being negative, and branch getting zero. This means that you cannot set focus to the root node, even though it's there. (You can still get to it from measurements[0])
+  const setFocus = (index) => {read(index); focus = index}; //if the read doesn't throw, it's a good index.
+  const getFocus = () => focus;
   const read = (index=focus) => (index <= 0) ? branches[-index] : measurements[index];
   const add = (value) => {
+    // Create a bidirectional link between parent and measurement.
     const parent = read();
-    const measurement = {id:measurements.length, value, time:now(), children:[]};
-    parent.children.push(measurement);
+    const measurement = {id: measurements.length, value, time: now(), children: []};
+    parent.children.push(measurement); // TODO: check that no sibling measurements have the same value.
     measurement.parent = parent;
-    // Compute the new residue
-    measurement.residue = combine(parent.residue, value);
-    if (focus <= 0) {
-      //parent.residue = null; //clean up old references.
+
+    // Compute the new residue!
+    measurement.residue = reducer(parent.residue, value);
+
+    // If residue is mutable, then we should remove the parent residue.
+    // parent.residue = null;
+
+    if (focus <= 0) { // Updating an existing branch
+      // Set the branch number on the measurement.
       measurement.branch = -focus;
+      // Update the branch residue
       branches[-focus] = measurement;
-    } else {
+    } else { // Creating a new branch
       focus = -branches.length;
       measurement.branch = -focus;
       branches.push(measurement);
@@ -70,7 +85,7 @@ export const rtree = (startValue={}) => {
     measurements.push(measurement);
     return measurement;
   }
-  return {read, add, measurements, branches, setFocus, getFocus, ROOT};
+  return {setFocus, getFocus, read, add, measurements, branches, focus};
 }
 
 

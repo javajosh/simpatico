@@ -1,0 +1,51 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="description" content="Rehman Tree: Definition, application">
+	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
+	<meta name="author" content="Josh Rehman">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link id="favicon" rel="icon" type="image/png" href="white.png" />
+	<meta id="refresh" http-equiv="refresh" content="2">
+	<title>Simpatico.js</title>
+  <link rel="stylesheet" type="text/css" href="tufte.css">
+</head>
+<body>
+	<h1>Simpatico.js</h1>
+	<p>Josh Rehman <i>Mar 2021</i></p>
+	<p>deps: simpatico</p>
+	<button onclick="window.stop()">Stop 2s Refresh</button>
+
+	<h2>Simpatico: improved state management</h2>
+
+  <p>Simpatico is easiest to understand if you understand the ideas behind <a href="react redux">Redux</a>, namely the idea that you can (and <i>should</i>!) model your application state as a monolithic object which is rendered into the current browser state by the pure functions of your UI. A straightforward idea, but complexity arises, and not just because of performance issues. It turns out that writing that function is a challenge, although JSX helps by allowing you to more cleanly write components that are explicit about taking state and rendering it.</p>
+
+	<p>Simpatico is improved state management for browser applications. However, the ideas within it generalize across other domains. Simpatico models the running process as a tree of "cores" that are rooted at the physical level, with one long-lived global object, the global core. This core is made "sensitive" to the outside world via a singular S() method. It always starts at {} and on startup we proceed. By convention we allow row 0 in the rtree to represent the initial startup of the process, delegating most if not all further change to branches.</p>
+
+  <p>Combined with a good visualization, the S() method can help you explore your design space, to characterize in a precise way the state-space of your application. Although cores can be used to accumulate and process low-level measurement, they can also be used to accumulate higher level messages into overall application state. The former corresponds to UI componentry, whereas the latter corresponds to server componentry.</p>
+
+
+
+
+	<script> // Detect compilation errors for following scripts.
+		window.onerror = e => document.getElementById('favicon').href='red.png';
+	</script>
+
+	<script type="module">
+    import * as Simpatico from './simpatico.js';
+    import * as Core from './core.js';
+
+    const {S} = Simpatico;
+
+    const {assertEquals} = Core.default.asserts;
+    const {now} = Core.default.utils;
+    const {log, error} = Core.default.utils;
+
+    // assertEquals(S(), {});
+
+		console.log('Tests succeeded!');
+		document.getElementById('favicon').href='green.png';
+
+	</script>
+</body>
+</html>

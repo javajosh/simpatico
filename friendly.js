@@ -1,8 +1,8 @@
-import * as Core from './core.js';
+import Core from './core.js';
 
-const { assert, assertEquals, assertThrows, } = Core.default.asserts;
-const {ARR, OBJ, UNDEF, BETWEEN:between} = Core.default.preds;
-const {tryToStringify} = Core.default.utils;
+const { assert } = Core.asserts;
+const {ARR, OBJ, UNDEF, BETWEEN:between} = Core.preds;
+const {tryToStringify} = Core.utils;
 
 /**
  *  Validate against a pattern obj.
@@ -81,7 +81,7 @@ export const checkValue = (predArray, value) => {
         return undefined;
       }
     } else { // TODO add support for descriptive values?
-      pass = Core.default.preds[pred.toUpperCase()](value);
+      pass = Core.preds[pred.toUpperCase()](value);
       if (!pass) failedPreds.push(pred);
     }
     allPass = allPass && pass;

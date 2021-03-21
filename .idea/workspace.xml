@@ -26,30 +26,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="How long does a change take to show up in github?">
-      <change afterPath="$PROJECT_DIR$/.idea/ClojureProjectResolveSettings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/josh.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bpm.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new.min.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/notes/20-11-16 Thoughts on the Internet Service" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test.clj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/google-java-format.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/simpatico.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/simpatico.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/simpatico.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1.md" beforeDir="false" afterPath="$PROJECT_DIR$/1.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/combine.html" beforeDir="false" afterPath="$PROJECT_DIR$/combine.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/combine.js" beforeDir="false" afterPath="$PROJECT_DIR$/combine.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core.html" beforeDir="false" afterPath="$PROJECT_DIR$/core.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core.js" beforeDir="false" afterPath="$PROJECT_DIR$/core.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/foo.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/foobar.css" beforeDir="false" afterPath="$PROJECT_DIR$/foobar.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/foobar.html" beforeDir="false" afterPath="$PROJECT_DIR$/foobar.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/friendly.html" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/friendly.js" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rtree.html" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rtree.js" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/square.html" beforeDir="false" afterPath="$PROJECT_DIR$/square.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svg.js" beforeDir="false" afterPath="$PROJECT_DIR$/svg.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tufte-css.html" beforeDir="false" afterPath="$PROJECT_DIR$/tufte-css.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/simpatico.js" beforeDir="false" afterPath="$PROJECT_DIR$/simpatico.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/simpatico.svg" beforeDir="false" afterPath="$PROJECT_DIR$/simpatico.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/template.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.clj" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,6 +175,7 @@
       <workItem from="1612404564267" duration="261000" />
       <workItem from="1612404886094" duration="81000" />
       <workItem from="1612406092878" duration="4815000" />
+      <workItem from="1615929332432" duration="5968000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>

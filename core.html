@@ -8,11 +8,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link id="favicon" rel="icon" type="image/png" href="white.png" />
 	<meta id="refresh" http-equiv="refresh" content="2">
-	<title>Simpatico: Core</title>
+	<title>Core.js</title>
 
 </head>
 <body>
-	<h1>Core</h1>
+	<h1>Core.js</h1>
 	<p>Josh Rehman <i>2020-11-11</i></p>
 	<p>deps: core.js</p>
 	<button onclick="window.stop()">Stop 2s Refresh</button>
@@ -23,13 +23,13 @@
 		};
 	</script>
 	<script type="module">
-    import * as Core from './core.js';
+    import Core from './core.js';
 
     const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, ARR: arr, SAME: same, ALL: all, EXISTS: exists,
-      CONTAINS:contains, assertEquals, arrEquals, assertThrows, BETWEEN: between, } = Core.default.asserts;
-    const {cast} = Core.default.types;
-    const {mapObject} = Core.default.objects;
-    const {size} = Core.default.utils;
+      CONTAINS:contains, assertEquals, arrEquals, assertThrows, BETWEEN: between, } = Core.asserts;
+    const {cast} = Core.types;
+    const {mapObject} = Core.objects;
+    const {size} = Core.utils;
 
 		str('foobar');
 		num(1);
