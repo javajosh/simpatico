@@ -1,27 +1,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description" content="Rehman Tree: Definition, application">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- html~lang~en, meta~charset~utf-8 and meta~name~viewport~etc, above, are boilerplate. -->
+
+  <meta name="requires" content="white.png, green.png, red.png, tufte.css, rtree.js"> <!-- Add references to all sub-resources this page needs, for ease-of-maintenance. Otherwise, you'd have to look read every line. -->
+  <meta name="description" content="Building Simpatico in the browser.">
   <meta name="keywords" content="programming, state, actor model, message oriented programming, finite state automata">
   <meta name="author" content="Josh Rehman">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- link#favicon and meta#refresh are used for a poor man's looping test runner.  -->
-  <!-- See text for more details -->
-  <!-- We add references here to all sub-resources for ease-of-maintenance -->
-  <!-- Your test program succeeds when it does not emit an error. (See: 'Unix philosophy') -->
-  <!-- Errors are signaled by exceptions, usually thrown by assertions -->
-  <link id="favicon" rel="icon" type="image/png" class="subresource" href="white.png"/>
-  <!--  <link id="favicon" rel="icon" type="image/png" class="subresource" href="green.png" />-->
-  <!--  <link id="favicon" rel="icon" type="image/png" class="subresource" href="red.png" />-->
-  <meta id="refresh" http-equiv="refresh" content="2">
   <title>Simpatico.js</title>
+
+   <!--
+     [link#favicon] and [meta#refresh] make a simple looping test runner using old-school browser features.
+
+     Your test program succeeds when it does not emit an error. (See: 'Unix philosophy').
+     Errors are signaled by exceptions, usually thrown by assertions.
+     The program is run on load, and will reload every 2 seconds.
+     Cancel the reload by clicking [button#stop-refresh].
+
+     See text for more details.
+   -->
+  <link id="favicon" rel="icon" type="image/png" class="subresource" href="white.png">
+  <meta id="refresh" http-equiv="refresh" content="2">
+
   <!--  <link rel="stylesheet" type="text/css" class="subresource" href="tufte.css" >-->
 </head>
 <body>
+<!-- Don't bother to indent the body, since this will be the *vast* majority of lines in the file, and it wastes space. -->
 <h1>Simpatico.js</h1>
 <p>Josh Rehman <i>Mar 2021</i></p>
 <p>deps: simpatico</p>
-<button onclick="window.stop()">Stop 2s Refresh</button>
+<button id="stop-refresh" onclick="window.stop()">Stop 2s Refresh</button>
 
 <p>This is the <i>test harness</i> for Simpatico. Like all of Simpatico, this artifact is first and foremost a practical
   tool. In fact, it's a tool that will grow with Simpatico as I complete it.</p>
@@ -56,7 +65,7 @@
 
 <!--  The use of modules allows me to isolate scripts on the page from each other-->
 <!--  and code in a more natural way. It does make REPL interaction harder, however.-->
-<script id="m0" type="module">
+<script type="module">
   // s stands for "span", m for "module". increment these numbers over time
   // The tag is unnecessary but useful for giving context to the code
   const s0 = document.querySelector("span#s0");
@@ -81,7 +90,7 @@
   });
 </script>
 
-<p>Let there be a green square in motion on a normalized coordinate system:</p>
+<p>Let there be a green circle in motion on a normalized coordinate system:</p>
 
 <svg id="s1" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
   <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r=1 unit circle -->
@@ -89,20 +98,16 @@
   <g transform="scale(1,-1)">
     <!-- This small SVG authoring convention of my own invention includes omitting quotes for dynamic-ish attr values   -->
     <!-- These initial lines of SVG are specifically diagnostic  -->
-    <line class="x-axis-blue" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
-    <line class="y-axis-red" x1=0 y1=-1 x2=0 y2=1 stroke=red stroke-width=.001 />
-
-    <!--  -->
+    <line class="x-axis-blue" stroke="blue" stroke-width=.001 x1=-1 y1=0  x2=1 y2=0 />
+    <line class="y-axis-red"  stroke="red"  stroke-width=.001 x1=0  y1=-1 x2=0 y2=1 />
 
     <!-- These help orient us by translating in one known direction, which is the varying attribute. -->
-
-    <circle class="red-y" cx=.0  cy=.5 r=.05 fill=red />
-    <circle class="blue-x"cx=.5  cy=.0 r=.05 fill=blue />
+    <circle class="red-y"  fill="red"  cx=.0  cy=.5 r=.05 />
+    <circle class="blue-x" fill="blue" cx=.5  cy=.0 r=.05 />
 
     <!-- This is the element we'll be moving, the expression of degrees of freedom -->
-    <g id="s2-transform">
-      <circle class="green-circle" fill="none" stroke="green" stroke-width=".01" id="s2"
-              cx=0 cy=0 r=.05 />
+    <g id="s2-transform" class="transform" >
+      <circle id="s2" class="green-circle" fill="none" stroke="green" stroke-width=".01"  cx=0 cy=0 r=.05 />
     </g>
 
     <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector for how to do it, but its very bulky. -->
@@ -112,71 +117,68 @@
 <p class="sidenote">The value of normalized units is considerable. Consider that as we enter digits of a number after the decimal, we are always becoming more precise, and not invalidating the previous numbers. Our number system encourages us to to stop just short of any goal, and then move toward it cautiously. When you add numbers in front of the decimal, each number changes the meanings of the ones before. This is in part why numbers are right aligned, because your digits "push" the other digits to the left. The present is constantly modifying the past, and by a factor of 10! Horrible! I don't think it's odd to wonder what the bounds are on your life and work - what does 1.0 mean for you?</p>
 
 <script type="module">
-  // Now that we're oriented, lets move the green square around.
+  // Now that we're oriented, lets move the green circle around.
   // We'll do it in two ways
-  const s1 = document.querySelector("svg#s1")
-  const s2 = document.querySelector("circle#s2");
-  const s3 = document.querySelector("g#s2-transform");
+  const svg = document.querySelector("svg#s1")
+  const g = document.querySelector("g#s2-transform");
 
   // Write all (js obj key) values into (svg elt attr) values
-  // Intended for use with SVG, it supports (x,y) -> (cx, cy) for circles
   const combine = (elt, obj) => {
-    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y})
+    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y}); // Support (x,y) -> (cx, cy) for circles
     for (const key in obj){
       elt.setAttribute(key,  obj[key] + '');
     }
   }
 
-  // Animate square motion using js state in 'pos'.
+  // Animate green circle motion using js state in 'pos'.
   let pos = {x: 0, y: 0};
   const translate = ({x, y}) => `translate(${x},${y})`;
-  const write = ({x, y}) => combine(s3, {transform: translate({x, y})});
-
-  const randomWalk = t => ({
-    x: (pos.x + (Math.random() * 2 - 1) / 100) % 1,
-    y: (pos.y + (Math.random() * 2 - 1) / 100) % 1,
-  });
+  const write = ({x, y}, g=g) => combine(g, {transform: translate({x, y})});
 
   const circularMotion = (t, a, b, c, d) => ({
     x: a * Math.cos(b * t + c) + d,
     y: a * Math.sin(b * t + c) + d,
   });
 
-  // const posAtT = randomWalk;
-  const posAtT = circularMotion;
-
-  // Same as before, a simple animation pump based on setInterval
-  // Set timeout negative to not have a timeout
+  // Set timeout negative to cancel
   let running = true, started = Date.now(), ms = 1, timeOut = 4000 * ms;
-  s1.addEventListener('click', () => {
+
+  svg.addEventListener('click', () => {
     running = !running
   });
 
   window.addEventListener('tick', e => {
     const t = Date.now();
     if (running && (t < (started + timeOut) || timeOut < 0)) {
-      pos = posAtT(t, 1, .001, 0, 0);
-      write(pos);
+      pos = circularMotion(t, 1, .001, 0, 0);
+      write(pos, g);
     }
   });
-
-  // Q: How would you allow the square to slow down?
-  // Q: How could you make it a random walk? (Generators?)
-  // Q: (For the teachers) is it valuable to mention requestAnimationFrame() as a better alternative to setInterval, even though it has nothing to do with the topic at hand?
-  // Q: How many iterations does it take, on average, for the square to leave the viewport?
-  // Q: How much faster does this simulation run "headless", without animation?
-  // Q: Which function is being called the most? How often?
 
 </script>
 
 <p class="sidenote">There are two ways to move an SVG elt, with attributes and a g transform. By convention we reserve the first kind of motion for "drawing a symbol" and the second kind of motion for "moving a symbol". Consider the contrast:
-  <code><pre>  const vec = {x: -.25, y: -.25};
+  <pre><code>  const vec = {x: -.25, y: -.25};
   combine(s2, vec);
   combine(s3, {transform: `translate(${vec.x},${vec.y})`});
-  </pre></code>
+</code></pre>
+  <i>Q: do we bother with syntax highlighting for code samples like this? What complexity is acceptable to make that happen?</i>
 </p>
 
-<script type="module">
+<p class="sidenote">
+  Questions:
+  <ol>
+    <li>How would you allow the square to slow down?
+    <li>How much faster does this simulation run "headless", without animation?
+    <li>Which function is being called the most? How often?
+  </ol>
+</p>
+
+<p class="sidenote">
+
+</p>
+
+<script type="module" id="module-tick" >
   // Window tick. Usage: window.addEventListener('tick', e => console.log(e.detail.t));
   // For now, we use this mechanism but it is still not structured enough.
   const tick = () => {
@@ -187,18 +189,16 @@
   tick();
 </script>
 
-<p>These are powerful tools for drawing data on the screen.</p>
+<p>SVG and JS are <i>powerful</i> tools for drawing data on the screen.</p>
 
 <svg id="s4" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
   <g transform="scale(1,-1)">
     <line class="x-axis-blue" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
-    <line class="y-axis-red" x1=0 y1=-1 x2=0 y2=1 stroke=red stroke-width=.001 />
+    <line class="y-axis-red"  x1=0 y1=-1 x2=0 y2=1 stroke=red  stroke-width=.001 />
 
     <g id="s5-transform">
-      <circle class="green-circle" fill="none" stroke="green" stroke-width=".01" id="s5"
-              cx=0 cy=0 r=.05 />
+      <circle id="s5" class="green-circle" fill="none" stroke="green" stroke-width=".01" cx=0 cy=0 r=.05 />
     </g>
-
   </g>
 </svg>
 
@@ -207,41 +207,66 @@
   const g = document.querySelector("g#s5-transform");
 
   const combine = (elt, obj) => {
-    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y})
+    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y}); // use x and y for rects AND circles.
     for (const key in obj){
       elt.setAttribute(key,  obj[key] + '');
     }
   }
 
-  const draw = ({x, y}) => combine(g, {transform: `translate(${x},${y})`});
+  const draw = ({x, y}, g = g) => combine(g, {transform: `translate(${x},${y})`});
 
-  const randomWalk = t => ({
-    x: (pos.x + (Math.random() * 2 - 1) / 100) % 1,
-    y: (pos.y + (Math.random() * 2 - 1) / 100) % 1,
+  const randomWalk = (pos, dx=Math.random(), dy=Math.random()) => ({
+    x: (pos.x + (dx * 2 - 1) / 100) % 1,
+    y: (pos.y + (dy * 2 - 1) / 100) % 1,
   });
 
-  const circularMotion = (t, a, b, c, d) => ({
-    x: a * Math.cos(b * t + c) + d,
-    y: a * Math.sin(b * t + c) + d,
+  // Static config: set timeout negative to disable.
+  const started = Date.now(), ms = 1, timeOut = -4000 * ms;
+
+  // Dynamic state: position, and running state.
+  let pos = {x: 0, y: 0};
+  let running = true;
+
+  // Steady-state entry-point #1 - click the svg elt -> start/stop animation
+  svg.addEventListener('click', () => {
+    running = !running
   });
 
-  // const posAtT = randomWalk;
-  const posAtT = circularMotion;
-
-  // Application state
-  let pos = {x: 0, y: 0}, running = true, started = Date.now(), ms = 1, timeOut = 4000 * ms;
-
-  svg.addEventListener('click', () => running = !running);
-
+  // Steady-state entry-point #2 - tick -> update particle position
   window.addEventListener('tick', e => {
-    const t = Date.now();
-    if (running && (t < (started + timeOut) || timeOut < 0)) {
-      pos = posAtT(t, 1, .001, 0, 0);
-      draw(pos,);
+    console.log(e.detail.t);
+    if (running && (e.detail.t < (started + timeOut) || timeOut < 0)) {
+      pos = randomWalk(pos);
+      draw(pos, g);
     }
   });
 
 </script>
+
+<p class="questions">
+  <ol>
+    <li>How many iterations does it take, on average, for the circle to leave the viewport?
+  </ol>
+</p>
+
+<h3>Errata</h3>
+<p>Unfortunately,</p>
+<p>The idea so far is to highlight what the browser can do without library support. This counts as "minimalism" these days! However, these "naive" solutions tend to fall down in real life. In particular, we have no abstraction for a "particle" and so no real way to talk about a "system of particles", each of which may interact. One thing it may be worth talking about is *why* this is important, and how this complexity rears its head in real applications. For example, we still see the "1+N" structure in these simple examples - but which parts of these examples tend to grow in complexity?</p>
+
+<h2>Multiple Particles</h2>
+
+<p>The key here is to leverage software's super-power, which is copying complexity without error. First step is to make a particle in an Rtree, then make it sensitive to ticks. Then introduce code to render the particle (or the entire RTree - not sure yet.</p>
+
+<script type="module">
+  import * as RTree from 'rtree.js';
+
+  const {rtree} = RTree;
+
+
+</script>
+
+    <p class="sidenote">This marks the first use of an <code>import</code> statement in the body of this document. It adds a subresource dependency.</p>
+
 
 <!--	<h2>Simpatico</h2>-->
 
