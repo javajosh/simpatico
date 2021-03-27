@@ -85,8 +85,8 @@
 
 <svg id="s1" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
   <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r=1 unit circle -->
-  <!-- scale(-1,1) flips the y-axis so that positive y values move up, as God intended. -->
-  <g transform="scale(-1,1)">
+  <!-- scale(1,-1) flips the y-axis so that positive y values move up, as God intended. -->
+  <g transform="scale(1,-1)">
     <!-- This small SVG authoring convention of my own invention includes omitting quotes for dynamic-ish attr values   -->
     <!-- These initial lines of SVG are specifically diagnostic  -->
     <line class="x-axis-blue" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
@@ -95,12 +95,14 @@
     <!--  -->
 
     <!-- These help orient us by translating in one known direction, which is the varying attribute. -->
-    <rect class="red-y" x=-.05 y=-.5 width=0.1 height=0.1 fill=red />
-    <rect class="blue-x" x=-.5 y=-.05 width=0.1 height=0.1 fill=blue />
+
+    <circle class="red-y" cx=.0  cy=.5 r=.05 fill=red />
+    <circle class="blue-x"cx=.5  cy=.0 r=.05 fill=blue />
 
     <!-- This is the element we'll be moving, the expression of degrees of freedom -->
     <g id="s2-transform">
-      <rect class="green-square" x=-.05 y=-.05 width=0.1 height=0.1 fill=green id="s2" />
+      <circle class="green-circle" fill="none" stroke="green" stroke-width=".01" id="s2"
+              cx=0 cy=0 r=.05 />
     </g>
 
     <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector for how to do it, but its very bulky. -->
@@ -113,28 +115,21 @@
   // Now that we're oriented, lets move the green square around.
   // We'll do it in two ways
   const s1 = document.querySelector("svg#s1")
-  const s2 = document.querySelector("rect#s2");
+  const s2 = document.querySelector("circle#s2");
   const s3 = document.querySelector("g#s2-transform");
 
   // Write all (js obj key) values into (svg elt attr) values
+  // Intended for use with SVG, it supports (x,y) -> (cx, cy) for circles
   const combine = (elt, obj) => {
-    for (const key in obj)
-      elt.setAttribute(key, obj[key] + '');
+    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y})
+    for (const key in obj){
+      elt.setAttribute(key,  obj[key] + '');
+    }
   }
 
-  // Two ways to move an SVG elt, with attributes and a g transform
-  // By convention we reserve the first kind of motion for "drawing a symbol"
-  // and the second kind of motion for "moving a symbol"
-  let pos = {x: -.25, y: -.25};
-  combine(s2, pos);
-  combine(s3, {transform: `translate(${pos.x},${pos.y})`});
-
-
   // Animate square motion using js state in 'pos'.
-  pos = {x: .5, y: .5};
-  const {x0, y0} = {x: .5, y: .5};
-  combine(s2, pos);
-  const translate = ({x, y}) => `translate(${-x},${-y})`;
+  let pos = {x: 0, y: 0};
+  const translate = ({x, y}) => `translate(${x},${y})`;
   const write = ({x, y}) => combine(s3, {transform: translate({x, y})});
 
   const randomWalk = t => ({
@@ -147,11 +142,12 @@
     y: a * Math.sin(b * t + c) + d,
   });
 
+  // const posAtT = randomWalk;
   const posAtT = circularMotion;
 
   // Same as before, a simple animation pump based on setInterval
   // Set timeout negative to not have a timeout
-  let running = true, started = Date.now(), ms = 1, tp = 17 * ms, timeOut = -4000 * ms;
+  let running = true, started = Date.now(), ms = 1, timeOut = 4000 * ms;
   s1.addEventListener('click', () => {
     running = !running
   });
@@ -159,12 +155,11 @@
   window.addEventListener('tick', e => {
     const t = Date.now();
     if (running && (t < (started + timeOut) || timeOut < 0)) {
-      pos = posAtT(t, 1, .001, 0, .55);
+      pos = posAtT(t, 1, .001, 0, 0);
       write(pos);
     }
   });
 
-  // Q: Why do the translate values need to be negative?
   // Q: How would you allow the square to slow down?
   // Q: How could you make it a random walk? (Generators?)
   // Q: (For the teachers) is it valuable to mention requestAnimationFrame() as a better alternative to setInterval, even though it has nothing to do with the topic at hand?
@@ -172,23 +167,81 @@
   // Q: How much faster does this simulation run "headless", without animation?
   // Q: Which function is being called the most? How often?
 
-
 </script>
 
-<script type="module">
+<p class="sidenote">There are two ways to move an SVG elt, with attributes and a g transform. By convention we reserve the first kind of motion for "drawing a symbol" and the second kind of motion for "moving a symbol". Consider the contrast:
+  <code><pre>  const vec = {x: -.25, y: -.25};
+  combine(s2, vec);
+  combine(s3, {transform: `translate(${vec.x},${vec.y})`});
+  </pre></code>
+</p>
 
+<script type="module">
+  // Window tick. Usage: window.addEventListener('tick', e => console.log(e.detail.t));
+  // For now, we use this mechanism but it is still not structured enough.
   const tick = () => {
     const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
     window.dispatchEvent(event);
     window.requestAnimationFrame(tick);
   };
   tick();
-  window.addEventListener('tick', e => console.log(e.detail.t));
-
-
-
 </script>
 
+<p>These are powerful tools for drawing data on the screen.</p>
+
+<svg id="s4" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
+  <g transform="scale(1,-1)">
+    <line class="x-axis-blue" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
+    <line class="y-axis-red" x1=0 y1=-1 x2=0 y2=1 stroke=red stroke-width=.001 />
+
+    <g id="s5-transform">
+      <circle class="green-circle" fill="none" stroke="green" stroke-width=".01" id="s5"
+              cx=0 cy=0 r=.05 />
+    </g>
+
+  </g>
+</svg>
+
+<script type="module">
+  const svg = document.querySelector("svg#s4")
+  const g = document.querySelector("g#s5-transform");
+
+  const combine = (elt, obj) => {
+    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y})
+    for (const key in obj){
+      elt.setAttribute(key,  obj[key] + '');
+    }
+  }
+
+  const draw = ({x, y}) => combine(g, {transform: `translate(${x},${y})`});
+
+  const randomWalk = t => ({
+    x: (pos.x + (Math.random() * 2 - 1) / 100) % 1,
+    y: (pos.y + (Math.random() * 2 - 1) / 100) % 1,
+  });
+
+  const circularMotion = (t, a, b, c, d) => ({
+    x: a * Math.cos(b * t + c) + d,
+    y: a * Math.sin(b * t + c) + d,
+  });
+
+  // const posAtT = randomWalk;
+  const posAtT = circularMotion;
+
+  // Application state
+  let pos = {x: 0, y: 0}, running = true, started = Date.now(), ms = 1, timeOut = 4000 * ms;
+
+  svg.addEventListener('click', () => running = !running);
+
+  window.addEventListener('tick', e => {
+    const t = Date.now();
+    if (running && (t < (started + timeOut) || timeOut < 0)) {
+      pos = posAtT(t, 1, .001, 0, 0);
+      draw(pos,);
+    }
+  });
+
+</script>
 
 <!--	<h2>Simpatico</h2>-->
 
