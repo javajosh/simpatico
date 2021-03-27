@@ -1,80 +1,98 @@
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="description" content="Rehman Tree: Definition, application">
-	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
-	<meta name="author" content="Josh Rehman">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link id="favicon" rel="icon" type="image/png" href="white.png" />
-	<meta id="refresh" http-equiv="refresh" content="2">
-	<title>RTree.js</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="Rehman Tree: Definition, application">
+  <meta name="keywords" content="HTML,CSS,XML,JavaScript">
+  <meta name="author" content="Josh Rehman">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link id="favicon" rel="icon" type="image/png" href="white.png"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <title>RTree.js</title>
   <link rel="stylesheet" type="text/css" href="tufte.css">
 </head>
 <body>
-	<h1>RTree.js</h1>
-	<p>Josh Rehman <i>July 2020</i></p>
-	<p>deps: utils, combine</p>
-	<button onclick="window.stop()">Stop 2s Refresh</button>
+<h1>RTree.js</h1>
+<p>Josh Rehman <i>July 2020</i></p>
+<p>deps: utils, combine</p>
+<button onclick="window.stop()">Stop 2s Refresh</button>
 
-	<h2>What is it</h2>
+<h2>The Problem of State Management</h2>
 
-	<p>Well, it's a kind of tree that is built up in a particular way. It's a constrained kind of n-arry tree, which is optimized for long runs. We imagine the tree composed of rows, and each row has a parent, rather than each node. Moreover, we introduce a special coordinate system that supports rows and nodes as parents, and provide a (stateful) pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent. Otherwise, you're just adding to the row.</p>
+<p>The problem of process state management is currently tackled by software components like Redux.</p>
 
+<p>Note that server side software doesn't have state; or rather, it's state is a very tightly coupled to the static
+  source code. That type of code is dominated by the definition of singletons (and the reuse of them), to support, ultimately, Controllers that do the work. In general, a server must be responsible for its own security.
+</p>
 
-	<script> // Detect compilation errors for following scripts.
-		window.onerror = e => document.getElementById('favicon').href='red.png';
-	</script>
+  <p>These singletons recapitulate
+  many of the same concerns that arise in build systems; in fact its the same concern but handled at compile time by one
+  tool (Maven) and at runtime by another tool (Spring). Or on the client by one tool at compile-time (npm, ng) and
+  another at runtime (angular module annotations). </p>
 
-	<script type="module">
-    import * as Core from './core.js';
-    import * as Combine from './combine.js';
-    import * as RTree from './rtree.js';
+<p>The natural data-structure then would be to model state as a special dynamic part of the head of a linked list of
+  input. It doesn't really have to be dynamic. </p>
 
-    const {rtree} = RTree;
-    const {combine} = Combine;
-    const {assertEquals} = Core.default.asserts;
-    const {now} = Core.default.utils;
-
-    let r = rtree(0);
-            assertEquals(r.branches.length, 1);
-            assertEquals(r.branches[0].residue, 0);
-            assertEquals(r.getFocus(), 0);
-    r.add(1);
-            assertEquals(r.branches.length, 1);
-            assertEquals(r.branches[0].residue, 1);
-            assertEquals(r.getFocus(), 0);
-    r.add(3);
-            assertEquals(r.branches.length, 1);
-            assertEquals(r.branches[0].residue, 4);
-            assertEquals(r.getFocus(), 0);
-    r.setFocus(1);
-            assertEquals(r.branches.length, 1);
-            assertEquals(r.branches[0].residue, 4);
-            assertEquals(r.getFocus(), 1);
-    r.add(5);
-            assertEquals(r.branches.length, 2);
-            assertEquals(r.branches[0].residue, 4);
-            assertEquals(r.branches[1].residue, 6);
-            assertEquals(r.getFocus(), -1);
-    r.add(5)
-            assertEquals(r.branches.length, 2);
-            assertEquals(r.branches[0].residue, 4);
-            assertEquals(r.branches[1].residue, 11);
-            assertEquals(r.getFocus(), -1);
-    r.setFocus(2);
-    r.add(3);
-            assertEquals(r.branches.length, 3);
-            assertEquals(r.branches[0].residue, 4);
-            assertEquals(r.branches[1].residue, 11);
-            assertEquals(r.branches[2].residue, 7);
-            assertEquals(r.getFocus(), -2);
+<p>Well, it's a kind of tree that is built up in a particular way. It's a constrained kind of n-arry tree, which is
+  optimized for long runs. We imagine the tree composed of rows, and each row has a parent, rather than each node.
+  Moreover, we introduce a special coordinate system that supports rows and nodes as parents, and provide a (stateful)
+  pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent.
+  Otherwise, you're just adding to the row.</p>
 
 
-    const r2 = rtree({});
+<script> // Detect compilation errors for following scripts.
+window.onerror = e => document.getElementById('favicon').href = 'red.png';
+</script>
 
-		console.log('Tests succeeded!');
-		document.getElementById('favicon').href='green.png';
+<script type="module">
+  import * as Core from './core.js';
+  import * as Combine from './combine.js';
+  import * as RTree from './rtree.js';
 
-	</script>
+  const {rtree} = RTree;
+  const {combine} = Combine;
+  const {assertEquals} = Core.default.asserts;
+  const {now} = Core.default.utils;
+
+  let r = rtree(0);
+  assertEquals(r.branches.length, 1);
+  assertEquals(r.branches[0].residue, 0);
+  assertEquals(r.getFocus(), 0);
+  r.add(1);
+  assertEquals(r.branches.length, 1);
+  assertEquals(r.branches[0].residue, 1);
+  assertEquals(r.getFocus(), 0);
+  r.add(3);
+  assertEquals(r.branches.length, 1);
+  assertEquals(r.branches[0].residue, 4);
+  assertEquals(r.getFocus(), 0);
+  r.setFocus(1);
+  assertEquals(r.branches.length, 1);
+  assertEquals(r.branches[0].residue, 4);
+  assertEquals(r.getFocus(), 1);
+  r.add(5);
+  assertEquals(r.branches.length, 2);
+  assertEquals(r.branches[0].residue, 4);
+  assertEquals(r.branches[1].residue, 6);
+  assertEquals(r.getFocus(), -1);
+  r.add(5)
+  assertEquals(r.branches.length, 2);
+  assertEquals(r.branches[0].residue, 4);
+  assertEquals(r.branches[1].residue, 11);
+  assertEquals(r.getFocus(), -1);
+  r.setFocus(2);
+  r.add(3);
+  assertEquals(r.branches.length, 3);
+  assertEquals(r.branches[0].residue, 4);
+  assertEquals(r.branches[1].residue, 11);
+  assertEquals(r.branches[2].residue, 7);
+  assertEquals(r.getFocus(), -2);
+
+
+  const r2 = rtree({});
+
+  console.log('Tests succeeded!');
+  document.getElementById('favicon').href = 'green.png';
+
+</script>
 </body>
 </html>

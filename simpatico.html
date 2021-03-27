@@ -1,51 +1,284 @@
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="description" content="Rehman Tree: Definition, application">
-	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
-	<meta name="author" content="Josh Rehman">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link id="favicon" rel="icon" type="image/png" href="white.png" />
-	<meta id="refresh" http-equiv="refresh" content="2">
-	<title>Simpatico.js</title>
-  <link rel="stylesheet" type="text/css" href="tufte.css">
+  <meta charset="UTF-8">
+  <meta name="description" content="Rehman Tree: Definition, application">
+  <meta name="keywords" content="programming, state, actor model, message oriented programming, finite state automata">
+  <meta name="author" content="Josh Rehman">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- link#favicon and meta#refresh are used for a poor man's looping test runner.  -->
+  <!-- See text for more details -->
+  <!-- We add references here to all sub-resources for ease-of-maintenance -->
+  <!-- Your test program succeeds when it does not emit an error. (See: 'Unix philosophy') -->
+  <!-- Errors are signaled by exceptions, usually thrown by assertions -->
+  <link id="favicon" rel="icon" type="image/png" class="subresource" href="white.png"/>
+  <!--  <link id="favicon" rel="icon" type="image/png" class="subresource" href="green.png" />-->
+  <!--  <link id="favicon" rel="icon" type="image/png" class="subresource" href="red.png" />-->
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <title>Simpatico.js</title>
+  <!--  <link rel="stylesheet" type="text/css" class="subresource" href="tufte.css" >-->
 </head>
 <body>
-	<h1>Simpatico.js</h1>
-	<p>Josh Rehman <i>Mar 2021</i></p>
-	<p>deps: simpatico</p>
-	<button onclick="window.stop()">Stop 2s Refresh</button>
+<h1>Simpatico.js</h1>
+<p>Josh Rehman <i>Mar 2021</i></p>
+<p>deps: simpatico</p>
+<button onclick="window.stop()">Stop 2s Refresh</button>
 
-	<h2>Simpatico: improved state management</h2>
+<p>This is the <i>test harness</i> for Simpatico. Like all of Simpatico, this artifact is first and foremost a practical
+  tool. In fact, it's a tool that will grow with Simpatico as I complete it.</p>
 
-  <p>Simpatico is easiest to understand if you understand the ideas behind <a href="react redux">Redux</a>, namely the idea that you can (and <i>should</i>!) model your application state as a monolithic object which is rendered into the current browser state by the pure functions of your UI. A straightforward idea, but complexity arises, and not just because of performance issues. It turns out that writing that function is a challenge, although JSX helps by allowing you to more cleanly write components that are explicit about taking state and rendering it.</p>
+<p class="sidenote">As a by now well seasoned web developer, I've learned a thing or two about how web pages are built in a
+  "professional" context, and I have to admit: it's not pretty. In particular, the browser itself is a mess. And the
+  reason? The browser is at the top of the food chain, in terms of software, but it's being fed into from an enormous
+  variety of places, often very late in the lifetime of the tab. "Living in" the browser long-term is a relatively
+  new movement in web app development, and one which I think has legs! I will say that I really like web programs, like
+  this one, that are HTML files written in a text editor, and which are small and very simply constructed. It's a good
+  start for any ambitious program.</p>
 
-	<p>Simpatico is improved state management for browser applications. However, the ideas within it generalize across other domains. Simpatico models the running process as a tree of "cores" that are rooted at the physical level, with one long-lived global object, the global core. This core is made "sensitive" to the outside world via a singular S() method. It always starts at {} and on startup we proceed. By convention we allow row 0 in the rtree to represent the initial startup of the process, delegating most if not all further change to branches.</p>
+<p>This tab runs a test. This test will change the favicon different colors depending on the outcome of this test. We
+  say precisely that the test consists of setting the initial favicon, and then setting it to green if "successful", and
+  red if there's a failure. The code that runs before that final statement is "test code".
 
-  <p>Combined with a good visualization, the S() method can help you explore your design space, to characterize in a precise way the state-space of your application. Although cores can be used to accumulate and process low-level measurement, they can also be used to accumulate higher level messages into overall application state. The former corresponds to UI componentry, whereas the latter corresponds to server componentry.</p>
+<p class="sidenote">
+  HTML is a kind of declarative data-structure that is <i>okay</i> to tightly couple to any programming statements you
+  may write.
+  (This is why I like to quickly declare handy js references to the DOM at the very beginning of the code section.)
+</p>
+
+<p>Because our browser space is so clean and nice, we can breathe.
+  The browser is coming into contact with each line as you write it.
+</p>
+
+<p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding
+  things is going to involve more than concatenation</p>
+
+<p>It allows us to do what people so rarely do these days, which is have fun with <span
+  id="s0">the browser medium</span>.</p>
+
+<!--  The use of modules allows me to isolate scripts on the page from each other-->
+<!--  and code in a more natural way. It does make REPL interaction harder, however.-->
+<script id="m0" type="module">
+  // s stands for "span", m for "module". increment these numbers over time
+  // The tag is unnecessary but useful for giving context to the code
+  const s0 = document.querySelector("span#s0");
+  const ms = 1, Hz = 1, pi = Math.PI; // Show units in code!
+  const rotPeriod = 4000 * ms; // desired rotational period
+  const tp = 17 * ms; // desired tick period
+  const timeOut = 2 * rotPeriod;
+
+  const theta_at_t = (t = Date.now() - started) => (2 * pi * t) / (rotPeriod);
+  const write = () => s0.setAttribute('style',
+    `position: absolute; transform: rotate(${theta_at_t()}rad`
+  );
+
+  let running = true, started = Date.now();
+  s0.addEventListener('click', e => {
+    running = !running
+  });
+  setInterval(() => {
+    if (running && (Date.now() < (started + timeOut)))
+      write();
+  }, tp);
+</script>
+
+<p>Let there be a green square in motion on a normalized coordinate system:</p>
+
+<svg id="s1" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
+  <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r=1 unit circle -->
+  <!-- scale(-1,1) flips the y-axis so that positive y values move up, as God intended. -->
+  <g transform="scale(-1,1)">
+    <line class="x-axis" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
+    <line class="y-axis" x1=0 y1=-1 x2=0 y2=1 stroke=blue stroke-width=.001 />
+
+    <!-- These help orient us by translating in one known direction. -->
+    <rect class="blue-y" x=-.05 y=-.5 width=0.1 height=0.1 fill=blue />
+    <rect class="red-x" x=-.5 y=-.05 width=0.1 height=0.1 fill=red />
+
+    <!-- This is the element we'll be moving, the expression of degrees of freedom -->
+    <g id="s2-transform">
+      <rect class="green-square" x=-.05 y=-.05 width=0.1 height=0.1 fill=green id="s2" />
+    </g>
+
+    <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector -->
+  </g>
+</svg>
+
+<p class="sidenote">The value of normalized units is considerable. Consider that as we enter digits of a number after the decimal, we are always becoming more precise, and not invalidating the previous numbers. Our number system encourages us to to stop just short of any goal, and then move toward it cautiously. When you add numbers in front of the decimal, each number changes the meanings of the ones before. This is in part why numbers are right aligned, because your digits "push" the other digits to the left. The present is constantly modifying the past, and by a factor of 10! Horrible! I don't think it's odd to wonder what the bounds are on your life and work - what does 1.0 mean for you?</p>
+
+<script type="module">
+  // Now that we're oriented, lets move the green square around.
+  // We'll do it in two ways
+  const s1 = document.querySelector("svg#s1")
+  const s2 = document.querySelector("rect#s2");
+  const s3 = document.querySelector("g#s2-transform");
+
+  // Write all (js obj key) values into (svg elt attr) values
+  const combine = (elt, obj) => {
+    for (const key in obj)
+      elt.setAttribute(key, obj[key] + '');
+  }
+
+  // Two ways to move an SVG elt, with attributes and a g transform
+  // By convention we reserve the first kind of motion for "drawing a symbol"
+  // and the second kind of motion for "moving a symbol"
+  let pos = {x: -.25, y: -.25};
+  combine(s2, pos);
+  combine(s3, {transform: `translate(${pos.x},${pos.y})`});
+
+
+  // Animate square motion using js state in 'pos'.
+  pos = {x: .5, y: .5};
+  const {x0, y0} = {x: .5, y: .5};
+  combine(s2, pos);
+  const translate = ({x, y}) => `translate(${-x},${-y})`;
+  const write = ({x, y}) => combine(s3, {transform: translate({x, y})});
+
+  const randomWalk = t => ({
+    x: (pos.x + (Math.random() * 2 - 1) / 100) % 1,
+    y: (pos.y + (Math.random() * 2 - 1) / 100) % 1,
+  });
+
+  const circularMotion = (t, a, b, c, d) => ({
+    x: a * Math.cos(b * t + c) + d,
+    y: a * Math.sin(b * t + c) + d,
+  });
+
+  const posAtT = circularMotion;
+
+  // Same as before, a simple animation pump based on setInterval
+  // Set timeout negative to not have a timeout
+  let running = true, started = Date.now(), ms = 1, tp = 17 * ms, timeOut = -4000 * ms;
+  s1.addEventListener('click', () => {
+    running = !running
+  });
+  // setInterval(() => {
+  //   const t = Date.now();
+  //   if (running && (t < (started + timeOut) || timeOut < 0)) {
+  //     pos = posAtT(t, 1, .001, 0, .55);
+  //     write(pos);
+  //   }
+  // }, tp);
+
+  window.addEventListener('tick', e => {
+    const t = Date.now();
+    if (running && (t < (started + timeOut) || timeOut < 0)) {
+      pos = posAtT(t, 1, .001, 0, .55);
+      write(pos);
+    }
+  });
+
+  // Q: Why do the translate values need to be negative?
+  // Q: How would you allow the square to slow down?
+  // Q: How could you make it a random walk? (Generators?)
+  // Q: (For the teachers) is it valuable to mention requestAnimationFrame() as a better alternative to setInterval, even though it has nothing to do with the topic at hand?
+  // Q: How many iterations does it take, on average, for the square to leave the viewport?
+  // Q: How much faster does this simulation run "headless", without animation?
+  // Q: Which function is being called the most? How often?
+
+
+</script>
+
+<script type="module">
+
+  const tick = () => {
+    const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+    window.dispatchEvent(event);
+    window.requestAnimationFrame(tick);
+  };
+  tick();
+  window.addEventListener('tick', e => console.log(e.detail.t));
 
 
 
+</script>
 
-	<script> // Detect compilation errors for following scripts.
-		window.onerror = e => document.getElementById('favicon').href='red.png';
-	</script>
 
-	<script type="module">
-    import * as Simpatico from './simpatico.js';
-    import * as Core from './core.js';
+<!--	<h2>Simpatico</h2>-->
 
-    const {S} = Simpatico;
+<!--  <p>Simpatico is easiest to understand if you understand the ideas behind <a href="react redux">Redux</a>, namely the idea that you can (and <i>should</i>!) model your application state as a monolithic object which is rendered into the current browser state by the pure functions of your UI. A straightforward idea, but complexity arises, and not just because of performance issues. It turns out that writing that function is a challenge, although JSX helps by allowing you to more cleanly write components that are explicit about taking state and rendering it.</p>-->
 
-    const {assertEquals} = Core.default.asserts;
-    const {now} = Core.default.utils;
-    const {log, error} = Core.default.utils;
+<!--	<p>Simpatico is improved state management for browser applications. However, the ideas within it generalize across other domains. Simpatico models the running process as a tree of "cores" that are rooted at the physical level, with one long-lived global object, the global core. This core is made "sensitive" to the outside world via a singular S() method. It always starts at {} and on startup we proceed. By convention we allow row 0 in the rtree to represent the initial startup of the process, delegating most if not all further change to branches.</p>-->
 
-    // assertEquals(S(), {});
+<!--  <p>Combined with a good visualization, the S() method can help you explore your design space, to characterize in a precise way the state-space of your application. Although cores can be used to accumulate and process low-level measurement, they can also be used to accumulate higher level messages into overall application state. The former corresponds to UI componentry, whereas the latter corresponds to server componentry.</p>-->
 
-		console.log('Tests succeeded!');
-		document.getElementById('favicon').href='green.png';
 
-	</script>
+<!--	<script> // Detect compilation errors for following scripts.-->
+<!--		window.onerror = e => document.getElementById('favicon').href='red.png';-->
+<!--	</script>-->
+
+<!--	<script type="module">-->
+<!--    import * as Core from './core.js';-->
+<!--    import * as Combine from './combine.js';-->
+<!--    import * as RTree from './rtree.js';-->
+
+<!--    const {rtree} = RTree;-->
+<!--    const {combine} = Combine;-->
+<!--    const {assertEquals} = Core.default.asserts;-->
+<!--    const {now, RNG, log} = Core.default.utils;-->
+
+<!--    const S = rtree;-->
+
+<!--    // Note that S() should print out a friendly explanation of how to call it-->
+<!--    // We generally assume that localStorage is entirely ours. In this case, we'll use-->
+<!--    // just one entry, and store any browser-durable state in one long string. By convention-->
+<!--    // this is a JSON object, in fact an array of JSON objects interleaved with integers, that-->
+<!--    // describes the state of the RTree. There are actually 2 representations of the process state: one is-->
+<!--    // the list of measurements that brought the process to a particular state, and the other-->
+<!--    // is that terminating state, the one that we resurrect to "pick up where we left off".-->
+<!--    // localstorage-->
+
+<!--    const localStorageObject = Object.keys(localStorage).reduce((obj, str) => {-->
+<!--      obj[str] = JSON.parse(localStorage.getItem(str));-->
+<!--      return obj-->
+<!--    }, {});-->
+
+<!--    const cookies = document.cookie.split(';').reduce((obj, str) => {-->
+<!--      const s = str.split('=');-->
+<!--      obj[s[0].trim()] = s[1];-->
+<!--      return obj;-->
+<!--    }, {});-->
+
+<!--    S({-->
+<!--      id: 0,-->
+<!--      measurement: 'START',-->
+<!--      timestamp: now(),-->
+<!--      pid: Math.random(),-->
+<!--      global: window,-->
+<!--      runtime: "macos chrome timezone language",-->
+<!--      localStorage: localStorageObject,-->
+<!--      cookies,-->
+<!--      input: {keydown:[], mousemove:[], net:[], console:[], clock:[], dice:[], screen:[], zoom:[]},-->
+<!--      output: {screen: window.document.body, storage: window.localStorage, cookie: window.document.cookie},-->
+<!--      apps: {-->
+<!--        root: {msgs:[{},{},{},2,{},3,{},{}], residue: {}},-->
+<!--        string : {msgs:[{},{},{},2,{},3,{},{}], residue: {}},-->
+<!--      },-->
+<!--      // os windows, applications, files, functions, components-->
+<!--      // request, response, sub-resources, timings embeded in response, etc.-->
+<!--    });-->
+
+<!--    // Collision and combination. An application is a list of values then connected together in useful ways by paths.-->
+<!--    // The paths describe, in general, an RTree who's various branches have been usefully combined into a cohesive interface.-->
+<!--    // The degrees of freedom of this core can be said to be all of the arrays above. The computation that occurs-->
+<!--    // is with the exploration of various paths through those values. Those paths are recorded independently as branches-->
+<!--    // in an RTree. It is a kind of generalization of the back button, such that you can move in and out of a nested data-->
+<!--    // structure easily and smoothly, over time.-->
+
+<!--    // Now we need to make S sensitive to inputs and outputs. Let's start with the mouse. We rely on event bubbling,-->
+<!--    // and register only on the body element.-->
+<!--    window.document.body.onkeydown = e => {-->
+<!--      log(e);-->
+<!--      S({events:{keydown:e}});-->
+<!--    }-->
+
+<!--    window.document.body.onmousemove = e => {-->
+<!--      log(e);-->
+<!--      S({events:{mousemove:e}});-->
+<!--    }-->
+
+<script>
+  console.log('Tests succeeded!');
+  // class="subresource"
+  document.getElementById('favicon').href = 'green.png';
+</script>
 </body>
 </html>

@@ -9,14 +9,34 @@
 	<link id="favicon" rel="icon" type="image/png" href="white.png" />
 	<meta id="refresh" http-equiv="refresh" content="2">
 	<title>Core.js</title>
-
+  <link rel="stylesheet" type="text/css" href="tufte.css">
 </head>
 <body>
 	<h1>Core.js</h1>
 	<p>Josh Rehman <i>2020-11-11</i></p>
-	<p>deps: core.js</p>
+	<p>deps: <code>core.js</code></p>
 	<button onclick="window.stop()">Stop 2s Refresh</button>
+
+
 	<script>
+    // Walk up the location path, checking for the resource, returning that one when you find it.
+    // Alternatively (and arguably more performantly) you can serve up resources in this way.
+    // From the perspective of the programmer, adding a resource at a top level makes it
+    // present in all descendant folders. At the command line, this would look like a strange "mode"
+    // in which you accumulate a stack of useful state that you can easily call upon
+    // (typically some form of : fork, move, invoke, interact). This could most easily be achieved
+    // with a file-watcher script that would create symbolic links in the descendent folders (and update
+    // them in the case of move or delete). Interestingly, this "goes with the grain" of the unix
+    // philosophy to the point where "group" can have explicit, precise meaning, as
+    // describing those resources that are shared read-only with descendents, but write-only to your
+    // group (and its "ancestors") in the hierarchy.
+    // Is discovering a way to divide up the dishonest work of defrauding someone such that none of the
+    // pieces realizes that its being used in this way, is that a valid kind of innovation?
+    // This is the same moral hazard present in movies such as "Cube" (I think? It's the one where
+    // the group wakes up in a cube of trapped cubes, connected
+
+
+
 		window.onerror = e => {
 		  document.getElementById('favicon').href='red.png';
 		  document.body.style.backgroundColor = 'red';

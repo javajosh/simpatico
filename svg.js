@@ -1,10 +1,6 @@
 
 const {ELT, OBJ} = ASSERT;
 
-/**
- * Handy SVG utilities.
- */
-
 
 /**
  * Scatter the entries of obj onto the attributes of elt. There is no return because it is pure side effect.
@@ -21,7 +17,7 @@ const scatter = (elt, obj) => {
 }
 
 /**
- * Gater the attributes of an element that match the keys present in an object, overwriting the values in the object.
+ * Gather the attributes of an element that match the keys present in an object, overwriting the values in the object.
  *
  *
  * @param elt The element with the attributes we're reading
@@ -88,10 +84,12 @@ const renderTransform = obj => {
 const intersectRect = (elt1, elt2) => {
   elt1 = elt1.getBoundingClientRect();
   elt2 = elt2.getBoundingClientRect();
-  return !(elt2.left > elt1.right  ||
-  elt2.top  > elt1.bottom ||
-  elt1.left > elt2.right  ||
-  elt1.top  > elt2.bottom);
+  return !(
+    elt2.left > elt1.right  ||
+    elt2.top  > elt1.bottom ||
+    elt1.left > elt2.right  ||
+    elt1.top  > elt2.bottom
+  );
 };
 
 /**
@@ -119,9 +117,5 @@ const isPointInPoly = (poly, point) => {
   return false;
 }
 
-// export {scatter, gather, parseTransform, renderTransform, intersectRect, isPointInPoly};
+export {scatter, gather, parseTransform, renderTransform, intersectRect, isPointInPoly};
 
-// Ideas for testing.
-// let radius = document.getElementsByClassName('radius')[0]
-// let transform = SVG.parseTransform(radius)
-// let transformString = SVG.renderTransform(transform)
