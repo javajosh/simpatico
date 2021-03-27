@@ -74,10 +74,11 @@
   s0.addEventListener('click', e => {
     running = !running
   });
-  setInterval(() => {
+
+  window.addEventListener('tick', e => {
     if (running && (Date.now() < (started + timeOut)))
       write();
-  }, tp);
+  });
 </script>
 
 <p>Let there be a green square in motion on a normalized coordinate system:</p>
@@ -86,19 +87,23 @@
   <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r=1 unit circle -->
   <!-- scale(-1,1) flips the y-axis so that positive y values move up, as God intended. -->
   <g transform="scale(-1,1)">
-    <line class="x-axis" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
-    <line class="y-axis" x1=0 y1=-1 x2=0 y2=1 stroke=blue stroke-width=.001 />
+    <!-- This small SVG authoring convention of my own invention includes omitting quotes for dynamic-ish attr values   -->
+    <!-- These initial lines of SVG are specifically diagnostic  -->
+    <line class="x-axis-blue" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
+    <line class="y-axis-red" x1=0 y1=-1 x2=0 y2=1 stroke=red stroke-width=.001 />
 
-    <!-- These help orient us by translating in one known direction. -->
-    <rect class="blue-y" x=-.05 y=-.5 width=0.1 height=0.1 fill=blue />
-    <rect class="red-x" x=-.5 y=-.05 width=0.1 height=0.1 fill=red />
+    <!--  -->
+
+    <!-- These help orient us by translating in one known direction, which is the varying attribute. -->
+    <rect class="red-y" x=-.05 y=-.5 width=0.1 height=0.1 fill=red />
+    <rect class="blue-x" x=-.5 y=-.05 width=0.1 height=0.1 fill=blue />
 
     <!-- This is the element we'll be moving, the expression of degrees of freedom -->
     <g id="s2-transform">
       <rect class="green-square" x=-.05 y=-.05 width=0.1 height=0.1 fill=green id="s2" />
     </g>
 
-    <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector -->
+    <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector for how to do it, but its very bulky. -->
   </g>
 </svg>
 
@@ -150,13 +155,6 @@
   s1.addEventListener('click', () => {
     running = !running
   });
-  // setInterval(() => {
-  //   const t = Date.now();
-  //   if (running && (t < (started + timeOut) || timeOut < 0)) {
-  //     pos = posAtT(t, 1, .001, 0, .55);
-  //     write(pos);
-  //   }
-  // }, tp);
 
   window.addEventListener('tick', e => {
     const t = Date.now();
