@@ -21,31 +21,16 @@
 
 	<p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an important part of the convention: return something other than an object! For various reasons, I like array.</p>
 
-<!--	<script src="./combine.js"></script>-->
-<!--	<script src="./lib/ramda-0.26.1.js"></script>-->
 	<script type="module">
     import Core from './core.js';
     import {checkValue, validate} from './friendly.js';
 
     const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, UNDEF: undef, undef: pass, ARR: arr, SAME: same, ALL: all, EXISTS: exists, CONTAINS:contains, assertEquals, arrEquals, assertThrows, } = Core.asserts;
-    const {tryToStringify} = Core.utils;
-    const {FUN, ARR, between} = Core.preds;
+    const {FUN, between} = Core.preds;
     const {TYPES} = Core.types;
 
 		console.log('Starting tests');
 		window.onerror = e => document.getElementById('favicon').href='red.png';
-		const skipTo = 0;
-		let count = 0;
-
-		const test = (target, msg, expected, print = true) => {
-			if (skipTo && count < skipTo){count++; return;}
-			const result = combine(target, msg);
-			if (print) log(count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
-			if (FUN(expected)) expected(result);
-			else assertions.deepEquals(expected, result);
-			return result;
-		};
-
 
     const testPattern = {
       a: ['num', 'between', 0, 10],
@@ -77,19 +62,20 @@
       }
     };
 
-    // Tests checkValue()
-
     // The normal happy cases
     undef(checkValue(['str'], 'a'));
     undef(checkValue(['num'], 1));
     undef(checkValue(['bool'], false));
     undef(checkValue(['between', 0, 3], 2));
+    undef(checkValue(['str', 'between', 1, 3], "a"));
+    undef(checkValue(['str', 'between', 1, 3], "abc"));
     undef(checkValue(['optional'])/*, undefined*/);
 
     // Bad scalar matches
     arrEquals(checkValue(['num'], 'a'), ['num']);
     arrEquals(checkValue(['str'], 1), ['str']);
     arrEquals(checkValue(['between', 0, 3], 4), ['between', 0, 3]);
+    arrEquals(checkValue(['str', 'between', 0, 3], 'abcd'), ['between', 0, 3]);
 
     // Optional doesn't mean you can supply a bad value!
     arrEquals(checkValue(['optional', 'num'], 'a'), ['num']);
@@ -111,27 +97,67 @@
     // special cases
     assertEquals(validate({},{everything:'passes'}), undefined);
     assertEquals(validate(null, {everything:'fails'}), {});
-    assertEquals(validate({a:['num']}, 'every non-obj value fails'), {a:['num']});
 
-    assertEquals(validate({a: 'dec', b:['optional', 'num', 'between', 0, 10]}, {a:'dec'}), undefined);
-    assertEquals(validate({handler: 'dec', b:['optional', 'num', 'between', 0, 10]}, {handler:'dec'}), undefined);
+    assertEquals(validate({
+      a:['str']
+    },
+      'every non-obj value fails'
+    ), {
+      a:['str']
+    });
+
+    assertEquals(validate({
+      a: 'dec',
+      b:['optional', 'num', 'between', 0, 10]
+    },{
+      a:'dec'
+    }),
+    undefined);
+
+    assertEquals(validate({
+      handler: 'dec',
+      b:['optional', 'num', 'between', 0, 10]
+    },{
+      handler:'dec'
+    }),
+      undefined
+    );
 
 
     assertEquals(validate({
       e: ['num', 'between', 0, 10],
       f: ['optional', 'str', 'between', 3, 8],
-    }, { e: 11, f: "abcd" }), {
-      e: ['between', 0, 10]
+    },{
+      e: 11,
+      f: "abcd",
+    }),{
+      e: ['between', 0, 10],
     });
 
     // nested object
-    assertEquals(validate({a:['num'], b:{c:['num']}}, {a: 1, b:{c:  1}}), undefined);
-    assertEquals(validate({a:['num'], b:{c:['num']}}, {a: 1, b:{c: ''}}), {b:{c:['num']}});
+    assertEquals(validate({
+      a:['num'],
+      b:{ c: ['num']},
+    },{
+      a: 1,
+      b:{c: 1},
+    }),
+      undefined
+    );
+
+    assertEquals(validate({
+      a:['num'],
+      b:{c:['num']}
+    },{
+      a: 1,
+      b: {c: ''}
+    }),{
+      b: {c: ['num']}
+    });
 
     // the full monty
     assertEquals(validate(testPattern, testValid), undefined, 'full monty should be valid');
     assertEquals(validate(testPattern, testNotValid), {d:{e:['between', 0, 10]}}, 'full monty should NOT be valid');
-
 
     /** docs
      A simple friendly function. Note that friendly functions can only take one object arg.
@@ -152,8 +178,6 @@
     assertEquals(friendly({a:1}), {a:['bool']})
     assertEquals(friendly({b:true}), {a:['bool']})
     assertEquals(friendly({a:true}), 2)
-
-
 
     console.log('Tests succeeded!');
 		document.getElementById('favicon').href='green.png';

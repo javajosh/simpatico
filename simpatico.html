@@ -22,6 +22,10 @@
    -->
   <link id="favicon" rel="icon" type="image/png" class="subresource" href="white.png">
   <meta id="refresh" http-equiv="refresh" content="2">
+  <style>
+    html { height: 100%; overflow:auto; }
+    body { height: 100%; }
+  </style>
 
   <!--  <link rel="stylesheet" type="text/css" class="subresource" href="tufte.css" >-->
 </head>
@@ -66,27 +70,28 @@
 <!--  The use of modules allows me to isolate scripts on the page from each other-->
 <!--  and code in a more natural way. It does make REPL interaction harder, however.-->
 <script type="module">
-  // s stands for "span", m for "module". increment these numbers over time
-  // The tag is unnecessary but useful for giving context to the code
-  const s0 = document.querySelector("span#s0");
+  // s stands for "span". increment these s0 numbers over time
+  // The tag is useful for giving context to the elt;
+  const span = document.querySelector("span#s0");
+
   const ms = 1, Hz = 1, pi = Math.PI; // Show units in code!
   const rotPeriod = 4000 * ms; // desired rotational period
   const tp = 17 * ms; // desired tick period
   const timeOut = 2 * rotPeriod;
 
-  const theta_at_t = (t = Date.now() - started) => (2 * pi * t) / (rotPeriod);
-  const write = () => s0.setAttribute('style',
-    `position: absolute; transform: rotate(${theta_at_t()}rad`
-  );
+  const theta_at_t = (t = (Date.now() - started)) => (2 * pi * t) / (rotPeriod);
+  const draw = () => span.setAttribute('style', `position: absolute; transform: rotate(${theta_at_t()}rad`);
 
-  let running = true, started = Date.now();
-  s0.addEventListener('click', e => {
+  let running = true;
+  const started = Date.now();
+
+  span.addEventListener('click', e => {
     running = !running
   });
 
   window.addEventListener('tick', e => {
     if (running && (Date.now() < (started + timeOut)))
-      write();
+      draw();
   });
 </script>
 
@@ -178,32 +183,22 @@
 
 </p>
 
-<script type="module" id="module-tick" >
-  // Window tick. Usage: window.addEventListener('tick', e => console.log(e.detail.t));
-  // For now, we use this mechanism but it is still not structured enough.
-  const tick = () => {
-    const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
-    window.dispatchEvent(event);
-    window.requestAnimationFrame(tick);
-  };
-  tick();
-</script>
-
 <p>SVG and JS are <i>powerful</i> tools for drawing data on the screen.</p>
 
 <svg id="s4" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
   <g transform="scale(1,-1)">
-    <line class="x-axis-blue" x1=-1 y1=0 x2=1 y2=0 stroke=blue stroke-width=.001 />
-    <line class="y-axis-red"  x1=0 y1=-1 x2=0 y2=1 stroke=red  stroke-width=.001 />
+
+    <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1=-1 y1=0  x2=1 y2=0 />
+    <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1=0  y1=-1 x2=0 y2=1 />
 
     <g id="s5-transform">
-      <circle id="s5" class="green-circle" fill="none" stroke="green" stroke-width=".01" cx=0 cy=0 r=.05 />
+      <circle id="s5" class="green-circle" fill="none" stroke-width=".01" r=".05" stroke="green" cx=0 cy=0  />
     </g>
   </g>
 </svg>
 
 <script type="module">
-  const svg = document.querySelector("svg#s4")
+  const svg = document.querySelector("svg#s4");
   const g = document.querySelector("g#s5-transform");
 
   const combine = (elt, obj) => {
@@ -215,9 +210,12 @@
 
   const draw = ({x, y}, g = g) => combine(g, {transform: `translate(${x},${y})`});
 
-  const randomWalk = (pos, dx=Math.random(), dy=Math.random()) => ({
-    x: (pos.x + (dx * 2 - 1) / 100) % 1,
-    y: (pos.y + (dy * 2 - 1) / 100) % 1,
+  //uble the width, scootch it over one (so its positive and negative), scale it to .01, add and then
+  //the ratio of width * scale determines how big of an apparent movement you make each tick.
+  // However this, too, could be randomized!
+  const randomWalk = (pos, dx=Math.random(), dy=Math.random(), scale=".01", width=1) => ({
+    x: (pos.x + scale * width * (dx * 2 - 1)) % width,
+    y: (pos.y + scale * width * (dy * 2 - 1)) % width,
   });
 
   // Static config: set timeout negative to disable.
@@ -234,7 +232,6 @@
 
   // Steady-state entry-point #2 - tick -> update particle position
   window.addEventListener('tick', e => {
-    console.log(e.detail.t);
     if (running && (e.detail.t < (started + timeOut) || timeOut < 0)) {
       pos = randomWalk(pos);
       draw(pos, g);
@@ -258,7 +255,7 @@
 <p>The key here is to leverage software's super-power, which is copying complexity without error. First step is to make a particle in an Rtree, then make it sensitive to ticks. Then introduce code to render the particle (or the entire RTree - not sure yet.</p>
 
 <script type="module">
-  import * as RTree from 'rtree.js';
+  import * as RTree from './rtree.js';
 
   const {rtree} = RTree;
 
@@ -277,11 +274,7 @@
 <!--  <p>Combined with a good visualization, the S() method can help you explore your design space, to characterize in a precise way the state-space of your application. Although cores can be used to accumulate and process low-level measurement, they can also be used to accumulate higher level messages into overall application state. The former corresponds to UI componentry, whereas the latter corresponds to server componentry.</p>-->
 
 
-<!--	<script> // Detect compilation errors for following scripts.-->
-<!--		window.onerror = e => document.getElementById('favicon').href='red.png';-->
-<!--	</script>-->
-
-<!--	<script type="module">-->
+">-->
 <!--    import * as Core from './core.js';-->
 <!--    import * as Combine from './combine.js';-->
 <!--    import * as RTree from './rtree.js';-->
@@ -351,10 +344,27 @@
 <!--      S({events:{mousemove:e}});-->
 <!--    }-->
 
+<script type="module" id="module-tick" >
+  // Scroll to the bottom, if I'm on local host, because I'm working there.
+  if (window.location.host.startsWith('localhost')){
+    setTimeout(() => window.scrollTo(0, window.document.body.scrollHeight), 0);
+  }
+
+  // Define a window.ontick custom event.
+  // Usage: window.addEventListener('tick', e => console.log(e.detail.t));
+  const tick = () => {
+    const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+    window.dispatchEvent(event);
+    window.requestAnimationFrame(tick);
+  };
+  tick();
+</script>
+
 <script>
   console.log('Tests succeeded!');
   // class="subresource"
   document.getElementById('favicon').href = 'green.png';
+  window.scrollBy(0, window.innerHeight * 10);
 </script>
 </body>
 </html>
