@@ -25,9 +25,8 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="More cleanup. There is clearly a tension between &quot;production ready&quot; and &quot;good pedagogical material&quot; and I worry that by making the code better, I'm also making it harder to understand. We'll see.">
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Cleanup and generalizeation of random walk in preparation for &quot;friendlyness&quot;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/friendly.html" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/simpatico.html" beforeDir="false" afterPath="$PROJECT_DIR$/simpatico.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -160,7 +159,7 @@
       <workItem from="1612404886094" duration="81000" />
       <workItem from="1612406092878" duration="4815000" />
       <workItem from="1615929332432" duration="55684000" />
-      <workItem from="1616904750646" duration="4126000" />
+      <workItem from="1616904750646" duration="7126000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -295,7 +294,14 @@
       <option name="project" value="LOCAL" />
       <updated>1616868841502</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="Cleanup and generalizeation of random walk in preparation for &quot;friendlyness&quot;">
+      <created>1616955057191</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1616955057191</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -344,7 +350,8 @@
     <MESSAGE value="Honestly, I'm' really annoyed with rectangles because their origin is bottom left instead of center. Moving to circles. I should have guessed: radial symmetry is simpler!" />
     <MESSAGE value="This new section is the same as the old one without the cruft. I've also adopted more meaningful variable names instead of the symbolic ones." />
     <MESSAGE value="More cleanup. There is clearly a tension between &quot;production ready&quot; and &quot;good pedagogical material&quot; and I worry that by making the code better, I'm also making it harder to understand. We'll see." />
-    <option name="LAST_COMMIT_MESSAGE" value="More cleanup. There is clearly a tension between &quot;production ready&quot; and &quot;good pedagogical material&quot; and I worry that by making the code better, I'm also making it harder to understand. We'll see." />
+    <MESSAGE value="Cleanup and generalizeation of random walk in preparation for &quot;friendlyness&quot;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup and generalizeation of random walk in preparation for &quot;friendlyness&quot;" />
   </component>
   <component name="WindowStateProjectService">
     <state x="698" y="420" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1608767911750">

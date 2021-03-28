@@ -208,14 +208,27 @@
     }
   }
 
+  // Return which quad the vector is in, counting counter clockwise starting with 0
+  const quad = ({x,y}) => {
+    if (y > 0){ // This *can* be shortened with the ternary operator. But please don't hurt code readers like that!
+      return x > 0 ? 0 : 1;
+    } else {
+      return x < 0 ? 2 : 3;
+    }
+  }
+
+  const isInsideRec = ({x,y},{top, bottom, left, right}) => {
+    return x >= left && x <= right && y >= bottom && y <= top;
+  }
+
   const draw = ({x, y}, g = g) => combine(g, {transform: `translate(${x},${y})`});
 
   //uble the width, scootch it over one (so its positive and negative), scale it to .01, add and then
   //the ratio of width * scale determines how big of an apparent movement you make each tick.
-  // However this, too, could be randomized!
-  const randomWalk = (pos, dx=Math.random(), dy=Math.random(), scale=".01", width=1) => ({
-    x: (pos.x + scale * width * (dx * 2 - 1)) % width,
-    y: (pos.y + scale * width * (dy * 2 - 1)) % width,
+  // However this, too, is now randomized! (.15 scales the randomness)
+  const randomWalk = (pos, R=1, dx=Math.random(), dy=Math.random(), A=Math.random() * .20) => ({
+    x: (pos.x + A * R * (dx * 2 - 1)) % R,
+    y: (pos.y + A * R * (dy * 2 - 1)) % R,
   });
 
   // Static config: set timeout negative to disable.
@@ -224,6 +237,10 @@
   // Dynamic state: position, and running state.
   let pos = {x: 0, y: 0};
   let running = true;
+  let lastQuad = 0;
+  let q = lastQuad;
+  let lastEscaped = false;
+  let e = lastEscaped;
 
   // Steady-state entry-point #1 - click the svg elt -> start/stop animation
   svg.addEventListener('click', () => {
@@ -233,8 +250,22 @@
   // Steady-state entry-point #2 - tick -> update particle position
   window.addEventListener('tick', e => {
     if (running && (e.detail.t < (started + timeOut) || timeOut < 0)) {
-      pos = randomWalk(pos);
+      pos = randomWalk(pos, 2);
       draw(pos, g);
+
+      q = quad(pos);
+      if (q !== lastQuad ) {
+        console.log(`particle g#s5 is in quad ${q}`);
+      }
+
+      e = !isInsideRec(pos, {top:1, bottom: -1, left: -1, right: 1});
+      if (q !== lastQuad || e !== lastEscaped){
+        console.log(`particle g#s5 has ${e && !lastEscaped ? "escaped" : "returned"} at position ${pos.x} ${pos.y} in quadrant ${q}`);
+        lastEscaped = e;
+      }
+      lastQuad = q;
+
+
     }
   });
 
@@ -346,7 +377,7 @@
 
 <script type="module" id="module-tick" >
   // Scroll to the bottom, if I'm on local host, because I'm working there.
-  if (window.location.host.startsWith('localhost')){
+  if (false && window.location.host.startsWith('localhost')){
     setTimeout(() => window.scrollTo(0, window.document.body.scrollHeight), 0);
   }
 
@@ -364,7 +395,6 @@
   console.log('Tests succeeded!');
   // class="subresource"
   document.getElementById('favicon').href = 'green.png';
-  window.scrollBy(0, window.innerHeight * 10);
 </script>
 </body>
 </html>
