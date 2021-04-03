@@ -42,9 +42,9 @@ const getRules = () => {
     proceed from the "natural" types to the synthetic types introduced by Simpatico.
 
    Docs Comments on the basic rules:
-      Null means "clear". For booleans, it means "toggle".
+      Null means "clear". For booleans, null means "toggle".
       We cannot push null to an array because that will clear the array.
-   Arrays immutable concat (this is one way to get a null in there!)
+      Arrays immutable concat (this is one way to get a null in there!)
  */
   const {UNDEF,NUL,STR,NUM,BOOL,FUN,OBJ,ARR,ELT,ANY,CORE,HANDLER,MSG} = TYPES;
   const rules = {};
@@ -72,7 +72,7 @@ const getRules = () => {
   rules[OBJ+OBJ]  = (a,b) => {
     // B is defensively copied, mutated and returned, not A!
     b = Object.assign({},b);
-    for (let prop in a){
+    for (const prop in a){
       b[prop] = b.hasOwnProperty(prop) ?
         combine(a[prop],b[prop]): //recurse
         a[prop];
@@ -87,9 +87,8 @@ const getRules = () => {
   rules[OBJ+MSG] = (core, msg) => {
     // World event - defensively copy because we mutate
     const isWorldEvent = PREDS.UNDEF(msg.parent);
-    if (isWorldEvent) msg = Object.assign({time:now()}, msg);
-
-    msg.id = core.msgs.length;
+    if (isWorldEvent) msg = {time:now(), ...msg};
+    msg = {id: core.msgs.length, ...msg};
     core.msgs.push(msg);
 
     //Find the named handler
@@ -108,7 +107,7 @@ const getRules = () => {
     for (const result of results){
       // Store the id of the parent to avoid cycles that stop stringification
       if (PREDS.OBJ(result)) result.parent = msg.id;
-      core = combine(core, result); //recurse
+      core = combine(core, result); //recurse, generates the message cascade.
     }
     return core;
   };
