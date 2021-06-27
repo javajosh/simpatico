@@ -1,186 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="description" content="">
-	<meta name="keywords" content="HTML,CSS,JavaScript">
-	<meta name="author" content="Josh Rehman">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link id="favicon" rel="icon" type="image/png" href="white.png" />
-	<meta id="refresh" http-equiv="refresh" content="2">
-	<title>Friendly.js</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="">
+  <meta name="keywords" content="HTML,CSS,JavaScript">
+  <meta name="author" content="Josh Rehman">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link id="favicon" rel="icon" type="image/png" href="white.png"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <title>Friendly.js</title>
 
 </head>
 <body>
-	<h1>Friendly.js</h1>
-	<p>Josh Rehman <i>27 Jan 2019</i></p>
-	<p>deps: utils.js</p>
-	<button onclick="window.stop()">Stop 2s Refresh</button>
+<h1>Friendly.js</h1>
+<p>Josh Rehman <i>27 Jan 2019</i></p>
+<p>deps: utils.js</p>
+<button onclick="window.stop()">Stop 2s Refresh</button>
 
-	<p>A friendly function is one that tells you how to call it. If you call it with nothing, it returns a <i>pattern</i> describing how to call it. If you call it with an object that matches the pattern, then, great! If you call it with an object that only partially matches the pattern, it will return an object representing the partially collapsed pattern.</p>
+<p>A friendly function is one that tells you how to call it. If you call it with nothing, it returns a <i>pattern</i>
+  describing how to call it. If you call it with an object that matches the pattern, then, great! If you call it with an
+  object that only partially matches the pattern, it will return an object representing the partially collapsed pattern.
+</p>
 
-	<p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an important part of the convention: return something other than an object! For various reasons, I like array.</p>
+<p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an
+  important part of the convention: return something other than an object! For various reasons, I like array.</p>
 
-	<script type="module">
-    import Core from './core.js';
-    import {checkValue, validate} from './friendly.js';
+<script type="module">
+  import {TYPES, ASSERT, assertEquals, is} from './core.js';
+  import {checkValue, validate} from './friendly.js';
 
-    const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, UNDEF: undef, undef: pass, ARR: arr, SAME: same, ALL: all, EXISTS: exists, CONTAINS:contains, assertEquals, arrEquals, assertThrows, } = Core.asserts;
-    const {FUN, between} = Core.preds;
-    const {TYPES} = Core.types;
+  const {str, num, bool, fun, obj, undef, arr, same, all, exists, contains, arrEquals, assertThrows,} = ASSERT;
 
-		console.log('Starting tests');
-		window.onerror = e => document.getElementById('favicon').href='red.png';
+  console.log('Starting tests');
+  window.onerror = e => document.getElementById('favicon').href = 'red.png';
 
-    const testPattern = {
-      a: ['num', 'between', 0, 10],
-      b: ['str'],
-      c: ['optional', 'str', 'between', 0, 10],
-      d: {
-        e: ['num', 'between', 0, 10],
-        f: ['optional', 'str', 'between', 3, 8],
-      }
-    };
+  const testPattern = {
+    a: ['num', 'between', 0, 10],
+    b: ['str'],
+    c: ['optional', 'str', 'between', 0, 10],
+    d: {
+      e: ['num', 'between', 0, 10],
+      f: ['optional', 'str', 'between', 3, 8],
+    }
+  };
 
-    // Here's a value that matches
-    const testValid = {
-      a: 5,
-      b: 'hi',
-      d: {
-        e: 3,
-        f: 'abcd'
-      }
-    };
+  // Here's a value that matches
+  const testValid = {
+    a: 5,
+    b: 'hi',
+    d: {
+      e: 3,
+      f: 'abcd'
+    }
+  };
 
-    // Here's one that doesn't
-    const testNotValid = {
-      a: 5,
-      b: 'hi',
-      d: {
-        e: 11, //this one fails.
-        f: 'abcd'
-      }
-    };
+  // Here's one that doesn't
+  const testNotValid = {
+    a: 5,
+    b: 'hi',
+    d: {
+      e: 11, //this one fails.
+      f: 'abcd'
+    }
+  };
 
-    // The normal happy cases
-    undef(checkValue(['str'], 'a'));
-    undef(checkValue(['num'], 1));
-    undef(checkValue(['bool'], false));
-    undef(checkValue(['between', 0, 3], 2));
-    undef(checkValue(['str', 'between', 1, 3], "a"));
-    undef(checkValue(['str', 'between', 1, 3], "abc"));
-    undef(checkValue(['optional'])/*, undefined*/);
+  // The normal happy cases
+  undef(checkValue(['str'], 'a'));
+  undef(checkValue(['num'], 1));
+  undef(checkValue(['bool'], false));
+  undef(checkValue(['between', 0, 3], 2));
+  undef(checkValue(['str', 'between', 1, 3], "a"));
+  undef(checkValue(['str', 'between', 1, 3], "abc"));
+  undef(checkValue(['optional'])/*, undefined*/);
 
-    // Bad scalar matches
-    arrEquals(checkValue(['num'], 'a'), ['num']);
-    arrEquals(checkValue(['str'], 1), ['str']);
-    arrEquals(checkValue(['between', 0, 3], 4), ['between', 0, 3]);
-    arrEquals(checkValue(['str', 'between', 0, 3], 'abcd'), ['between', 0, 3]);
+  // Bad scalar matches
+  arrEquals(checkValue(['num'], 'a'), ['num']);
+  arrEquals(checkValue(['str'], 1), ['str']);
+  arrEquals(checkValue(['between', 0, 3], 4), ['between', 0, 3]);
+  arrEquals(checkValue(['str', 'between', 0, 3], 'abcd'), ['between', 0, 3]);
 
-    // Optional doesn't mean you can supply a bad value!
-    arrEquals(checkValue(['optional', 'num'], 'a'), ['num']);
-    arrEquals(checkValue(['optional', 'between', 0, 3], 4), ['between', 0, 3]);
-    arrEquals(checkValue(['optional', 'num', 'between', 0, 3], 'a'), ['num']);
+  // Optional doesn't mean you can supply a bad value!
+  arrEquals(checkValue(['optional', 'num'], 'a'), ['num']);
+  arrEquals(checkValue(['optional', 'between', 0, 3], 4), ['between', 0, 3]);
+  arrEquals(checkValue(['optional', 'num', 'between', 0, 3], 'a'), ['num']);
 
-    undef(checkValue(['optional', 'num', 'between', 0, 10], 5), undefined);
+  undef(checkValue(['optional', 'num', 'between', 0, 10], 5), undefined);
 
-    // Tests validate()
-    // single key
-    assertEquals(validate({a: ['num']}, {a: 1}), undefined, 'passed key');
-    assertEquals(validate({a: ['num']}, {a: 'a'}), {a: ['num']}, 'failed key');
-    assertEquals(validate({a: ['num']}, {}), {a: ['num']}, 'missing non-optional');
+  // Tests validate()
+  // single key
+  assertEquals(validate({a: ['num']}, {a: 1}), undefined, 'passed key');
+  assertEquals(validate({a: ['num']}, {a: 'a'}), {a: ['num']}, 'failed key');
+  assertEquals(validate({a: ['num']}, {}), {a: ['num']}, 'missing non-optional');
 
-    // multi key
-    assertEquals(validate({a: ['num'], b:['num']}, {a: 1, b:1}), undefined, 'multi-key success');
-    assertEquals(validate({a: ['num'], b:['num']}, {a: 1, b:''}), {b:['num']}, 'multi-key fail');
+  // multi key
+  assertEquals(validate({a: ['num'], b: ['num']}, {a: 1, b: 1}), undefined, 'multi-key success');
+  assertEquals(validate({a: ['num'], b: ['num']}, {a: 1, b: ''}), {b: ['num']}, 'multi-key fail');
 
-    // special cases
-    assertEquals(validate({},{everything:'passes'}), undefined);
-    assertEquals(validate(null, {everything:'fails'}), {});
+  // special cases
+  assertEquals(validate({}, {everything: 'passes'}), undefined);
+  assertEquals(validate(null, {everything: 'fails'}), {});
 
-    assertEquals(validate({
-      a:['str']
+  assertEquals(validate({
+      a: ['str']
     },
-      'every non-obj value fails'
-    ), {
-      a:['str']
-    });
+    'every non-obj value fails'
+  ), {
+    a: ['str']
+  });
 
-    assertEquals(validate({
+  assertEquals(validate({
       a: 'dec',
-      b:['optional', 'num', 'between', 0, 10]
-    },{
-      a:'dec'
+      b: ['optional', 'num', 'between', 0, 10]
+    }, {
+      a: 'dec'
     }),
     undefined);
 
-    assertEquals(validate({
+  assertEquals(validate({
       handler: 'dec',
-      b:['optional', 'num', 'between', 0, 10]
-    },{
-      handler:'dec'
+      b: ['optional', 'num', 'between', 0, 10]
+    }, {
+      handler: 'dec'
     }),
-      undefined
-    );
+    undefined
+  );
 
 
-    assertEquals(validate({
-      e: ['num', 'between', 0, 10],
-      f: ['optional', 'str', 'between', 3, 8],
-    },{
-      e: 11,
-      f: "abcd",
-    }),{
-      e: ['between', 0, 10],
-    });
+  assertEquals(validate({
+    e: ['num', 'between', 0, 10],
+    f: ['optional', 'str', 'between', 3, 8],
+  }, {
+    e: 11,
+    f: "abcd",
+  }), {
+    e: ['between', 0, 10],
+  });
 
-    // nested object
-    assertEquals(validate({
-      a:['num'],
-      b:{ c: ['num']},
-    },{
+  // nested object
+  assertEquals(validate({
+      a: ['num'],
+      b: {c: ['num']},
+    }, {
       a: 1,
-      b:{c: 1},
+      b: {c: 1},
     }),
-      undefined
-    );
+    undefined
+  );
 
-    assertEquals(validate({
-      a:['num'],
-      b:{c:['num']}
-    },{
-      a: 1,
-      b: {c: ''}
-    }),{
-      b: {c: ['num']}
-    });
+  assertEquals(validate({
+    a: ['num'],
+    b: {c: ['num']}
+  }, {
+    a: 1,
+    b: {c: ''}
+  }), {
+    b: {c: ['num']}
+  });
 
-    // the full monty
-    assertEquals(validate(testPattern, testValid), undefined, 'full monty should be valid');
-    assertEquals(validate(testPattern, testNotValid), {d:{e:['between', 0, 10]}}, 'full monty should NOT be valid');
+  // the full monty
+  assertEquals(validate(testPattern, testValid), undefined, 'full monty should be valid');
+  assertEquals(validate(testPattern, testNotValid), {d: {e: ['between', 0, 10]}}, 'full monty should NOT be valid');
 
-    /** docs
-     A simple friendly function. Note that friendly functions can only take one object arg.
-     It's better if they don't return objects if they execute normally, since this clashes with the descriptive failure mode
-     We will see that in a handler context these conditions are very natural and easy
-     */
-    const friendly = input => {
-      const pattern = {a:['bool']};
-      if (!validate(pattern, input)){ // concern: It's not intuitive to check !validate. rename to 'invalid'?
-        return 2;
-      } else {
-        return pattern;
-      }
+  /** docs
+   A simple friendly function. Note that friendly functions can only take one object arg.
+   It's better if they don't return objects if they execute normally, since this clashes with the descriptive failure mode
+   We will see that in a handler context these conditions are very natural and easy
+   */
+  const friendly = input => {
+    const pattern = {a: ['bool']};
+    if (!validate(pattern, input)) { // concern: It's not intuitive to check !validate. rename to 'invalid'?
+      return 2;
+    } else {
+      return pattern;
     }
+  }
 
-    assertEquals(friendly(), {a:['bool']})
-    assertEquals(friendly(1), {a:['bool']})
-    assertEquals(friendly({a:1}), {a:['bool']})
-    assertEquals(friendly({b:true}), {a:['bool']})
-    assertEquals(friendly({a:true}), 2)
+  assertEquals(friendly(), {a: ['bool']})
+  assertEquals(friendly(1), {a: ['bool']})
+  assertEquals(friendly({a: 1}), {a: ['bool']})
+  assertEquals(friendly({b: true}), {a: ['bool']})
+  assertEquals(friendly({a: true}), 2)
 
-    console.log('Tests succeeded!');
-		document.getElementById('favicon').href='green.png';
-	</script>
+  console.log('Tests succeeded!');
+  document.getElementById('favicon').href = 'green.png';
+</script>
 </body>
 </html>

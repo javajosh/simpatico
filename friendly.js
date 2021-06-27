@@ -1,8 +1,4 @@
-import Core from './core.js';
-
-const { assert } = Core.asserts;
-const {ARR, OBJ, UNDEF, BETWEEN:between} = Core.preds;
-const {tryToStringify} = Core.utils;
+import { assert, is, tryToStringify, size } from "./core.js";
 
 /**
  *  Validate against a pattern obj.
@@ -20,11 +16,14 @@ const {tryToStringify} = Core.utils;
  */
 export const validate = (patternObj, valueObj) => {
   //gotcha: do not use getType predicate because handler !== object, etc
-  if (!OBJ(valueObj)) return patternObj;
+  if (!is.obj(valueObj)) return patternObj;
   if (patternObj === null) return {};
   if (patternObj === {}) return undefined;
 
-  assert(OBJ(patternObj), `pattern must be an object but was ${tryToStringify(patternObj)}`)
+  assert(
+    is.obj(patternObj),
+    `pattern must be an object but was ${tryToStringify(patternObj)}`
+  );
 
   const result = {};
   let objPass = true;
@@ -34,12 +33,14 @@ export const validate = (patternObj, valueObj) => {
     let pass = true;
     let failReasons = undefined;
 
-    if (OBJ(patternValue)) {
+    if (is.obj(patternValue)) {
       failReasons = validate(patternValue, value); //recurse
-    } else if (ARR(patternValue)){
+    } else if (is.arr(patternValue)) {
       failReasons = checkValue(patternValue, value); //normal case
-    } else { // scalar case
-      failReasons = (value === patternValue) ? undefined : ['equals', patternValue];
+    } else {
+      // scalar case
+      failReasons =
+        value === patternValue ? undefined : ["equals", patternValue];
     }
 
     pass = !failReasons;
@@ -47,7 +48,7 @@ export const validate = (patternObj, valueObj) => {
     objPass = objPass && pass;
   }
   return objPass ? undefined : result;
-}
+};
 
 /**
  * This is an internal method exported only to support testing. but it checks a value against an array of predicates.
@@ -63,25 +64,25 @@ export const checkValue = (predArray, value) => {
   let allPass = true;
 
   // Loop through the predicates.
-  for (let i = 0; i < predArray.length; i++){
+  for (let i = 0; i < predArray.length; i++) {
     let pred = predArray[i].toLowerCase(); // case of preds doesn't matter
 
-    if (pred === 'between'){
-      const lo = predArray[i+1];
-      const hi = predArray[i+2];
-      // Between when applied to an array checks its length
-      value = ARR(value) ? value.length : value;
-      pass = between(lo, hi, value);
+    if (pred === "between") {
+      const lo = predArray[i + 1];
+      const hi = predArray[i + 2];
+      pass = is.between(lo, hi, size(value));
       i += 2;
       if (!pass) {
         failedPreds.push(pred, lo, hi);
       }
-    } else if (pred === 'optional'){ //optional means we skip if it's missing
-      if (UNDEF(value)) {
+    } else if (pred === "optional") {
+      //optional means we skip if it's missing
+      if (is.undef(value)) {
         return undefined;
       }
-    } else { // TODO add support for descriptive values?
-      pass = Core.preds[pred.toUpperCase()](value);
+    } else {
+      // TODO add support for descriptive values?
+      pass = is[pred](value);
       if (!pass) failedPreds.push(pred);
     }
     allPass = allPass && pass;
