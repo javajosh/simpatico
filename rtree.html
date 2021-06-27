@@ -44,14 +44,8 @@ window.onerror = e => document.getElementById('favicon').href = 'red.png';
 </script>
 
 <script type="module">
-  import * as Core from './core.js';
-  import * as Combine from './combine.js';
-  import * as RTree from './rtree.js';
-
-  const {rtree} = RTree;
-  const {combine} = Combine;
-  const {assertEquals} = Core.default.asserts;
-  const {now} = Core.default.utils;
+  import {assertEquals} from './core.js';
+  import rtree from './rtree.js';
 
   let r = rtree(0);
   assertEquals(r.branches.length, 1);

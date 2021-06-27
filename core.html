@@ -1,108 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="description" content="Title">
-	<meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
-	<meta name="author" content="Josh Rehman">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link id="favicon" rel="icon" type="image/png" href="white.png" />
-	<meta id="refresh" http-equiv="refresh" content="2">
-	<title>Core.js</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="Title">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="Josh Rehman">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link id="favicon" rel="icon" type="image/png" href="white.png"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <title>Core.js</title>
   <link rel="stylesheet" type="text/css" href="tufte.css">
 </head>
 <body>
-	<h1>Core.js</h1>
-	<p>Josh Rehman <i>2020-11-11</i></p>
-	<p>deps: <code>core.js</code></p>
-	<button onclick="window.stop()">Stop 2s Refresh</button>
+<h1>Core.js</h1>
+<p>Josh Rehman <i>2020-11-11</i></p>
+<p>deps: <code>core.js</code></p>
+<button onclick="window.stop()">Stop 2s Refresh</button>
+
+<script>
+  window.onerror = e => {
+    document.getElementById('favicon').href = 'red.png';
+    document.body.style.backgroundColor = 'red';
+  };
+</script>
+<script type="module">
+  import * as c from './core.js';
+
+  const a = {a: 1}, b = {b: 2}
+  c.info('welcome to core.js')
+  c.log(c.now());
+  c.debug('this is a debugging statement') //won't show up if your console isn't set to verbose
+  c.log(c.tryToStringify(a))
+  //c.error('this is an error - will be commented out')
+  //c.assert(false, 'testing assertion failure - will be commented out');
+  //c.assertThrows(1)
+  //c.assertThrows(()=>{}, 'testing assertion failure - will be commented out');
+  c.assertThrows(() => {
+    throw ''
+  })
+
+  c.assert(c.hasProp(a, 'a'))
+  c.assert(!c.hasProp(a, 'b'))
+
+  //c.assertEquals(c.getProp(a, 'a'), 2) // useful negative to fix up message
+  c.assertEquals(c.getProp(a, 'a'), 1)
+  c.assertEquals(c.getProp(a, 'b', 3), 3)
+
+  const d = c.mapObject(a, ([k, v]) => [k, v + 5])
+  c.assert(c.hasProp(d, 'a'))
+  c.assertEquals(d['a'], 6)
+
+  c.assert(c.equals(1, 1))
+  c.assert(!c.equals(1, 2))
+  c.assert(!c.equals(a, b))
+  c.assert(c.equals(a, {a: 1}))
+  c.assert(!c.equals(a, {a: 1, b: 2}))
+
+  const arr0 = [], arr1 = [1, 3, 5], arr2 = [1, 3, 5], arr3 = [1, 3], arr4 = [1, 3, 5, 'a']
+  c.assert(c.arrEquals(arr1, arr2))
+  c.assert(!c.arrEquals(arr0, arr1))
+  c.assert(!c.arrEquals(arr1, arr3))
+  c.assert(!c.arrEquals(arr1, arr4))
+  c.assert(!c.arrEquals(arr0, arr4))
+
+  c.assert(c.and(true, true))
+  c.assert(!c.and(true, false))
+  c.assert(c.or(true, false))
+  c.assert(c.or(false, true))
+  c.assert(!c.or(false, false))
+
+  c.assertEquals(a, c.identity(a))
+
+  const add = (a, b) => a + b, mul = (a, b) => a * b
+  const add5 = c.curryLeft(add, 5)
+  c.assertEquals(add5(2), 7)
+  c.assertEquals(c.curry, c.curryLeft)
+  const mul10 = c.curry(mul, 10)
+  const add5mul10 = c.compose(add5, mul10)
+  c.assertEquals(add5mul10(5), 100)
+
+  c.assertEquals(c.peek(arr1), 5)
+  c.assertEquals(c.peek(arr0), null)
+  c.assertEquals(c.peek(arr0, 0), 0)
+
+  const grow = [1, 2, 2]
+  let foo = c.push(grow, 3)
+  c.assert(c.arrEquals([1, 2, 2, 3], grow))
+  c.assert(c.arrEquals(foo, grow))
+
+  c.assertEquals(c.getType(1), c.TYPES.NUM)
+  c.assertEquals(c.getType([]), c.TYPES.ARR)
+  c.assertEquals(c.getType({}), c.TYPES.OBJ)
+  c.assertEquals(c.getType({
+    handle: () => {
+    }
+  }), c.TYPES.HANDLER)
+  c.assertEquals(c.getType({msg: ''}), c.TYPES.MSG)
+
+  c.assertEquals(c.size(10), 10)
+  c.assertEquals(c.size('foo'), 3)
+  c.assertEquals(c.size([3, 2, 5, 4]), 4)
+  c.assertEquals(c.size({foo: 1, bar: 2}), 2)
+  c.assertEquals(c.size(() => {
+  }), 0)
+  c.assertEquals(c.size(null), 0)
+  c.assertEquals(c.size(), 0)
+
+  let {str, num, bool, fun, obj, arr, between, exists, arrEquals, all, same, contains} = c.ASSERT
+
+  str('foobar');
+  num(1);
+  bool(false);
+  fun(() => {
+  });
+  obj({});
+  arr([]);
+  between(0, 10, 5);
+  between(0, 10, 'a'); //between assumes string length
+  between(0, 4, [1, 2]);
+  exists([]);
+  exists({});
+  exists(0);
+
+  arrEquals([], []);
+  contains([1, 3, 4], 3);
+
+  bool(c.cast('boolean', 'false'));
+  num(c.cast('number', "1234"));
+
+  all([1, 1, 1]);
 
 
-	<script>
-    // Walk up the location path, checking for the resource, returning that one when you find it.
-    // Alternatively (and arguably more performantly) you can serve up resources in this way.
-    // From the perspective of the programmer, adding a resource at a top level makes it
-    // present in all descendant folders. At the command line, this would look like a strange "mode"
-    // in which you accumulate a stack of useful state that you can easily call upon
-    // (typically some form of : fork, move, invoke, interact). This could most easily be achieved
-    // with a file-watcher script that would create symbolic links in the descendent folders (and update
-    // them in the case of move or delete). Interestingly, this "goes with the grain" of the unix
-    // philosophy to the point where "group" can have explicit, precise meaning, as
-    // describing those resources that are shared read-only with descendents, but write-only to your
-    // group (and its "ancestors") in the hierarchy.
-    // Is discovering a way to divide up the dishonest work of defrauding someone such that none of the
-    // pieces realizes that its being used in this way, is that a valid kind of innovation?
-    // This is the same moral hazard present in movies such as "Cube" (I think? It's the one where
-    // the group wakes up in a cube of trapped cubes, connected
+  same([true, true]);
+  same([false, false]);
+  same([1, 1, 1, 1, 1]);
+  same(['a', 'a', 'a']);
+  same([{}, {}, {}, {}]);
 
+  c.assertEquals({a: 1, b: [2, 3]}, {a: 1, b: [2, 3]});
+  // TODO: make object equals() insensitive to object key order.
+  // assertEquals({b:[2,3], a:1},{a:1, b:[2,3]});
 
+  // Some negative testing.
+  c.assertThrows(() => num('1'));
+  c.assertThrows(() => bool('1'));
+  c.assertThrows(() => obj([]));
+  c.assertThrows(() => between(0, 10, 11));
+  // c.assertThrows(()=>same([false, true]));
+  c.assertThrows(() => same([1, 1, 2]));
+  c.assertThrows(() => all([true, false]));
+  c.assertThrows(() => num(cast(TYPES.NUM, 'a')));
+  c.assertThrows(() => assertEquals({a: 1, b: [2, 3]}, {a: 1, b: [2, 3, false]}));
 
-		window.onerror = e => {
-		  document.getElementById('favicon').href='red.png';
-		  document.body.style.backgroundColor = 'red';
-		};
-	</script>
-	<script type="module">
-    import Core from './core.js';
-
-    const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, ARR: arr, SAME: same, ALL: all, EXISTS: exists,
-      CONTAINS:contains, assertEquals, arrEquals, assertThrows, BETWEEN: between, } = Core.asserts;
-    const {cast} = Core.types;
-    const {mapObject} = Core.objects;
-    const {size} = Core.utils;
-
-		str('foobar');
-		num(1);
-		bool(false);
-		fun(()=>{});
-		obj({});
-		arr([]);
-		between(0,10,5);
-		between(0,10,'a'); //between assumes string length
-		between(0,4,[1,2]);
-    exists([]);
-    exists({});
-    exists(0);
-
-    arrEquals([],[]);
-		contains([1,3,4], 3);
-
-		bool(cast('boolean', 'false'));
-		num(cast('number', "1234"));
-
-		all([1,1,1]);
-
-    assertEquals({a:3,b:4}, mapObject({a:1,b:2}, ([k,v])=>([k,v+2])));
-
-    // TODO: same() doesn't work on booleans properly, yet.
-		//same([true, true]);
-		//same([false, false]);
-		same([1,1,1,1,1]);
-    same(['a','a','a']);
-    same([{}, {}, {}, {}]);
-
-		assertEquals({a:1, b:[2,3]},{a:1, b:[2,3]});
-		// TODO: make object equals() insensitive to object key order.
-    // assertEquals({b:[2,3], a:1},{a:1, b:[2,3]});
-
-		assertThrows(()=>num('1'));
-		assertThrows(()=>bool('1'));
-		assertThrows(()=>obj([]));
-		assertThrows(()=>between(0,10,11));
-		// assertThrows(()=>same([false, true]));
-		assertThrows(()=>same([1,1,2]));
-    assertThrows(()=>all([true, false]));
-		assertThrows(()=>num(cast(TYPES.NUM, 'a')));
-		assertThrows(()=>assertEquals({a:1, b:[2,3]},{a:1, b:[2,3, false]}));
-
-    assertEquals(1, size(1));
-    assertEquals(2, size([1,2]));
-    assertEquals(3, size({a:1, b:2, c:3}));
-    assertEquals(4, size("goat"));
-    assertEquals(5, size(5));
-
-		console.log('Tests succeeded!');
-		document.getElementById('favicon').href='green.png';
-	</script>
+  console.log('Tests succeeded!');
+  document.getElementById('favicon').href = 'green.png';
+</script>
 </body>
 </html>

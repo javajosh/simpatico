@@ -1,11 +1,6 @@
-import Core from './core.js';
+import {TYPES, getType, cast, tryToStringify, debug, now, assert, is} from './core.js';
 
-const {TYPES, getType, cast} = Core.types;
-const {tryToStringify, debug, now} = Core.utils;
-const {assert} = Core.asserts;
-const PREDS = Core.preds;
-
-const combine = (target, msg, rules=getRules()) => {
+export const combine = (target, msg, rules=getRules()) => {
   const {NUL,FUN,ARR,ANY} = TYPES;
   let ttarget = getType(target);
   let tmsg = getType(msg);
@@ -86,7 +81,7 @@ const getRules = () => {
   //mutation: all results will get the id of the parent
   rules[OBJ+MSG] = (core, msg) => {
     // World event - defensively copy because we mutate
-    const isWorldEvent = PREDS.UNDEF(msg.parent);
+    const isWorldEvent = is.undef(msg.parent);
     if (isWorldEvent) msg = {time:now(), ...msg};
     msg = {id: core.msgs.length, ...msg};
     core.msgs.push(msg);
@@ -98,7 +93,7 @@ const getRules = () => {
     // Invoke the handler.
     // Results should always be an array, so help sloppy handlers
     let results = handler[TYPES.HANDLER](core, msg);
-    if (!PREDS.ARR(results)) results = [results];
+    if (!is.arr(results)) results = [results];
 
     // Build up some more info about the message cascade.
     msg.children = results;
@@ -106,7 +101,7 @@ const getRules = () => {
     //Recurse for each result
     for (const result of results){
       // Store the id of the parent to avoid cycles that stop stringification
-      if (PREDS.OBJ(result)) result.parent = msg.id;
+      if (is.obj(result)) result.parent = msg.id;
       core = combine(core, result); //recurse, generates the message cascade.
     }
     return core;
@@ -122,7 +117,7 @@ const getRules = () => {
 };
 
 // Convenience functions that wrap combine
-const combineAll = (arr, core={}) => arr.reduce(combine, core)
-const combineAllArgs = (...args) => combineAll(Array.from(args))
+export const combineAll = (arr, core={}) => arr.reduce(combine, core)
+export const combineAllArgs = (...args) => combineAll(Array.from(args))
+export default combine
 
-export default {combine, combineAll, combineAllArgs}

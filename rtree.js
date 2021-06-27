@@ -1,11 +1,6 @@
-import Core from './core.js';
-import Combine from './combine.js';
+import {now}  from './core.js';
+import combine from './combine.js';
 
-const {ARR} = Core.preds;
-const {assert} = Core.asserts;
-const {peek} = Core.arrays;
-const {now} = Core.utils;
-const {combine} = Combine;
 
 /** Docs
  This rtree is implemented with arrays.
@@ -42,7 +37,7 @@ const {combine} = Combine;
 
  */
 
-export const rtree = (startValue= {}, reducer = combine) => {
+export default (startValue= {}, reducer = combine) => {
   const ROOT = {
     id: 0, time: now(), branch: 0, parent: null, children: [],
     value: startValue, residue: startValue,
@@ -87,13 +82,3 @@ export const rtree = (startValue= {}, reducer = combine) => {
   }
   return {setFocus, getFocus, read, add, measurements, branches, focus};
 }
-
-
-
-//   const printRow = (row) => `${row.row} - [${row.parent === null ? 'n' : row.parent}] ${row.values.join(' ')} {${summarize(row.residue)}}`;
-//   const print = ()=> rows.map(printRow).join('\n') + `\nfocus: ${foc}`;
-
-//   const rowValues = (f=foc) => rows[f].values.map(i=>values[i]);
-
-//   return {values, rows, add, focus, residue, residues, print, rowValues};
-// }

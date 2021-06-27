@@ -1,109 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="description" content="combine.js test file. This file conforms to the conventions set forth in simpatico.io/docs/component_conventions.html">
-	<meta name="keywords" content="JavaScript">
-	<meta name="author" content="Josh Rehman">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link id="favicon" rel="icon" type="image/png" href="white.png" />
-	<meta id="refresh" http-equiv="refresh" content="2">
-	<title>Combine.js</title>
+  <meta charset="UTF-8">
+  <meta name="description"
+        content="combine.js test file. This file conforms to the conventions set forth in simpatico.io/docs/component_conventions.html">
+  <meta name="keywords" content="JavaScript">
+  <meta name="author" content="Josh Rehman">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link id="favicon" rel="icon" type="image/png" href="white.png"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <title>Combine.js</title>
   <link rel="stylesheet" type="text/css" href="tufte.css">
 
 </head>
 <body>
-	<h1>Combine.js</h1>
-	<p>Josh Rehman <i>20 Jan 2019</i></p>
-	<p>deps: utils.js</p>
-	<button onclick="window.stop()">Stop 2s Refresh</button>
+<h1>Combine.js</h1>
+<p>Josh Rehman <i>20 Jan 2019</i></p>
+<p>deps: utils.js</p>
+<button onclick="window.stop()">Stop 2s Refresh</button>
+<script>
+  window.onerror = e => {
+    document.getElementById('favicon').href = 'red.png';
+    document.body.style.backgroundColor = 'red';
+  };
+</script>
 
-	<script type="module">
-    import Core from './core.js';
-    import Combine from './combine.js';
-
-    const {combine} = Combine;
-    const {TYPES, getType} = Core.types;
-    const {log} = Core.utils;
-    const {EQUALS:deepEquals} = Core.preds;
-    const {assertEquals, assert} = Core.asserts;
-
-    window.onerror = e => document.getElementById('favicon').href='red.png';
-		console.log('Starting tests');
-
-    // TODO: factor out this testrunner
-		const skipCalls = 0; //skip the first N calls
-		let calledTimes = 0;
-		const test = (target, msg, expected, print=true) => {
-      calledTimes++;
-			if (skipCalls && (calledTimes < skipCalls)) {return;}
-
-			const result = combine(target, msg);
-
-			if (print) log(calledTimes++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
-
-      // Give the caller the option to assert stuff in a function passed as the third argument
-			if (getType(expected) === TYPES.FUN) expected(result);
-			else deepEquals(expected, result);
-
-			return result;
-		};
-
-		const UNIT = {};
-		let result;
-
-		// NUMBERS add
-		test(1,1,2);
-		// numbers zeroed with null
-		test(9,null,0);
-
-		// strings are replaced
-		test('a','b','b');
-
-		// ARRAYS
-		// scalars are pushed
-		test([],1,[1]);
-		test([],'a',['a']);
-		// arrays are concatenated
-		test([1],[2],[1,2]);
-		// can be emptied with null
-		test([1,2], null, []);
-
-		// OBJECTS use all the scalar rules for their leaf keys.
-		test({},{},{});
-		test({},{a:1},{a:1});
-		test({a:1},{a:1},{a:2});
-		// test({a:1},{b:2},{a:1, b:2}); my bad deepEquals function makes this fail :(
-		test({a:99}, {a:null}, {a:0});
-		test({a:[]}, {a:1}, {a:[1]});
-
-		// We can reach in deeply without touching the rest of the object.
-		test({a:{b:1}, c:2}, {a:{b:1}}, {a: {b:2}, c:2})
-
-		// Functions are invoked.
-		test(1, a=>a+1, 2);
-		test(a=>a+1, 1, 2);
-		// Nulling out a function
-		test(a=>a+1, null, null);
-
-		// Setting a function
-		test(null, a=>a+1, fn => assertEquals(fn(1), 2));
-
-		// Handlers can call each other- forming a message cascade.
-		result = combine(UNIT, {
-			name:'a',
-			handle: (ctx, msg) => [{a:1},{msg:'b'}],
-		});
-		result = combine(result, {
-			name:'b',
-			handle: (ctx, msg) => [{b:1}],
-		});
-		result = combine(result, {msg: 'a'});
-		assert(result.a === 1 && result.b === 1);
+<script type="module">
+  import {TYPES, getType, log, equals, assert, assertEquals} from './core.js';
+  import {combine} from './combine.js';
 
 
-		console.log('Tests succeeded!');
-		document.getElementById('favicon').href='green.png';
-	</script>
+  const skipCalls = 0; //skip the first N calls
+  let calledTimes = 0;
+  const test = (target, msg, expected, print = true) => {
+    calledTimes++;
+    if (skipCalls && (calledTimes < skipCalls)) {
+      return;
+    }
+
+    const result = combine(target, msg);
+
+    if (print) log(calledTimes++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
+
+    // Give the caller the option to assert stuff in a function passed as the third argument
+    if (getType(expected) === TYPES.FUN) expected(result);
+    else equals(expected, result);
+
+    return result;
+  };
+
+  const UNIT = {};
+  let result;
+
+  // NUMBERS add
+  test(1, 1, 2);
+  // numbers zeroed with null
+  test(9, null, 0);
+
+  // strings are replaced
+  test('a', 'b', 'b');
+
+  // ARRAYS
+  // scalars are pushed
+  test([], 1, [1]);
+  test([], 'a', ['a']);
+  // arrays are concatenated
+  test([1], [2], [1, 2]);
+  // can be emptied with null
+  test([1, 2], null, []);
+
+  // OBJECTS use all the scalar rules for their leaf keys.
+  test({}, {}, {});
+  test({}, {a: 1}, {a: 1});
+  test({a: 1}, {a: 1}, {a: 2});
+  // test({a:1},{b:2},{a:1, b:2}); my bad deepEquals function makes this fail :(
+  test({a: 99}, {a: null}, {a: 0});
+  test({a: []}, {a: 1}, {a: [1]});
+
+  // We can reach in deeply without touching the rest of the object.
+  test({a: {b: 1}, c: 2}, {a: {b: 1}}, {a: {b: 2}, c: 2})
+
+  // Functions are invoked.
+  test(1, a => a + 1, 2);
+  test(a => a + 1, 1, 2);
+  // Nulling out a function
+  test(a => a + 1, null, null);
+
+  // Setting a function
+  test(null, a => a + 1, fn => assertEquals(fn(1), 2));
+
+  // Handlers can call each other- forming a message cascade.
+  result = combine(UNIT, {
+    name: 'a',
+    handle: (ctx, msg) => [{a: 1}, {msg: 'b'}],
+  });
+  result = combine(result, {
+    name: 'b',
+    handle: (ctx, msg) => [{b: 1}],
+  });
+  result = combine(result, {msg: 'a'});
+  assert(result.a === 1 && result.b === 1);
+
+
+  console.log('Tests succeeded!');
+  document.getElementById('favicon').href = 'green.png';
+</script>
 </body>
 </html>

@@ -1,0 +1,13 @@
+{
+  "name": "simpatico",
+  "version": "1.0.0",
+  "description": "building software, together",
+  "main": "simpatico.js",
+  "repository": "https://github.com/javajosh/simpatico.git",
+  "author": "Josh Rehman <josh@joshrehman.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "prettier": "^2.3.2"
+  }
+}

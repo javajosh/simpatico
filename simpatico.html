@@ -9,7 +9,6 @@
   <meta name="keywords" content="programming, state, actor model, message oriented programming, finite state automata">
   <meta name="author" content="Josh Rehman">
   <title>Simpatico.js</title>
-
    <!--
      [link#favicon] and [meta#refresh] make a simple looping test runner using old-school browser features.
 
@@ -68,12 +67,13 @@
   id="s0">the browser medium</span>.</p>
 
 <!--  The use of modules allows me to isolate scripts on the page from each other-->
-<!--  and code in a more natural way. It does make REPL interaction harder, however.-->
+<!--  and code in a more natural way. It does make REPL (dev tools) interaction a little harder, however.-->
 <script type="module">
   // s stands for "span". increment these s0 numbers over time
-  // The tag is useful for giving context to the elt;
+  // The tag is redundant but useful for giving context to the elt;
   const span = document.querySelector("span#s0");
 
+  // Let's spin that sucker!
   const ms = 1, Hz = 1, pi = Math.PI; // Show units in code!
   const rotPeriod = 4000 * ms; // desired rotational period
   const tp = 17 * ms; // desired tick period
@@ -116,7 +116,6 @@
     </g>
     <polygon fill="red" stroke="blue" stroke-width=".001" points="
       .01,.02 .03,.04
-
     "/>
     <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector for how to do it, but its very bulky. -->
   </g>
@@ -130,11 +129,11 @@
   const svg = document.querySelector("svg#s1")
   const g = document.querySelector("g#s2-transform");
 
-  // Write all (js obj key) values into (svg elt attr) values
+  // Write every (obj entry key value) into (svg attr key value)
   const combine = (elt, obj) => {
     if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y}); // Support (x,y) -> (cx, cy) for circles
-    for (const key in obj){
-      elt.setAttribute(key,  obj[key] + '');
+    for (const [key, value] of Object.entries(obj)){
+      elt.setAttribute(key,  value.toString());
     }
   }
 
@@ -148,18 +147,21 @@
     y: a * Math.sin(b * t + c) + d,
   });
 
-  // Set timeout negative to cancel
-  let running = true, started = Date.now(), ms = 1, timeOut = 4000 * ms;
-
+  const state = {
+    pos,
+    running: true,
+    started: Date.now(),
+    timeOut: 4000, //negative to cancel
+  };
   svg.addEventListener('click', () => {
     running = !running
   });
 
   window.addEventListener('tick', e => {
     const t = Date.now();
-    if (running && (t < (started + timeOut) || timeOut < 0)) {
-      pos = circularMotion(t, 1, .001, 0, 0);
-      write(pos, g);
+    if (state.running && (t < (state.started + state.timeOut) || state.timeOut < 0)) {
+      state.pos = circularMotion(t, 1, .001, 0, 0);
+      write(state.pos, g);
     }
   });
 
@@ -202,7 +204,9 @@
 
 <script type="module">
   import Core from './core.js';
+  import {combine} from './combine.js';
 
+  // Lowercase the assertions for readability (also, we may want to provide a lowercase exports option)
   const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, ARR: arr, SAME: same, ALL: all, EXISTS: exists,
     CONTAINS:contains, assertEquals, arrEquals, assertThrows, BETWEEN: between, } = Core.asserts;
   const {cast} = Core.types;
@@ -212,8 +216,12 @@
   const svg = document.querySelector("svg#s4");
   const g = document.querySelector("g#s5-transform");
 
-  const combine = (elt, obj) => {
-    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y}); // use x and y for rects AND circles.
+  const objToElt = (obj, elt) => {
+    // x and y coords are applied as cx cy coords, if not already set.
+    if (elt.tagName === "circle") {
+      if (hasProp(obj, 'x') && !hasProp(obj, 'cx')) obj.cx= obj.x;
+      if (hasProp(obj, 'y') && !hasProp(obj, 'cy')) obj.cy= obj.y;
+    }
     for (const key in obj){
       elt.setAttribute(key,  obj[key] + '');
     }
@@ -221,15 +229,15 @@
 
   // Return which quad the vector is in, counting counter clockwise starting with 0
   const quad = ({x,y}) => {
-    if (y > 0){ // This *can* be shortened with the ternary operator. But please don't hurt code readers like that!
+    if (y > 0){ // This *can* be shortened with the ternary operator. But please don't.
       return x > 0 ? 0 : 1;
     } else {
       return x < 0 ? 2 : 3;
     }
   }
 
-  const isInsideRec = ({x, y}, {N, S, W, E}) =>
-    (W <= x && x <= E) && (S <= y && y <= N);
+  const isInsideRec = ({x, y}, {N, S, E, W}) =>
+    (N <= y && y <= S) && (E <= x && x <= W);
 
 
   const draw = ({x, y}, g = g) => combine(g, {transform: `translate(${x},${y})`});
@@ -242,16 +250,20 @@
     y: (pos.y + A * R * (dy * 2 - 1)) % R,
   });
 
-  // Static config: set timeout negative to disable.
-  const started = Date.now(), ms = 1, timeOut = -4000 * ms;
+  // Static
+  const
+    started = Date.now(),
+    ms = 1,
+    timeOut = -4000 * ms; // set timeout negative to disable.
 
-  // Dynamic state: position, and running state.
-  let pos = {x: 0, y: 0};
-  let running = true;
-
-  // A very clunky but simple way to detect changing values:
-  let lastQuad = 0, currQuad = lastQuad;
-  let lastVisible = true, currVisible = lastVisible;
+  // Dynamic
+  let
+    pos = {x: 0, y: 0},
+    running = true,
+    lastQuad = 0,
+    currQuad = lastQuad,
+    lastVisible = true,
+    currVisible = lastVisible;
 
   // Steady-state entry-point #1 - click the svg elt -> start/stop animation
   svg.addEventListener('click', () => {
@@ -261,7 +273,7 @@
   // Steady-state entry-point #2 - tick -> update particle position
   window.addEventListener('tick', e => {
     if (running && (e.detail.t < (started + timeOut) || timeOut < 0)) {
-      pos = randomWalk(pos, R=2);
+      pos = randomWalk(pos, 2);
       draw(pos, g);
 
       currQuad = quad(pos);
@@ -288,18 +300,25 @@
           {msg: 'start'}, // We are now on Row 1
           {session: 1, log:[]},
           {
-            name: 'log', type: 'handler', desc: 'Print messages to the console',
+            name: 'log', type: 'handler', desc: 'Print messages to the console, and store them',
+            // call with {msg: "hi"}
             msg: {log:{ msg: ['str']}},
             ctx: {
-              started: ['num', 'gt', 0],
-              log:[{log: {t:['num'], elapsed:['num'], msg: ['str']}}]
+              started: ['num', 'gt', 0, 'auto', Date.now], // set by init, when the handler is added, or explicit integration or initialization, which is roughly hydrating the auto validation rules and then combining with residue.
+              // push with {log:{t:1, elapsed: 2, msg: "hi"}}
+              log:[{
+                t:['num', 'auto', Date.now], // now()
+                elapsed:['num', 'gt', 0, 'auto', (_, {started}) => Date.now() - started], // t - ctx.started
+                msg: ['str'], // DoF
+              }],
+              // Meanwhile, we
             },
-            handle: function log(msg, ctx){
+            handle: function log({msg}, {started, log}){
               // Let's be friendly. If the msg doesn't validate, return the failures.
-              const mps = validate(msg, this.msg); if (!!mps) return mps;
+              // const mps = validate(msg, this.msg); if (!!mps) return mps;
               // If the context doesn't validate, this is an internal error that must be resolved
               // by a programmer. In fact, I would say that a handler needs a "prepare" step
-              const cps = validate(ctx, this.ctx); if (!!cps) throw `ctx validation failed ${ctx} // ${cps}`;
+              // const cps = validate(ctx, this.ctx); if (!!cps) throw `ctx validation failed ${ctx} // ${cps}`;
 
               const t = Date.now();
               const elapsed = t - ctx.started;
@@ -356,61 +375,30 @@
           -6,
           { // This is a bound path that is a circle that repeats every 360 ticks (6s period)
             name: 'tick', type: 'handler', desc: 'move a particle in a circle',
-            handle : (_, {theta=0, x=1, y=0, vx=0, vy=1}) => ({
+            handle : (_, {step=0, theta=0, parts=360}) => ({
               msg: 'move',
               relative: false,
-              parts: 360, // 1 degree per tick, so pretty fast! 17ms * 360 = 6120ms, or about 6 seconds per revolution,
-              theta: (theta + Math.PI/parts) % 2*Math.PI,
+              parts, // 360 is 1 degree per tick, so pretty fast! 17ms * 360 = 6120ms, or about 6 seconds per revolution,
+              step: step + 1,
+              theta: (step % parts) * 2 * Math.PI,
+              // Here is the motion associated with this particle, expressed as cartesian coordinates.
+              // Note that the equations make no reference to time. All we know is that it takes N ticks to come back to the start.
+              // In fact, rather than store state as theta, we might be better off storing it as the "ith part".
+              // For animation, I think it makes sense to think in terms of degrees.
+              // However for math, it's more useful to think in terms of radians.
               x: Math.cos(theta),
               y: Math.sin(theta),
               vx: -Math.sin(theta),
-              vy: -Math.cos(theta),
+              vy: Math.cos(theta),
             }),
           },
-          // Note that our intuition about an interactive simulation is roughly pushing a rock around
-          // this means a system that takes occasional impulses (a vector with some energy), and produces
-          // a change of state. Movement being one. Note that this is also a good description for weapons fire!
-          // Further, note that Simpatico gives us a good system for modelling *damage* in a way that lets
-          // each unit gain real character over time. While its tempting to run a physical simulation to determine
-          // damage effects, I think that is a dangerous approach to take to an extreme. However, a "Lego style" damage
-          // system where you model tightness of connectivity and lost blocks after collisions with, say, marbles
-          // hurled at great speed. This is play, and we say very specifically that nothing is destroyed. Only the combinations
-          // of things are changed. This is true in real war, too, but most of us are not content to accept
-          // atoms as the same thing as a person, so the mass is itself of small comfort to us. It is the
-          // combination, in this case, the active, thinking feeling breathing human, that that mass may form
-          // that is, in general of interest. humans are the best, but can also be quite bad - wicked, abusive, cruel.
-          // But in the same way that, on average, a dog is going to be a nice animal to pet, so to is the average person
-          // a nice person with which to have coffee and a chat.
 
-          // We Americans, especially we Orange County Gen Xers who grew up listening to the Smashing Pumpkins and disaffected
-          // humor of Beavis and Butthead have never been comfortable with the post 9/11 push toward autocracy.
-          // The dream of diversity was, for the most part, working pretty well. With the fall of the Berlin wall,
-          // that dread of nuclear war with the USSR was really lifted, and there was a real feeling of optimism.
-          // Until 9/11 and Bush 2 and Dick Cheney and Iraq 2 and Neo Cons, and the groundwork for Trump.
-          // But for that brief time of my young adulthood, all was right with the world!
-
-          //
 
           ],
         )
       }
 
-      const round =  (val, places=3) => Math.round(val * Math.pow(10,places))/Math.pow(10,places)
-      currVisible = isInsideRec(pos, {top:1, bottom: -1, left: -1, right: 1});
-      if (currQuad !== lastQuad || currVisible !== lastVisible){
-        console.log(
-          't', e.detail.t,
-          'particle', 'g#s5' ,
-          'visible', currVisible,
-          `(
-            x=${round(pos.x)},
-            y=${round(pos.y)}
-          )`,
-          'quad', currQuad
-        );
-        lastVisible = currVisible;
-      }
-      lastQuad = currQuad;
+
 
 
     }
