@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+  <link id="favicon" rel="icon" type="image/png" href="white.png" />
+	<title>TicTacToe</title>
+
+	<meta id="refresh" http-equiv="refresh" content="2">
+  <script src="testable.js"></script>
+</head>
+<body>
+	<h1>TicTacToe.js</h1>
+	<p>Josh Rehman <i>20 Jan 2019</i></p>
+	<button onclick="window.stop()">Stop 2s Refresh</button>
+
+	<h2>Tic-Tac-Toe using Combine.js</h2>
+	<p>
+		Putting aside some interesting things about the winner algorithm (here I opted for the simplest possible thing, a straight-forward, easy string matching problem), this demo is really about using <code>combine()</code> with a finite state machine that halts.
+	</p>
+
+
+<script type="module">
+  import {is, log, assert, assertEquals, assertThrows, ASSERT} from "./core.js";
+  import combine from "./combine.js";
+
+  const {between, contains, excludes} = ASSERT;
+
+  let count = 0;
+  const test = (target, msg, expected, print=true) => {
+    const result = combine(target, msg);
+    if (print) log('count', count++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
+    if (is.fun(expected)) expected(result);
+    else assertEquals(expected, result);
+    return result;
+  };
+
+	const UNIT = {};
+	let state;
+
+	// Begin actual tic tac toe!
+
+	state = combine(UNIT, {
+		turn: 1,
+		moves: [],
+		winner: -1,
+	});
+
+
+	const moveHandler = {
+		name: 'move',
+		example: {msg: 'move', val: 8},
+		handle: function (game, msg) {
+			assert(game.winner === -1, `Game already won by player ${game.winner}!`);
+
+			const move = msg.val;
+			between(0,8,move);
+			log(game.moves, move);
+			excludes(game.moves, move);
+
+			return [{turn: 1}, {moves: move}, {msg: 'winner'}];
+		},
+	};
+
+	const winnerHandler = {
+		name: 'winner',
+		example: {msg: 'winner'},
+		/*
+			0 1 2
+			3 4 5
+			6 7 8
+		*/
+		winConditions: '012-345-678-036-147-258-048-246'.split('-'),
+		handle: function(game, msg){
+			// Odd moves are for player one, even for player two
+			// Also, lodash has _.partition([1, 2, 3, 4], n => n % 2);
+			const p0 = game.moves.filter((move, i) => i % 2 - 1).sort().join('');
+			const p1 = game.moves.filter((move, i) => i % 2).sort().join('');
+
+			for (const pattern of this.winConditions){
+				if (p0.match(pattern)) return {winner: 1};
+				if (p1.match(pattern)) return {winner: 2};
+			}
+			return [];
+		}
+	};
+
+	state = combine(state, moveHandler);
+	state = combine(state, winnerHandler);
+
+	// In this game, p0 wins with 012
+	state = combine(state, {msg: 'move', val: 0});
+	state = combine(state, {msg: 'move', val: 3});
+	state = combine(state, {msg: 'move', val: 1});
+	state = combine(state, {msg: 'move', val: 8});
+	state = combine(state, {msg: 'move', val: 2});
+
+	// Game is won, so no more moves are allowed.
+	assertThrows(()=>combine(state, {msg: 'move', val: 7}));
+
+</script>
+</body>
+</html>
+

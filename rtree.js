@@ -1,4 +1,4 @@
-import {now}  from './core.js';
+import {now, is}  from './core.js';
 import combine from './combine.js';
 
 
@@ -54,15 +54,14 @@ export default (startValue= {}, reducer = combine) => {
   const setFocus = (index) => {read(index); focus = index}; //if the read doesn't throw, it's a good index.
   const getFocus = () => focus;
   const read = (index=focus) => (index <= 0) ? branches[-index] : measurements[index];
-  const add = (value) => {
+  const residue = ()=> read().residue
+  const add = (value, postCondition = is.t) => {
     // Create a bidirectional link between parent and measurement.
     const parent = read();
     const measurement = {id: measurements.length, value, time: now(), children: []};
     parent.children.push(measurement); // TODO: check that no sibling measurements have the same value.
     measurement.parent = parent;
-
-    // Compute the new residue!
-    measurement.residue = reducer(parent.residue, value);
+    measurement.residue = reducer(parent.residue, value); //compute!
 
     // If residue is mutable, then we should remove the parent residue.
     // parent.residue = null;
@@ -80,5 +79,5 @@ export default (startValue= {}, reducer = combine) => {
     measurements.push(measurement);
     return measurement;
   }
-  return {setFocus, getFocus, read, add, measurements, branches, focus};
+  return {setFocus, getFocus, read, add, measurements, branches, focus, residue};
 }

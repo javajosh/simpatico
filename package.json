@@ -7,6 +7,7 @@
   "author": "Josh Rehman <josh@joshrehman.com>",
   "license": "MIT",
   "private": false,
+  "type": "module",
   "dependencies": {
     "prettier": "^2.3.2"
   }

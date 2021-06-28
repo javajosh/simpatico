@@ -2,18 +2,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="description" content="Rehman Tree: Definition, application">
-  <meta name="keywords" content="HTML,CSS,XML,JavaScript">
+  <meta name="keywords" content="Simpatico, rtree, es6">
   <meta name="author" content="Josh Rehman">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link id="favicon" rel="icon" type="image/png" href="white.png"/>
-  <meta id="refresh" http-equiv="refresh" content="2">
+  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
   <title>RTree.js</title>
-  <link rel="stylesheet" type="text/css" href="tufte.css">
+
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <script src="testable.js"></script>
 </head>
 <body>
 <h1>RTree.js</h1>
 <p>Josh Rehman <i>July 2020</i></p>
-<p>deps: utils, combine</p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
 <h2>The Problem of State Management</h2>
@@ -21,13 +21,13 @@
 <p>The problem of process state management is currently tackled by software components like Redux.</p>
 
 <p>Note that server side software doesn't have state; or rather, it's state is a very tightly coupled to the static
-  source code. That type of code is dominated by the definition of singletons (and the reuse of them), to support, ultimately, Controllers that do the work. In general, a server must be responsible for its own security.
+  source code. That type of code is dominated by the definition of singletons (and the reuse of them), to support,
+  ultimately, Controllers that do the work. In general, a server must be responsible for its own security.
 </p>
 
-  <p>These singletons recapitulate
-  many of the same concerns that arise in build systems; in fact its the same concern but handled at compile time by one
-  tool (Maven) and at runtime by another tool (Spring). Or on the client by one tool at compile-time (npm, ng) and
-  another at runtime (angular module annotations). </p>
+<p>These singletons recapitulate many of the same concerns that arise in build systems; in fact its the same concern but
+  handled at compile time by one tool (Maven) and at runtime by another tool (Spring). Or on the client by one tool at
+  compile-time (npm, ng) and another at runtime (angular module annotations). </p>
 
 <p>The natural data-structure then would be to model state as a special dynamic part of the head of a linked list of
   input. It doesn't really have to be dynamic. </p>
@@ -38,10 +38,6 @@
   pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent.
   Otherwise, you're just adding to the row.</p>
 
-
-<script> // Detect compilation errors for following scripts.
-window.onerror = e => document.getElementById('favicon').href = 'red.png';
-</script>
 
 <script type="module">
   import {assertEquals} from './core.js';
@@ -81,11 +77,22 @@ window.onerror = e => document.getElementById('favicon').href = 'red.png';
   assertEquals(r.branches[2].residue, 7);
   assertEquals(r.getFocus(), -2);
 
+</script>
 
-  const r2 = rtree({});
+<script type="module">
+  import latch from './demo-latch.js'
+  import {assert, assertEquals, log} from "./core.js";
 
-  console.log('Tests succeeded!');
-  document.getElementById('favicon').href = 'green.png';
+  log('start', latch.residue().count)
+  latch.add({count: -10})
+  log('direct', latch.residue().count)
+  latch.add({msg: 'dec', amount: 5})
+  log('indirect', latch.residue().count)
+  //TODO This is still failing.
+  assertEquals(latch.residue().count, 5)
+
+  // latch.add({msg: 'dec', amount: 5}, r => assertEquals(r.count, 94));
+  // latch.add({msg: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
 
 </script>
 </body>

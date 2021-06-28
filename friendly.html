@@ -9,12 +9,12 @@
   <link id="favicon" rel="icon" type="image/png" href="white.png"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <title>Friendly.js</title>
+  <script type="module" src="testable.js"></script>
 
 </head>
 <body>
 <h1>Friendly.js</h1>
 <p>Josh Rehman <i>27 Jan 2019</i></p>
-<p>deps: utils.js</p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
 <p>A friendly function is one that tells you how to call it. If you call it with nothing, it returns a <i>pattern</i>
@@ -26,13 +26,12 @@
   important part of the convention: return something other than an object! For various reasons, I like array.</p>
 
 <script type="module">
-  import {TYPES, ASSERT, assertEquals, is} from './core.js';
+  import {ASSERT, assertEquals} from './core.js';
   import {checkValue, validate} from './friendly.js';
 
-  const {str, num, bool, fun, obj, undef, arr, same, all, exists, contains, arrEquals, assertThrows,} = ASSERT;
+  const {str, num, bool, fun, obj, undef, arr, same,
+    all, exists, contains, arrEquals, assertThrows,} = ASSERT;
 
-  console.log('Starting tests');
-  window.onerror = e => document.getElementById('favicon').href = 'red.png';
 
   const testPattern = {
     a: ['num', 'between', 0, 10],
@@ -162,9 +161,7 @@
   assertEquals(validate(testPattern, testNotValid), {d: {e: ['between', 0, 10]}}, 'full monty should NOT be valid');
 
   /** docs
-   A simple friendly function. Note that friendly functions can only take one object arg.
-   It's better if they don't return objects if they execute normally, since this clashes with the descriptive failure mode
-   We will see that in a handler context these conditions are very natural and easy
+   A simple friendly function. Note that friendly functions can only take one object arg. It's better if they don't return objects if they execute normally, since this clashes with the descriptive failure mode We will see that in a handler context these conditions are very natural and easy
    */
   const friendly = input => {
     const pattern = {a: ['bool']};
@@ -175,14 +172,13 @@
     }
   }
 
+  // Lots of wrong ways to call this function; only one right way
   assertEquals(friendly(), {a: ['bool']})
   assertEquals(friendly(1), {a: ['bool']})
   assertEquals(friendly({a: 1}), {a: ['bool']})
   assertEquals(friendly({b: true}), {a: ['bool']})
   assertEquals(friendly({a: true}), 2)
 
-  console.log('Tests succeeded!');
-  document.getElementById('favicon').href = 'green.png';
 </script>
 </body>
 </html>

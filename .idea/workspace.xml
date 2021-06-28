@@ -28,9 +28,117 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Got all tests green and rethinking the module layout. Also, bit the bullet and installed prettier - I may install rollup, too.">
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Got the friendly function tests green, too.">
+      <change afterPath="$PROJECT_DIR$/demo-clock.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/4.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/bpm-finder.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/chat-node-websocket/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/chat-node-websocket/index.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/chat-node-websocket/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/chat-node-websocket/yarn.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/index-tufte.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes/memory.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/josh.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/josh.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.tags" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/0.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/1.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/1.md" beforeDir="false" afterPath="$PROJECT_DIR$/notes/1.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2.js" beforeDir="false" afterPath="$PROJECT_DIR$/testable.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/3.md" beforeDir="false" afterPath="$PROJECT_DIR$/notes/3.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Screen Shot 2020-06-28 at 10.18.33 PM.png" beforeDir="false" afterPath="$PROJECT_DIR$/notes/2020-06-28 at 10.18.33 PM making simpatico public.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android-chrome-192x192.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/wizard-192x192.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android-chrome-512x512.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/wizard-512x512.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app_loop.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/app_loop.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apple-touch-icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/wizard-apple-touch-icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/basic.css" beforeDir="false" afterPath="$PROJECT_DIR$/notes/basic.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/blog-datastructure.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bpm.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/index.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/.yarn-integrity" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/browser.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/index.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/buffer-util.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/constants.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/event-target.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/extension.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/limiter.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/permessage-deflate.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/receiver.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/sender.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/stream.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/validation.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/websocket-server.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/lib/websocket.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/node_modules/ws/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chat/yarn.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/clock.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/combine.html" beforeDir="false" afterPath="$PROJECT_DIR$/combine.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core.html" beforeDir="false" afterPath="$PROJECT_DIR$/core.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core.js" beforeDir="false" afterPath="$PROJECT_DIR$/core.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-latch.js" beforeDir="false" afterPath="$PROJECT_DIR$/demo-latch.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/draw.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/d3-draw.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/events.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/browser-events.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/favicon-16x16.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/favicon-16x16.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/favicon-32x32.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/favicon-32x32.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/img/favicon.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/first-write-wins.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/last-write-wins.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/first-write-wins.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/last-write-wins.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/foobar.css" beforeDir="false" afterPath="$PROJECT_DIR$/notes/foobar.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/foobar.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/foobar.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/friendly.html" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/friendly.js" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/games.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/games.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/green.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/green.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/chance.min.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/chance.min.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/d3.v5.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/d3.v5.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/deepequals.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/deepequals.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/highlight.min.css" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/highlight.min.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/highlight.min.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/highlight.min.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/mini-default.css" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/mini-default.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/normalize.v8.0.1.css" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/normalize.v8.0.1.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/ramda-0.26.1.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/ramda-0.26.1.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/seedrandom.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/lib/seedrandom.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/log" beforeDir="false" afterPath="$PROJECT_DIR$/log.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/memory.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/new.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/new.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/new.min.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/predicates.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/predicates.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rectangles.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/d3-rectangles.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/red.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/red.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rtree.html" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rtree.js" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/simpatico_template_1.0.0.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/simpatico_template_1.0.0.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/site.webmanifest" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/sound.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/webaudio-experiment.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/svg-minimal-dragging.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/svg-minimal-dragging.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/svg.js" beforeDir="false" afterPath="$PROJECT_DIR$/svg.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tictactoe.html" beforeDir="false" afterPath="$PROJECT_DIR$/demo-tictactoe.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tictactoe.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/hyper-tictactoe.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/ModernHistory.js" beforeDir="false" afterPath="$PROJECT_DIR$/notes/ModernHistory.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/binary-search-tree.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/first.md" beforeDir="false" afterPath="$PROJECT_DIR$/notes/first.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/browser-topics.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/javascript.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/basic-javascript.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/predicates-2.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/predicates.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/predicates.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/predicates.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/notes/pedagogy/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/second.md" beforeDir="false" afterPath="$PROJECT_DIR$/notes/pedagogy/second.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/to_sort/simpatico.md" beforeDir="false" afterPath="$PROJECT_DIR$/notes/pedagogy/simpatico.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tufte-css.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/tufte-css.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tufte.css" beforeDir="false" afterPath="$PROJECT_DIR$/notes/tufte.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webgl.html" beforeDir="false" afterPath="$PROJECT_DIR$/notes/webgl-experiment.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/white.png" beforeDir="false" afterPath="$PROJECT_DIR$/img/white.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,6 +160,14 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/simpatico.js" root0="SKIP_INSPECTION" />
@@ -75,26 +191,31 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON" />
     <property name="javascript.nodejs.core.library.configured.version" value="12.17.0" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/notes" />
     <property name="nodejs_interpreter_path" value="node" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="/usr/local/bin/node" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="yarn" />
     <property name="prettierjs.PrettierConfiguration.Package" value="$PROJECT_DIR$/node_modules/prettier" />
-    <property name="settings.editor.selected.configurable" value="settings.javascript.prettier" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="zielu.gittoolbox.prj.config.v2" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/notes" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/notes/pedagogy" />
+      <recent name="$PROJECT_DIR$/notes" />
+      <recent name="$PROJECT_DIR$/img" />
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="Application" factoryName="Application">
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration default="true" type="ClojureREPL" factoryName="Local" activateToolWindowBeforeRun="false">
       <setting name="displayName" value="" />
       <setting name="replType" value="NREPL" />
@@ -118,6 +239,12 @@
       <setting name="fixLineNumbers" value="false" />
       <method v="2" />
     </configuration>
+    <configuration default="true" type="Application" factoryName="Application">
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <option name="TEST_OBJECT" value="class" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
@@ -133,44 +260,6 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
-    </configuration>
-    <configuration default="true" type="aws.lambda" factoryName="Local">
-      <option name="credentialProviderId" />
-      <option name="regionId" />
-      <option name="debugHost" value="localhost" />
-      <option name="environmentVariables">
-        <map />
-      </option>
-      <option name="handler" />
-      <option name="image" value="false" />
-      <option name="logicalFunctionName" />
-      <option name="memorySize" value="128" />
-      <option name="pathMappings">
-        <list />
-      </option>
-      <option name="platform" />
-      <option name="runtime" />
-      <option name="templateFile" />
-      <option name="timeout" value="300" />
-      <option name="useTemplate" value="false" />
-      <option name="input" />
-      <option name="inputIsFile" value="false" />
-      <sam>
-        <option name="additionalBuildArgs" />
-        <option name="additionalLocalArgs" />
-        <option name="buildInContainer" value="false" />
-        <option name="dockerNetwork" />
-        <option name="skipImagePull" value="false" />
-      </sam>
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="aws.lambda" factoryName="Remote">
-      <option name="credentialProviderId" />
-      <option name="regionId" />
-      <option name="functionName" />
-      <option name="input" />
-      <option name="inputIsFile" value="false" />
-      <method v="2" />
     </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="project-level" UseSingleDictionary="true" transferred="true" />
@@ -222,7 +311,10 @@
       <workItem from="1623024296147" duration="4441000" />
       <workItem from="1623901864145" duration="637000" />
       <workItem from="1623902807110" duration="1628000" />
-      <workItem from="1624756078604" duration="11002000" />
+      <workItem from="1624756078604" duration="11417000" />
+      <workItem from="1624807065595" duration="2319000" />
+      <workItem from="1624823794883" duration="276000" />
+      <workItem from="1624824086947" duration="17172000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -385,7 +477,14 @@
       <option name="project" value="LOCAL" />
       <updated>1624766071150</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Got the friendly function tests green, too.">
+      <created>1624767494245</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1624767494245</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -438,7 +537,8 @@
     <MESSAGE value="Some fun monte carlo stuff." />
     <MESSAGE value="This has been an awkward step and I've introduced a lot of problems into the runtime by both sketching out what I want AND implementing it, in the same stream. It's a bit confusing, and it's time to pair it back into something that, first and foremost, makes sense and runs smoothly." />
     <MESSAGE value="Got all tests green and rethinking the module layout. Also, bit the bullet and installed prettier - I may install rollup, too." />
-    <option name="LAST_COMMIT_MESSAGE" value="Got all tests green and rethinking the module layout. Also, bit the bullet and installed prettier - I may install rollup, too." />
+    <MESSAGE value="Got the friendly function tests green, too." />
+    <option name="LAST_COMMIT_MESSAGE" value="Got the friendly function tests green, too." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

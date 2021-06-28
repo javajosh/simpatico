@@ -2,78 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description"
-        content="combine.js test file. This file conforms to the conventions set forth in simpatico.io/docs/component_conventions.html">
-  <meta name="keywords" content="JavaScript">
   <meta name="author" content="Josh Rehman">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link id="favicon" rel="icon" type="image/png" href="white.png"/>
-  <meta id="refresh" http-equiv="refresh" content="2">
+  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
   <title>Combine.js</title>
-  <link rel="stylesheet" type="text/css" href="tufte.css">
 
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <script type="module" src="testable.js"></script>
 </head>
 <body>
 <h1>Combine.js</h1>
 <p>Josh Rehman <i>20 Jan 2019</i></p>
 <p>deps: utils.js</p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
-<script>
-  window.onerror = e => {
-    document.getElementById('favicon').href = 'red.png';
-    document.body.style.backgroundColor = 'red';
-  };
-</script>
 
 <script type="module">
-  import {TYPES, getType, log, equals, assert, assertEquals} from './core.js';
   import {combine} from './combine.js';
+  import {log, assert, assertEquals, is} from './core.js';
 
+  // This is a helper function to be used while testing the combine function
 
-  const skipCalls = 0; //skip the first N calls
-  let calledTimes = 0;
+  let result = null;
   const test = (target, msg, expected, print = true) => {
-    calledTimes++;
-    if (skipCalls && (calledTimes < skipCalls)) {
-      return;
-    }
-
-    const result = combine(target, msg);
-
-    if (print) log(calledTimes++, 'target', target, 'msg', msg, 'expected', expected, 'result', result);
-
-    // Give the caller the option to assert stuff in a function passed as the third argument
-    if (getType(expected) === TYPES.FUN) expected(result);
-    else equals(expected, result);
-
+    result = combine(target, msg);
+    if (print) log('combine.html/test()', 'target', target, 'msg', msg, 'expected', expected, 'result', result);
+    if (is.fun(expected)) expected(result)
+    else assertEquals(expected, result);
     return result;
   };
 
   const UNIT = {};
-  let result;
 
-  // NUMBERS add
-  test(1, 1, 2);
-  // numbers zeroed with null
-  test(9, null, 0);
-
-  // strings are replaced
-  test('a', 'b', 'b');
+  // scalars
+  test(1, 1, 2) //numbers add
+  test(9, null, 0) // zero out numbers with null
+  test('a', 'b', 'b') // strings get replaced
 
   // ARRAYS
-  // scalars are pushed
-  test([], 1, [1]);
-  test([], 'a', ['a']);
+  test([], 1, [1]) // scalars are pushed
+  test([], 'a', ['a'])
+  test([1], 'a', [1, 'a'])
   // arrays are concatenated
-  test([1], [2], [1, 2]);
-  // can be emptied with null
+  test([1, 2], [3, 4], [1, 2, 3, 4]);
+  // array can be emptied with null
   test([1, 2], null, []);
 
   // OBJECTS use all the scalar rules for their leaf keys.
   test({}, {}, {});
   test({}, {a: 1}, {a: 1});
   test({a: 1}, {a: 1}, {a: 2});
-  // test({a:1},{b:2},{a:1, b:2}); my bad deepEquals function makes this fail :(
+  // test({a:1},{b:2},{a:1, b:2}); //can't be properly auto-tested without a better equals for objects
   test({a: 99}, {a: null}, {a: 0});
   test({a: []}, {a: 1}, {a: [1]});
 
@@ -90,6 +68,7 @@
   test(null, a => a + 1, fn => assertEquals(fn(1), 2));
 
   // Handlers can call each other- forming a message cascade.
+  // In this case, handler a also calls handler b. (but b doesn't call a)
   result = combine(UNIT, {
     name: 'a',
     handle: (ctx, msg) => [{a: 1}, {msg: 'b'}],
@@ -100,10 +79,11 @@
   });
   result = combine(result, {msg: 'a'});
   assert(result.a === 1 && result.b === 1);
+  result = combine(result, {msg: 'a'});
+  assert(result.a === 2 && result.b === 2);
+  result = combine(result, {msg: 'b'});
+  assert(result.a === 2 && result.b === 3);
 
-
-  console.log('Tests succeeded!');
-  document.getElementById('favicon').href = 'green.png';
 </script>
 </body>
 </html>

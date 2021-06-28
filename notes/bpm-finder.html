@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>BPM Finder</title>
+</head>
+<body>
+<p>BPM finder, implemented in a button</p>
+
+<div>
+  <button onclick="fn(e)">Click in time</button>
+</div>
+
+<ol>
+  <li>How to convert to BPM?
+  <li>1 Minute = 60 seconds = 60,000 ms.
+  <li>We can divide that by our interval to get BPM
+  <li>Sadly we get a really long number with a misleading amount of precision.
+  <li>Apart from manually clamping, is there a way to protect the significant digits?
+  <li>Answer: javascript numbers have a built in "toPrecision()" that does what we need,
+  <li>apart from returning a string for some weird reason.
+</ol>
+
+<script>
+  const intervals = [];
+  const K = 1000;
+
+  let t_last = 0;
+  let sum = 0;
+  let sum10 = 0;
+  let count = 0;
+
+  console.log(new Date().getTime(), count);
+
+  const bpm = ms => +(60 * K / ms).toPrecision(3);
+
+  const fn = ({timeStamp: t}) => {
+    count++;
+    let interval = t - t_last;
+    t_last = t;
+    intervals.push(interval);
+
+    sum += interval;
+    sum10 += interval;
+    sum10 -= (count < 10) ? 0 : intervals[count - 10];
+
+    console.log(
+      interval, 'ms',
+      bpm(interval), 'BPM',
+      bpm(sum / count), 'avg',
+      bpm(sum10 / 10), 'running avg over 10'
+    );
+  }
+</script>
+</body>
+</html>

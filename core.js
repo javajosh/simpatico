@@ -175,14 +175,15 @@ is.same = arr => {
   }
   return true;
 }
-is.contains = (arr, b) => is.arr(arr) && arr.includes(b);
+is.contains = (arr, a) => ASSERT.arr(arr) && arr.includes(a);
+is.excludes = (arr, a) => !is.contains(arr, a);
 is.arrEquals = arrEquals;
 
 export const ASSERT = mapObject(is,([k,v]) => [k, (a, b, c, d) => assert(is[k](a,b,c), d)]);
 
 // A simple PRNG inside the browser.
 // Note that every call increments state exactly once.
-//TODO: convert this into a generator function?
+// Q: convert this into a generator function?
 export function RNG(seed) {
   // A simple seedable RNG based on GCC's constants
   // https://en.wikipedia.org/wiki/Linear_congruential_generator
@@ -201,7 +202,7 @@ RNG.prototype.nextFloat = function () {
 }
 RNG.prototype.nextRange = function (start, end) {
   // returns in range [start, end): including start, excluding end
-  // can't modulu nextInt because of weak randomness in lower bits
+  // can't modulo nextInt because of weak randomness in lower bits
   const rangeSize = end - start;
   const randomUnder1 = this.nextInt() / this.m;
   return start + Math.floor(randomUnder1 * rangeSize);
@@ -211,12 +212,21 @@ RNG.prototype.choice = function (arr) {
 }
 // Fisher-Yates shuffle using ES6 swap
 export const shuffle = arr => {
-  ASSERT.ARR(arr);
-  let right, left;
+  ASSERT.arr(arr);
+  assert(arr.length > 1);
+  let right, left, {floor, random} = Math;
   for (right = arr.length - 1; right > 0; right--) {
-    left = Math.floor(Math.random() * (right + 1));
+    left = floor(random() * (right + 1));
     [arr[left], arr[right]] = [arr[right], arr[left]];
   }
 }
 
-export default {now, log, debug, info, error, assert, tryToStringify, hasProp, getProp, propType, mapObject, equals, arrEquals, assertEquals, and, or, identity, curryLeft, curryRight, curry, compose, peek, push, copy, TYPES, getType, size, cast, is, ASSERT, RNG, shuffle}
+export default {
+  now, log, debug, info, error, assert, assertThrows, tryToStringify,
+  hasProp, getProp, propType, mapObject,
+  equals, arrEquals, assertEquals,
+  and, or, identity, curryLeft, curryRight, curry, compose,
+  peek, push, copy,
+  TYPES, getType, size, cast, is, ASSERT,
+  RNG, shuffle
+}

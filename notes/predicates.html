@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Predicates</title>
+</head>
+<body>
+<!-- I've taken a number of stabs at writing a predicate library in javascript. This is one of them, and I think it's rather successful. But I ended up going with the less readable but more consistent approach in core.js. -->
+<h1>Predicates</h1>
+<p>
+    A predicate is a function that returns true or false. In general a (scalar) 'type' is a string plus some predicates
+    that return true. Even a vector type can have a string representation, like JSON or XML. Indeed, the simplest
+    general vector type is a list of elements, each of which can either be a scalar or a vector. This describes an
+    n-arry tree. One important specialization is to say that each list has a name, and other attributes, in addition to
+    it's children. A great deal of trouble has been caused by the inability of languges to naturally represent this
+    data-structure!
+</p>
+
+<pre>
+    {a: 1, b: 2, c: 3}
+    [a, 1, b, 2, c, 3]
+    [a, b, c][1, 2, 3]
+</pre>
+
+<p>
+    We must also support lists of these tuples, themselves named, and also nested tuples. These are related.
+</p>
+
+<pre>
+    [{a: 1, b: 2, c: 3}, {a: 4, b: 5, c: 6}]
+    [[a, 1, b, 2, c, 3], [a, 4, b, 5, c, 6]]
+    [a, b, c][1, 2, 3, 4, 5, 6]
+</pre>
+
+<p>
+    The third form starts to look appealing for it's brevity. However it fails for locality. The data and it's
+    description are separated. Unless of course we have another outer array, this one with only two elements, which
+    represents a <i>typed container</i>. But even this suffers because individual items in that list can't be easily extracted, requiring awareness of the caller to do so properly. By contrast, the first form succeeds with locality - although it also fails to assure us that this list is in any way <i>homogenous</i> and <i>well-behaved</i> (e.g. no holes in it). The desire to make these assurances can drive us to make unwise decisions about our runtime, for example encapsulating state in some custom, clever container that enforces these invariants. No, instead we do the simple thing and ask users to politely not mutate certain data-structures, specified as a list of paths from your application or library root.
+</p>
+
+<p>
+    There is only one Core. It's an image that comes to life on your machine, and is modified from there. Stopping and starting are relatively minor details in it's existence; the important thing is that it exposes a good part of the world to you. The list of events since birth is maintained in a log. The current state is computed as new events come in, and the ability to do this is what's called "running". The 'current state' can be characterized as a pattern of references to input, and combinations of input.
+</p>
+
+<h3>Combining objects</h3>
+<p>
+
+</p>
+
+
+<h1>Object Patterns</h1>
+
+<h3>Snippets</h3>
+<p>major: html, minor: viewport, favicon, jquery, d3, etc</p>
+
+<script>
+  'use strict';
+  var log = console.log.bind(window.console);
+  var warn = console.warn.bind(window.console);
+  var error = console.error.bind(window.console);
+  var debug = console.debug.bind(window.console);
+
+  const fail = (reason) => {throw new Error(reason)};
+  const assert = (pred, msg) => pred ? true : fail('Assertion failed: ' + msg);
+  const exists = (a, t=true) => t ? assert(a != null, `${a} does not exist`) : a != null;
+  const equals = (a,b,t=true) => t ? assert(a === b, `${a} not equal === to ${b}`) : a===b;
+  const contains = (arr, elt, t=true) => t ? assert(arr.indexOf(elt) !== -1, `${elt} not a member of ${arr}`) : arr.indexOf(elt) !== -1;
+  const isA = (a, kind, t=true) => t ? assert(a instanceof kind, `${a} not instance of ${kind}`) : a instanceof kind;
+  const boolean = (a, t=true) => equals(typeof a, 'boolean', t);
+  const number = (a, t=true) => equals(typeof a, 'number', t);
+  const array = (a, t=true) => equals('Array.isArray(a)=' + Array.isArray(a), 'Array.isArray(a)=true', t);
+  const object = (a, t=true) => equals(typeof a, 'object', t) && equals(Array.isArray(a), false, t);
+  const string = (a, t=true) => equals(typeof a, 'string', t);
+  const fun = (a, t=true) => equals(typeof a, 'function', t);
+
+  const and = (a,b) => a && b;
+  const or = (a,b) => a || b;
+  const all = arr => arr.reduce(and, true);
+  const any = arr => arr.reduce(or, false);
+  const lt = (a,b) => b < a;
+  const gt = (a,b) => b > a;
+
+  const pick = (arr,include) =>  arr.reduce((a, elt, i)=>{
+    if (include[i]) a.push(elt);
+    return a;
+  }, []);
+
+  const size = a => {
+//    exists(a); //the size of something that doesn't exist is not 0.
+    if (!exists(a, false)) return 0;
+    if (object(a, false)) return a.entries().length;
+    if (array(a, false)) return a.length;
+    if (string(a, false)) return a.length;
+    if (number(a, false)) return a;
+    return 1;
+  };
+  const empty = (a, t=true) =>  t ? assert(size(a) > 0, `${size(a)} not > 0`) : a > 0;
+
+
+  let a = [0,1,2];
+  let b = [false, true, false];
+  let c = [1];
+
+  const curry = (fn, a) => (b) => fn(a,b); // Some down-home (left) curry
+  const identity = a => a;
+
+  const lt5 = curry(lt, 5);
+  const gt0 = curry(gt, 0);
+
+  let preds05 = [number, gt0, lt5];
+
+  const passing = (preds, value) => {
+    let passed = preds.map(p=>p(value));
+    return pick(preds, passed);
+  }
+  const failing = (preds, value) => {
+    let failed = preds.map(p=>!p(value));
+    return pick(preds, failed);
+  }
+
+  const valid = (preds, value) => failing(preds,value).length === 0;
+
+//  [string, size, curry(lt, 100)] // then it's a reduction.
+//  [string, [size, curry(lt, 100)]] // curry looks funny
+//  [string, [size, lt, 100]]
+
+
+  // Reduce this into a predicate, using curry
+  let d = [lt, 100, size];
+  const invoke = ([f, ...g])=>f.apply(null, g);
+
+  // single valued functions that return non-boolean are transforms
+  // functions should return a description when called with no value.
+  // we could also use "membership in a set" to idenfity kinds of functions.
+  const transforms = [size];
+  const comparisons = [lt, gt, equals];
+  const predicates = [exists, boolean, string, number, object, array];
+
+  const transform = (arr, value) => arr.map(a=>
+      (transforms.indexOf(a) !== -1) ? a(value) : a);
+
+  // Form a predicate out of function list, possibly with transformations
+  const pred = arr => fun(arr, false) ? arr : (value => invoke(transform(arr, value)));
+
+  // Results can be added to the pred list!
+  let lt10 = [lt, 10, size]
+  let gt1 = [gt, 1, size];
+  let between1and10 = [number, lt10, gt1];
+
+  //If we allow pred to pass through actual predicates, we can compute with one map
+  let results1and10 = between1and10.map(pred);
+
+  // Anyway, we don't need that representation except for convenience and serialization.
+  // code-y curry style works just fine:
+  let alsoBetween1and10 = [number, curry(gt,1), curry(lt, 10)];
+//  let alsoResults1and10 = curry(valid(alsoBetween1and10, 11);
+
+  let aPattern = {
+    a: [number, curry(gt,1), curry(lt, 5)],
+    b: [number, curry(gt,6), curry(lt, 10)]
+  }
+
+  let anObject = {a: 3, b: 7};
+
+  // TODO figure out a convention for a "strict" pattern that fails on unknown keys.
+  const match = (pattern, value) => {
+    let result = {};
+    for (let [key, preds] of Object.entries(pattern)){
+      let fail = failing(preds, value[key]);
+      result[key] = fail.length ? fail : false;
+    }
+    return result;
+  }
+
+  // This is probably a silly use of namespace. But who knows? Maybe not.
+
+  // Return an iterable of the entries of the object
+  const entries = a => object(a) ? Object.entries(a) : false;
+  // Return a new object with new values and even new keys
+  const entriesMap = (a, fn) => {
+    return Object.assign(entries(a).map(fn));
+  }
+  const mapNonBooleanToFalse = a => entriesMap((key, val)=> boolean(val, false) ? val : false);
+  const trueKeys = a => all(mapNonBooleanToFalse(a));
+  const patternMatch = (pattern, value) => trueKeys(match(pattern, value));
+
+  // Another important difference between object and array is not just their keys, but also
+  // we expect each key can have a varying pattern
+  let user = {name: [string, [lt, 20, size], [gt, 3, size]]};
+//  let user = {name: [string, [between, 3, 20, size]};
+
+//  let state = {
+//    name: [string],
+//    time: [number, [gt, 0, size]],
+//    users: [array, [gt, 0, size], [each, patternMatch, user]] //each generates a virtual predicate for each entry
+//  };
+//
+//  let state1 = {
+//    name: 'The First State!',
+//    time: Date.now(),
+//    users: [{name: 'alice'}, {name:'bob'}]
+//  }
+//  // Eventually we want this to work:
+//  let state1matches = patternMatch(state, state1);
+
+
+
+  // Uniqueness, sortedness can be enforced by a different iterable data-structure, like a set.
+
+
+//  const trueKeys = a =>
+//
+//
+//  {
+//    object(a);
+//    for (let [key, value] of Object.entries(a)){
+//
+//    }
+//  }
+//
+
+
+
+
+//  predicates.push(pred(d))
+//  pred(d)(5)
+
+
+  //TODO generalize contains, create a general size() function, type function.
+  function get(state, path, set=null, del=false){
+    log('get', state, path);
+    if (path && path.length > 0){
+      const p = path.shift();
+      const nextState = state[p];
+      if (nextState == null)
+        throw new Error(`path not found ${p} in ${path}`);
+      if (path.length === 1 && (set != null || del)) {
+        const old = state[path[0]]; //READ: may be undefined
+        if (del)
+          Array.isArray(state) ? state.slice(path[0], 1) : delete state[path[0]]; //DELETE
+        else
+          state[path[0]] = set; //WRITE
+        return old;
+      }
+      return get(nextState, path);
+    }
+    return state;
+  }
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
+import {ASSERT} from './core.js'
 
-const {ELT, OBJ} = ASSERT;
-
+const {elt:ELT, obj:OBJ} = ASSERT
 
 /**
  * Scatter the entries of obj onto the attributes of elt. There is no return because it is pure side effect.
