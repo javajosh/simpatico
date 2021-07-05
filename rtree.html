@@ -40,8 +40,10 @@
 
 
 <script type="module">
-  import {assertEquals} from './core.js';
+  import {assertEquals, assertThrows, ASSERT} from './core.js';
   import rtree from './rtree.js';
+
+  const as = ASSERT;
 
   let r = rtree(0);
   assertEquals(r.branches.length, 1);
@@ -81,15 +83,18 @@
 
 <script type="module">
   import latch from './demo-latch.js'
-  import {assert, assertEquals, log} from "./core.js";
+  import {assert, ASSERT as as, assertEquals, assertThrows, log} from "./core.js";
 
   log('start', latch.residue().count)
   latch.add({count: -10})
-  log('direct', latch.residue().count)
-  latch.add({msg: 'dec', amount: 5})
-  log('indirect', latch.residue().count)
-  //TODO This is still failing.
-  assertEquals(latch.residue().count, 5)
+  assertEquals(latch.residue().count, 90)
+  latch.add({msg: 'dec'})
+  assertEquals(latch.residue().count,89)
+  latch.add({msg: 'dec', amount:10})
+  assertEquals(latch.residue().count, 79)
+  latch.add({msg: 'dec', amount:79})
+  assertEquals(latch.residue().count, 0)
+  assertThrows( ()=>latch.add({msg: 'dec'}))
 
   // latch.add({msg: 'dec', amount: 5}, r => assertEquals(r.count, 94));
   // latch.add({msg: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
