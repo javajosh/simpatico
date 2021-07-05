@@ -30,7 +30,8 @@
   import {checkValue, validate} from './friendly.js';
 
   const {str, num, bool, fun, obj, undef, arr, same,
-    all, exists, contains, arrEquals, assertThrows,} = ASSERT;
+    all, contains, arrEquals} = ASSERT;
+
 
 
   const testPattern = {
@@ -64,16 +65,35 @@
   };
 
   // The normal happy cases
+  //
+  undef(checkValue('foo', 'foo'));
+  undef(checkValue(1, 1));
+
+
   undef(checkValue(['str'], 'a'));
-  undef(checkValue(['num'], 1));
+  undef(checkValue(['str'], ''));
+  undef(checkValue(['num'], .1));
+  undef(checkValue(['int'], 1));
   undef(checkValue(['bool'], false));
-  undef(checkValue(['between', 0, 3], 2));
+  undef(checkValue(['arr'], [1,2,3]));
+  undef(checkValue(['obj'], {a:1}));
+  undef(checkValue(['undef']) /*, undefined */);
+
+  undef(checkValue(['optional']) /*, undefined */);
+
+  undef(checkValue(['num','between', 0, 3], 2));
   undef(checkValue(['str', 'between', 1, 3], "a"));
   undef(checkValue(['str', 'between', 1, 3], "abc"));
-  undef(checkValue(['optional'])/*, undefined*/);
+
+  undef(checkValue(['optional','num','between', 0, 3], 2));
+  undef(checkValue(['optional','num','between', 0, 3] /*, undefined */ ));
 
   // Bad scalar matches
+  arrEquals(checkValue('foo', 'bar'), ['equals', 'foo']);
+  arrEquals(checkValue(1, 2), ['equals', 1]);
+
   arrEquals(checkValue(['num'], 'a'), ['num']);
+  arrEquals(checkValue(['int'], .1), ['int']);
   arrEquals(checkValue(['str'], 1), ['str']);
   arrEquals(checkValue(['between', 0, 3], 4), ['between', 0, 3]);
   arrEquals(checkValue(['str', 'between', 0, 3], 'abcd'), ['between', 0, 3]);
@@ -120,6 +140,15 @@
       b: ['optional', 'num', 'between', 0, 10]
     }, {
       handler: 'dec'
+    }),
+    undefined
+  );
+  assertEquals(validate({
+      msg: 'dec',
+      b: ['optional', 'num', 'between', 0, 10]
+    }, {
+      msg: 'dec',
+
     }),
     undefined
   );

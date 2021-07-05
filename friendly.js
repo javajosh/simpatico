@@ -1,7 +1,8 @@
 import { assert, is, tryToStringify, size } from "./core.js";
 
 /**
- *  Validate against a pattern obj.
+ *  Validate an object against a pattern obj.
+ *
  *  Special cases:
  *    value != object => nothing passes (return pattern)
  *    pattern = null => nothing passes (return {})
@@ -16,12 +17,13 @@ import { assert, is, tryToStringify, size } from "./core.js";
  */
 export const validate = (patternObj, valueObj) => {
   //gotcha: do not use getType predicate because handler !== object, etc
-  if (!is.obj(valueObj)) return patternObj;
+  const isObjecty = a => is.obj(a) || is.msg(a)
+  if (!isObjecty(valueObj)) return patternObj;
   if (patternObj === null) return {};
   if (patternObj === {}) return undefined;
 
   assert(
-    is.obj(patternObj),
+    isObjecty(patternObj),
     `pattern must be an object but was ${tryToStringify(patternObj)}`
   );
 
@@ -35,15 +37,11 @@ export const validate = (patternObj, valueObj) => {
 
     if (is.obj(patternValue)) {
       failReasons = validate(patternValue, value); //recurse
-    } else if (is.arr(patternValue)) {
-      failReasons = checkValue(patternValue, value); //normal case
     } else {
-      // scalar case
-      failReasons =
-        value === patternValue ? undefined : ["equals", patternValue];
+      failReasons = checkValue(patternValue, value); //normal case
     }
 
-    pass = !failReasons;
+    pass = is.undef(failReasons);
     if (!pass) result[patternKey] = failReasons;
     objPass = objPass && pass;
   }
@@ -56,9 +54,13 @@ export const validate = (patternObj, valueObj) => {
  *
  * @param predArray
  * @param value
- * @returns {undefined|*}
+ * @returns {undefined|*} Undefined (falsy) if pass - like the Unix convention. If there's a problem, return it.
  */
 export const checkValue = (predArray, value) => {
+  if (!is.arr(predArray)){
+    return value === predArray ? undefined : ["equals", predArray];
+  }
+
   const failedPreds = [];
   let pass = true;
   let allPass = true;
@@ -81,7 +83,7 @@ export const checkValue = (predArray, value) => {
         return undefined;
       }
     } else {
-      // TODO add support for descriptive values?
+      // You can call any predicate by name - typically this will be a type check
       pass = is[pred](value);
       if (!pass) failedPreds.push(pred);
     }
