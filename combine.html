@@ -20,9 +20,8 @@
   import {combine} from './combine.js';
   import {log, assert, assertEquals, is} from './core.js';
 
-  // This is a helper function to be used while testing the combine function
-
   let result = null;
+  // test() is a helper function to be used while testing the combine function
   const test = (target, msg, expected, print = true) => {
     result = combine(target, msg);
     if (print) log('combine.html/test()', 'target', target, 'msg', msg, 'expected', expected, 'result', result);
