@@ -4,79 +4,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- html~lang~en, meta~charset~utf-8 and meta~name~viewport~etc, above, are boilerplate. -->
 
-  <meta name="requires" content="white.png, green.png, red.png, tufte.css, rtree.js"> <!-- Add references to all sub-resources this page needs, for ease-of-maintenance. Otherwise, you'd have to look read every line. -->
   <meta name="description" content="Building Simpatico in the browser.">
   <meta name="keywords" content="programming, state, actor model, message oriented programming, finite state automata">
   <meta name="author" content="Josh Rehman">
   <title>Simpatico.js</title>
-   <!--
-     [link#favicon] and [meta#refresh] make a simple looping test runner using old-school browser features.
 
-     Your test program succeeds when it does not emit an error. (See: 'Unix philosophy').
-     Errors are signaled by exceptions, usually thrown by assertions.
-     The program is run on load, and will reload every 2 seconds.
-     Cancel the reload by clicking [button#stop-refresh].
-
-     See text for more details.
-   -->
-  <link id="favicon" rel="icon" type="image/png" class="subresource" href="white.png">
+  <link id="favicon" rel="icon" type="image/png" class="subresource" href="./img/white.png">
   <meta id="refresh" http-equiv="refresh" content="2">
+  <script type="module" src="testable.js"></script>
+
   <style>
     html { height: 100%; overflow:auto; }
     body { height: 100%; }
   </style>
-
-  <!--  <link rel="stylesheet" type="text/css" class="subresource" href="tufte.css" >-->
 </head>
 <body>
-<!-- Don't bother to indent the body, since this will be the *vast* majority of lines in the file, and it wastes space. -->
+
 <h1>Simpatico.js</h1>
 <p>Josh Rehman <i>Mar 2021</i></p>
-<p>deps: simpatico</p>
 <button id="stop-refresh" onclick="window.stop()">Stop 2s Refresh</button>
 
-<p>This is the <i>test harness</i> for Simpatico. Like all of Simpatico, this artifact is first and foremost a practical
-  tool. In fact, it's a tool that will grow with Simpatico as I complete it.</p>
+<p>This is the <i>test harness</i> for Simpatico. Like all of Simpatico, this artifact is first and foremost a practical tool. In fact, it's a tool that will grow with Simpatico as I complete it.</p>
 
-<p class="sidenote">As a by now well seasoned web developer, I've learned a thing or two about how web pages are built in a
-  "professional" context, and I have to admit: it's not pretty. In particular, the browser itself is a mess. And the
-  reason? The browser is at the top of the food chain, in terms of software, but it's being fed into from an enormous
-  variety of places, often very late in the lifetime of the tab. "Living in" the browser long-term is a relatively
-  new movement in web app development, and one which I think has legs! I will say that I really like web programs, like
-  this one, that are HTML files written in a text editor, and which are small and very simply constructed. It's a good
-  start for any ambitious program.</p>
+<p class="sidenote">As a by now well seasoned web developer, I've learned a thing or two about how web pages are built in a "professional" context, and I have to admit: it's not pretty. In particular, the browser itself is a mess. And the reason? The browser is at the top of the food chain, in terms of software, but it's being fed into from an enormous variety of places, often very late in the lifetime of the tab. "Living in" the browser long-term is a relatively new movement in web app development, and one which I think has legs! I will say that I really like web programs, like this one, that are HTML files written in a text editor, and which are small and very simply constructed. It's a good start for any ambitious program.</p>
 
-<p>This tab runs a test. This test will change the favicon different colors depending on the outcome of this test. We
-  say precisely that the test consists of setting the initial favicon, and then setting it to green if "successful", and
-  red if there's a failure. The code that runs before that final statement is "test code".
+<p>This tab runs a test. This test will change the favicon different colors depending on the outcome of this test. We say precisely that the test consists of setting the initial favicon, and then setting it to green if "successful", and red if there's a failure. The code that runs before that final statement is "test code".
 
 <p class="sidenote">
-  HTML is a kind of declarative data-structure that is <i>okay</i> to tightly couple to any programming statements you
-  may write.
-  (This is why I like to quickly declare handy js references to the DOM at the very beginning of the code section.)
+  HTML is a kind of declarative data-structure that is <i>okay</i> to tightly couple to any programming statements you may write. (This is why I like to quickly declare handy js references to the DOM at the very beginning of the code section.)
 </p>
 
-<p>Because our browser space is so clean and nice, we can breathe.
-  The browser is coming into contact with each line as you write it.
+<p>Because our browser space is so clean and nice, we can breathe. The browser is coming into contact with each line as you write it.
 </p>
 
-<p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding
-  things is going to involve more than concatenation</p>
+<p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding things is going to involve more than concatenation</p>
 
-<p>It allows us to do what people so rarely do these days, which is have fun with <span
-  id="s0">the browser medium</span>.</p>
+<p>It allows us to do what people so rarely do these days, which is have fun with <span id="s0">the browser medium</span>.</p>
 
 <!--  The use of modules allows me to isolate scripts on the page from each other-->
 <!--  and code in a more natural way. It does make REPL (dev tools) interaction a little harder, however.-->
 <script type="module">
   // s stands for "span". increment these s0 numbers over time
   // The tag is redundant but useful for giving context to the elt;
-  const span = document.querySelector("span#s0");
+  const span = document.querySelector('span#s0');
 
   // Let's spin that sucker!
   const ms = 1, Hz = 1, pi = Math.PI; // Show units in code!
-  const rotPeriod = 4000 * ms; // desired rotational period
-  const tp = 17 * ms; // desired tick period
+  const rotPeriod = 4000 * ms; // rotational period
+  const tp = 17 * ms; // tick period
   const timeOut = 2 * rotPeriod;
 
   const theta_at_t = (t = (Date.now() - started)) => (2 * pi * t) / (rotPeriod);
@@ -99,7 +74,7 @@
 
 <svg id="s1" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
   <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r=1 unit circle -->
-  <!-- scale(1,-1) flips the y-axis so that positive y values move up, as God intended. -->
+  <!-- scale(1,-1) flips the y-axis so that positive y values move up. -->
   <g transform="scale(1,-1)">
     <!-- This small SVG authoring convention of my own invention includes omitting quotes for dynamic-ish attr values   -->
     <!-- These initial lines of SVG are specifically diagnostic  -->
@@ -203,29 +178,11 @@
 </svg>
 
 <script type="module">
-  import Core from './core.js';
+  import {now } from './core.js';
   import {combine} from './combine.js';
-
-  // Lowercase the assertions for readability (also, we may want to provide a lowercase exports option)
-  const {STR: str, NUM: num, BOOL: bool, FUN: fun, OBJ: obj, ARR: arr, SAME: same, ALL: all, EXISTS: exists,
-    CONTAINS:contains, assertEquals, arrEquals, assertThrows, BETWEEN: between, } = Core.asserts;
-  const {cast} = Core.types;
-  const {mapObject} = Core.objects;
-  const {size} = Core.utils;
 
   const svg = document.querySelector("svg#s4");
   const g = document.querySelector("g#s5-transform");
-
-  const objToElt = (obj, elt) => {
-    // x and y coords are applied as cx cy coords, if not already set.
-    if (elt.tagName === "circle") {
-      if (hasProp(obj, 'x') && !hasProp(obj, 'cx')) obj.cx= obj.x;
-      if (hasProp(obj, 'y') && !hasProp(obj, 'cy')) obj.cy= obj.y;
-    }
-    for (const key in obj){
-      elt.setAttribute(key,  obj[key] + '');
-    }
-  }
 
   // Return which quad the vector is in, counting counter clockwise starting with 0
   const quad = ({x,y}) => {
@@ -235,10 +192,6 @@
       return x < 0 ? 2 : 3;
     }
   }
-
-  const isInsideRec = ({x, y}, {N, S, E, W}) =>
-    (N <= y && y <= S) && (E <= x && x <= W);
-
 
   const draw = ({x, y}, g = g) => combine(g, {transform: `translate(${x},${y})`});
 
@@ -278,7 +231,7 @@
 
       currQuad = quad(pos);
       const quadChanged = currQuad !== lastQuad;
-      if ( false || quadChanged) {
+      if ( false && quadChanged) {
         console.log([ // Start off on Row 0 with a start/stop pair, to show how they interact, how sessions are recorded, how tabs are managed within the same browser, and so on. We halt, and go back to 0, branch, and start again on row 1 where the rest of our msgs lay.
           {
             id: 0, name:'start', type:'handler',
@@ -392,15 +345,9 @@
               vy: Math.cos(theta),
             }),
           },
-
-
           ],
         )
       }
-
-
-
-
     }
   });
 
@@ -422,10 +369,7 @@
 
 <script type="module">
   import * as RTree from './rtree.js';
-
   const {rtree} = RTree;
-
-
 </script>
 
     <p class="sidenote">This marks the first use of an <code>import</code> statement in the body of this document. It adds a subresource dependency.</p>
@@ -526,10 +470,5 @@
   tick();
 </script>
 
-<script>
-  console.log('Tests succeeded!');
-  // class="subresource"
-  document.getElementById('favicon').href = 'green.png';
-</script>
 </body>
 </html>
