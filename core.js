@@ -146,10 +146,12 @@ export const cast = (type, str) => {
 
 
 
-// PREDS looks something like {NUL: a => getType(a) === NUL, STR: a => getType(a) === STR ...}
+// is looks something like {NUL: a => getType(a) === NUL, STR: a => getType(a) === STR ...}
 // ASSERT wraps with an assertion  {NUL: (a, msg) => assert(getType(a) === NUL, msg), STR: (a,msg) => assert(getType(a) === STR, msg)}
-export const is = mapObject(TYPES,([k,v])=>[k.toLowerCase(), a => getType(a) === v])
-is.int = (a, msg) => is.NUM(a,msg) && (a % 1 === 0)
+export const is = mapObject(TYPES,([k, v]) =>
+  [k.toLowerCase(), a => getType(a) === v]
+)
+is.int = (a) => is.num(a) && (a % 1 === 0)
 is.exists = a => (typeof a !== 'undefined') && (a !== null)
 is.between = (lo, hi, a) =>
   size(lo) <= size(hi) &&
@@ -179,7 +181,11 @@ is.contains = (arr, a) => ASSERT.arr(arr) && arr.includes(a);
 is.excludes = (arr, a) => !is.contains(arr, a);
 is.arrEquals = arrEquals;
 
-export const ASSERT = mapObject(is,([k,v]) => [k, (a, b, c, d) => assert(is[k](a,b,c), d)]);
+// This is awkward because we have to guess the cardinality of the predicate.
+// Another reason why the more straight-forward form is probably better.
+export const ASSERT = mapObject(is,([k,v]) =>
+  [k, (a, b, c, d) => assert(v(a,b,c), d)]
+);
 
 // A simple PRNG inside the browser.
 // Note that every call increments state exactly once.

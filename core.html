@@ -9,13 +9,12 @@
   <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <title>Core.js</title>
-  <link rel="stylesheet" type="text/css" href="tufte.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
   <script src="testable.js"></script>
 </head>
 <body>
 <h1>Core.js</h1>
 <p>Josh Rehman <i>2020-11-11</i></p>
-<p>deps: <code>core.js</code></p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
 <script type="module">
@@ -24,8 +23,9 @@
   const {str, num, bool, fun, obj, arr, between, exists, arrEquals, all, same, contains, excludes} = c.ASSERT
 
   const a = {a: 1}, b = {b: 2}
-  c.info('welcome to core.js')
-  c.log(c.now());
+  const t = c.now();
+  c.info('welcome to core.js - the first 4 statements are testing the log facility. If you only say three change the "default levels" to include "verbose"')
+  c.log(t.toString());
   c.debug('this is a debugging statement') //won't show up if your console isn't set to verbose
   c.log(c.tryToStringify(a))
   //c.error('this is an error - will be commented out')
@@ -65,6 +65,8 @@
   c.assert(c.or(true, false))
   c.assert(c.or(false, true))
   c.assert(!c.or(false, false))
+  c.assert(c.is.num(.1))
+  c.assert(c.is.int(1))
 
   c.assertEquals(a, c.identity(a))
 
