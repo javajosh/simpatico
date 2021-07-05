@@ -1,28 +1,34 @@
-import {ASSERT} from './core.js'
+import {ASSERT, getType, cast, hasProp} from './core.js';
 
-const {elt:ELT, obj:OBJ} = ASSERT
+const {elt:ELT, obj:OBJ} = ASSERT;
 
 /**
  * Scatter the entries of obj onto the attributes of elt. There is no return because it is pure side effect.
+ *
  * @param elt The target HTML element
  * @param obj The source javascript object
  */
 const scatter = (elt, obj) => {
   ELT(elt) && OBJ(obj);
+  // x and y coords are applied as cx cy coords, if not already set.
+  if (elt.tagName === "circle") {
+    if (hasProp(obj, 'x') && !hasProp(obj, 'cx')) obj.cx= obj.x;
+    if (hasProp(obj, 'y') && !hasProp(obj, 'cy')) obj.cy= obj.y;
+  }
   for (const key in obj){
     const old = elt.getAttribute(key);
     if (obj[key] + '' !== old)
     elt.setAttribute(key, obj[key]);
   }
-}
+};
 
 /**
- * Gather the attributes of an element that match the keys present in an object, overwriting the values in the object.
+ * Gather the attributes of an element that match the keys present in an object, overwriting the values in
+ * the object argument. This method correctly casts numbers and booleans from strings.
  *
- *
- * @param elt The element with the attributes we're reading
- * @param obj The object to which we are writing
- * @returns {*}
+ * @param elt The source HTML element
+ * @param obj The target javascript object
+ * @returns {{}}
  */
 const gather = (elt, obj) => {
   ELT(elt) && OBJ(obj);
@@ -37,6 +43,7 @@ const gather = (elt, obj) => {
 
 /**
  * Create an object representation from a string transform representation. Note: this is not complete.
+ *
  * @param elt
  * @returns {{}}
  */
@@ -59,7 +66,8 @@ const parseTransform =  elt => {
 };
 
 /**
- * Create a string transform from an object representation
+ * Create a string transform from an object representation.
+ *
  * @param obj
  * @returns {string}
  */
@@ -72,31 +80,39 @@ const renderTransform = obj => {
   return result;
 };
 
+
+/**
+ * Given two rectangles in the form {top:a, bottom:b, left: c, right: d} return true if they intersect.
+ *
+ * @param r1 {{top:a, bottom:b, left: c, right: d}}
+ * @param r2 {{top:a, bottom:b, left: c, right: d}}
+ * @returns {boolean} true if they intersect
+ */
+const intersectRect = (r1, r2) => !(
+    r2.left   > r1.right  ||
+    r2.right  < r1.left   ||
+    r2.top    > r1.bottom ||
+    r2.bottom < r1.top
+  );
+
+const isInsideRec = ({x, y}, {N, S, E, W}) => (N <= y && y <= S) && (E <= x && x <= W);
+
 /**
  * Compute whether the bounding boxes of two elements intersect.
  * Note that type assertions would be correct, but slow down this code which tends to be called very frequently
  * in simulations and animations.
  *
- * @param elt1 An SVG or HTML element.
- * @param elt2 Another SVG or HTML element.
+ * @param e1 An SVG or HTML element.
+ * @param e2 Another SVG or HTML element.
  * @returns {boolean} True if the elements bounding rectangle intersect, false otherwise.
  */
-const intersectRect = (elt1, elt2) => {
-  elt1 = elt1.getBoundingClientRect();
-  elt2 = elt2.getBoundingClientRect();
-  return !(
-    elt2.left > elt1.right  ||
-    elt2.top  > elt1.bottom ||
-    elt1.left > elt2.right  ||
-    elt1.top  > elt2.bottom
-  );
-};
+const intersectingElts =  (e1, e2) => intersectRect(e1.getBoundingClientRect(), e2.getBoundingClientRect());
 
 /**
  * Compute whether the given point is contained within the list of points. This function has more than
  * a little voodoo.
  *
- * @param poly A list of points in {x,y} format, e.g. [{1,3},{0,-7},{23,-10}]
+ * @param poly A list of points in {x,y} format, e.g. [{x:1,y:3},{x:0,y:-7},{x:23,y:-10}]
  * @param point An object representation of a point like {x:1, y:3}
  * @returns {boolean} True if the point is contained within the polygon formed by the list of points.
  */
@@ -117,5 +133,6 @@ const isPointInPoly = (poly, point) => {
   return false;
 }
 
-export {scatter, gather, parseTransform, renderTransform, intersectRect, isPointInPoly};
+export         {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly};
+export default {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly};
 
