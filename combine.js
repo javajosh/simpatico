@@ -1,4 +1,5 @@
 import {TYPES, getType, cast, tryToStringify, debug, now, assert, is} from './core.js';
+import {scatter, gather} from "./svg.js";
 
 export const combine = (target, msg, rules=getRules()) => {
   const {NUL,FUN,ARR,ANY} = TYPES;
@@ -63,6 +64,9 @@ const getRules = () => {
   rules[FUN+NUL]  = (a,b) => null;
   rules[FUN+ANY]  = (a,b) => a(b);
   rules[ANY+FUN]  = (a,b) => b(a);
+
+  rules[ELT+OBJ] = (a,b) => scatter(a, b);
+  rules[OBJ+ELT] = (a,b) => gather(a, b);
 
   rules[OBJ+OBJ]  = (a,b) => {
     // B is defensively copied, mutated and returned, not A!
