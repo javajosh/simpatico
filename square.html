@@ -7,74 +7,63 @@
 </head>
 
 <body>
-  <h2>Things you can do:</h2>
-  <ol>
-    <li>Watch the pretty animation.</li>
-    <li>Start and stop the animation with the space bar.</li>
-    <li>Move around manually with the WSAD keys.</li>
-    <li>Interact with the dev console; e.g. <code>combine(state, {x:10})</code>.</li>
-    <li>Read the code and maybe send me a tweet @javajosh!</li>
-    <li>Notice that you can manually move it outside the view box but the animation will not.</li>
-  </ol>
+<h2>Things you can do:</h2>
+<ol>
+  <li>Watch the pretty animation.</li>
+  <li>Start and stop the animation with the space bar.</li>
+  <li>Move around manually with the WSAD keys.</li>
+  <li>Interact with the dev console; e.g. <code>combine(state, {x:10})</code>.</li>
+  <li>Read the code and maybe send me a tweet @javajosh!</li>
+  <li>Notice that you can manually move it outside the view box but the animation will not.</li>
+</ol>
 
-  <svg id="0" width="500" height="300" viewBox="0 0 500 300" style="border:1px solid black" >
-    <rect id="1" x="10" y="10" width="50" height="50" fill="green" rotating="true" stepsPerRotation = "120" />
-    <rect id="2" x="10" y="10" width="20" height="20" fill="red" />
-  </svg>
+<svg id="svg" width="500" height="300" viewBox="0 0 500 300" style="border:1px solid black">
+  <rect id="greenSquare" x="10" y="10" width="50" height="50" fill="green" rotating="true" stepsPerRotation="120"/>
+  <rect id="redSquare" x="10" y="10" width="20" height="20" fill="red"/>
+</svg>
 
-  <script>
-    // The other script tags probably won't even parse.
-    if (navigator.userAgent.indexOf("MSIE") > -1)
-      window.alert('IE is not supported.');
-  </script>
-  <script src="core.js"></script>
-  <script src="combine.js"></script>
-  <script src="svg.js"></script>
-  <script>
-  'use strict';
-
-  // Given two rectangles in the form {top:a, bottom:b, left: c, right: d}
-  const intersect = (r1, r2) => !(
-     r2.left   > r1.right  ||
-     r2.right  < r1.left   ||
-     r2.top    > r1.bottom ||
-     r2.bottom < r1.top
-  );
-
-  // Do two elements intersect?
-  const intersectingElts =  (e1, e2) => intersect(e1.getBoundingClientRect(), e2.getBoundingClientRect());
+<script>
+  // The other script tags probably won't even parse.
+  if (navigator.userAgent.indexOf("MSIE") > -1)
+    window.alert('IE is not supported.');
+</script>
+<script type="module">
+  import * as Core from './core.js'
+  import combine from './combine.js'
+  import {intersectingElts, scatter, gather} from "./svg.js";
 
   // Convention: define references to declared markup as constants.
-  const BOARD = document.getElementById('0');
-  const SQUARE = document.getElementById('1');
-  const RED = document.getElementById('2');
+  const svg = document.getElementById('svg');
+  const greenSquare = document.getElementById('greenSquare');
+  const redSquare = document.getElementById('redSquare');
+
   // Note that the values don't really matter, but the types should be accurate.
-  let state = {x: 0, y: 0, rotating: true, scale:1, stepsPerRotation: 120, board: {width: 0, height: 0}};
+  let state = {x: 0, y: 0, rotating: true, scale: 1, stepsPerRotation: 120, board: {width: 0, height: 0}};
   // const board = {width: 500, height: 500};
 
-  const handlePos= {
+  const handlePos = {
     name: 'pos',
     handle: (ctx, msg) => {
       const {dx, dy} = msg;
       const {x, y} = state;
       const {width, height} = state.board;
-      try{
+      try {
         num(dx) && num(dy);
-        between(0, width, x+dx);
-        between(0, height, y+dy);
-      } catch (e){
+        between(0, width, x + dx);
+        between(0, height, y + dy);
+      } catch (e) {
         return [];
       }
-      return [{x:dx, y:dy}];
+      return [{x: dx, y: dy}];
     }
   };
   state = combine(state, handlePos);
 
-  gather(SQUARE, state);
-  gather(BOARD, state.board);
+  gather(greenSquare, state);
+  gather(svg, state.board);
 
   // A generator function that returns a rotating vector
-  function* circlePath(stepsPerRotation = 60, theta = 0){
+  function* circlePath(stepsPerRotation = 60, theta = 0) {
     while (true) {
       theta += 2 * Math.PI / stepsPerRotation;
       yield [Math.cos(theta), Math.sin(theta)];
@@ -84,7 +73,7 @@
   const path = circlePath(state.stepsPerRotation);
 
   // The central loop, always running.
-  const animate = ()=>{
+  const animate = () => {
     if (!state.rotating) return;
 
     let [dx, dy] = path.next().value;
@@ -92,33 +81,33 @@
     [dx, dy] = [dx * c, dy * c];
     state = combine(state, {msg: 'pos', dx, dy});
 
-  	scatter(SQUARE, state);
-    console.log(`Intersecting ${intersectingElts(SQUARE, RED)}`)
-  	requestAnimationFrame(animate);
+    scatter(greenSquare, state);
+    console.log(`Intersecting ${intersectingElts(greenSquare, redSquare)}`, dx, dy)
+    requestAnimationFrame(animate);
   }
 
   // Give the user something to do with the keyboard.
-	const inputs = {
-		'd' : {x:10, y:0},
-    'a' : {x:-10, y:0},
-  	'w' : {x: 0, y:-10},
-    's' : {x: 0, y:10},
-    ' ' : {rotating: null},
-    'e' : {scale: 0.1},
-    'q' : {scale: -0.1},
-	};
+  const inputs = {
+    'd': {x: 10, y: 0},
+    'a': {x: -10, y: 0},
+    'w': {x: 0, y: -10},
+    's': {x: 0, y: 10},
+    ' ': {rotating: null},
+    'e': {scale: 0.1},
+    'q': {scale: -0.1},
+  };
 
   document.body.addEventListener('keydown', e => {
-  	const input = inputs[e.key];
+    const input = inputs[e.key];
     if (!input) return;
-  	state = combine(state, input);
-    scatter(SQUARE, state);
+    state = combine(state, input);
+    scatter(greenSquare, state);
     if (e.key === ' ' && state.rotating) animate();
   });
 
   animate();
 
-  </script>
+</script>
 </body>
 
 </html>
