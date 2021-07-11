@@ -9,7 +9,7 @@
   <title>RTree.js</title>
 
   <meta id="refresh" http-equiv="refresh" content="2">
-  <script src="testable.js"></script>
+  <script type="module" src="testable.js"></script>
 </head>
 <body>
 <h1>RTree.js</h1>
@@ -38,9 +38,45 @@
   pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent.
   Otherwise, you're just adding to the row.</p>
 
+<!--
+/**
+ This rtree is implemented with arrays.
+ The data-structure looks like this:
+
+ 0 - 0 1 2 3 8 {}
+ 1 - 2 4 5 {}
+ 2 - 6 7 {}
+ focus: 0
+
+ The first column is the row number (included for readability)
+ The next number is the parent node for the row.
+ The next numbers indicate the values in the order they came in.
+ The last object is the residue of the row all the way back to root.
+
+ For example, row 1 {} is ∫[0 1 2 4 5], and row 2 {} is ∫[0 1 2 6 7]
+
+ The RTree has a mutable state, the focus, which determines what happens on the next add.
+
+ The focus can be on any node, using its index "i". Note that this implies that focus and input events happen in a set order, on the same timeline. We could make an arbitrary distinction between strings and numbers, and imagine a single timeline in which they are interleaved, giving rise to a peculiar, but quite compact (and useful) representation of a Tree. In this sense it can be seen as a reduction, or a folding of a list that looks like (a, b, c, 0, d, e, 1, f...) into something that looks like:
+
+ Which in turn represents a tree with 3 branches.
+
+ abc
+ ade
+ bf
+
+ (One clever thing to do (possibly too clever!) is to target either an index or a row by using the negative coordinates to correspond to rows. This would make a very compact focus interface, 2D that takes only 1 integer!)
+
+ Row focus is just a number. This is the default.
+ Branching focus is an array: [row,col] or [node]
+
+ row ={row, parent, values, residue}
+
+ */
+-->
 
 <script type="module">
-  import {assertEquals, assertThrows, ASSERT} from './core.js';
+  import {assertEquals, ASSERT} from './core.js';
   import rtree from './rtree.js';
 
   const as = ASSERT;
@@ -49,28 +85,34 @@
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 0);
   assertEquals(r.getFocus(), 0);
+
   r.add(1);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 1);
   assertEquals(r.getFocus(), 0);
+
   r.add(3);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.getFocus(), 0);
+
   r.setFocus(1);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.getFocus(), 1);
+
   r.add(5);
   assertEquals(r.branches.length, 2);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.branches[1].residue, 6);
   assertEquals(r.getFocus(), -1);
+
   r.add(5)
   assertEquals(r.branches.length, 2);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.branches[1].residue, 11);
   assertEquals(r.getFocus(), -1);
+
   r.setFocus(2);
   r.add(3);
   assertEquals(r.branches.length, 3);
