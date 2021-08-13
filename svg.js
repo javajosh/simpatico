@@ -1,6 +1,6 @@
-import {ASSERT, getType, cast, hasProp} from './core.js';
+import {as, getType, cast, hasProp} from './core.js';
 
-const {elt:ELT, obj:OBJ} = ASSERT;
+const {elt:ELT, obj:OBJ} = as;
 
 /**
  * Scatter the entries of obj onto the attributes of elt. There is no return because it is pure side effect.

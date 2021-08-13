@@ -27,10 +27,4 @@ latch.add({
   }
 });
 
-// // Tests
-// latch.add({msg: 'dec'}, r => assertEquals(r.count, 99));
-// latch.add({msg: 'dec', amount: 5}, r => assertEquals(r.count, 94));
-// latch.add({msg: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
-
-// assertThrows(()=>latch.add({handler: 'dec', amount: 3}));
 export default latch;

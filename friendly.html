@@ -26,11 +26,11 @@
   important part of the convention: return something other than an object! For various reasons, I like array.</p>
 
 <script type="module">
-  import {ASSERT, assertEquals} from './core.js';
+  import {as, assertEquals} from './core.js';
   import {checkValue, validate} from './friendly.js';
 
   const {str, num, bool, fun, obj, undef, arr, same,
-    all, contains, arrEquals} = ASSERT;
+    all, contains, arrEquals} = as;
 
 
 

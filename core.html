@@ -20,7 +20,10 @@
 <script type="module">
   import * as c from './core.js';
 
-  const {str, num, bool, fun, obj, arr, between, exists, arrEquals, all, same, contains, excludes} = c.ASSERT
+  const {
+    str, num, bool, fun, obj, arr, between, exists,
+    arrEquals, all, same, contains, excludes
+  } = c.as
 
   const a = {a: 1}, b = {b: 2}
   const t = c.now();

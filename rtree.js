@@ -1,4 +1,4 @@
-import {now, is, ASSERT as as, assert}  from './core.js';
+import {now, as}  from './core.js';
 import combine from './combine.js';
 
 

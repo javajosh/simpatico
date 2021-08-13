@@ -76,10 +76,8 @@
 -->
 
 <script type="module">
-  import {assertEquals, ASSERT} from './core.js';
+  import {assertEquals} from './core.js';
   import rtree from './rtree.js';
-
-  const as = ASSERT;
 
   let r = rtree(0);
   assertEquals(r.branches.length, 1);
@@ -125,7 +123,7 @@
 
 <script type="module">
   import latch from './demo-latch.js'
-  import {assert, ASSERT as as, assertEquals, assertThrows, log} from "./core.js";
+  import {assertEquals, assertThrows, log} from "./core.js";
 
   log('start', latch.residue().count)
   latch.add({count: -10})

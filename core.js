@@ -1,65 +1,65 @@
-// The most basic useful functions
-export const now = a => a ? Date.now() - a : Date.now()
-export const log = console.log.bind(console)
-export const debug = console.debug.bind(console)
-export const info = console.info.bind(console)
+const now = a => a ? Date.now() - a : Date.now()
+const log = console.log.bind(console)
+const debug = console.debug.bind(console)
+const info = console.info.bind(console)
 
-export const error = msg => {throw new Error(msg)}
-export const assert = (truthy, msg) => truthy ? true : error(msg)
-export const assertThrows = fn => {
-  assert(typeof fn === 'function', `assertThrows must take a function argument instead got ${getType(fn)}`); let throws = false; let result;
+const error = msg => {throw new Error(msg)}
+const assert = (truthy, msg) => !!truthy ? true : error(msg)
+const assertThrows = fn => {
+  assert(typeof fn === 'function', `assertThrows must take a function argument instead got ${getType(fn)}`);
+  let throws = false, result;
   try { result = fn() } catch (e) { throws = true }
   assert(throws, `Expected fn to throw, but it didn't and returned [${tryToStringify(result)}]`);
 };
 
-export const tryToStringify = a => {
+const tryToStringify = a => {
   if (typeof a !== 'object') return a;
   let result = '<Circular>';
   try{ result = JSON.stringify(a); } catch (ignored) {}
   return result;
 }
 
-export const hasProp = (obj, prop) => obj.hasOwnProperty(prop)
-export const getProp = (obj, prop, defaultValue=null) => hasProp(obj, prop) ? obj[prop] : defaultValue;
-export const propType = (obj, prop) => getType(obj[prop])
+const hasProp = (obj, prop) => obj.hasOwnProperty(prop)
+const getProp = (obj, prop, defaultValue = null) => hasProp(obj, prop) ? obj[prop] : defaultValue;
+const propType = (obj, prop) => getType(obj[prop])
 // noinspection JSCheckFunctionSignatures
-export const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn))
-export const equals = (a,b) => typeof a === 'object' ? tryToStringify(a) === tryToStringify(b) : a === b;
-export const arrEquals = (a,b) => ASSERT.arr(a) && ASSERT.arr(b) && a.length === b.length &&
+const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn)) //fn([k,v]) => [k2,v2]
+const equals = (a,b) => typeof a === 'object' ? tryToStringify(a) === tryToStringify(b) : a === b; //needs work
+const arrEquals = (a,b) =>
+  as.arr(a) && as.arr(b) && a.length === b.length &&
   a.map((v,i) => v === b[i]).reduce(and, true)
 
-export const assertEquals = (actual, expected, msg='') =>
+const assertEquals = (actual, expected, msg='') =>
   assert(equals(actual, expected), `actual is ${tryToStringify(actual)} but expected ${tryToStringify(expected)}. ${msg}`)
 
 // Functional logic
-export const and = (a,b) => !!a && !!b
-export const or = (a,b) => !!a || !!b
+const and = (a,b) => !!a && !!b
+const or = (a,b) => !!a || !!b
 
 // Higher order functions
-export const identity = a => a
-export const curryLeft = (f, a) => b => f(a,b) //left to right
+const identity = a => a
+const curryLeft = (f, a) => b => f(a,b) //left to right
 const curryRight = (f, a) => b => f(b,a) //right to left
-export const curry = curryLeft
-export const compose = (f, g) => a => g(f(a))
+const curry = curryLeft
+const compose = (f, g) => a => g(f(a))
 
-// It is tempting to add peek like this, but it's in bad taste. So use the functional version
+// It is tempting to add peek like this, but it's in bad taste. So use the functional version:
 // Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null};
-export const peek = (arr, defaultValue=null) => arr.length ? arr[arr.length - 1] : defaultValue
-export const push = (arr, a) => {arr.push(a); return arr} //mutating
+const peek = (arr, defaultValue=null) => arr.length ? arr[arr.length - 1] : defaultValue
+const push = (arr, a) => {arr.push(a); return arr} //mutating
 
 // Copies good for arrays
 const copy1 = a => [...a]
 const copy2 = a => a.slice()
 // Copies good for objects
 const copy3 = a => JSON.parse(JSON.stringify(a)) //sadly unstable key order
-const copy4 = a => mapObject(a,identity); //shallow copy, but might be extensible.
+const copy4 = a => mapObject(a, identity); //shallow copy, but might be extensible.
 const copy = copy3; //TODO: find or make a better copy.
 
 
-
 // Types
-export const TYPES = {
-  // These are the 7 basic JS types, excluding void (which I haven't had a use for)
+const TYPES = {
+  // These are the 7 basic JS types, excluding void and symbol (which I haven't had a use for)
   UNDEF: "undefined",
   NUL: "null",
   STR: "string",
@@ -78,7 +78,7 @@ export const TYPES = {
   MSG: "msg", //a message has a msg attr
 };
 
-export const getType = (a) => {
+const getType = (a) => {
   const {UNDEF,NUL,STR,FUN,OBJ,ARR,ELT,CORE,HANDLER,MSG} = TYPES;
   let t = typeof a;
   if (t !== OBJ)        return t;
@@ -101,14 +101,15 @@ export const getType = (a) => {
   return OBJ;
 }
 
-export const size = (a) => {
+const size = (a) => {
   const t = getType(a);
   const {UNDEF,NUL,NUM,STR,FUN,OBJ,ARR,ELT,HANDLER,MSG} = TYPES;
   switch (t){
     case NUM:
       return a;
-    case STR:
+    case STR: // todo: deal with unusual encodings
       return a.length;
+    case FUN: // fun.length returns argument cardinality
     case ARR:
       return a.length;
     case HANDLER:
@@ -117,7 +118,6 @@ export const size = (a) => {
       return Object.keys(a).length;
     case UNDEF:
     case NUL:
-    case FUN:
     case ELT:
       return 0;
   }
@@ -125,7 +125,7 @@ export const size = (a) => {
 
 // Cast a string into another type - only string, number and boolean supported, currently.
 // Mainly supports the case when JS returns NaN when parsing a string
-export const cast = (type, str) => {
+const cast = (type, str) => {
   const {STR,NUM,BOOL} = TYPES;
   assert(getType(str) === 'string', `string cast value required; called with [${getType(str)}]`);
 
@@ -144,11 +144,9 @@ export const cast = (type, str) => {
 };
 
 
-
-
 // is looks something like {NUL: a => getType(a) === NUL, STR: a => getType(a) === STR ...}
 // ASSERT wraps with an assertion  {NUL: (a, msg) => assert(getType(a) === NUL, msg), STR: (a,msg) => assert(getType(a) === STR, msg)}
-export const is = mapObject(TYPES,([k, v]) =>
+const is = mapObject(TYPES,([k, v]) =>
   [k.toLowerCase(), a => getType(a) === v]
 )
 is.int = (a) => is.num(a) && (a % 1 === 0)
@@ -158,16 +156,16 @@ is.between = (lo, hi, a) =>
   size(lo) <= size(a) &&
   size(hi) >= size(a);
 
-is.t = a => true
-is.f = a => false
+is.t = () => true
+is.f = () => false
 // Arrays
-is.all = arr => ASSERT.arr(arr) && arr.reduce(and, true)
-is.any = arr => ASSERT.arr(arr) && arr.reduce(or, false)
+is.all = arr => as.arr(arr) && arr.reduce(and, true)
+is.any = arr => as.arr(arr) && arr.reduce(or, false)
 
 // It would be nice if this was expressable as arr.reduce(equals, true), but I couldn't get it to work.
 // Also, this code is probably a lot more performant.
-is.same = arr => {
-  ASSERT.arr(arr);
+is.same = (arr) => {
+  as.arr(arr);
   let prev = arr[0], curr;
   for(let i = 1; i < arr.length; i++){
     curr = arr[i];
@@ -177,20 +175,20 @@ is.same = arr => {
   }
   return true;
 }
-is.contains = (arr, a) => ASSERT.arr(arr) && arr.includes(a);
+is.contains = (arr, a) => as.arr(arr) && arr.includes(a);
 is.excludes = (arr, a) => !is.contains(arr, a);
 is.arrEquals = arrEquals;
 
 // This is awkward because we have to guess the cardinality of the predicate.
 // Another reason why the more straight-forward form is probably better.
-export const ASSERT = mapObject(is,([k,v]) =>
+const as = mapObject(is,([k,v]) =>
   [k, (a, b, c, d) => assert(v(a,b,c), d)]
 );
 
 // A simple PRNG inside the browser.
 // Note that every call increments state exactly once.
 // Q: convert this into a generator function?
-export function RNG(seed) {
+function RNG(seed) {
   // A simple seedable RNG based on GCC's constants
   // https://en.wikipedia.org/wiki/Linear_congruential_generator
   this.m = 0x80000000; // 2**31;
@@ -217,8 +215,8 @@ RNG.prototype.choice = function (arr) {
   return arr[this.nextRange(0, arr.length)];
 }
 // Fisher-Yates shuffle using ES6 swap
-export const shuffle = arr => {
-  ASSERT.arr(arr);
+const shuffle = arr => {
+  as.arr(arr);
   assert(arr.length > 1);
   let right, left, {floor, random} = Math;
   for (right = arr.length - 1; right > 0; right--) {
@@ -226,13 +224,12 @@ export const shuffle = arr => {
     [arr[left], arr[right]] = [arr[right], arr[left]];
   }
 }
-
-export default {
+export {
   now, log, debug, info, error, assert, assertThrows, tryToStringify,
   hasProp, getProp, propType, mapObject,
   equals, arrEquals, assertEquals,
   and, or, identity, curryLeft, curryRight, curry, compose,
   peek, push, copy,
-  TYPES, getType, size, cast, is, ASSERT,
+  TYPES, getType, size, cast, is, as,
   RNG, shuffle
 }

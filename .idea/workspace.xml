@@ -28,11 +28,20 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Re-organizing files. Factored out testable.">
+    <list default="true" id="51ac9917-30e3-4a89-9bb0-39ec456c33cb" name="Default" comment="Change a comment.">
+      <change afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/combine.html" beforeDir="false" afterPath="$PROJECT_DIR$/combine.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svg.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tic-tac-toe-vectors.afdesign" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core.html" beforeDir="false" afterPath="$PROJECT_DIR$/core.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core.js" beforeDir="false" afterPath="$PROJECT_DIR$/core.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-latch.js" beforeDir="false" afterPath="$PROJECT_DIR$/demo-latch.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo-tictactoe.html" beforeDir="false" afterPath="$PROJECT_DIR$/demo-tictactoe.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/friendly.html" beforeDir="false" afterPath="$PROJECT_DIR$/friendly.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rtree.html" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rtree.js" beforeDir="false" afterPath="$PROJECT_DIR$/rtree.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/svg.js" beforeDir="false" afterPath="$PROJECT_DIR$/svg.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,12 +61,14 @@
         <option value="Josh Rehman &lt;josh@joshrehman.com&gt;" />
       </list>
     </option>
+    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$" value="web-native-modules" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="SAVE_CHANGES_POLICY" value="STASH" />
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitSEFilterConfiguration">
@@ -90,7 +101,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JAVA&#10;JSON" />
     <property name="javascript.nodejs.core.library.configured.version" value="12.17.0" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/notes" />
     <property name="nodejs_interpreter_path" value="node" />
@@ -98,10 +109,10 @@
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="yarn" />
     <property name="prettierjs.PrettierConfiguration.Package" value="$PROJECT_DIR$/node_modules/prettier" />
-    <property name="project.structure.last.edited" value="Project" />
-    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.last.edited" value="SDKs" />
+    <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.selected.configurable" value="zielu.gittoolbox.app.config.v2" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -151,6 +162,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Scratch" type="Java Scratch" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Scratch" />
+      <option name="SCRATCH_FILE_URL" value="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="TestNG">
       <option name="TEST_OBJECT" value="CLASS" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
@@ -160,6 +178,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Java Scratch.Scratch" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="project-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
@@ -214,7 +237,13 @@
       <workItem from="1624807065595" duration="2319000" />
       <workItem from="1624823794883" duration="276000" />
       <workItem from="1624824086947" duration="34602000" />
-      <workItem from="1625517172953" duration="2014000" />
+      <workItem from="1625517172953" duration="2178000" />
+      <workItem from="1625599894138" duration="3453000" />
+      <workItem from="1625957267160" duration="10236000" />
+      <workItem from="1627254614796" duration="1450000" />
+      <workItem from="1627323481710" duration="105000" />
+      <workItem from="1627323649605" duration="2001000" />
+      <workItem from="1628815781244" duration="274000" />
     </task>
     <task id="LOCAL-00001" summary="Getting it working again; not working with modules is really, really hard.">
       <created>1593288580263</created>
@@ -461,7 +490,42 @@
       <option name="project" value="LOCAL" />
       <updated>1625519420687</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Remove svg.html. It will come back as a test harness for svg.js.&#10;Remove the tic-tac-toe Affinity Designer source file. We won't need it.">
+      <created>1625519504555</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1625519504555</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Fix up the intellij workspace.xml.">
+      <created>1625519547693</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1625519547693</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Change a comment.">
+      <created>1625519564833</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1625519564833</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Simplify and make more readable the rtree implementation.">
+      <created>1625967300787</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1625967300788</updated>
+    </task>
+    <task id="LOCAL-00040" summary="Make testable.js more self sufficient with inline svg favicons.&#10;Also, add the ability to stop the refresh with the 's' or space key.">
+      <created>1625967375648</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1625967375648</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -495,11 +559,6 @@
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Add a status and a related technology section to readme.md" />
-    <MESSAGE value="A few changes" />
-    <MESSAGE value="Fixing up a resource for &quot;publishing&quot;" />
-    <MESSAGE value="Adding a new node sequence." />
-    <MESSAGE value="How long does a change take to show up in github?" />
     <MESSAGE value="Changing some titles, cleaning up the code, and starting on simpatico.js" />
     <MESSAGE value="Making good progress. However, the laptop is overheading with these intentionally naive animation pumps, so I'm going to go back and replace them with RaF driven custom window events. But I want to commit before I make that change, because I may want to go back ." />
     <MESSAGE value="Honestly, I'm' really annoyed with rectangles because their origin is bottom left instead of center. Moving to circles. I should have guessed: radial symmetry is simpler!" />
@@ -520,19 +579,12 @@
     <MESSAGE value="Added testable.js support; formatting and cleanup.&#10;simpatico.html is not currently well named. It's not about simpatico, but rather about programming&#10;in the browser." />
     <MESSAGE value="Fix imports, variable names and formatting in the (green)square.html demo" />
     <MESSAGE value="Fix imports; add cx,cy support to scatter(); &#10;add intersectRect(), intersectingElts(), and isInsideRec();" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix imports; add cx,cy support to scatter(); &#10;add intersectRect(), intersectingElts(), and isInsideRec();" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/rtree.html</url>
-          <line>55</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Remove svg.html. It will come back as a test harness for svg.js.&#10;Remove the tic-tac-toe Affinity Designer source file. We won't need it." />
+    <MESSAGE value="Fix up the intellij workspace.xml." />
+    <MESSAGE value="Change a comment." />
+    <MESSAGE value="Simplify and make more readable the rtree implementation." />
+    <MESSAGE value="Make testable.js more self sufficient with inline svg favicons.&#10;Also, add the ability to stop the refresh with the 's' or space key." />
+    <option name="LAST_COMMIT_MESSAGE" value="Make testable.js more self sufficient with inline svg favicons.&#10;Also, add the ability to stop the refresh with the 's' or space key." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
