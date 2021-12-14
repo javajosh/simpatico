@@ -8,7 +8,11 @@
   "license": "MIT",
   "private": false,
   "type": "module",
-  "dependencies": {
+  "scripts": {
+    "serve": "http-server"
+  },
+  "devDependencies": {
+    "http-server": "^14.0.0",
     "prettier": "^2.3.2"
   }
 }
