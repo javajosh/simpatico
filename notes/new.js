@@ -2,7 +2,7 @@
 const fs = require('fs');
 const child_process = require("child_process");
 
-const name = 'Josh Rehman';
+const name = 'javajosh';
 const place= 'here';
 const path = '.';
 const editor = 'subl';

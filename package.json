@@ -4,7 +4,7 @@
   "description": "building software, together",
   "main": "simpatico.js",
   "repository": "https://github.com/javajosh/simpatico.git",
-  "author": "Josh Rehman <josh@joshrehman.com>",
+  "author": "javajosh <josh@javajosh.com>",
   "license": "MIT",
   "private": false,
   "type": "module",

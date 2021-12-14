@@ -4,14 +4,14 @@
 	<meta charset="UTF-8">
 	<meta name="description" content="Title">
 	<meta name="keywords" content="HTML,CSS,XML,JavaScript">
-	<meta name="author" content="Josh Rehman">
+	<meta name="author" content="javajosh">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- <meta http-equiv="refresh" content="2"> -->
 	<title>Browser sound test</title>
 </head>
 <body>
 	<h1>Browser sound test</h1>
-	<p>Josh Rehman <i>8/17/19</i></p>
+	<p>javajosh <i>8/17/19</i></p>
 	<button onclick="beep()">beep()</button>
 
 	<p>Interestingly, you can't start sound until the user interacts with your page - and probably a subset of interactions, I'd guess.</p>
@@ -30,7 +30,7 @@
 
 			};
 			ctx = ctx ? ctx : new AudioContext();
-	        const osc = ctx.createOscillator(); 
+	        const osc = ctx.createOscillator();
 	        const gainOsc = ctx.createGain();
 	        const vol = beepSpec.vol || 1;
 
