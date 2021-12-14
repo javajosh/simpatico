@@ -1,5 +1,5 @@
 import {now, as}  from './core.js';
-import combine from './combine.js';
+import {combine} from './combine.js';
 
 
 export default (startValue= {}, reducer = combine) => {

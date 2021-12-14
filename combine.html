@@ -16,8 +16,8 @@
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
 <script type="module">
-  import {combine} from './combine.js';
-  import {log, assert, assertEquals, is} from './core.js';
+  import {combine, combineAll, combineAllArgs} from './combine.js';
+  import {log, assert, assertEquals, is, assertThrows} from './core.js';
 
   let result = null;
   // test() is a helper function to be used while testing the combine function
@@ -81,6 +81,34 @@
   assert(result.a === 2 && result.b === 2);
   result = combine(result, {msg: 'b'});
   assert(result.a === 2 && result.b === 3);
+
+  // TODO test combine with dom elements.
+
+  // TODO: explore what "combineAll()" looks like and how it works.
+  // Method one - the straight-forward loop
+  const a = (arr, residue = {}) => {
+    for (let i = 0; i < arr.length; i++) {
+      residue = combine(residue, arr[i]);
+    }
+    return residue;
+  };
+  result = a([{a: 1}, {a: 1}], {});
+  assertEquals(result.a, 2);
+
+  // Method two - the reduction
+  const b = (arr, residue = {}) => arr.reduce(combine, residue);
+  // TODO: figure out why this throws a rule error. It's almost like the default rule isn't being set.
+  // are defaults ignored by Array.reduce somehow?
+  assertThrows(() => {
+    result = b([{a: 1}, {a: 1}, {a: 1}], {}); //this part throws
+    assertEquals(result.a, 3);
+  });
+
+  result = combineAll([{a: 1}, {a: 1}, {a: 1}, {a: 1}], {});
+  assertEquals(result.a, 4);
+
+  result = combineAllArgs({a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1});
+  assertEquals(result.a, 8);
 
 </script>
 </body>

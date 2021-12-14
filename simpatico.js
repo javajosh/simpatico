@@ -1,4 +1,4 @@
-export Core from './core.js';
-export Combine from './combine.js';
-export RTree from './rtree.js';
-export validate from './friendly.js';
+export * from './core.js';
+export * from './combine.js';
+export * as rtree from './rtree.js';
+export {validate} from './friendly.js';

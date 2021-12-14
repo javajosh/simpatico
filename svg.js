@@ -133,6 +133,5 @@ const isPointInPoly = (poly, point) => {
   return false;
 }
 
-export         {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly};
-export default {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly};
+export {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly};
 
