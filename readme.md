@@ -1,6 +1,6 @@
 # Simpatico
 
-Josh Rehman [@javajosh](https://twitter.com/javajosh), 28 June 2020
+[@javajosh](https://twitter.com/javajosh), 28 June 2020
 
 ## Overview
 
