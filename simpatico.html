@@ -2,17 +2,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- html~lang~en, meta~charset~utf-8 and meta~name~viewport~etc, above, are boilerplate. -->
+  <!-- html.lang=en, meta.charset=utf-8 and meta.name=viewport, etc above, are boilerplate. -->
 
-  <meta name="description" content="Building Simpatico in the browser.">
-  <meta name="keywords" content="programming, state, actor model, message oriented programming, finite state automata">
+  <meta name="description" content="Simpatico Environment">
+  <meta name="keywords" content="programming, state, actor model, message oriented programming, finite state automata, btd, json">
   <meta name="author" content="javajosh">
-  <title>Simpatico.js</title>
+  <title>Simpatico.io</title>
 
+  <!-- The code should not fail, and if it does signal it clearly. Also, reload every 2s, but can cancel with 's' or space.  -->
   <link id="favicon" rel="icon" type="image/png" class="subresource" href="./img/white.png">
   <meta id="refresh" http-equiv="refresh" content="2">
   <script type="module" src="testable.js"></script>
 
+  <!-- Sorry to say I cannot recall why the page is styled like this. Since I'm focused on SVG components, we can safely
+    leave this alone, and not even bother with a reset. However if you want to make CSS styled HTML components,
+    you'd want to put "global" styles here. -->
   <style>
     html { height: 100%; overflow:auto; }
     body { height: 100%; }
@@ -22,20 +26,39 @@
 
 <h1>Simpatico.js</h1>
 <p>javajosh <i>Mar 2021</i></p>
+<!--HTML comments are specifically for people on their first read through. Simpatico components are made and distributed
+as simple HTML files that conform to some simple patterns (and I also recommend a certain pattern of use, as well).
+This button stops the meta#refresh.content=2 second refresh that helps make a low tech but servicable BTD loop over the file.
+-->
 <button id="stop-refresh" onclick="window.stop()">Stop 2s Refresh</button>
 
-<p>This is the <i>test harness</i> for Simpatico. Like all of Simpatico, this artifact is first and foremost a practical tool. In fact, it's a tool that will grow with Simpatico as I complete it.</p>
+<h3>Literate</h3>
+<p>Simpatico is fundamentally "literate" because it's embedded in the same HTML your programs are running in. However we will take care
+to make it easy to distinguish between static html elements we need to reference in our programs, and free-form content like this.</p>
+<h3>Testable</h3>
+<p>Testable means that if an error is thrown that the favicon and background turn red. Every component needs to load and run without error.</p>
 
-<p class="sidenote">As a by now well seasoned web developer, I've learned a thing or two about how web pages are built in a "professional" context, and I have to admit: it's not pretty. In particular, the browser itself is a mess. And the reason? The browser is at the top of the food chain, in terms of software, but it's being fed into from an enormous variety of places, often very late in the lifetime of the tab. "Living in" the browser long-term is a relatively new movement in web app development, and one which I think has legs! I will say that I really like web programs, like this one, that are HTML files written in a text editor, and which are small and very simply constructed. It's a good start for any ambitious program.</p>
+<h3>Opinionated</h3>
+<p>A component is some dom and some code that binds to that dom. Simpatico tends to prefer low-entropy object representations
+that are rendered using a low-entropy visual representation (SVG), and as a set of related specializations of something common.
+SVG for data entry isn't that intimidating, it just sounds tedious but it may just be something to get through.</p>
+<p>The intuition is to think through the svg objects you might want to draw an object. Key value pairs, arranged in 2-dimensions.
+And then also decide on how to represent nested objects. In fact you are defining an n-arry trie, with a value at each list of strings.</p>
+<p>Next, you imagine that you always build up more complex objects from simpler ones. You also can define special locations
+called "call points" which are rows with available degrees of freedom. I am a fan of both really simple, static concrete
+images, but also of the functional style, so we will also give a characterization that way. A program is considered the state
+acquired after integrating some ordered set of inputs. We can normalize and simplify the integration using something like the combine
+function. The combine function, meanwhile, allows for a version of function invocation, when you send in an object of a certain shape.</p>
+<p>In all cases we treat the process-level rtree singleton specially, and store a version of it in localstorage.</p>
+<p></p>
 
-<p>This tab runs a test. This test will change the favicon different colors depending on the outcome of this test. We say precisely that the test consists of setting the initial favicon, and then setting it to green if "successful", and red if there's a failure. The code that runs before that final statement is "test code".
+<p>The canonical visualization is a rehman tree, but you can get there starting with events dropping from pipes and collected somewhere.
+The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 
-<p class="sidenote">
-  HTML is a kind of declarative data-structure that is <i>okay</i> to tightly couple to any programming statements you may write. (This is why I like to quickly declare handy js references to the DOM at the very beginning of the code section.)
-</p>
+<p>This tab runs a test. This test will change the favicon different colors depending on the outcome of this test.
+  We say precisely that the test consists of setting the initial favicon, and then setting it to green if "successful", and red if there's a failure.</p>
 
-<p>Because our browser space is so clean and nice, we can breathe. The browser is coming into contact with each line as you write it.
-</p>
+<p>Because our browser space is so clean and nice, we can breathe. The browser is coming into contact with each line as you write it.</p>
 
 <p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding things is going to involve more than concatenation</p>
 
