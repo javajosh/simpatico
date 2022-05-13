@@ -12,7 +12,7 @@
     "serve": "http-server"
   },
   "devDependencies": {
-    "http-server": "^14.0.0",
-    "prettier": "^2.3.2"
+    "http-server": "^14.1.0",
+    "prettier": "^2.6.2"
   }
 }
