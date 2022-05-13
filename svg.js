@@ -133,5 +133,7 @@ const isPointInPoly = (poly, point) => {
   return false;
 }
 
-export {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly};
+const xpath = (strExpr, doc=window.document) => doc.evaluate(strExpr, doc, null, XPathResult.ANY_TYPE, null);
+
+export {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly, xpath};
 

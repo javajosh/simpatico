@@ -27,8 +27,16 @@ const combine = (target, msg, rules = getRules()) => {
 
   // Invoke the rule and return
   // debug('combine()=>', 'rule:', ruleKey, 'target:', target, 'msg:', msg );
+  const debugObject = {
+    ruleKey: ruleKey,
+    target: tryToStringify(target),
+    msg: tryToStringify(msg),
+  }
+  // debug(debugObject);
   const result = rule(target, msg);
-  debug(`result[${tryToStringify(result)}] rule[${ruleKey}] target[${tryToStringify(target)}] msg[${tryToStringify(msg)}]`);
+  debugObject.result = tryToStringify(result);
+  debug(debugObject);
+
   return result;
 }
 
