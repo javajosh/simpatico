@@ -2,28 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description" content="">
-  <meta name="keywords" content="HTML,CSS,JavaScript">
-  <meta name="author" content="javajosh">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"  content="Friendly Function description and test harness">
+  <meta name="keywords"     content="ES6, Minimalist, State Management, Functional Programming">
+  <meta name="author"       content="Josh Rehman @javajosh 2022">
+
   <link id="favicon" rel="icon" type="image/png" href="white.png"/>
   <meta id="refresh" http-equiv="refresh" content="2">
-  <title>Friendly.js</title>
   <script type="module" src="testable.js"></script>
+
+  <title>Friendly.js</title>
 
 </head>
 <body>
-<h1>Friendly.js</h1>
-<p>javajosh <i>27 Jan 2019</i></p>
+<h1>Friendly Function Test Harness</h1>
+<p>Josh Rehman, created <i>27 Jan 2019</i></p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
 <p>A friendly function is one that tells you how to call it. If you call it with nothing, it returns a <i>pattern</i>
   describing how to call it. If you call it with an object that matches the pattern, then, great! If you call it with an
-  object that only partially matches the pattern, it will return an object representing the partially collapsed pattern.
+  object that only partially matches the pattern, it will return an object containing a combination of matched values and unmatched patterns.
 </p>
 
 <p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an
-  important part of the convention: return something other than an object! For various reasons, I like array.</p>
+  important part of the convention: return something other than an object! The most general (and useful) convention is to return an array. If you want to return a single object, return <code>[{...}]</code></p>
 
 <script type="module">
   import {as, assertEquals} from './core.js';
@@ -31,8 +32,6 @@
 
   const {str, num, bool, fun, obj, undef, arr, same,
     all, contains, arrEquals} = as;
-
-
 
   const testPattern = {
     a: ['num', 'between', 0, 10],

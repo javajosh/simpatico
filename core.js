@@ -224,6 +224,12 @@ const shuffle = arr => {
     [arr[left], arr[right]] = [arr[right], arr[left]];
   }
 }
+
+// Consider adding handy regexes for common
+// string representations of important data types
+// like dates, hostnames, email addresses
+// jdbc urls and similar.
+
 export {
   now, log, debug, info, error, assert, assertThrows, tryToStringify,
   hasProp, getProp, propType, mapObject,

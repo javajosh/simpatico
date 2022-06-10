@@ -1,127 +1,37 @@
-# Simpatico
+# What is a computer program?
 
-javajosh [@javajosh](https://twitter.com/javajosh), 28 June 2020
+A program without input is unchanging. When input appears, the program integrates the input with its current state and produces a new state. If the program cannot integrate new input, we say that the program is halted. Such a program is fully deterministic on its input. (Clock ticks, random number generation, in addition to network, keyboard, and other physical measurements, are examples of 'input'.)
 
-## Overview
+We characterize program operation as "1+N", where "1" represents the initial invocation that occurs outside of program control. During this first phase, the program sensitizes itself to  subsequent input. The initial phase can be called the transient of the program, and the following inputs the steady state. Inputs come from different physical sources, interleaved and at random. (For example, a GUI loads the UI and becomes sensitive to all subsequent clicks and keypresses. A server binds to a network port, becomes sensitive to subsequent request strings.)
 
-**Status**: prototype. This repository is currently a mess; but most of the ideas are in `simpatico.js` and in a form
-that is easily interacted with at the REPL.
+For Simpatico we pick a singleton object to represent program state, and input as a (usually) much smaller object to be integrated. (The ES6 prototype uses what is basically a JSON encodable object literal.) The "combine" function performs integration. Combine is a pure function with signature `combine(state_0, input) => state_1`. Combine allows a programmer to reach any state using any list of objects. Combine also allows for the invocation of functions, which recursively integrate the results of the invocation, resulting in a "message cascade", which is something like an interactive stacktrace.
 
-Simpatico in its current form is a prototype exploring three areas of application development. First, the idea that
-software can be expressed as a combination of inputs, embodied by the `combine()` function. Second, the idea that
-software's superpower is the ability to copy even the most intricate state perfectly, leading to the Rehman Tree,
-or `rtree`, which is a representation of many related states, or worldlines, such that the tip of each one is a coherent
-application state. Finally, the idea of the "Friendly Function", which is a function that helps the caller understand
-how to call it. This is achieved primarily with the (poorly named) `validate()` function, which does pattern checking on
-objects, returning the parts of the pattern that failed to pass. In this way, we see that a program's
-degrees-of-freedom (or DoF, a concept borrowed from physics) is the sum total of the programs patterns at any point in
-time.
+The combine() function is enough to describe a wide variety of finite state machines, and is the backbone of Simpatico. However, most programs need collections in general, and of related finite state machines in particular. To accommodate this need we define a new data-structure, the `rtree`, which is a trie of object inputs, with the tip of each branch defining a unique reactive finite state machine. Inputs are numbered from 0 to N, branches from 0 to B, where B <= N. We define the "residue" of any point in the rtree by walking up to root and reducing all inputs with `combine()`. The residue of the branches are of particular importance, as they are accepting most new input; in Simpatico a program is an rtree that accepts both strings and numbers, such that the number moves the cursor, and the string is parsed as an object, and integrated using combine(). The rtree has a preferred visual representation that follows English textual convention, with each branch getting a new line, and each event adding to the current line, as a character. "Row" and "branch" are interchangeable terms.
 
-## Usage
+The rtree gives us very powerful collections allowing us to cheaply "branch" any given state, and unifies the traditional OOP concepts of "subclass" and "instantiation". Both are just specializations of a previous state.
 
-This repository is all about the front-end code, but you will need a way to serve it.
-(Sadly loading from file URLs doesn't work, although it really should.)
+It is often useful to allow branch residues in an rtree to interact with each other, and also to summarize them. So the rtree defines one more function, that reduces over the branches and returns a kind of "super residue". [I'd also like to give this function the ability to generate inputs for sibling rows in the rtree, but I haven't done that yet]. The canonical example here is a field of N particles. The 0th row might define a particle, with subsequent rows defining new particles with new state. Without a super residue, the particles can advance with time input, but cannot interact with each other. With a super residue, we'd have the ability to detect collision and modify participating particle's momentum.
 
-```shell
-git clone
-npm install
-npm run serve
-```
+The rtree datastructure matches a general application structure, which is a state that tracks multiple objects, measuring them, modelling their state, and helping the user interact with them, both online and in real life. For the individual owner, each row might represent a person or an important thing, a project. For a business owner, each row might represent the employees, customers, and product instances, and projects. In it's most general expression, a SimpatiCore is a durable process, and there would be one for each person, and one for each business, active for the lifetime of the person, with a row for every person and thing with which you've ever interacted. Durability implies persistence, but also distribution, as devices fail. Because of its simplicity of design, Simpatico is uniquely positioned to provide serializable consistency between devices.
 
-The result is that you have something running that responds to localhost:8080, and from there you can explore the rep
-directly. There are two files per module, the javascript module itself and an html file that tests that module. A good
-place to start is the [core](core.html) file, for example. All the test html resources are linked from index.html.
+## Input validity
 
-Note that there is no front-end build, and there is nothing special at all about this server. You could use
-python's `python3 -m http.server` for example, or any other method you like (
-see [MDN's article on setting up a testing server](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server)
-.)
+In the beginning, all inputs are allowed. However if we define handlers, invalid input is possible. Handlers may have required values, or values within a range, or that match a pattern. Simpatico takes the "friendly function" attitude, that a function should help it's caller call it, if at all possible. So it's useful for a handler to be able to return a "pattern" describing inputs that would subsequently be valid. This is, in fact, one of the ways branch residues are special - we expect them to contain a pattern that describes which inputs would be subsequently valid.
 
-### Test harness
-Each html file is a stand-alone test harness for a module using a minimalist script called "testable" that traps for
-errors and sets the background and favicon to red on failure, green on success. The idea being that you can have all your
-modules loaded as tabs in the same browser and see them blink on or off as you break/fix things. This is also why
-the html files automatically refresh every 2s by default, so that you will know.
+## Prototype code
 
-A nice trick on most operating systems is the ability to "open" or "start" files with GLOBS, so you could easily open all
-html files in simpatico in your browser, if file URLs were supported. So you have to open them and bookmark the lot.
+These descriptions are general and apply to all extent software, often in an unintentionally obfuscated way. To
 
-## Applications
+These ideas are surprisingly profound, and to keep from being confused absolute minimalism helps. (This sometimes is referred to as "use the platform" in modern parlance). Modern JavaScript, with it's excellent support for first-class functions, useful object literals, and a mature data standard (JSON), plus its ubiquity in a full-featured graphical runtime (the browser) make it a good target. However, a constant challenge has been the distraction of all the wonderful things people are making in this language.
 
-This way of seeing values and their relationship to *process* and *time* is key to coherent thinking about software. In
-a sense, it's this way of thinking that I hope will be the lasting achievement.
+Simpatico is developed as a small set of ES6 JavaScript modules as name.js, each of which has a test harness and documentation as name.html. There is no front-end build. Sadly, browser modules cannot be loaded from `file` URLs so one *must* load the test harnesses from a locally running server. I've included a simple one based on `node`, however you're welcome to use something else, like the python server or nginx or anything, really. (Eventually I may write a script that concatenates all the modules into a single script that *can* be loaded from the file system.) The test harness files are simple HTML files that have one unusual feature: they refresh themselves. This allows you to modify the test code or the module code (recursively) and see the results immediately. The favicon is changed from white (untested) to green (passed) or red (failed). If you want to dig into the test code, you can stop the refresh, set break points, and so on. The test code is intentionally written as a liste of simple, global statements that exercise the module, and should serve as much as documentation as test code.
 
-There are some very interesting applications. I believe the Simpatico method lends itself well to modeling both the chat
-problem, and what we would consider "ordinary applications", in a consistent way, and so can support (mostly) common
-applications.
+  1. core.html - Core is a list of plain vanilla javascript functions that smooth over some of the rough edges of the platform. No dependencies. There is nothing specific to Simpatico.
+  2.
 
-An exotic (but interesting and potentially quite useful) application is the *monomorphic* browser application, where a
-browser-type process serves as both the client and server. The "server" itself becomes simply a dumb router, essentially
-reifying the internet itself. This is in contrast to "isomorphic" applications who's requirement is the same language on
-the client and server (JavaScript on Client (browser) JavaScript on Server (node)) - a monomorphic javascript
-application uses the browser as the basis of the server, too - so just (JavaScript on Client). This style of application
-I like to call "Structured Chat", in reference to the fact that, I believe, all modern computer applications can be
-characterized as a particular reduction over the lifetime of chat messages between two identities (which in my mind is
-best represented as a public key).
+## Visualization
 
-# Challenges
+So far I haven't mentioned the DOM at all. That is because visualization means climbing up the entropy well, adding disorder in favor of being more visceral. This is necessary, but it should be done carefully and, ideally, only in one direction. And in fact, I've come to the conclusion that apart from writing documents, HTML and CSS is not very good for writing applications. Instead, I like SVG. SVG is nice because it is easily characterized as list of shapes and groups, each of which are associated with a transform. If you want to support different screen shapes, you can make two static SVGs and interpolate between them
 
-There are, of course, some challenges, particularly in the area of persistence. LocalStorage is under attack by browser
-vendors, who would prefer to treat it as ephemeral. And yet Simpatico requires something persistent in the browser, and
-would like to avoid the hoops that Tiddlywiki, for example, has to jump through to enable saving and backups. Other
-solutions to this problem abound, from the relatively heavy-weight Electron (which replaces the browser entirely) to the
-middling weight Joplin (which runs a daemon plus a browser plugin that calls into that daemon).
 
-## Related technology
-
-Although my `combine()` function predates it, I believe it is an example of what Rich Hickey has called
-a ["transducer"](https://www.youtube.com/watch?v=6mTbuzafcII), which is a reducer that itself changes over the
-reduction. Rich is also an inspiration when it comes to going off on your own and doing something you really believe in,
-which he has done by inventing the lovely [Clojure](https://clojure.org) language - a dynamic, immutable deeply
-functional language written for the JVM.
-
-It also predates my experience with [Dan Abramov's](https://twitter.com/dan_abramov)
-excellent [Redux](https://redux.js.org/) library, and I think the rtree competes directly, and favorably, with Redux. In
-particular, I think the combine() function has a more elegant story about how to define reducers, and eliminates the
-need for actions entirely.
-
-You'll see a lot of work with SVG within this repository, and that's in large part thanks to the inspiration
-of [Mike Bostock's](https://bost.ocks.org/mike/) excellent [D3](https://d3js.org/) library. He really opened my eyes to
-the power of native browser technology in general, and SVG in particular (although it is quite a heavy language, really,
-unless you start to confine yourself to a subset of features, and using them with discipline!).
-
-I first started programming on with Logo on the Apple IIe back in the 80's, and I only found out recently about it's
-inventor, [Seymour Papert](https://en.wikipedia.org/wiki/Seymour_Papert) thanks
-to [Bret Victor's](http://worrydream.com/) excellent talks (
-particularly [Inventing On Principle](http://worrydream.com/#!/InventingOnPrinciple)) about software and it's
-relationship to human minds. This encouraged me to not give into the status quo, and also courage to believe that
-there's something deeper to discover here. And indeed, I think we are only at the beginning of the computer revolution.
-
-At first, I wasn't so sure about JavaScript, but over time I've really come to enjoy the language itself, particular in
-it's ES6 form, and in particular object literals and pure functions. Simpatico itself makes heavy use of these elements,
-and deemphasises elements of the language I do not like, in particular any of the class stuff, new, or this. Lore has it
-that JS was made by [Brandon Eich](https://en.wikipedia.org/wiki/Brendan_Eich) at Netscape in about a week, but it
-really has some good ideas. Thanks to [Doug Crockford](https://en.wikipedia.org/wiki/Douglas_Crockford) for
-inventing [JSON](https://www.json.org/json-en.html), noting that its okay to acknowledge that a thing
-has [some good parts](https://www.alibris.com/JavaScript-The-Good-Parts-The-Good-Parts-Douglas-Crockford/book/39532121?matches=7)
-and some bad ones, and also actually [using web native modules in some real code](https://jslint.com/).
-
-## Possibilties
-
-These are the primary components of what I hope to be a revolutionary software development environment, where software
-is built in the same way the software is used, collaboratively, through the web (TTW). While it's heartening to me to
-see TTW technologies explode, for the most part they are recapitulating traditional software methods. Codepen.io for
-example is still quite code oriented, as are most of these environments. Simpatico is an attempt to "go with the grain"
-of the web, and do something really different.
-
-I think it's likely that Simpatico can support 100k simultaneous users on relatively modest machines, a number
-approaching 1 if you ignore backups. Perhaps more, depending on the nature of the application. By nature, Simpatico
-applications are high availability, as the build-test-deploy cycle is integrated with the runtime itself. Applications *
-always* incrementally update, which obviates the need for separate, expensive and error prone devops software.
-
-The goal is to build small teams of 4 people or so that can build a working application that meets the needs of all
-stakeholders in close to real time. The value here would be immense; venture capitalists could test a lot more ideas a
-lot faster, for example. Only those ideas that are successful need to get the bespoke treatment required to scale above
-1 server, and I imagine as time goes on the knowledge of how to scale a Simpatico application up will grow, and it will
-become easier. But the fact that Simpatico encourages a "ship in a bottle" approach to application design (that is, to
-model your problem "in the small" and then "render it out") gives you a much better chance of succeeding even in that.
+Program state either grows in size (e.g. appending the input to an array) or it stays the same (counting inputs). By convention, programs start off small and grow with code. The runtime structure is "1+N" where "1" stands for the intitial start event (program launch), and "N" stands for the steady state (HCI input). For example, a GUI program will start and register mouse and keyboard handlers, which will then be called in the steady-state, or a server program will start and register request handlers, which are called by a network client in the steady state.
