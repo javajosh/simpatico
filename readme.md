@@ -1,3 +1,20 @@
+# Simpatico
+
+This is a browser hosted JavaScript prototype of Simpatico, which is a collection of 4 ideas, one module per idea with the goal of describing a new, minimal characterization of "software application". Here is one way to get started:
+```
+$ git clone https://github.com/javajosh/simpatico.git && cd simpatico
+$ npm run serve
+```
+Open the URL you see. In your browser, CTRL-click some or all of links you see, opening them in a new tab. Your browser is now running tests over the 4 modules, such that if you modify any file they will be reloaded and retested. Note: there is nothing special about the server; all custom code is in the html/js. You could easily run `python -m http.server` or similar instead of the npm command. It is included for convenience only.
+
+## The Components
+
+  1. Core. Very generic, convenience functions that smooth over the JavaScript runtime. Of particular importance is the definition of a comprehensive set of predicates/assertions.
+  2. Combine. The function used to produce a new state from a previous state plus an input; a generalization of Object.assign() and previously known as "combineKeys".
+  3. RTree. A data structure that organizes inputs into chains that result in different, related states. It is this structure that unifies previous distinct concepts like instantiation vs inheritance, and also provides natural "collections" support.
+  4. Friendly. A very simple runtime type system that lets functions help their callers call them properly.
+
+More detail is
 # What is a computer program?
 
 A program without input is unchanging. When input appears, the program integrates the input with its current state and produces a new state. If the program cannot integrate new input, we say that the program is halted. Such a program is fully deterministic on its input. (Clock ticks, random number generation, in addition to network, keyboard, and other physical measurements, are examples of 'input'.)
