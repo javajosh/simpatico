@@ -1,6 +1,6 @@
-import {tryToStringify, hasProp} from './core.js';
-import {validate} from './friendly.js'
-import rtree from './rtree.js';
+import {tryToStringify, hasProp} from '../core.js';
+import {validate} from '../friendly.js'
+import rtree from '../rtree.js';
 
 
 // Let's build a little countdown latch

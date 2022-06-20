@@ -1,5 +1,5 @@
-import rtree from './rtree.js';
-import {scatter} from './svg.js';
+import rtree from '../rtree.js';
+import {scatter} from '../svg.js';
 
 
 // Let's do some particle stuff. You can move a particle with the mouse and

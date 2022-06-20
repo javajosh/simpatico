@@ -1,7 +1,7 @@
-import rtree from './rtree.js';
-import {combine} from './combine.js';
-import {validate} from "./friendly";
-import C from './Core';
+import rtree from '../rtree.js';
+import {combine} from '../combine.js';
+import {validate} from "../friendly";
+import C from '../core';
 
 const {assert, assertThrows} = C.asserts;
 

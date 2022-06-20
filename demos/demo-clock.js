@@ -1,5 +1,5 @@
-import rtree from "./rtree.js";
-import { now, debug } from "./core.js";
+import rtree from "../rtree.js";
+import { now, debug } from "../core.js";
 
 /**
  Clock with a requestAnimationFrame (raf) pump.

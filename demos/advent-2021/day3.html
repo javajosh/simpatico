@@ -14,7 +14,11 @@
 <pre id="output1"></pre>
 
 <h3>Part 2</h3>
-
+<p>Part 2 annoyed me so much I put the task down for a week! It just looked like a slog, but I
+  kept thinking about it and I think now I have a satisfying solution. Another reason for the delay was my belated
+  discovery
+  that this is a contest designed to test people's coding speed, rather than an invitation to consider these
+  relatively simple problems as an opportunity to think more deeply about them and the surrounding context.</p>
 <pre id="output2"></pre>
 
 <h2>Input</h2>
@@ -1079,6 +1083,56 @@
   output1.innerHTML = JSON.stringify(result, null, 2);
 
   // Part 2 -
+  /**
+   * Part 2 wants us to find a number based on a progressive filter based on counting bits
+   * in each successive column. It is an ugly problem with an ugly specification, however
+   * the solution is hopefully not that bad. Let's see.<p>
+   *
+   * The general shape of the solution is to initialize a new array storing all
+   * boolean trues for inclusion, and then iterate over the columns applying
+   * the criteria, finally returning when only one true remains. (It's not clear what happens in a tie.)
+   *
+   * Another option, available to us in Javascript, is to delete elements in the array with splice,
+   * and then check the new length.
+   *
+   */
+  const included = new Array(height);
+  included.fill(true);
+
+  // Counts the elements in an array
+  const countMap = arr => arr.reduce((map, value) => {
+      map.set(value, (map.get(value) || 0) + 1);
+      return map
+    },
+    new Map()
+  );
+
+  const transpose = m => m[0].map((x,i) => m.map(x => x[i]));
+  const t = transpose(parsed);
+  //For each column, count the 1s.
+  for (let i =0; i < width; i++){
+    let row = t[i];
+    let ones = countMap(row)['1'];
+    let onesWin = ones >= height/2;
+  }
+  //Calculate the "good" value, and filter all entries.
+  //Continue until one entry remains (included has only one true entry)
+  //I find myself wanting transpose.
+
+  const doIt = (col = 0) =>{
+    if (col > width ) return "Error";
+    const colCountMap = countMap(parsed[col]);
+
+    const isDone = countMap(included) === {"1":1};
+    if (isDone){
+      const foundIndex = included.find(e => e === true);
+      return parsed[foundIndex];
+    } else {
+      doIt(col++)
+    }
+    doIt(col++);
+  }
+
 
 </script>
 </body>
