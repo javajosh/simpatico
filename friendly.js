@@ -22,10 +22,7 @@ export const validate = (patternObj, valueObj) => {
   if (patternObj === null) return {};
   if (patternObj === {}) return undefined;
 
-  assert(
-    isObjecty(patternObj),
-    `pattern must be an object but was ${tryToStringify(patternObj)}`
-  );
+  assert(isObjecty(patternObj), `pattern must be an object but was ${tryToStringify(patternObj)}`);
 
   const result = {};
   let objPass = true;
@@ -42,7 +39,9 @@ export const validate = (patternObj, valueObj) => {
     }
 
     pass = is.undef(failReasons);
-    if (!pass) result[patternKey] = failReasons;
+    if (!pass) {
+      result[patternKey] = failReasons;
+    }
     objPass = objPass && pass;
   }
   return objPass ? undefined : result;

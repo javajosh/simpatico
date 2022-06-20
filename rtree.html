@@ -1,19 +1,20 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description" content="Rehman Tree: Definition, application">
   <meta name="keywords" content="Simpatico, rtree, es6">
-  <meta name="author" content="javajosh">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
-  <title>RTree.js</title>
+  <meta name="author" content="Josh Rehman">
 
+  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <script type="module" src="testable.js"></script>
+
+  <title>RTree.js</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 <h1>RTree.js</h1>
-<p>javajosh <i>July 2020</i></p>
+<p>Josh Rehman <i>July 2020</i></p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
 <h2>The Problem of State Management</h2>
@@ -79,6 +80,7 @@
   import {assertEquals} from './core.js';
   import rtree from './rtree.js';
 
+  // A very simple RTree using integers as inputs and "add" instead of combine.
   let r = rtree(0);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 0);
@@ -122,7 +124,7 @@
 </script>
 
 <script type="module">
-  import latch from './demo-latch.js'
+  import latch from './demos/demo-latch.js'
   import {assertEquals, assertThrows, log} from "./core.js";
 
   log('start', latch.residue().count)

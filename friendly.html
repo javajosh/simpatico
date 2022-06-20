@@ -2,29 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description"  content="Friendly Function description and test harness">
-  <meta name="keywords"     content="ES6, Minimalist, State Management, Functional Programming">
-  <meta name="author"       content="Josh Rehman @javajosh 2022">
+  <meta name="keywords" content="ES6, Minimalist, State Management, Functional Programming">
+  <meta name="author" content="Josh Rehman">
 
-  <link id="favicon" rel="icon" type="image/png" href="white.png"/>
+  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <script type="module" src="testable.js"></script>
 
   <title>Friendly.js</title>
-
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<h1>Friendly Function Test Harness</h1>
-<p>Josh Rehman, created <i>27 Jan 2019</i></p>
+<h1>Friendly Functions</h1>
+<p>Josh Rehman, created <i>27 Jan 2019</i> last updated <i>20 June 2022</i></p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
-<p>A friendly function is one that tells you how to call it. If you call it with nothing, it returns a <i>pattern</i>
-  describing how to call it. If you call it with an object that matches the pattern, then, great! If you call it with an
-  object that only partially matches the pattern, it will return an object containing a combination of matched values and unmatched patterns.
+<p>
+  A friendly function is one that tells you how to call it.
+</p>
+<ol>
+  <li>If you call it with nothing, it returns a <i>pattern</i> describing how to call it.</li>
+  <li>If you call it with an object that matches the pattern, then, great!</li>
+  <li>If you call it with an object that only partially matches the pattern, it will return an object containing a combination of matched values and unmatched patterns.</li>
+</ol>
+
+<p>
+  <i>Important Note:</i> Currently we do NOT return successfully matched values, and instead just return the parts that fail.
 </p>
 
-<p>How can you tell the difference between a successful function invocation and an unsuccessful one? Well, this is an
-  important part of the convention: return something other than an object! The most general (and useful) convention is to return an array. If you want to return a single object, return <code>[{...}]</code></p>
+<p>
+  How can you tell the difference between a successful function invocation and an unsuccessful one?
+  Well, this is an important part of the convention: return something other than an object!
+  The most general (and useful) convention is to return an array.
+  If you want to return a single object, return <code>[{...}]</code>
+</p>
+
+<p>See the source for more details.</p>
 
 <script type="module">
   import {as, assertEquals} from './core.js';
@@ -63,8 +76,8 @@
     }
   };
 
-  // The normal happy cases
-  //
+  // checkValue() tests - The normal happy cases
+  // undef is GOOD, it means the function was satisfied and didn't have to spit something back.
   undef(checkValue('foo', 'foo'));
   undef(checkValue(1, 1));
 
@@ -81,51 +94,45 @@
   undef(checkValue(['optional']) /*, undefined */);
 
   undef(checkValue(['num','between', 0, 3], 2));
-  undef(checkValue(['str', 'between', 1, 3], "a"));
+  undef(checkValue(['str', 'between', 1, 3], "a")); // checking length
   undef(checkValue(['str', 'between', 1, 3], "abc"));
 
   undef(checkValue(['optional','num','between', 0, 3], 2));
   undef(checkValue(['optional','num','between', 0, 3] /*, undefined */ ));
 
-  // Bad scalar matches
+  // checkValue() tests - Bad scalar matches
   arrEquals(checkValue('foo', 'bar'), ['equals', 'foo']);
   arrEquals(checkValue(1, 2), ['equals', 1]);
-
   arrEquals(checkValue(['num'], 'a'), ['num']);
   arrEquals(checkValue(['int'], .1), ['int']);
   arrEquals(checkValue(['str'], 1), ['str']);
   arrEquals(checkValue(['between', 0, 3], 4), ['between', 0, 3]);
   arrEquals(checkValue(['str', 'between', 0, 3], 'abcd'), ['between', 0, 3]);
 
-  // Optional doesn't mean you can supply a bad value!
+  // checkValue() tests - optional doesn't mean you can supply a bad value!
   arrEquals(checkValue(['optional', 'num'], 'a'), ['num']);
   arrEquals(checkValue(['optional', 'between', 0, 3], 4), ['between', 0, 3]);
   arrEquals(checkValue(['optional', 'num', 'between', 0, 3], 'a'), ['num']);
 
   undef(checkValue(['optional', 'num', 'between', 0, 10], 5), undefined);
 
-  // Tests validate()
-  // single key
+  // validate() tests - single key
   assertEquals(validate({a: ['num']}, {a: 1}), undefined, 'passed key');
   assertEquals(validate({a: ['num']}, {a: 'a'}), {a: ['num']}, 'failed key');
   assertEquals(validate({a: ['num']}, {}), {a: ['num']}, 'missing non-optional');
 
-  // multi key
+  // validate() tests multi key
   assertEquals(validate({a: ['num'], b: ['num']}, {a: 1, b: 1}), undefined, 'multi-key success');
   assertEquals(validate({a: ['num'], b: ['num']}, {a: 1, b: ''}), {b: ['num']}, 'multi-key fail');
+  // TEST: If we returned matching values this would be
+  // assertEquals(validate({a: ['num'], b: ['num']}, {a: 1, b: ''}), {a: 1, b: ['num']}, 'multi-key fail');
 
-  // special cases
+  // validate() tests special cases
   assertEquals(validate({}, {everything: 'passes'}), undefined);
   assertEquals(validate(null, {everything: 'fails'}), {});
+  assertEquals(validate({a: ['str']}, 'non-obj value fails'), {a: ['str']});
 
-  assertEquals(validate({
-      a: ['str']
-    },
-    'every non-obj value fails'
-  ), {
-    a: ['str']
-  });
-
+  // validate() satisfied when optional is ignored
   assertEquals(validate({
       a: 'dec',
       b: ['optional', 'num', 'between', 0, 10]
@@ -133,7 +140,6 @@
       a: 'dec'
     }),
     undefined);
-
   assertEquals(validate({
       handler: 'dec',
       b: ['optional', 'num', 'between', 0, 10]
@@ -152,7 +158,7 @@
     undefined
   );
 
-
+  // validate() returns failures even if some succeeded.
   assertEquals(validate({
     e: ['num', 'between', 0, 10],
     f: ['optional', 'str', 'between', 3, 8],

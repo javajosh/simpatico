@@ -2,27 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="author" content="javajosh">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
-  <title>Combine.js</title>
+  <meta name="keywords" content="Simpatico, rtree, es6">
+  <meta name="author" content="Josh Rehman">
 
+  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <script type="module" src="testable.js"></script>
+
+  <title>Combine.js</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 <h1>Combine.js</h1>
 <p>javajosh <i>(c) 2021</i></p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
-<p>Combine(a, b) integrates b with a and returns the result. In the end, you can combine two objects such that
-you can define any object by combining much simpler objects. We also support function invocation in two ways,
-although the preferred way is invoking a handler. You do this by targeting handlers, which are specialized function
-  invocations that recursively integrate the return object(s) in a process I call "message cascade". The visualization is
-of something splashing in the water, with the water itself splashing, until it quickly comes to rest again.</p>
+<p>
+  <code>combine(a, b)</code> combines two object arguments <code>b</code> with <code>a</code> and returns the object result.
+  You can invoke functions, by targeting special parts of an object called <i>handlers</i>.
+  Handlers are specialized functions that return objects that recursively integrate with the original target in a "message cascade".
+  The intuition is of something like splashing in the water, with the water itself splashing up, and splashing again, until it the water is still again.
+</p>
 
-<p>Special care should be taken to avoid infinite recursion. At least in systems designed to be large collections of
-closely related finite state machine (FSM) shared by humans in intricate relations to each other for the purpose of
-modifying the numbers at banks in favor of the owner of the FSM. </p>
 <pre>
   // scalars
   test(1, 1, 2) //numbers add

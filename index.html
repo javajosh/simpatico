@@ -2,29 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description" content="Simpatico Index">
   <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
   <meta name="author" content="Josh Rehman">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
-  <meta id="refresh" http-equiv="refresh" content="2">
+  <link id="favicon" rel="icon" type="image/png" href="./img/wizard-192x192.png"/>
+
   <title>Simpatico</title>
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 <h1>Simpatico</h1>
-<p>Josh Rehman <i>2021</i></p>
-<code>
-  $ j sim
-  $ python -m http.server &
-  [open chrome]
-</code>
+<p>Josh Rehman <i>2022</i></p>
+
+<p>
+  Hi! If you're reading this in a browser with a localhost URL, congrats!
+  You probably got here by doing something like this:
+</p>
+
+<pre>
+  $ git clone https://github.com/javajosh/simpatico.git && cd simpatico
+  $ npm run serve
+  [open chrome with localhost address]
+</pre>
+
+<p>
+  You are now looking at this file, <code>simpatico/index.html</code>.
+  <i>ctrl-click</i> on the links below to open them in new tabs.
+  (You can also look at them one by one.)
+  Here they are, roughly in order of their dependencies:
+</p>
+
 <ol>
-  <li><a href="core.html">core</a></li>
-  <li><a href="combine.html">combine</a></li>
-  <li><a href="rtree.html">rtree</a></li>
-  <li><a href="friendly.html">friendly</a></li>
-  <li><a href="simpatico.html">literate</a></li>
+  <li><a href="core.html">core</a>
+  <li><a href="combine.html">combine</a>
+  <li><a href="rtree.html">rtree</a>
+  <li><a href="friendly.html">friendly</a>
+</ol>
+
+<p>
+  Each html file stands alone as a test harness for its corresponding component. core.html tests core.js, combine.html tests combine.js, and so on.
+  The file sources are themselves important, and designed to be read.
+  Over time, I anticipate adding more descriptive content that don't require reading the source, but for now please consider the page source as an important part of the content.
+</p>
+
+<p>A brief description of what each does, from <code>readme.md</code>:</p>
+<ol>
+  <li>Core. Very generic, convenience functions that smooth over the JavaScript runtime.
+    Of particular importance is the definition of a comprehensive set of predicates/assertions.
+  <li>Combine. The function used to produce a new state from a previous state plus an input.
+    A generalization of <code>Object.assign()</code> and previously known as "<a href="https://github.com/javajosh/combine-keys">combineKeys</a>".
+  <li>RTree. A <a href="https://en.wikipedia.org/wiki/Trie">trie</a> data structure that organizes inputs into chains that result in different, related states.
+    It is this structure that unifies previous distinct concepts like instantiation vs inheritance, and also provides natural "collections" support.
+  <li>Friendly. A very simple runtime type checking system. The goal is to make strange functions easier to call!
 </ol>
 </body>
 </html>
