@@ -16,6 +16,20 @@ Note: there is nothing special about the server; all custom code is in the html/
 You could easily run `python -m http.server` or similar instead of the npm command.
 It is included for convenience only.
 
+### Aside: what, no build?
+
+Nope. There's no build.
+I'm a big fan of very fast build-test-debug (BTD) loops, and no matter how good front-end builds get, they will never be as fast as no-build.
+Furthermore, I value the days when you could "view source" and learn from the techniques of others, so I wrote this in that same spirit.
+This choice was enabled by the (relatively) recent invention of browser modules.
+
+*What about tests?* So, I had to write my own test harness, but I kept it simple and I'm rather pleased with the results.
+In particular, tests are written in plain javascript with very little ceremony.
+Tests run on page load, and fail with an exception, which turns the tab favicon red.
+So, there is *kind of* a build, its just in your browser.
+
+Note that if ES6 modules supported `file:\\` urls, or if I concatenated the modules into a single js file, you would really ONLY need a browser process to run them, and not even the vestigial web server you need to run now.
+
 ## The Components
 
   1. `core`. Very generic, convenience functions that smooth over the JavaScript runtime.
@@ -90,11 +104,11 @@ An obvious thing to want is to simply keep track of all input in an array inside
 You might do this with `combine` like this:
 
 ```js
-const combine = (state, event) => {
-    if (!is.arr(state.events)) state.events = [];
-    state.events.push(event);
-    return state;
-}
+ 1 const combine = (state, event) => {
+ 2     if (!is.arr(state.events)) state.events = [];
+ 3     state.events.push(event);
+ 4     return state;
+ 5 }
 ```
 While you *can* implement state and `combine()` with *ad hoc* immutability by simply pushing all events into an events array, as above, removing it de-clutters both the application state (no more `events` member) and declutters the `combine()` function itself.
 It turns out that tracking events *outside* application state gives you both *time travel*, and *movement between alternate timelines*, which are quite useful.
@@ -102,30 +116,138 @@ It turns out that tracking events *outside* application state gives you both *ti
 The interesting part of `combine` is not tracking events, but invoking functions.
 Combine can invoke functions the obvious way, by invoking an object found on the target or the event on the key of the other, and replacing the function with its value.
 The more interesting method is the one that doesn't "consume" the function, and this is done by defining a "handler".
-A handler is a special "object shape" `{name: ['str'], handle: ['fun'], pattern: ['optional', 'arr']}` that when combined with another objection shape `{handler: ['str', 'in', [names]], value: ['obj']}` results in calling a function with the object as an argument.
-In fact, we specify that handlers exist in (or alongside) a special `handlers` object near the program `residue`, which is passed in for context.
+A handler is a special "object shape" (`{name: ['str'], handle: ['fun'], pattern: ['optional', 'arr']}`) that when combined with another objection shape (`{handler: ['str', 'in', [names]], value: ['obj']}`) results in calling a function with the object as an argument.
+The results of that function call are not returned directly, but themselves combined into program state, recursively.
 This allows us to write our handlers as pure functions which take residue and events, and return an array of objects that will be subsequently combined with residue in a process called "message cascade".
-
 Message cascade is a reification of the call-chain, which the considerable benefit of being declarative.
 This representation of state change lets you answer the question, "why is this part of my state this value? What made it that way?" even after the fact, without a debugger.
+It's also pretty to visualize.
 
+
+### SimpatiCore aka core
+
+An object of the form `{residue: {}, handlers: {{a},{b},{c}}}`, and which is ONLY allowed to be combined with handler calls, is a SimpatiCore, or `core`.
+The `core` is the heart of the application, and the lowest entropy representation of the finite state machine that sits at the heart of every application.
+I propose that all applications consist of two types of cores: users (the subject), and some object type.
+I propose that a good general characterization of the object is a game - a state into which players send inputs, advancing the state and in general affecting the validity of subsequent inputs.
+This 'user' can be understood in many ways, such as a reduction over the messages sent between user and application, representing the current state of the relationship.
+However the main gist of the user is to provide a central organizing principle for their games, past present and future.
+Note that a core is "halted" when no handlers can be called on it, and this state is irreversible.
+
+A note about lifetimes.
+User cores are very long lived, roughly the length of the user's relationship with the software, aka the lifetime of their account.
+Game cores are relatively short lived, at most days or weeks, but usually hours.
+Other, shorter-lived cores are sometimes useful, as with user sessions or connections.
+However, modeling these more ephemeral states as part of the user core makes the most sense to me currently.
+The application lifetime is the union of all user lifetimes (which are the union of all game lifetimes), and I call it a [Durable Process](./notes/durable.html).
+(If a business starts and ends multiple applications, then *it* is a durable process with a lifetime determined by the union of those application lifetimes)
+
+**Textual Representation/Notation** Although I often refer to input as "events", the input to combine can be any object, even the same objected added repeatedly.
+Let's say we have objects `a`, `b`, and `c`. Unique program states can then be specified as strings like `aabbcc`, `cba`, `ccaabbbaabababababaa` or  `aaaaaaaaaaaaaa`.
+These strings should be read from left to right, as with natural english text, such that the left-most object is added first, the right-most object last, with the empty object `{}` assumed to be the starting point, or it can be included explicitly as `0`.
+A drawback to this notation is that the index of each object isn't labeled, so you must count (so keep it short!).
+Note that since handlers themselves are objects, these strings can also describe unique data types.
+Note that although repetition doesn't make sense for handlers - their definition is idempotent - it makes sense to redefine handlers, to create a new *type version*.
+Type versioning, within the same running vm, is one of those features you didn't realize you needed, but you do.
+If your example requires more than 26 unique objects, it's probably too complex, but feel free to use upper-case letters too.
 
 ## RTree
 
-The `combine()` function alone is enough to describe a wide variety of finite state machines, and is the backbone of Simpatico.
-However, most programs need collections in general, and of related finite state machines in particular.
-We define a new data-structure, the `rtree`, which is a trie of object inputs, with the tip of each branch defining a unique reactive finite state machine.
-Inputs are numbered from 0 to N, branches from 0 to B, where B <= N.
-We define the "residue" of any point in the rtree by walking up to root and reducing all inputs with `combine()`.
-The residue of the branches are of particular importance, as they are accepting most new input.
-The rtree has a preferred visual representation that follows English textual convention, with each branch getting a new line, and each event adding to the current line, as a character.
-"Row" and "branch" are interchangeable terms.
-Note: Simpatico a program is an rtree that accepts both strings and numbers, such that the number moves the cursor, and the string is parsed as an object, and integrated using combine().
-The rtree gives us very powerful collections allowing us to cheaply "branch" any given state, and unifies the traditional OOP concepts of "subclass" and "instantiation". Both are just specializations of a previous state.
+The `combine()` function, along with the `core` handler conventions, is enough to build up any reactive object from any set of other objects (the "1") and then handle steady-state input (the "N") and is the backbone of Simpatico.
+However, most programs need a variety of different objects, and multiple instances of those.
+In ordinary programming, we do this during "build time", statically defining with source-code all of the classes of objects we'll need at runtime.
+In Simpatico, we allow this to happen at runtime, and give that responsibility to a new data-structure, the `rtree`, plus some conventions for working with it in this way.
+
+First, some simple facts about the rtree.
+ 1. An `rtree` is a trie of object inputs, with the tip of each branch defining a unique `core` state.
+ 1. Inputs are numbered from 0 to N, branches from 0 to B, where B <= N.
+ 1. We define the `residue` at any point in the rtree by walking up to root and reducing all inputs up to that point with `combine()`.
+ 1. The residue of the branches are of particular importance, because, by convention, rows are accepting most new input in the steady state.
+ 1. The rtree has a preferred visual representation that follows English written convention, with each branch getting a new line, and each event adding to the current line, as a single character.
+ 1. "Row" and "branch" are interchangeable terms.
+
+### General RTree examples
+
+General RTree examples do NOT take into account the meaning of each object input, but instead focus on the structure of the rtree.
+For these examples, we say that objects are added in alphanumeric order, such that we can infer when the input row changed.
+These structures are generic; the more useful patterns for Simpatico will be explored in the section Simpatico RTree examples.
+
+A simple 2 row rtree, with row 0 starting with the usual empty object, and then a branch at c.
+This rtree describes two strings: `0abc` and `0abcdef` from 6 total objects.
+```
+0-0abc
+1-cdef
+```
+
+A slightly more complicated rtree, where after `f` was added input position alternated between the rows, yielding the two strings `0abcgi` and `0abcdefh`
+```
+0-0abcgi
+1-cdefh
+```
+
+This rtree describes 3 rows/strings, `0abc`, `0abcdef` and `0abcdefghi`.
+```
+0-0abc
+1-cdef
+2-fghi
+```
+
+This example also yields 3 strings, but this time the third string branches from c, too, yielding `0abc`, `0abcdef`, and `0abcghi`.
+```
+0-0abc
+1-cdef
+2-cghi
+```
+
+This example shows you can branch from any part of a previous string, not just the "last" object of the row.
+2 branches from b, and 3 branches from d, yielding `0abc`, `0abcdef`, `0abghi`, `0abcdjk`.
+```
+0-0abc
+1-cdef
+2-bghi
+3-djk
+```
+
+Finally, an example showing that you can keep adding objects to previous rows, even after you've branched.
+This rtree yields strings `0abclp`, `0abcdefm`, `0abghin`, `0abcdefjko`
+```
+0-0abclp
+1-cdefm
+2-bghin
+3-fjko
+```
+
+### Simpatico RTree examples
+
+A Simpatico a program is an `rtree` that accepts both strings and numbers, such that the number moves a 'cursor', and the string is parsed as an object, and then integrated with the row using combine().
+The rtree gives us very powerful collections allowing us to cheaply "branch" any given state, and unifies the traditional OOP concepts of "subclass" and "instantiation".
+Both instantiation and inheritance are just specializations of a previous state.
+
+Here are a few conventions (Under Construction!!!) that limit our use of the rtree to make applications more manageable:
+
+  1. The 0 row is reserved for configuration, process statistics, and results from invocation.
+  2. The 1 row is used to define the root of all types.
+  3. The 2 row branches from 1 and is used to define the subject type (user).
+  4. The 3 row branches from 1 and is used to define the object type (game).
+  5. New instances are branched off of a type row (the end of the row).
+  6. New `type versions` are defined by adding new or revised handlers to the type row.
+
+Implications of type versions:
+  1. New instances are always produced from the latest version.
+  2. Old and new versions of a type can and will exist in the same process.
+  3. Old versions of a type cannot be instantiated.
+  4. Instances are not subsequently branched (aka only types are branched).
+      An important exception to this is in testing, where branching instances is very useful indeed.
+
+Note: it may be useful to collect all "raw" input into a row, or even one row per type, before reacting to it.
+In practice we don't want to store all raw input, so this is a natural place to implement something like a circular buffer that throws away unnecessary input.
+It also gives us a place to describe the system in "unresolved tension", such that the process knows about an event, but hasn't acted on it. This is useful.
+
+
+
+## RTree Summary function
 
 It is often useful to allow branch residues in an rtree to interact with each other, and also to summarize them. So the rtree defines one more function, that reduces over the branches and returns a kind of "super residue". [I'd also like to give this function the ability to generate inputs for sibling rows in the rtree, but I haven't done that yet]. The canonical example here is a field of N particles. The 0th row might define a particle, with subsequent rows defining new particles with new state. Without a super residue, the particles can advance with time input, but cannot interact with each other. With a super residue, we'd have the ability to detect collision and modify participating particle's momentum.
-
-
 
 The rtree datastructure matches a general application structure, which is a state that tracks multiple objects, measuring them, modelling their state, and helping the user interact with them, both online and in real life. For the individual owner, each row might represent a person or an important thing, a project. For a business owner, each row might represent the employees, customers, and product instances, and projects. In it's most general expression, a SimpatiCore is a durable process, and there would be one for each person, and one for each business, active for the lifetime of the person, with a row for every person and thing with which you've ever interacted. Durability implies persistence, but also distribution, as devices fail. Because of its simplicity of design, Simpatico is uniquely positioned to provide serializable consistency between devices.
 
