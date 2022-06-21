@@ -71,20 +71,22 @@ Another intuition is how evolutionary biology describes species differentiating 
 
 ## Top-level program structure
 
-A general program has two distinct phases, transient (invocation) and a steady-state (message handling).
-Traditional `hello world` is just the first phase, invocation.
-The arguments to the transient invocation are called "command line arguments" or "configuration", whereas the arguments to steady state handlers are called "requests", "messages", or "events".
-Let us name this ubiquitous pattern "1 + N", where the "1" stands for the unique, singular primordial invocation event, and the N stands for an unknown number of steady-state event calls.
-Inputs come from different *physical sources*, interleaved and at random.
+A general program has two distinct phases, transient invocation and a steady-state message handling.
+Traditional `hello world` is just the first phase, a one-off invocation without a steady-state.
+In practice the arguments to the transient invocation are called "command line arguments" or "configuration", whereas the arguments to steady state handlers are called "requests", "messages", or "events".
+Let us name this ubiquitous pattern "1 + N", where the "1" stands for the unique, singular primordial invocation event, and the N stands for an unknown number of subsequent steady-state event calls.
+Inputs come from different *physical sources*, or devices interleaved and arriving at random times.
+Somewhat unusually, I consider both clock ticks and random numbers to be event sources, too, which helps make Simpatico programs deterministic by default.
 Example: A server process uses the invocation step to prepare to accept subsequent steady-state inputs by binding a handler to a well-known network port.
 Example: A GUI loads the UI and becomes sensitive to all subsequent clicks and key-presses.
 Example: A console is powered on and becomes sensitive to gamepad input.
 
-Let all side-effects, including the side-effect of rendering program state to a screen, be handled by a single render() function on the entire program state executed after event integration is complete.
-This apparently naive approach will help simplify our subsequent thinking.
-The entire program loop then looks like the following:
+Let all side-effects, including the side-effect of rendering program state to a screen, be handled by a single `render()` function on the entire program state executed after event integration is complete.
+This naive approach will help simplify our thinking while we deal with issues around the evolution of program state itself.
+The entire general program loop looks something like the following JavaScript psuedo-code:
 
 ```js
+// Listing 1
  1 const combine = ...
  2 const render = ...
  3 let state = {};
@@ -94,58 +96,70 @@ The entire program loop then looks like the following:
  7 )
 ```
 
-This program listing shows the "1" portion, and implies the "N" portion of the program.
-Only lines 5 and 6 are executed in the N steady-state.
-We may invoke `combine()` manually, as much as we like between lines 3 and 4, and we might call those invocations "what the programmer does".
-Lines 3 and 4, the steady state, are "what the user does".
+Lines 1 through 4 show the entire "1" portion of the program, executed once, and lines 5 and 6 imply the "N" portion of the program, executed many times.
+We may make manual adjustments directly to initial state on line 3, and/or invoke `combine()` manually between lines 3 and 4, and we call those additions "what the programmer does".
+Lines 5 and 6, the steady state, are "what the user does".
 `render(state)` may refer to rendering to screen, rendering to disk, writing to the network, or any side-effect.
-This code implies that `combine()` is pure, otherwise the state assignment wouldn't be necessary.
+This code implies that `combine()` is pure, because otherwise the state assignment on line 5 wouldn't be necessary.
 
-An astute reader will notice that this looks something like "a reduction over time", which it is, since you can get to any state with `const stateN = [event0, event1, event3,..., eventN].reduce(combine,{})`.
-(In order for this to be the case, the program must not be time dependent! That is, behavior cannot depend on when events come in, but must depend on their relative ordering.)
+An astute reader will notice that this looks something like "a reduction over time", which it is.
+One can get to any reachable state through a statement like `const stateN = [event0, event1, event3,..., eventN].reduce(combine,{})`.
+(In order for this to be the case, the program must not be time dependent!
+That is, behavior *cannot* depend on when events come in, but *must* depend on their relative ordering.)
 
-Aside: this code does not include error-handling, and both lines 5 and 6 can have non-trivial errors.
+Aside: this code does not include error-handling, and both lines 5 and 6 can have non-trivial errors, and should be wrapped in exception handlers.
+This has been omitted for clarity.
 To handle this we'd wrap them both in try/catch blocks, and we'd avoid erasing the old state until line 6 completes without error.
-If an error occurs, we'd reset the old state and put the problematic event and any partially produced error state somewhere for the programmer to examine.
-This is a big reason to keep the `combine()` function from modifying its state argument.
+If an error occurs, we'd avoid re-assigning state and put the problematic event and any partially produced error state somewhere for the programmer to examine.
 
-## Combine
+## The combine() function
 
-An obvious thing to want is to simply keep track of all input in an array inside state.
-You might do this with `combine` like this:
+An obvious thing to want to do is to simply keep track of all input in state, perhaps in an array.
+You might do this by defining `combine` on listing 1 line 1 like this:
 
 ```js
+// Listing 2
  1 const combine = (state, event) => {
  2     if (!is.arr(state.events)) state.events = [];
  3     state.events.push(event);
  4     return state;
  5 }
 ```
-While you *can* implement state and `combine()` with *ad hoc* immutability by simply pushing all events into an events array, as above, removing it de-clutters both the application state (no more `events` member) and declutters the `combine()` function itself.
+You *can* implement state and `combine()` with *ad hoc* immutability by simply pushing all events into an events array, as above.
+However, removing it de-clutters both the application state (no more `events` member) and declutters the `combine()` function itself.
 It turns out that tracking events *outside* application state gives you both *time travel*, and *movement between alternate timelines*, which are quite useful.
+(See the RTree sections, below)
 
-The interesting part of `combine` is not tracking events, but invoking functions.
-Combine can invoke functions the obvious way, by invoking an object found on the target or the event on the key of the other, and replacing the function with its value.
-The more interesting method is the one that doesn't "consume" the function, and this is done by defining a "handler".
-A handler is a special "object shape" (`{name: ['str'], handle: ['fun'], pattern: ['optional', 'arr']}`) that when combined with another objection shape (`{handler: ['str', 'in', [names]], value: ['obj']}`) results in calling a function with the object as an argument.
-The results of that function call are not returned directly, but themselves combined into program state, recursively.
+ `combine` is a generalization of `Object.assign()` that, in addition to what Object.assign does, handles nested objects, combines scalars in useful ways, and permits function invocation.
+Combine can invoke functions in two ways.
+First, by simply replacing a function with its return value, passing in the corresponding value of the ihput.
+Second, a more interesting method that doesn't "consume" the function, which is this is done by defining a "handler".
+A handler is a special "object shape" or "pattern" (see the "friendly function" section below)
+ `{name: ['str'], handle: ['fun'], pattern: ['optional', 'arr']}` that when combined with another object shape
+ `{handler: ['str', 'in', [names]], value: ['obj']}` results in the `handle` function called with `value` as its argument.
+The first shape is called a `handler` and the second shape is called a `message`.
+The results of that `handle` call are not returned directly, but are themselves combined into program state, recursively.
 This allows us to write our handlers as pure functions which take residue and events, and return an array of objects that will be subsequently combined with residue in a process called "message cascade".
 Message cascade is a reification of the call-chain, which the considerable benefit of being declarative.
 This representation of state change lets you answer the question, "why is this part of my state this value? What made it that way?" even after the fact, without a debugger.
 It's also pretty to visualize.
 
+This is just a brief introduction to what `combine` is and what it can do.
+Please see the source, test-harness, and notes for more information.
 
-### SimpatiCore aka core
 
-An object of the form `{residue: {}, handlers: {{a},{b},{c}}}`, and which is ONLY allowed to be combined with handler calls, is a SimpatiCore, or `core`.
-The `core` is the heart of the application, and the lowest entropy representation of the finite state machine that sits at the heart of every application.
-I propose that all applications consist of two types of cores: users (the subject), and some object type.
-I propose that a good general characterization of the object is a game - a state into which players send inputs, advancing the state and in general affecting the validity of subsequent inputs.
-This 'user' can be understood in many ways, such as a reduction over the messages sent between user and application, representing the current state of the relationship.
-However the main gist of the user is to provide a central organizing principle for their games, past present and future.
+### SimpatiCore, aka core
+
+An object of the form `{residue: {}, handlers: {{a},{b},{c}}}`, and which is ONLY allowed to be combine'd with messages, is a SimpatiCore, or `core`.
+The `core` represents the center of the application logic, and it is the lowest entropy representation of the finite state machine that sits at the heart of every application.
+I propose that all applications consist of only two kinds of cores: subjects and objects.
+I propose that the subjects are users.
+I propose that a good general characterization of any object, in this sense, is a game, which is a general state into which players send inputs, advancing the state and affecting the validity of subsequent inputs.
+A 'user' object can be understood in many ways, such as a reduction over the messages sent between user and application, representing the current state of the relationship.
+However, I propose that the main responsibility of the user is to provide a central organizing principle for their games, past present and future.
 Note that a core is "halted" when no handlers can be called on it, and this state is irreversible.
 
-A note about lifetimes.
+A note about state lifetimes.
 User cores are very long-lived, roughly the length of the user's relationship with the software, aka the lifetime of their account.
 Game cores are relatively short-lived, at most days or weeks, but usually hours.
 Other, shorter-lived cores are sometimes useful, as with user sessions or connections.
