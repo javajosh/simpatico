@@ -87,8 +87,8 @@ The entire general program loop looks something like the following JavaScript ps
 
 ```js
 // Listing 1
- 1 const combine = ...
- 2 const render = ...
+ 1 const combine = (state, input) => {...}
+ 2 const render = state => {...}
  3 let state = {};
  4 bind(eventSource, event =>
  5   state = combine(state, event);
