@@ -297,28 +297,37 @@ Here's what this RTree means:
 
 ## RTree Summary function
 
-It is often useful to allow branch residues in an rtree to interact with each other, and also to summarize them. So the rtree defines one more function, that reduces over the branches and returns a kind of "super residue". [I'd also like to give this function the ability to generate inputs for sibling rows in the rtree, but I haven't done that yet]. The canonical example here is a field of N particles. The 0th row might define a particle, with subsequent rows defining new particles with new state. Without a super residue, the particles can advance with time input, but cannot interact with each other. With a super residue, we'd have the ability to detect collision and modify participating particle's momentum.
-
-The rtree datastructure matches a general application structure, which is a state that tracks multiple objects, measuring them, modelling their state, and helping the user interact with them, both online and in real life. For the individual owner, each row might represent a person or an important thing, a project. For a business owner, each row might represent the employees, customers, and product instances, and projects. In it's most general expression, a SimpatiCore is a durable process, and there would be one for each person, and one for each business, active for the lifetime of the person, with a row for every person and thing with which you've ever interacted. Durability implies persistence, but also distribution, as devices fail. Because of its simplicity of design, Simpatico is uniquely positioned to provide serializable consistency between devices.
-
-## Input validity
-
-In the beginning, all inputs are allowed. However if we define handlers, invalid input is possible. Handlers may have required values, or values within a range, or that match a pattern. Simpatico takes the "friendly function" attitude, that a function should help it's caller call it, if at all possible. So it's useful for a handler to be able to return a "pattern" describing inputs that would subsequently be valid. This is, in fact, one of the ways branch residues are special - we expect them to contain a pattern that describes which inputs would be subsequently valid.
-
-## Prototype code
-
-These descriptions are general and apply to all extent software, often in an unintentionally obfuscated way. To
-
-These ideas are surprisingly profound, and to keep from being confused absolute minimalism helps. (This sometimes is referred to as "use the platform" in modern parlance). Modern JavaScript, with it's excellent support for first-class functions, useful object literals, and a mature data standard (JSON), plus its ubiquity in a full-featured graphical runtime (the browser) make it a good target. However, a constant challenge has been the distraction of all the wonderful things people are making in this language.
-
-Simpatico is developed as a small set of ES6 JavaScript modules as name.js, each of which has a test harness and documentation as name.html. There is no front-end build. Sadly, browser modules cannot be loaded from `file` URLs so one *must* load the test harnesses from a locally running server. I've included a simple one based on `node`, however you're welcome to use something else, like the python server or nginx or anything, really. (Eventually I may write a script that concatenates all the modules into a single script that *can* be loaded from the file system.) The test harness files are simple HTML files that have one unusual feature: they refresh themselves. This allows you to modify the test code or the module code (recursively) and see the results immediately. The favicon is changed from white (untested) to green (passed) or red (failed). If you want to dig into the test code, you can stop the refresh, set break points, and so on. The test code is intentionally written as a liste of simple, global statements that exercise the module, and should serve as much as documentation as test code.
-
-  1. core.html - Core is a list of plain vanilla javascript functions that smooth over some of the rough edges of the platform. No dependencies. There is nothing specific to Simpatico.
-  2.
-
-## Visualization
-
-So far I haven't mentioned the DOM at all. That is because visualization means climbing up the entropy well, adding disorder in favor of being more visceral. This is necessary, but it should be done carefully and, ideally, only in one direction. And in fact, I've come to the conclusion that apart from writing documents, HTML and CSS is not very good for writing applications. Instead, I like SVG. SVG is nice because it is easily characterized as list of shapes and groups, each of which are associated with a transform. If you want to support different screen shapes, you can make two static SVGs and interpolate between them
+It is often useful to allow branch residues in an rtree to interact with each other, and also to summarize them.
+So the rtree defines one more function, that reduces over the branches and returns a kind of "super residue".
+[I'd also like to give this function the ability to generate inputs for sibling rows in the rtree, but I haven't done that yet].
+The canonical example here is a field of N particles.
+The 0th row might define a particle, with subsequent rows defining new particles with new state.
+Without a super residue, the particles can advance with time input, but cannot interact with each other.
+With a super residue, we'd have the ability to detect collision and modify participating particle's momentum.
 
 
-Program state either grows in size (e.g. appending the input to an array) or it stays the same (counting inputs). By convention, programs start off small and grow with code. The runtime structure is "1+N" where "1" stands for the intitial start event (program launch), and "N" stands for the steady state (HCI input). For example, a GUI program will start and register mouse and keyboard handlers, which will then be called in the steady-state, or a server program will start and register request handlers, which are called by a network client in the steady state.
+## Friendly functions and input validity
+
+In the beginning, all inputs are allowed.
+However once we define handlers, *invalid* input, invalid messages, are possible.
+Handlers will have required values, values within a range, or values that match a pattern.
+Simpatico takes the "friendly function" approach, and asserts that a function should help its caller call it, if possible.
+So it's useful for a handler to be able to return a "pattern" describing inputs that would subsequently be valid.
+This is, in fact, one of the ways branch residues are special - we expect them to contain a pattern that describes which inputs are valid.
+
+Here is an example of an object pattern:
+```js
+  const userPattern = {
+    id: ['num', 'between', 0, 1000],
+    name: ['str', 'between', 3,50],
+    nick: ['optional', 'str', 'between', 0, 10],
+    email: ['str', 'matches', '^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$'],
+    role: {
+      id: ['num', 'between', 0, 10],
+      category: ['optional', 'str', 'between', 3, 8],
+    },
+  };
+```
+This kind of pattern would be useful for any handler that accepts a user.
+
+TO BE CONTINUED...
