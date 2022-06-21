@@ -1,36 +1,47 @@
 # Simpatico
 
-This is a browser hosted JavaScript prototype of Simpatico, which is a collection of 4 ideas, one module per idea, one test harness per module, with the goal of describing a new, minimal characterization of "software application".
+This is a browser hosted JavaScript prototype of Simpatico.
+Simpatico has the goal of describing a new, minimal characterization of "software application".
+This prototype is distributed as a collection of 4 ideas, one module per idea, one test harness per module.
 Here is one way to get started:
 
   1. Open a terminal.
   1. `$ git clone https://github.com/javajosh/simpatico.git && cd simpatico`
   1. `$ npm run serve`
-  1. -> This prints an `http://localhost...` url
-  1. Open the above url in a browser
-  1. Open the test harness for each module in its own tab with `ctrl-click`
+  1. [This prints an `http://localhost...` url]
+  1. [Open the above url in a browser]
+  1. [Open the test harness for each module in its own tab with `ctrl-click`]
 
 Your browser is now running tests over each the 4 modules, such that if you modify any file they will be reloaded and retested.
-If there is a problem, the `favicon` for the tab will turn red.
+If there is a problem in any module, the `favicon` for the tab will turn red.
 Note: there is nothing special about the server; all custom code is in the html/js.
-You could easily run `python -m http.server` or similar instead of the npm command.
-It is included for convenience only.
+You could easily run `python -m http.server` or `nginx` or `httpd` instead of the `npm run serve` command.
+The `npm run serve` command is for convenience only, and can be ignored.
+However, because I'm using browser modules, the pages cannot be served from a `file:\\` url.
 
-### Aside: what, no build?
+### No front-end build
 
-Nope. There's no build.
 I'm a big fan of very fast build-test-debug (BTD) loops, and no matter how good front-end builds get, they will never be as fast as no-build.
-Furthermore, I value the days when you could "view source" and learn from the techniques of others, so I wrote this in that same spirit.
-This choice was enabled by the (relatively) recent invention of browser modules.
+I also value the days when you could "view source" on a page or resource and learn from the techniques of others (in contrast to just seeing compiler output, so I wrote this in that same spirit.
+This choice was further enabled by the (relatively) recent invention of native browser modules, which give you nice tools to organize your code without a build.
 
-*What about tests?* So, I had to write my own test harness, but I kept it simple and I'm rather pleased with the results.
-In particular, tests are written in plain javascript with very little ceremony.
+*What about tests?* This choice meant I had to write my own simple test harness, but I'm rather pleased with the results.
+It's one very small (~30 line) script (`testable.js`) requiring 4 lines in the harness html file to make it work.
+Tests are written in imperative, plain javascript with very little ceremony.
 Tests run on page load, and fail with an exception, which turns the tab favicon red.
-So, there is *kind of* a build, its just in your browser.
+So, there is *kind of* a build, but it's your browser's javascript parser itself.
 
-Note that if ES6 modules supported `file:\\` urls, or if I concatenated the modules into a single js file, you would really ONLY need a browser process to run them, and not even the vestigial web server you need to run now.
+If you want to run tests non-interactively, you can do so with `chrome` in headless mode. On Ubuntu you'd do something like this to install and run chrome headlessly:
+```
+$ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+$ sudo dpkg -i google-chrome-stable_current_amd64.deb
+$ sudo apt -f install
+$ google-chrome --headless --disable-gpu http://127.0.0.1:8081/core.html
+```
 
-## The Components
+Note that if ES6 modules supported `file:\\` urls, or if I concatenated the modules into a single js file, you would ONLY need a browser process to run the tests.
+
+## SimpatiComponents
 
   1. `core`. Very generic, convenience functions that smooth over the JavaScript runtime.
      Of particular importance is the definition of a comprehensive set of predicates/assertions.
@@ -47,7 +58,7 @@ More detail about each module is available in the test harness `html` file, and 
 
 ## The Goal
 
-Simpatico is the result of a long meditation on what software applications *are*, independent of their expression in any particular language, framework, protocol, or development methodology.
+Simpatico is the result of a meditation on what software applications *really are*, independent of their expression in any particular language, framework, protocol, or development methodology.
 At the end of the day, an application is a set of communicating screens with sensors attached ('screensensors'), such that the state of any screen remains constant until new input arrives.
 In the general case, we assume that inputs are immutable, requiring integration with the program state to occur through mediating data-structures, e.g. the `node` structure of a linked list.
 The intuition is that a program is a large blob into which we fling new data in the form of (relatively small) input.
@@ -135,8 +146,8 @@ However the main gist of the user is to provide a central organizing principle f
 Note that a core is "halted" when no handlers can be called on it, and this state is irreversible.
 
 A note about lifetimes.
-User cores are very long lived, roughly the length of the user's relationship with the software, aka the lifetime of their account.
-Game cores are relatively short lived, at most days or weeks, but usually hours.
+User cores are very long-lived, roughly the length of the user's relationship with the software, aka the lifetime of their account.
+Game cores are relatively short-lived, at most days or weeks, but usually hours.
 Other, shorter-lived cores are sometimes useful, as with user sessions or connections.
 However, modeling these more ephemeral states as part of the user core makes the most sense to me currently.
 The application lifetime is the union of all user lifetimes (which are the union of all game lifetimes), and I call it a [Durable Process](./notes/durable.html).
@@ -243,7 +254,32 @@ Note: it may be useful to collect all "raw" input into a row, or even one row pe
 In practice we don't want to store all raw input, so this is a natural place to implement something like a circular buffer that throws away unnecessary input.
 It also gives us a place to describe the system in "unresolved tension", such that the process knows about an event, but hasn't acted on it. This is useful.
 
+In this example, all events are put into row 1, with two types defined on rows 2 and 3. Row 2 has two instances, 4 and 5, and Row 3 has one instance.
+For instance events I've just used numbers, since the absolute ordering doesn't matter for them.
+```
+Simpatico RTree
 
+a = config, b= current process stats
+c = handler definition, d = event handler. e = events
+fgh = user handlers
+ijkl = game handlers
+
+0-ab
+1-cde12345
+2-cfgh
+3-cijkl
+4-h1234
+5-h12345
+6-l123
+```
+
+Here's what this RTree means:
+  1. Branching from h means creating a new user
+  2. Branching from l means creating a new game
+  3. Branching from c means creating a new type
+  4. Adding handlers to row 2 or 3 means creating a new type version.
+  5. Row 0 contains the full history of a) the current process, and b) summary information about the durable process and its past invocations.
+  6. If you want to test something, just branch it. For example, if you wanted to test an alternate history for Row 5 (a game instance) you could make a 7-h12367 locally.
 
 ## RTree Summary function
 
