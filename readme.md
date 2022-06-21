@@ -331,3 +331,10 @@ Here is an example of an object pattern:
 This kind of pattern would be useful for any handler that accepts a user.
 
 TO BE CONTINUED...
+
+## Essays in the craft
+
+  1. [d3-rectangles](./notes/d3-rectangles.html)
+  1. [last-write-wins](./notes/last-write-wins.html)
+  1. [browser-events](./notes/browser-events.html)
+  1. [memory](./notes/memory.html)
