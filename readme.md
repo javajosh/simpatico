@@ -90,10 +90,10 @@ The entire general program loop looks something like the following JavaScript ps
  1 const combine = (state, input) => {...}
  2 const render = state => {...}
  3 let state = {};
- 4 bind(eventSource, event =>
+ 4 bind(eventSource, event => {
  5   state = combine(state, event);
  6   render(state);
- 7 )
+ 7 })
 ```
 
 Lines 1 through 4 show the entire "1" portion of the program, executed once, and lines 5 and 6 imply the "N" portion of the program, executed many times.
