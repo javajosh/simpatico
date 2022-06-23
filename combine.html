@@ -61,11 +61,12 @@
 
 <script type="module">
   import {combine, combineAll, combineAllArgs} from './combine.js';
-  import {log, assert, assertEquals, is, assertThrows} from './core.js';
+  import {log, assertEquals, is, assertThrows} from './core.js';
 
   let result = null;
+
   // test() is a helper function to be used while testing the combine function
-  const test = (target, msg, expected, print = true) => {
+  const test = (target, msg, expected, print = false) => {
     result = combine(target, msg);
     if (print) log('combine.html/test()', 'target', target, 'msg', msg, 'expected', expected, 'result', result);
     if (is.fun(expected)) expected(result)
@@ -85,74 +86,58 @@
   test([], 'a', ['a'])
   test([1], 'a', [1, 'a'])
   // arrays are concatenated
-  test([1, 2], [3, 4], [1, 2, 3, 4]);
+  test([1, 2], [3, 4], [1, 2, 3, 4])
   // array can be emptied with null
-  test([1, 2], null, []);
+  test([1, 2], null, [])
 
   // OBJECTS use all the scalar rules for their leaf keys.
-  test({}, {}, {});
-  test({}, {a: 1}, {a: 1});
-  test({a: 1}, {a: 1}, {a: 2});
-  // test({a:1},{b:2},{a:1, b:2}); //can't be properly auto-tested without a better equals for objects
-  test({a: 99}, {a: null}, {a: 0});
-  test({a: []}, {a: 1}, {a: [1]});
+  test({}, {}, {})
+  test({}, {a: 1}, {a: 1})
+  test({a: 1}, {a: 1}, {a: 2})
+  // test({a:1},{b:2},{a:1, b:2}) //can't be properly auto-tested without a better equals for objects
+  test({a: 99}, {a: null}, {a: 0})
+  test({a: []}, {a: 1}, {a: [1]})
 
   // We can reach in deeply without touching the rest of the object.
   test({a: {b: 1}, c: 2}, {a: {b: 1}}, {a: {b: 2}, c: 2})
 
   // Functions are invoked.
-  test(1, a => a + 1, 2);
-  test(a => a + 1, 1, 2);
+  test(1, a => a + 1, 2)
+  test(a => a + 1, 1, 2)
   // Nulling out a function
-  test(a => a + 1, null, null);
+  test(a => a + 1, null, null)
 
   // Setting a function
-  test(null, a => a + 1, fn => assertEquals(fn(1), 2));
+  test(null, a => a + 1, fn => assertEquals(fn(1), 2))
+
+  // A quick test of combine all and combine all args
+  result = combineAll([{a: 1}, {a: 1}, {a: 1}, {a: 1}], {})
+  assertEquals(result.a, 4)
+  result = combineAllArgs({a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1})
+  assertEquals(result.a, 8)
 
   // Handlers can call each other- forming a message cascade.
   // In this case, handler a also calls handler b. (but b doesn't call a)
-  result = combine(UNIT, {
-    name: 'a',
-    handle: (ctx, msg) => [{a: 1}, {msg: 'b'}],
-  });
-  result = combine(result, {
-    name: 'b',
-    handle: (ctx, msg) => [{b: 1}],
-  });
-  result = combine(result, {msg: 'a'});
-  assert(result.a === 1 && result.b === 1);
-  result = combine(result, {msg: 'a'});
-  assert(result.a === 2 && result.b === 2);
-  result = combine(result, {msg: 'b'});
-  assert(result.a === 2 && result.b === 3);
+  // For these simple handlers, the result is independent of both msg and ctx.
+  const ha = {name: 'a', handle: () => [{a: 1}, b]}
+  const hb = {name: 'b', handle: () => [{b: 1},  ]}
+  const a = {msg: 'a'}
+  const b = {msg: 'b'}
+  const invalid = {msg: 'invalid'}
+  result = combineAllArgs({}, ha, hb)
 
-  // TODO test combine with dom elements.
+  // add 'a' 3 times, increment both a and b
+  test(a, core => (core.a === 1 && core.b === 1 && false))
+  test(a, core => (core.a === 2 && core.b === 2))
+  test(a, core => (core.a === 3 && core.b === 3))
 
-  // TODO: explore what "combineAll()" looks like and how it works.
-  // Method one - the straight-forward loop
-  const a = (arr, residue = {}) => {
-    for (let i = 0; i < arr.length; i++) {
-      residue = combine(residue, arr[i]);
-    }
-    return residue;
-  };
-  result = a([{a: 1}, {a: 1}], {});
-  assertEquals(result.a, 2);
+  // add 'b' 3 times, incrementing only b
+  test(result, b, core => (core.a === 3 && core.b === 4))
+  test(result, b, core => (core.a === 3 && core.b === 5))
+  test(result, b, core => (core.a === 3 && core.b === 6))
 
-  // Method two - the reduction
-  const b = (arr, residue = {}) => arr.reduce(combine, residue);
-  // TODO: figure out why this throws a rule error. It's almost like the default rule isn't being set.
-  // are defaults ignored by Array.reduce somehow?
-  assertThrows(() => {
-    result = b([{a: 1}, {a: 1}, {a: 1}], {}); //this part throws
-    assertEquals(result.a, 3);
-  });
-
-  result = combineAll([{a: 1}, {a: 1}, {a: 1}, {a: 1}], {});
-  assertEquals(result.a, 4);
-
-  result = combineAllArgs({a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1}, {a: 1});
-  assertEquals(result.a, 8);
+  assertThrows(a => combine(result, e))
+  test(result, {}, core => (core.a === 3 && core.b === 6))
 
 </script>
 </body>
