@@ -82,6 +82,11 @@
     <li><b>bob</b>: hey alice. sure, what do you need?
     <li><b>alice</b>: can you buy me a new car? Maybe a Tesla?
   </ol>
+  <form action="#" onsubmit="return false">
+    <input id="character" type="text">
+    <input id="line" type="text">
+    <button onclick="bind([$('#character').value, $('#line').value])">Add</button>
+  </form>
 
 </div>
 <!-- Use code-folding in your editor -->
@@ -577,6 +582,7 @@
       focus = i;
       return read();
     };
+    const possibleFocus = () => [-branches.length - 1, ms.length - 1 ]
 
     const add = (value) => {
       const parent = read();
@@ -605,7 +611,7 @@
       ms.push(m);
       return m;
     }
-    return {setFocus, getFocus, read, residue, add, ms, branches};
+    return {setFocus, getFocus, read, residue, add, ms, branches, possibleFocus};
   }
 </script>
 <script id="app" >
@@ -624,7 +630,7 @@
     let result = "<ol>";
     for (let i = 0; i < arr.length; i++) {
       let [character, line] = Object.entries(arr[i])[0];
-      result += `<li><b>${character}</b>: ${line}`
+      result += `<li><b class="character">${character}</b>: <i class="line">${line}</i>`
     }
     result += "</ol>";
     return result;
@@ -645,27 +651,36 @@
 
 
   const bind = (e) => {
-    debug(typeof e, e instanceof Event, e);
+    debug('bind entry', typeof e, e instanceof Event, e);
 
     if (e instanceof Event){
-      state.add(e);
-    } else if (is.str(e)) {
+      //state.add(e);
+    } else if (is.str(e)) { // arbitrary JSON string from dev tools.
       try {
         const input = JSON.parse(e);
         state.add(input);
       } catch (ex) {
         err(`unable to understand ${e} - threw exception ${ex}`)
       }
+    } else if (is.arr(e)) { // character, line from the form.
+      const [character, line] = e;
+      const input = {dialog: {}};
+      input.dialog[character] = line;
+      debug('bind is.arr(e)', character, line, input);
+      state.add(input);
+    } else if (is.int(e)){ // a focus point from dev tools
+      state.setFocus(e)
     } else {
       err(`unable to understand ${e} of type ${getType(e)}`)
       return;
     }
     render(state.residue());
-
-    // you can type this at the command line: bind(JSON.stringify({dialog: {alice:'ah, come on bob!'}}))
   }
   // Row 0 is special, it describes the application
   render(state.residue());
+
+  bind(JSON.stringify({dialog: {alice:'ah, come on bob!'}}))
+  bind(JSON.stringify({dialog: {bob:'but alice, it\'s expensive!'}}))
 </script>
 
 </body>
