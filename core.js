@@ -162,7 +162,7 @@ is.f = () => false
 is.all = arr => as.arr(arr) && arr.reduce(and, true)
 is.any = arr => as.arr(arr) && arr.reduce(or, false)
 
-// It would be nice if this was expressable as arr.reduce(equals, true), but I couldn't get it to work.
+// It would be nice if this was expressible as arr.reduce(equals, true), but I couldn't get it to work.
 // Also, this code is probably a lot more performant.
 is.same = (arr) => {
   as.arr(arr);
@@ -217,7 +217,7 @@ RNG.prototype.choice = function (arr) {
 // Fisher-Yates shuffle using ES6 swap
 const shuffle = arr => {
   as.arr(arr);
-  assert(arr.length > 1);
+  if (arr.length < 2) return arr;
   let right, left, {floor, random} = Math;
   for (right = arr.length - 1; right > 0; right--) {
     left = floor(random() * (right + 1));
