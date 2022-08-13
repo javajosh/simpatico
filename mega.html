@@ -76,6 +76,13 @@
   </p>
   <button onclick="bind(event)">render()</button>
 
+  <h2>A dialog between alice and bob</h2>
+  <ol id="dialog">
+    <li><b>alice</b>: hey bob, i <i>need</i> a favor.
+    <li><b>bob</b>: hey alice. sure, what do you need?
+    <li><b>alice</b>: can you buy me a new car? Maybe a Tesla?
+  </ol>
+
 </div>
 <!-- Use code-folding in your editor -->
 <script id="core">
@@ -604,25 +611,58 @@
 <script id="app" >
   const $ = document.querySelector.bind(document);
 
-  const combineObjWithDom = (obj) => Object.entries(obj).map(([key, value] = entry) => {
+  const render = (obj) => Object.entries(obj).map(([key, value] = entry) => {
     const elt = $('#' + key)
     if (!elt) return
-    elt.innerHTML = value
+    if (is.str(value))
+      elt.innerHTML = value
+    else if (is.arr(value))
+      elt.innerHTML = renderDialogToListString(value)
   });
 
+  const renderDialogToListString = (arr) => {
+    let result = "<ol>";
+    for (let i = 0; i < arr.length; i++) {
+      let [character, line] = Object.entries(arr[i])[0];
+      result += `<li><b>${character}</b>: ${line}`
+    }
+    result += "</ol>";
+    return result;
+  }
+
+  // Probably a good practice to "manually render" initial state into the HTML above.
   let state = rtree({
     app: "Simpatico",
     author: "Josh Rehman",
     written: "2022",
     started: now(),
+    dialog: [
+      {alice: 'hey bob, i <i>need</i> a favor.'},
+      {bob: 'hey alice. sure, what do you need?'},
+      {alice: 'can you buy me a new car? Maybe a Tesla?'}
+    ]
   });
 
-  const render = combineObjWithDom
 
   const bind = (e) => {
-    log(e);
-    state.add(e);
+    debug(typeof e, e instanceof Event, e);
+
+    if (e instanceof Event){
+      state.add(e);
+    } else if (is.str(e)) {
+      try {
+        const input = JSON.parse(e);
+        state.add(input);
+      } catch (ex) {
+        err(`unable to understand ${e} - threw exception ${ex}`)
+      }
+    } else {
+      err(`unable to understand ${e} of type ${getType(e)}`)
+      return;
+    }
     render(state.residue());
+
+    // you can type this at the command line: bind(JSON.stringify({dialog: {alice:'ah, come on bob!'}}))
   }
   // Row 0 is special, it describes the application
   render(state.residue());
