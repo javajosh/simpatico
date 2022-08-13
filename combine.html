@@ -13,6 +13,9 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
+<div id="content">
+
+
 <h1>Combine.js</h1>
 <p>javajosh <i>(c) 2021</i></p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
@@ -22,42 +25,7 @@
   Handlers are specialized functions that return objects that recursively integrate with the original target in a "message cascade".
   The intuition is of something like splashing in the water, with the water itself splashing up, and splashing again, until it the water is still again.
 </p>
-
-<pre>
-  // scalars
-  test(1, 1, 2) //numbers add
-  test(9, null, 0) // zero out numbers with null
-  test('a', 'b', 'b') // strings get replaced
-
-  // ARRAYS
-  test([], 1, [1]) // scalars are pushed
-  test([], 'a', ['a'])
-  test([1], 'a', [1, 'a'])
-  // arrays are concatenated
-  test([1, 2], [3, 4], [1, 2, 3, 4]);
-  // array can be emptied with null
-  test([1, 2], null, []);
-
-  // OBJECTS use all the scalar rules for their leaf keys.
-  test({}, {}, {});
-  test({}, {a: 1}, {a: 1});
-  test({a: 1}, {a: 1}, {a: 2});
-  // test({a:1},{b:2},{a:1, b:2}); //can't be properly auto-tested without a better equals for objects
-  test({a: 99}, {a: null}, {a: 0});
-  test({a: []}, {a: 1}, {a: [1]});
-
-  // We can reach in deeply without touching the rest of the object.
-  test({a: {b: 1}, c: 2}, {a: {b: 1}}, {a: {b: 2}, c: 2})
-
-  // Functions are invoked.
-  test(1, a => a + 1, 2);
-  test(a => a + 1, 1, 2);
-  // Nulling out a function
-  test(a => a + 1, null, null);
-
-  // Setting a function
-  test(null, a => a + 1, fn => assertEquals(fn(1), 2));
-</pre>
+</div>
 
 <script type="module">
   import {combine, combineAll, combineAllArgs} from './combine.js';
@@ -66,11 +34,17 @@
   let result = null;
 
   // test() is a helper function to be used while testing the combine function
+  // if expected is a function, then we just call the function on result. We expect it to assert stuff about result.
+  // Otherwise, we do a deepEquals on expected and result (the usual case).
   const test = (target, msg, expected, print = false) => {
     result = combine(target, msg);
-    if (print) log('combine.html/test()', 'target', target, 'msg', msg, 'expected', expected, 'result', result);
-    if (is.fun(expected)) expected(result)
-    else assertEquals(expected, result);
+    if (print)
+      log('combine.html/test()', 'target', target, 'msg', msg, 'expected', expected, 'result', result);
+    if (is.fun(expected))
+      expected(result)
+    else
+      assertEquals(expected, result);
+
     return result;
   };
 
@@ -121,23 +95,26 @@
   // For these simple handlers, the result is independent of both msg and ctx.
   const ha = {name: 'a', handle: () => [{a: 1}, b]}
   const hb = {name: 'b', handle: () => [{b: 1},  ]}
-  const a = {msg: 'a'}
-  const b = {msg: 'b'}
+  const a  = {msg: 'a'}
+  const b  = {msg: 'b'}
   const invalid = {msg: 'invalid'}
   result = combineAllArgs({}, ha, hb)
 
   // add 'a' 3 times, increment both a and b
-  test(a, core => (core.a === 1 && core.b === 1 && false))
-  test(a, core => (core.a === 2 && core.b === 2))
-  test(a, core => (core.a === 3 && core.b === 3))
+  test(result, a, core => (core.a === 1 && core.b === 1))
+  test(result, a, core => (core.a === 2 && core.b === 2))
+  test(result, a, core => (core.a === 3 && core.b === 3))
 
   // add 'b' 3 times, incrementing only b
   test(result, b, core => (core.a === 3 && core.b === 4))
   test(result, b, core => (core.a === 3 && core.b === 5))
   test(result, b, core => (core.a === 3 && core.b === 6))
 
-  assertThrows(a => combine(result, e))
+  // The empty object is a no-op message
   test(result, {}, core => (core.a === 3 && core.b === 6))
+
+  // There is no matching handler for this message, so we should get an exception
+  assertThrows(a => combine(result, invalid));
 
 </script>
 </body>
