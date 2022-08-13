@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, HTML5 functional, simpatico, minimalist, web verite">
+  <meta name="author" content="Josh Rehman">
+  <link id="favicon" rel="icon" type="image/svg"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'
+        width='24' height='24' viewBox='0 0 24 24' fill='none'
+        stroke='orange' stroke-width='2'%3E
+          %3Ccircle cx='12' cy='12' r='10' /%3E
+        %3C/svg%3E"/>
+  <title>Simpatico</title>
+  <style>
+    html {
+      box-sizing: border-box;
+      font-size: 16px;
+      line-height: 1.5em;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Helvetica, sans-serif;
+    }
+
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+
+    img, svg {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid black;
+    }
+
+    pre{
+      color: #78A960;
+      background-color: #1e1f20;
+      overflow-x: auto;
+    }
+    code{
+      color: #78A960;
+    }
+
+
+    @media (prefers-color-scheme: dark) {
+      html{
+        color: #ffca28;
+        background-color: #1e1f20;
+      }
+
+      a {
+        color: aliceblue;
+      }
+
+      a:link{
+        color: aliceblue;
+      }
+
+      a:visited{
+        color: #1f7199;
+      }
+
+      pre{
+        color: #78A960;
+      }
+
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="content">
+  <h1 id="title">Simpatico</h1>
+  <p>
+    <i id="author">Josh Rehman</i>
+    <i id="written">2022</i>
+    started: <i id="started">0</i>
+  </p>
+  <button onclick="bind(event)">render()</button>
+
+</div>
+<!-- Use code-folding in your editor -->
+<script id="core">
+  const now = a => a ? Date.now() - a : Date.now()
+  const log = console.log.bind(console)
+  const debug = console.debug.bind(console)
+  const info = console.info.bind(console)
+  const warn = console.warn.bind(console)
+  const err = console.error.bind(console)
+
+  const error = msg => {throw new Error(msg)}
+  const assert = (truthy, msg) => !!truthy ? true : error(msg)
+
+  const assertThrows = fn => {
+    assert(typeof fn === 'function', `assertThrows must take a function argument instead got ${getType(fn)}`);
+    let throws = false, result;
+    try { result = fn() } catch (e) { throws = true }
+    assert(throws, `Expected fn to throw, but it didn't and returned [${tryToStringify(result)}]`);
+  };
+
+  const tryToStringify = a => {
+    if (typeof a !== 'object') return a;
+    let result = '<Circular>';
+    try{ result = JSON.stringify(a); } catch (ignored) {}
+    return result;
+  };
+
+  const hasProp = (obj, prop) => obj.hasOwnProperty(prop)
+  const getProp = (obj, prop, defaultValue = null) => hasProp(obj, prop) ? obj[prop] : defaultValue;
+  const propType = (obj, prop) => getType(obj[prop])
+  // noinspection JSCheckFunctionSignatures
+  const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn)) // fn([k,v]) => [k2,v2]
+  const equals = (a,b) => typeof a === 'object' ? tryToStringify(a) === tryToStringify(b) : a === b; //needs work
+  const arrEquals = (a,b) =>
+    as.arr(a) && as.arr(b) && a.length === b.length &&
+    a.map((v,i) => v === b[i]).reduce(and, true);
+
+  const assertEquals = (actual, expected, msg = '') =>
+    assert(equals(actual, expected), `actual is ${tryToStringify(actual)} but expected ${tryToStringify(expected)}. ${msg}`)
+
+  // Functional logic
+  const and = (a,b) => !!a && !!b
+  const or = (a,b) => !!a || !!b
+
+  // Higher order functions
+  const identity = a => a
+  const curryLeft = (f, a) => b => f(a,b) //left to right
+  const curryRight = (f, a) => b => f(b,a) //right to left
+  const curry = curryLeft
+  const compose = (f, g) => a => g(f(a))
+  const compose2 = (f, g) => a => f(g(a))
+
+  // It is tempting to add peek like this, but it's in bad taste. So use the functional version:
+  // Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null};
+  const peek = (arr, defaultValue = null) => arr.length ? arr[arr.length - 1] : defaultValue
+  const push = (arr, a) => {arr.push(a); return arr} //mutating
+
+  // Copies good for arrays
+  const copy1 = a => [...a]
+  const copy2 = a => a.slice()
+  // Copies maybe good for objects
+  const copy3 = a => JSON.parse(JSON.stringify(a)) //sadly unstable key order
+  const copy4 = a => mapObject(a, identity); //shallow copy, but might be extensible.
+  const copy = copy3; //TODO: find or make a better copy.
+
+
+  // Types
+  const TYPES = {
+    // These are the 7 elementary JS types, excluding void and symbol (which I haven't had a use for)
+    UNDEF: "undefined",
+    NUL: "null",
+    STR: "string",
+    NUM: "number",
+    BOOL: "boolean",
+    FUN: "function",
+    OBJ: "object",
+
+    // Useful compound built in types
+    ARR: "array",
+    ANY: "any",
+    ELT: "element", //only in browsers
+
+    // Simpatico types
+    HANDLER: "handle", //a handler has a handle function
+    MSG: "msg", //a message has a msg attr
+  };
+
+  const getType = (a) => {
+    const {UNDEF,NUL,STR,FUN,OBJ,ARR,ELT,HANDLER,MSG} = TYPES;
+    let t = typeof a;
+    if (t !== OBJ)        return t;
+
+    if (a === null)       return NUL;
+    if (a === undefined)  return UNDEF;
+    if (Array.isArray(a)) return ARR;
+
+    if (
+      typeof window  !== 'undefined' &&
+      typeof Element !== 'undefined' &&
+      a instanceof Element
+    )  return ELT;
+
+    // Simpatico types
+    if (propType(a, HANDLER) === FUN) return HANDLER;
+    if (propType(a, MSG) === STR)     return MSG;
+    // Note: properly typing the CORE type messes up the message cascade
+
+    return OBJ;
+  }
+
+  const size = (a) => {
+    const t = getType(a);
+    const {UNDEF,NUL,NUM,STR,FUN,OBJ,ARR,ELT,HANDLER,MSG} = TYPES;
+    switch (t){
+      case NUM:
+        return a;
+      case STR: // todo: deal with unusual encodings
+        return a.length;
+      case FUN: // fun.length returns argument cardinality
+      case ARR:
+        return a.length;
+      case HANDLER:
+      case MSG:
+      case OBJ:
+        return Object.keys(a).length;
+      case UNDEF:
+      case NUL:
+      case ELT:
+        return 0;
+    }
+  };
+
+  // Cast a string into another type - only string, number and boolean supported, currently.
+  // Mainly supports the case when JS returns NaN when parsing a string
+  const cast = (type, str) => {
+    const {STR,NUM,BOOL} = TYPES;
+    assert(getType(str) === 'string', `string cast value required; called with [${getType(str)}]`);
+
+    switch (type) {
+      case STR:
+        return str;
+      case NUM:
+        const result = 1 * str;
+        if (Number.isNaN(result)) throw new Error(`Cannot convert ${str} into a number`);
+        return result;
+      case BOOL:
+        return (str === 'true' || str === '1' || str === 'yes');
+      default:
+        throw `casting to type ${type} not supported`
+    }
+  };
+
+
+  // is looks something like {NUL: a => getType(a) === NUL, STR: a => getType(a) === STR ...}
+  // ASSERT wraps with an assertion  {NUL: (a, msg) => assert(getType(a) === NUL, msg), STR: (a,msg) => assert(getType(a) === STR, msg)}
+  const is = mapObject(TYPES,([k, v]) =>
+    [k.toLowerCase(), a => getType(a) === v]
+  )
+  is.int = a => is.num(a) && (a % 1 === 0)
+  is.natural = a => is.int(a) && a > 0
+  is.exists = a => (typeof a !== 'undefined') && (a !== null)
+  is.between = (lo, hi, a) =>
+    size(lo) <= size(hi) &&
+    size(lo) <= size(a) &&
+    size(hi) >= size(a);
+
+  is.t = () => true
+  is.f = () => false
+  // Arrays
+  is.all = arr => as.arr(arr) && arr.reduce(and, true)
+  is.any = arr => as.arr(arr) && arr.reduce(or, false)
+
+  // It would be nice if this was expressible as arr.reduce(equals, true), but I couldn't get it to work.
+  // Also, this code is probably a lot more performant.
+  is.same = (arr) => {
+    as.arr(arr);
+    let prev = arr[0], curr;
+    for(let i = 1; i < arr.length; i++){
+      curr = arr[i];
+      if (!equals(curr, prev)){
+        return false;
+      }
+    }
+    return true;
+  }
+  is.contains = (arr, a) => as.arr(arr) && arr.includes(a);
+  is.excludes = (arr, a) => !is.contains(arr, a);
+  is.arrEquals = arrEquals;
+
+  // This is awkward because we have to guess the cardinality of the predicate.
+  // Another reason why the more straight-forward form is probably better.
+  const as = mapObject(is,([k,v]) =>
+    [k, (a, b, c, d) => assert(v(a,b,c), `expected ${k} but got ${getType(a)}`)]
+  );
+
+  // A simple PRNG inside the browser.
+  // Note that every call increments state exactly once.
+  // Q: convert this into a generator function?
+  function RNG(seed) {
+    // A simple seedable RNG based on GCC's constants
+    // https://en.wikipedia.org/wiki/Linear_congruential_generator
+    this.m = 0x80000000; // 2**31;
+    this.a = 1103515245;
+    this.c = 12345;
+    this.state = seed ? seed : Math.floor(Math.random() * (this.m - 1));
+  }
+  RNG.prototype.nextInt = function () {
+    this.state = (this.a * this.state + this.c) % this.m;
+    return this.state;
+  }
+  RNG.prototype.nextFloat = function () {
+    // returns in range [0,1]
+    return this.nextInt() / (this.m - 1);
+  }
+  RNG.prototype.nextRange = function (start, end) {
+    // returns in range [start, end): including start, excluding end
+    // can't modulo nextInt because of weak randomness in lower bits
+    const rangeSize = end - start;
+    const randomUnder1 = this.nextInt() / this.m;
+    return start + Math.floor(randomUnder1 * rangeSize);
+  }
+  RNG.prototype.choice = function (arr) {
+    return arr[this.nextRange(0, arr.length)];
+  }
+  // Fisher-Yates shuffle using ES6 swap
+  // mutates the argument to save space!
+  const shuffle = (arr, mutate = true) => {
+    as.arr(arr);
+    if (arr.length < 2) return arr;
+    arr = mutate ? arr : [...arr];
+    let right, left, {floor, random} = Math;
+    for (right = arr.length - 1; right > 0; right--) {
+      left = floor(random() * (right + 1));
+      [arr[left], arr[right]] = [arr[right], arr[left]];
+    }
+    return arr;
+  }
+</script>
+<script id="friendly">
+  /**
+   *  Validate an object against a pattern obj.
+   *
+   *  Special cases:
+   *    value != object => nothing passes (return pattern)
+   *    pattern = null => nothing passes (return {})
+   *    pattern = {} => everything passes (return undefined)
+   *
+   *  Usage as a straight boolean is confusing since !validate() would actually mean it passed.
+   *  Perhaps it needs a rename to "failures" and then it would make more sense.
+   *
+   * @param patternObj
+   * @param valueObj
+   * @returns {{}|undefined|*} undefined if the object passes; an object describing the failure if it fails.
+   */
+  const validate = (patternObj, valueObj) => {
+    //gotcha: do not use getType predicate because handler !== object, etc
+    const isObjecty = a => is.obj(a) || is.msg(a)
+    if (!isObjecty(valueObj)) return patternObj;
+    if (patternObj === null) return {};
+    if (patternObj === {}) return undefined;
+
+    assert(isObjecty(patternObj), `pattern must be an object but was ${tryToStringify(patternObj)}`);
+
+    const result = {};
+    let objPass = true;
+
+    for (const [patternKey, patternValue] of Object.entries(patternObj)) {
+      const value = valueObj[patternKey];
+      let pass = true;
+      let failReasons = undefined;
+
+      if (is.obj(patternValue)) {
+        failReasons = validate(patternValue, value); //recurse
+      } else {
+        failReasons = checkValue(patternValue, value); //normal case
+      }
+
+      pass = is.undef(failReasons);
+      if (!pass) {
+        result[patternKey] = failReasons;
+      }
+      objPass = objPass && pass;
+    }
+    return objPass ? undefined : result;
+  };
+
+  /**
+   * This is an internal method exported only to support testing. but it checks a value against an array of predicates.
+   * This function is the one you want to change if you want to add new predicates or features to the system.
+   *
+   * @param predArray
+   * @param value
+   * @returns {undefined|*} Undefined (falsy) if pass - like the Unix convention. If there's a problem, return it.
+   */
+  const checkValue = (predArray, value) => {
+    if (!is.arr(predArray)){
+      return value === predArray ? undefined : ["equals", predArray];
+    }
+
+    const failedPreds = [];
+    let pass = true;
+    let allPass = true;
+
+    // Loop through the predicates.
+    for (let i = 0; i < predArray.length; i++) {
+      let pred = predArray[i].toLowerCase(); // case of preds doesn't matter
+
+      if (pred === "between") {
+        const lo = predArray[i + 1];
+        const hi = predArray[i + 2];
+        pass = is.between(lo, hi, size(value));
+        i += 2;
+        if (!pass) {
+          failedPreds.push(pred, lo, hi);
+        }
+      } else if (pred === "optional") {
+        //optional means we skip if it's missing
+        if (is.undef(value)) {
+          return undefined;
+        }
+      } else {
+        // You can call any predicate by name - typically this will be a type check
+        pass = is[pred](value);
+        if (!pass) failedPreds.push(pred);
+      }
+      allPass = allPass && pass;
+    }
+    return allPass ? undefined : failedPreds;
+  };
+
+</script>
+<script id="combine">
+  const combine = (target, msg, rules = getRules()) => {
+    const {NUL, FUN, ARR, ANY} = TYPES;
+    let ttarget = getType(target);
+    let tmsg = getType(msg);
+
+    // In some cases we erase type (set to "ANY")
+    // This saves us from repetitive rule writing
+    if (ttarget === NUL) {
+      tmsg = ANY;
+    } else if (tmsg !== NUL) {
+      // Functions just invoke, so erase the counter type
+      if (tmsg === FUN) ttarget = ANY;
+      else if (ttarget === FUN && tmsg !== NUL) tmsg = ANY;
+      // Arrays push, so erase the message type
+      else if (ttarget === ARR && tmsg !== ARR) tmsg = ANY;
+    }
+
+    // Lookup the rule, throw if you can't find it.
+    const ruleKey = ttarget + tmsg;
+    const rule = rules[ruleKey];
+    if (!rule) {
+      throw `rule not found for target=${tryToStringify(target)} msg=${tryToStringify(msg)} ruleKey=${ruleKey}`;
+    }
+
+    // Invoke the rule and return
+    // debug('combine()=>', 'rule:', ruleKey, 'target:', target, 'msg:', msg );
+    const debugObject = {
+      ruleKey: ruleKey,
+      target: tryToStringify(target),
+      msg: tryToStringify(msg),
+    }
+    // debug(debugObject);
+    const result = rule(target, msg);
+    debugObject.result = tryToStringify(result);
+    debug(debugObject);
+
+    return result;
+  }
+
+  const getRules = () => {
+    /**
+     * Rules for combining things. The first arg is the target, second the message
+     proceed from the "natural" types to the synthetic types introduced by Simpatico.
+
+     Docs Comments on the basic rules:
+     Null means "clear". For booleans, null means "toggle".
+     We cannot push null to an array because that will clear the array.
+     Arrays immutable concat (this is one way to get a null in there!)
+     */
+    const {UNDEF, NUL, STR, NUM, BOOL, FUN, OBJ, ARR, ELT, ANY, CORE, HANDLER, MSG} = TYPES;
+    const rules = {};
+    rules[NUL + ANY] = (_, b) => b;
+
+    rules[STR + STR] = (_, b) => b;
+    rules[STR + NUL] = () => '';
+
+    rules[NUM + NUM] = (a, b) => a + b;
+    rules[NUM + STR] = (_, b) => cast(NUM, b);
+    rules[NUM + NUL] = () => 0;
+
+    rules[BOOL + BOOL] = (a, b) => b;
+    rules[BOOL + STR] = (_, b) => cast(BOOL, b);
+    rules[BOOL + NUL] = (a, _) => !a;
+
+    rules[ARR + ARR] = (a, b) => a.concat(b);
+    rules[ARR + ANY] = (a, b) => [...a, b];
+    rules[ARR + NUL] = () => [];
+
+    rules[FUN + NUL] = (a, b) => null;
+    rules[FUN + ANY] = (a, b) => a(b);
+    rules[ANY + FUN] = (a, b) => b(a);
+
+    //rules[ELT + OBJ] = (a, b) => scatter(a, b);
+    //rules[OBJ + ELT] = (a, b) => gather(a, b);
+
+    rules[OBJ + OBJ] = (a, b) => {
+      // B is defensively copied, mutated and returned, not A!
+      b = Object.assign({}, b);
+      for (const prop in a) {
+        b[prop] = b.hasOwnProperty(prop) ?
+          combine(a[prop], b[prop]) : //recurse
+          a[prop];
+      }
+      return b;
+    };
+
+    //Gotcha: handler invocation does some limited mutation!
+    //mutation: core.msgs will get a push,
+    //mutation: msg will get an id, time and children
+    //mutation: all results will get the id of the parent
+    rules[OBJ + MSG] = (core, msg) => {
+      // World event - defensively copy because we mutate
+      const isWorldEvent = is.undef(msg.parent);
+      if (isWorldEvent) msg = {time: now(), ...msg};
+      msg = {id: core.msgs.length, ...msg};
+      core.msgs.push(msg);
+
+      //Find the named handler
+      const handler = core.handlers[msg[TYPES.MSG]];
+      assert(handler, `handler not found for msg ${tryToStringify(msg)}`);
+
+      // Invoke the handler.
+      // Results should always be an array, so help sloppy handlers
+      let results = handler[TYPES.HANDLER](core, msg);
+      if (!is.arr(results)) results = [results];
+
+      // Build up some more info about the message cascade.
+      msg.children = results;
+
+      //Recurse for each result
+      for (const result of results) {
+        // Store the id of the parent to avoid cycles that stop stringification
+        if (is.obj(result)) result.parent = msg.id;
+        core = combine(core, result); //recurse, generates the message cascade.
+      }
+      return core;
+    };
+
+    //handler registration
+    rules[OBJ + HANDLER] = (core, handler) => {
+      core = combine(core, {handlers: {}, msgs: []});
+      core.handlers[handler.name] = handler;
+      return core;
+    };
+    return rules;
+  };
+
+  // Convenience functions that wrap combine
+  // Note that the intuitive reduction (arr.reduce(combine, residue)) doesn't work for some unknown reason.
+  const combineAll = (arr, residue = {}) => {
+    for (let i = 0; i < arr.length; i++) {
+      residue = combine(residue, arr[i]);
+    }
+    return residue;
+  };
+
+  const combineAllArgs = (...args) => combineAll(Array.from(args));
+</script>
+<script id="rtree">
+  const rtree = (startValue= {}, reducer = combine) => {
+    const ROOT = {
+      id: 0,
+      time: now(),
+      branch: 0,
+      parent: null,
+      children: [],
+      value: startValue,
+      residue: startValue,
+    };
+
+    const ms = [ROOT];
+    const branches = [ROOT];
+    let focus = 0;
+
+    const getFocus = () => focus;
+    const read = () => (focus > 0) ? ms[focus] : branches[-focus];
+    const residue = () => read().residue;
+    const setFocus = i => {
+      as.between(-branches.length - 1, ms.length - 1 , i);
+      focus = i;
+      return read();
+    };
+
+    const add = (value) => {
+      const parent = read();
+      const residue = reducer(parent.residue, value);
+      const branch = (focus <= 0) ? parent.branch : -branches.length;
+
+      const m = {
+        id: ms.length,
+        time: now(),
+        children: [],
+        branch,
+        parent,
+        value,
+        residue,
+      };
+      // TODO: check that no sibling ms have the same value.
+      parent.children.push(m);
+
+      if (branch === parent.branch){
+        branches[-branch] = m;
+      } else {
+        focus = -branches.length;
+        branches.push(m);
+      }
+
+      ms.push(m);
+      return m;
+    }
+    return {setFocus, getFocus, read, residue, add, ms, branches};
+  }
+</script>
+<script id="app" >
+  const $ = document.querySelector.bind(document);
+
+  const combineObjWithDom = (obj) => Object.entries(obj).map(([key, value] = entry) => {
+    const elt = $('#' + key)
+    if (!elt) return
+    elt.innerHTML = value
+  });
+
+  let state = rtree({
+    app: "Simpatico",
+    author: "Josh Rehman",
+    written: "2022",
+    started: now(),
+  });
+
+  const render = combineObjWithDom
+
+  const bind = (e) => {
+    log(e);
+    state.add(e);
+    render(state.residue());
+  }
+  // Row 0 is special, it describes the application
+  render(state.residue());
+</script>
+
+</body>
+</html>
