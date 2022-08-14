@@ -82,6 +82,10 @@
     <li><b>bob</b>: hey alice. sure, what do you need?
     <li><b>alice</b>: can you buy me a new car? Maybe a Tesla?
   </ol>
+  <div id="scenario">
+    <input type="range" id="row" name="scenario" min="-3" max="0" value="0" oninput="bind(1*this.value)">
+    <label for="row">Scenario</label>
+  </div>
   <form action="#" onsubmit="return false">
     <input id="character" type="text">
     <input id="line" type="text">
@@ -622,8 +626,10 @@
     if (!elt) return
     if (is.str(value))
       elt.innerHTML = value
-    else if (is.arr(value))
+    else if (key === 'dialog' && is.arr(value))
       elt.innerHTML = renderDialogToListString(value)
+    //else if (key === 'scenario' && is.int(value))
+      //elt.innerHTML = renderRangeInputString(value, state)
   });
 
   const renderDialogToListString = (arr) => {
@@ -635,6 +641,12 @@
     result += "</ol>";
     return result;
   }
+  const renderRangeInputString = (value, state) => {
+    return `<input type="range" id="row" name="scenario"
+        min="${state.branches.length}" max="0"
+        value="${value}" oninput="bind(1*this.value)">
+        <label for="row">Scenario</label>`
+  }
 
   // Probably a good practice to "manually render" initial state into the HTML above.
   let state = rtree({
@@ -642,11 +654,8 @@
     author: "Josh Rehman",
     written: "2022",
     started: now(),
-    dialog: [
-      {alice: 'hey bob, i <i>need</i> a favor.'},
-      {bob: 'hey alice. sure, what do you need?'},
-      {alice: 'can you buy me a new car? Maybe a Tesla?'}
-    ]
+    scenario: 0,
+    dialog: []
   });
 
 
@@ -679,8 +688,23 @@
   // Row 0 is special, it describes the application
   render(state.residue());
 
-  bind(JSON.stringify({dialog: {alice:'ah, come on bob!'}}))
-  bind(JSON.stringify({dialog: {bob:'but alice, it\'s expensive!'}}))
+  // The happy path, row 0
+  bind(JSON.stringify({dialog: {alice:'excuse me sir, my car just broke down. can i use your phone?'}}))
+  bind(JSON.stringify({dialog: {bob:'of course, come on in!'}}))
+  bind(JSON.stringify({dialog: {alice:'thank you sir. what do I call you?'}}))
+  bind(JSON.stringify({dialog: {bob:'the name\'s bob. pleased to meet you. what\'s your name?'}}))
+  // The sad path, row 1
+  bind(1);
+  bind(JSON.stringify({dialog: {bob:'no. I do not let strangers use my things.'}}))
+  bind(JSON.stringify({dialog: {alice:'please sir, my children are in the car. have pity sir!'}}))
+  // The capitalist path, row 2
+  bind(1);
+  bind(JSON.stringify({dialog: {bob:'yes, but it will cost you.'}}))
+  bind(JSON.stringify({dialog: {alice:'how much?'}}))
+  bind(JSON.stringify({dialog: {bob:'For you darlin? 1 US American dollar.'}}))
+  // The nicer capitalist path, row 3
+  bind(8)
+  bind(JSON.stringify({dialog: {bob:'that will be 50 cents.'}}))
 </script>
 
 </body>
