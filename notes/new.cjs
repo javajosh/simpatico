@@ -1,13 +1,18 @@
-
 const fs = require('fs');
+const { promisify } = require("util");
 const child_process = require("child_process");
 
-const name = 'javajosh';
-const place= 'here';
+// To install
+// curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+// source ~/.bashrc && nvm install node
+// node new.cjs
+
+const name = 'Josh';
+const place= 'the East Coast of USA';
 const path = '.';
-const editor = 'subl';
-const time = new Date().toDateString();
-const title = `${time}, ${name} in ${place}\n\n`;
+const editor = '';
+const time = new Date().toLocaleDateString();
+const title = `# ${name} from ${place} on ${time}\n\n`;
 const NOTE_PATTERN = /^([0-9]*)\.md$/;
 
 const greatestNoteNumberImperative = strings => {
@@ -31,36 +36,15 @@ const greatestNoteNumberFunctional = noteNames => noteNames.map(nn => toNoteNumb
 const USE_IMPERATIVE = true;
 const greatestNoteNumber = USE_IMPERATIVE ? greatestNoteNumberImperative : greatestNoteNumberFunctional;
 
-const CALLBACK = 0, ASYNCAWAIT = 1, RXJS = 2;
-// const outputstyle = CALLBACK;
-const outputstyle = ASYNCAWAIT;
-if (outputstyle === CALLBACK) {
-  fs.readdir(path, (ignored, filenames) => {
-  	const filename = `${greatestNoteNumber(filenames) + 1}.md`;
-  	fs.open(filename, 'w', (err, fd) => {
-  		fs.appendFile(fd, title, 'utf8', () => {
-  			child_process.spawn(editor, [filename]);
-  			console.log(`created ${filename}`);
-  		});
-  	});
-  });
+const writeFile = promisify(fs.writeFile);
+const readDir = promisify(fs.readdir);
+
+async function main() {
+  const fileNames = await readDir(path);
+  const noteId = greatestNoteNumber(fileNames) + 1;
+  const fileName = noteId + '.md';
+  await writeFile(path + '/' + fileName, `${title}`);
+  if (editor) child_process.spawn(editor, [fileName]);
+  console.log(`created ${fileName}`);
 }
-if(outputstyle === ASYNCAWAIT){
-  const { promisify } = require("util");
-  const writeFile = promisify(fs.writeFile);
-  const readDir = promisify(fs.readdir);
-  async function main() {
-    const fileNames = await readDir(".");
-    const noteId = greatestNoteNumber(fileNames) + 1;
-    const fileName = noteId + '.md';
-    await writeFile(fileName, `Note ${noteId}: ${title}`);
-    child_process.spawn(editor, [fileName]);
-    console.log(`created ${fileName}`);
-  }
-  try {
-    main();
-  } catch (e) {
-    throw e;
-    // console.error(error);
-  }
-}
+main().then();
