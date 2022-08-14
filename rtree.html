@@ -81,38 +81,51 @@
   import rtree from './rtree.js';
 
   // A very simple RTree using integers as inputs and "add" instead of combine.
-  let r = rtree(0);
+  const r = rtree(0);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 0);
   assertEquals(r.getFocus(), 0);
+  assertEquals(r.residue(), 0);
 
+  // The zeroeth row is now 1
   r.add(1);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 1);
   assertEquals(r.getFocus(), 0);
+  assertEquals(r.residue(), 1);
 
+  // The zeroeth row is now 4
   r.add(3);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.getFocus(), 0);
+  assertEquals(r.residue(), 4);
 
+  // Setting focus to node 1, with value 1, does not create a branch, and does not affect the existing branch.
+  // The residue at that node is 1
   r.setFocus(1);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.getFocus(), 1);
+  assertEquals(r.residue(), 1);
 
+  // Adding to a node will create a new branch with value 6. Rows are labeled with negative integers.
   r.add(5);
   assertEquals(r.branches.length, 2);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.branches[1].residue, 6);
   assertEquals(r.getFocus(), -1);
+  assertEquals(r.residue(), 6);
 
   r.add(5)
   assertEquals(r.branches.length, 2);
   assertEquals(r.branches[0].residue, 4);
   assertEquals(r.branches[1].residue, 11);
   assertEquals(r.getFocus(), -1);
+  assertEquals(r.residue(), 11);
 
+  // Focusing on second node in first row of value 3 and residue 4.
+  // Creates a new row
   r.setFocus(2);
   r.add(3);
   assertEquals(r.branches.length, 3);
@@ -120,6 +133,20 @@
   assertEquals(r.branches[1].residue, 11);
   assertEquals(r.branches[2].residue, 7);
   assertEquals(r.getFocus(), -2);
+  assertEquals(r.residue(), 7);
+
+  // Now an rtree with objects
+  const s = rtree()
+  assertEquals(s.branches.length, 1)
+  assertEquals(s.branches[0].residue, {})
+  assertEquals(s.getFocus(), 0)
+  assertEquals(s.residue(), {})
+
+  s.add({a:1})
+  assertEquals(s.branches.length, 1)
+  assertEquals(s.branches[0].residue, {a:1})
+  assertEquals(s.getFocus(), 0)
+  assertEquals(s.residue(), {a:1})
 
 </script>
 
