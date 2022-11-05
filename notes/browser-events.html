@@ -183,351 +183,324 @@
       </ol>
   </div>
 
-    <script>
-        'use strict';
+  <script>
+'use strict';
 
-        // The essential shape of our application - an event is combined with state an then the state is rendered.
-        function getApplicationHandler(combine, render, win = window) {
-          return event => {
-            state = combine(state, event); // s2 = s1 + e
-            render( // Render all side-effects, not just display
-              state, // s2
-              event, // e; We need a reference to the original event to optionally preventDefault()
-              win // interestingly IE adds the current event to window!
-            );
-          };
-        }
+// The essential shape of our application - an event is combined with state an then the state is rendered.
+function getApplicationHandler(combine, render, win = window) {
+  return event => {
+    state = combine(state, event); // s2 = s1 + e
+    render( // Render all side-effects, not just display
+      state, // s2
+      event, // e; We need a reference to the original event to optionally preventDefault()
+      win // interestingly IE adds the current event to window!
+    );
+  };
+}
 
-        // Define the top-level shape of this particular application; note that all branches are immutable, but all leaves are mutable. There is no good way to represent this in JavaScript so we use convention.
-        let state = {
-          input: [],
-          residue: {
-            flag: false,
-            count: 0,
-            startTimer: false,
-            stopTimer: false,
-            timers: [],
-            tick: null,
-          },
-          logging: false,
-          focus: {},
-        };
+// Define the top-level shape of this particular application
+let state = {
+  input: [], //a history of all input
+  residue: {
+    flag: false,
+    count: 0,
+  },
+  logging: false, //configuration
+  focus: {},
+};
 
-        // Functions for processing translating "raw" browser events into something more semantically useful
-        const compose = (f, g) => a => f(g(a));
-        const identity = a => a;
+// Functions for processing translating "raw" browser events into something more semantically useful
+const compose = (f, g) => a => f(g(a));
+const identity = a => a;
 
-        const click = e =>({
-          type: e.type,
-          x: e.offsetX,
-          y: e.offsetY,
-          t: e.timeStamp,
-          button: e.which,
-          target: e.target,
-        });
+const click = e =>({
+  type: e.type,
+  x: e.offsetX,
+  y: e.offsetY,
+  t: e.timeStamp,
+  button: e.which,
+  target: e.target,
+});
 
-        const key = e =>({
-          type: e.type,
-          key: e.key,
-          keyCode: e.keyCode,
-          location: e.location,
-          t: e.timeStamp,
-          target: e.target,
-        });
+const key = e =>({
+  type: e.type,
+  key: e.key,
+  keyCode: e.keyCode,
+  location: e.location,
+  t: e.timeStamp,
+  target: e.target,
+});
 
-        const move = e => ({
-          type: e.type,
-          x: e.offsetX,
-          y: e.offsetY,
-          dx: e.movementX,
-          dy: e.movementY,
-          t: e.timeStamp,
-        });
+const move = e => ({
+  type: e.type,
+  x: e.offsetX,
+  y: e.offsetY,
+  dx: e.movementX,
+  dy: e.movementY,
+  t: e.timeStamp,
+});
 
-        const wheel = e => ({
-          type: e.type,
-          x: e.offsetX,
-          y: e.offsetY,
-          dx: e.wheelDeltaX,
-          dy: e.wheelDeltaY,
-          t: e.timeStamp,
-        });
+const wheel = e => ({
+  type: e.type,
+  x: e.offsetX,
+  y: e.offsetY,
+  dx: e.wheelDeltaX,
+  dy: e.wheelDeltaY,
+  t: e.timeStamp,
+});
 
-        const scroll = e => ({
-          type: e.type,
-          x: window.scrollX,
-          y: window.scrollY,
-        });
+const scroll = e => ({
+  type: e.type,
+  x: window.scrollX,
+  y: window.scrollY,
+});
 
-        const events = {
-          "resize": identity, //browser
-          "keyup": key, //independent
-          "keydown": key, //independent
-          "keypress": key, //dependent
-          "mousemove": move, //independent
-          "mousewheel": wheel, //independent
-          "mousedown": click, //independent
-          "mouseup": click, //independent
-          "click": click, //dependent
-          "dblclick": click, //dependent
-          "startTimer": identity, //synthetic
-          "stopTimer": identity, //synthetic
-          "tick": identity, //synthetic
-          "scroll": identity, //dependent
-          "blur": e =>({type: 'blur'}), //browser
-          "focus": e =>({type: 'focus'}), //browser
-          "storage": identity, //browser
-        };
+const events = {
+  "resize": identity, //browser
+  "keyup": key, //independent
+  "keydown": key, //independent
+  "keypress": key, //dependent
+  "mousemove": move, //independent
+  "mousewheel": wheel, //independent
+  "mousedown": click, //independent
+  "mouseup": click, //independent
+  "click": click, //dependent
+  "dblclick": click, //dependent
+  "startTimer": identity, //synthetic
+  "stopTimer": identity, //synthetic
+  "tick": identity, //synthetic
+  "scroll": identity, //dependent
+  "blur": e =>({type: 'blur'}), //browser
+  "focus": e =>({type: 'focus'}), //browser
+  "storage": identity, //browser
+  // net - xhr and websocket
+  // tick - use a requestAnimationFrame pump
+  // dice - add a seeded prng
+};
 
-        // Feed events into a handler function
-        function connectEvents(handler) {
-          for (let eventName in events){
-            window['on' + eventName] = handler;
-          }
-        }
+// A single handler receives all events.
+function connectEvents(handler) {
+  for (let eventName in events){
+    window['on' + eventName] = handler;
+  }
+}
 
-        // Combine an event with application state
-        // This is where ALL computation of dependent data occurs
-        function combine(state, event) {
-          const etype = event.type;
-          const input = state.input;
-          const residue = state.residue;
-          // e is a kind of simplified, more convenient representation of the raw event.
-          const e = events[etype](event);
-          e.id = input.length;
+// Combine an event with application state
+// This is where ALL computation of dependent data occurs
+function combine(state, event) {
+  const etype = event.type;
+  const input = state.input;
+  const residue = state.residue;
+  // e is a kind of simplified, more convenient representation of the raw event.
+  const e = events[etype](event);
+  e.id = input.length;
 
-          console.debug('combine() event e', event, e);
+  console.debug('combine() event e', event, e);
 
-          // Store all low-level inputs. Not very efficient but useful for pedagogy.
-          input.push(e);
+  // Store all low-level inputs. Not very efficient but useful for pedagogy.
+  input.push(e);
 
-          // An example of dependant data - just the length of input so far
-          residue.count = input.length;
+  // An example of dependant data - just the length of input so far
+  residue.count = input.length;
 
-          // Set 'flag' based on key presses
-          if (etype === 'keydown')
-            residue.flag =
-              (e.key === "t") ? true :
-              (e.key === "f") ? false : residue.flag;
+  // Set 'flag' based on key presses
+  if (etype === 'keydown')
+    residue.flag =
+      (e.key === "t") ? true :
+      (e.key === "f") ? false : residue.flag;
 
-          // Set 'flag' based on mouse movement
-          if (etype === 'mousemove')
-            residue.flag =
-              (e.dy < 0) ? true :
-              (e.dy > 0) ? false : residue.flag;
+  // Set 'flag' based on mouse movement
+  if (etype === 'mousemove')
+    residue.flag =
+      (e.dy < 0) ? true :
+      (e.dy > 0) ? false : residue.flag;
 
-          // Set 'flag' based on mousewheel events
-          if (etype === 'mousewheel')
-            residue.flag =
-              (e.dy < 0) ? true :
-              (e.dy > 0) ? false : residue.flag;
+  // Set 'flag' based on mousewheel events
+  if (etype === 'mousewheel')
+    residue.flag =
+      (e.dy < 0) ? true :
+      (e.dy > 0) ? false : residue.flag;
 
-          // Do stuff on click
-          if (etype === 'click'){
-            // Toggle the flag if you click on it
-            console.log(e.target);
-            residue.flag =
-              e.target.id === 'flag' ?
-              !residue.flag : residue.flag;
-            // If you click on a rectangle, set the focus
-            // If it's a timer, also cancel the timer.
-            if (e.target.tagName === 'rect' || e.target.tagName === 'text'){
-              state.focus = e.target;
-              // I don't like this but d3 data is something like an id.
-              if (e.target.__data__.timerID){
-                residue.stopTimer = true;
-              }
-            }
-          }
+  // If you click on a rectangle or text, set focus, set the focus
+  if (etype === 'click'){
+    if (e.target.tagName === 'rect' || e.target.tagName === 'text'){
+      state.focus = e.target;
+    }
+  }
 
-          if (etype === 'startTimer'){
-            residue.startTimer = true;
-          }
+  // Don't allow scroll or wheel events to propagate.
+  residue.preventDefault = ['scroll', 'wheel'].includes(etype);
+  return state;
+}
 
-          if (etype === 'stopTimer'){
-            residue.stopTimer = true;
-          }
+// These symbols are used for rendering our low-level inputs.
+const symbols = {
+  mousedown: '⇓',
+  mouseup: '⇑',
+  click: '⇕',
+  tick: '↻',
+  startTimer: '⊕',
+  dblclick: '↡',
+  scroll: '⇅',
+  focus: '⧔',
+  blur: '⧕',
+  arrows : [
+    ['↖', '↑', '↗'],
+    ['←', '·', '→'],
+    ['↙', '↓', '↘'],
+  ],
+  keys: {
+    escape: '⎋',
+    meta: '⌘',
+    control: '⌃',
+    alt: '⌥',
+    shift: '⇧',
+    caps: '⇪',
+    enter: '↵',
+    tab: '⇥',
+    backspace: '⌫',
+    apple: '',
+    ' ': '␣',
+    arrowright: '→',
+    arrowleft: '←',
+    arrowup:'↑',
+    arrowdown:'↓',
+  },
+}
 
-          if (etype === 'tick'){
-            residue.tick = e;
-          }
+// A simple helper function that either uses a symbol or the key itself as the symbol.
+function lookupKeySymbol(key){
+  const k = key.toLowerCase();
+  const keys = symbols.keys;
+  return keys.hasOwnProperty(k) ? keys[k] : key;
+}
 
-          // Decide whether to allow default processing of the event
-          // Don't allow scroll or wheel events to propogate.
-          residue.preventDefault = ['scroll', 'wheel'].includes(etype);
+const byId = (id, window = this) => window.document.getElementById(id);
 
-          // It's true we are mutating an argument, but it's good form to return the state anyway.
-          return state;
-        }
+// Render application state - this is a primary function in this application pattern.
+function render(state, event, window) {
+  // Assert certain elements are present in the DOM
+  const d3_input = d3.select('#d3_input');
+  const d3_flag = d3.select('svg.flag');
+  const dom_count = byId("dom_count");
+  const dom_flag = document.querySelector('span.flag');
+  const dom_json = byId("dom_json");
 
-        // These symbols are used for rendering our low-level inputs.
-        const symbols = {
-          mousedown: '⇓',
-          mouseup: '⇑',
-          click: '⇕',
-          tick: '↻',
-          startTimer: '⊕',
-          dblclick: '↡',
-          scroll: '⇅',
-          focus: '⧔',
-          blur: '⧕',
-          arrows : [
-            ['↖', '↑', '↗'],
-            ['←', '·', '→'],
-            ['↙', '↓', '↘'],
-          ],
-          keys: {
-            escape: '⎋',
-            meta: '⌘',
-            control: '⌃',
-            alt: '⌥',
-            shift: '⇧',
-            caps: '⇪',
-            enter: '↵',
-            tab: '⇥',
-            backspace: '⌫',
-            apple: '',
-            ' ': '␣',
-            arrowright: '→',
-            arrowleft: '←',
-            arrowup:'↑',
-            arrowdown:'↓',
-          },
-        }
+  // Shorten some useful names.
+  const input = state.input;
+  const residue = state.residue;
 
-        // A simple helper function that either uses a symbol or the key itself as the symbol.
-        function lookupKeySymbol(key){
-          const k = key.toLowerCase();
-          const keys = symbols.keys;
-          return keys.hasOwnProperty(k) ? keys[k] : key;
-        }
+  if (state.logging) console.log(input.length, residue);
 
-        const byId = (id, window = this) => window.document.getElementById(id);
+  // Render the input array as SVG using D3
+  const w = 10, h = 10;
+  const { width, height } = d3_input.node().getBoundingClientRect();
+  const cols = Math.floor(width / w);
+  const rows = Math.ceil(height / h);
+  const colors = d3.schemeCategory10;
+  const max = cols * rows;
 
-        // Render application state - this is a primary function in this application pattern.
-        function render(state, event, window) {
-          // Assert certain elements are present in the DOM
-          const d3_input = d3.select('#d3_input');
-          const d3_flag = d3.select('svg.flag');
-          const dom_count = byId("dom_count");
-          const dom_flag = document.querySelector('span.flag');
-          const dom_json = byId("dom_json");
+  // Draw the rectangles
+  const rect = d3_input.selectAll("rect").data(state.input);
+  rect.exit().remove();
+  rect.enter()
+    .append("rect")
+    .attr("x", (d, i) => (i % cols) * w)
+    .attr("y", (d, i) => Math.floor(i / cols) * h)
+    .attr("fill", d => colors[Object.keys(events).indexOf(d.type) % colors.length ])
+    .attr("width", w)
+    .attr("height", h)
+    .on("click", console.log);
 
-          // Shorten some useful names.
-          const input = state.input;
-          const residue = state.residue;
+  // Add a descriptive character symbol over the rectangle
+  const text = d3_input.selectAll("text").data(state.input)
+  text.exit().remove();
+  text.enter()
+    .append("text")
+    .attr("x", (d, i) => (i % cols) * w + w/2)
+    .attr("y", (d, i) => Math.floor(i / cols) * h + h/2)
+    .attr("fill", "white")
+    .attr("text-anchor", "middle")
+    .attr("alignment-baseline", "middle")
+    .attr("font-size", 7)
+    .text(d => {
+      if (d.hasOwnProperty('key')){
+        return lookupKeySymbol(d.key);
+      }
+      if (d.hasOwnProperty('dx') && d.hasOwnProperty('dy')){
+        const i =
+          (d.dx > 0) ? 2 :
+          (d.dx < 0) ? 0 : 1;
+        const j =
+          (d.dy > 0) ? 2 :
+          (d.dy < 0) ? 0 : 1;
+        return symbols.arrows[j][i];
+      }
+      return symbols[d.type];
+    })
+    .on("click", console.log);
 
-          if (state.logging) console.log(input.length, residue);
+  // Render our computed scalars in various ways...
 
-          // Render the input array as SVG using D3
-          const w = 10, h = 10;
-          const { width, height } = d3_input.node().getBoundingClientRect();
-          const cols = Math.floor(width / w);
-          const rows = Math.ceil(height / h);
-          const colors = d3.schemeCategory10;
-          const max = cols * rows;
+  // Boolean as a color
+  d3_flag.style("background", () => {
+      return residue.flag ? "green" : "white";
+  });
 
-          // Draw the rectangles
-          const rect = d3_input.selectAll("rect").data(state.input);
-          rect.exit().remove();
-          rect.enter()
-            .append("rect")
-            .attr("x", (d, i) => (i % cols) * w)
-            .attr("y", (d, i) => Math.floor(i / cols) * h)
-            .attr("fill", d => colors[Object.keys(events).indexOf(d.type) % colors.length ])
-            .attr("width", w)
-            .attr("height", h)
-            .on("click", console.log);
+  // Boolean as text
+  dom_flag.firstChild.nodeValue = '' + residue.flag;
 
-          // Add a descriptive character symbol over the rectangle
-          const text = d3_input.selectAll("text").data(state.input)
-          text.exit().remove();
-          text.enter()
-            .append("text")
-            .attr("x", (d, i) => (i % cols) * w + w/2)
-            .attr("y", (d, i) => Math.floor(i / cols) * h + h/2)
-            .attr("fill", "white")
-            .attr("text-anchor", "middle")
-            .attr("alignment-baseline", "middle")
-            .attr("font-size", 7)
-            .text(d => {
-              if (d.hasOwnProperty('key')){
-                return lookupKeySymbol(d.key);
-              }
-              if (d.hasOwnProperty('dx') && d.hasOwnProperty('dy')){
-                const i =
-                  (d.dx > 0) ? 2 :
-                  (d.dx < 0) ? 0 : 1;
-                const j =
-                  (d.dy > 0) ? 2 :
-                  (d.dy < 0) ? 0 : 1;
-                return symbols.arrows[j][i];
-              }
-              return symbols[d.type];
-            })
-            .on("click", console.log);
+  // Count of events as text
+  dom_count.firstChild.nodeValue = residue.count;
 
-          // Render our computed scalars in various ways...
+  // Render the focused rect data as JSON
+  dom_json.firstChild.firstChild.nodeValue = JSON.stringify(state.focus.__data__, null, 2);
 
-          // Boolean as a color
-          d3_flag.style("background", () => {
-              return residue.flag ? "green" : "white";
-          });
+  if (residue.preventDefault) {
+    if (event.preventDefault) event.preventDefault();
+  }
 
-          // Boolean as text
-          dom_flag.firstChild.nodeValue = '' + residue.flag;
+  // Render startTimer by creating a timer and pushing it on the timers stack
+  if (residue.startTimer){
+    const timers = residue.timers;
+    timers.push(getTimer(timers.length));
+    residue.startTimer = false;
+  }
 
-          // Count of events as text
-          dom_count.firstChild.nodeValue = residue.count;
+  // Render a timer tick by incrementing a counter in local storage.
+  if (residue.tick){
+    const tick = residue.tick;
+    window.localStorage.setItem('timer-' + tick.timerID, JSON.stringify(tick));
+    residue.tick = null;
+  }
 
-          // Render the focused rect data as JSON
-          dom_json.firstChild.firstChild.nodeValue = JSON.stringify(state.focus.__data__, null, 2);
+  // Render a stopTimer by stoping a timer and popping it off the timer stack,
+  if (residue.stopTimer && residue.timers.length){
+    console.debug('fooey');
+    window.clearInterval(residue.timers.pop());
+    residue.stopTimer = false;
+  }
+}
 
-          if (residue.preventDefault) {
-            if (event.preventDefault) event.preventDefault();
-          }
+// Create a timer that increments a counter every interval ms.
+function getTimer(timerID = 0, interval = 100){
+  let i = 0;
+  return window.setInterval(() =>
+    application({
+      type: 'tick',
+      timerID,
+      i: ++i,
+      t: Date.now(),
+      rng: Math.random()
+    })
+    , interval
+  );
+}
 
-          // Render startTimer by creating a timer and pushing it on the timers stack
-          if (residue.startTimer){
-            const timers = residue.timers;
-            timers.push(getTimer(timers.length));
-            residue.startTimer = false;
-          }
-
-          // Render a timer tick by incrementing a counter in local storage.
-          if (residue.tick){
-            const tick = residue.tick;
-            window.localStorage.setItem('timer-' + tick.timerID, JSON.stringify(tick));
-            residue.tick = null;
-          }
-
-          // Render a stopTimer by stoping a timer and popping it off the timer stack,
-          if (residue.stopTimer && residue.timers.length){
-            console.debug('fooey');
-            window.clearInterval(residue.timers.pop());
-            residue.stopTimer = false;
-          }
-        }
-
-        // Create a timer that increments a counter every interval ms.
-        function getTimer(timerID = 0, interval = 100){
-          let i = 0;
-          return window.setInterval(() =>
-            application({
-              type: 'tick',
-              timerID,
-              i: ++i,
-              t: Date.now(),
-              rng: Math.random()
-            })
-            , interval
-          );
-        }
-
-        // Create the application
-        const app = getApplicationHandler(combine, render);
-        // Start the application by making it sensitive to actual browser events.
-        connectEvents(app);
+// Create the application
+const app = getApplicationHandler(combine, render);
+// Start the application by making it sensitive to actual browser events.
+connectEvents(app);
 
     </script>
   </body>
