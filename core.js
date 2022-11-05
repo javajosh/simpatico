@@ -214,7 +214,7 @@ RNG.prototype.nextRange = function (start, end) {
 RNG.prototype.choice = function (arr) {
   return arr[this.nextRange(0, arr.length)];
 }
-// Fisher-Yates shuffle using ES6 swap
+// In-place Fisher-Yates shuffle using ES6 swap
 const shuffle = arr => {
   as.arr(arr);
   if (arr.length < 2) return arr;
@@ -223,6 +223,7 @@ const shuffle = arr => {
     left = floor(random() * (right + 1));
     [arr[left], arr[right]] = [arr[right], arr[left]];
   }
+  return arr;
 }
 
 // Consider adding handy regexes for common

@@ -6,7 +6,7 @@ const {elt:ELT, obj:OBJ} = as;
  * Scatter the entries of obj onto the attributes of elt. There is no return because it is pure side effect.
  *
  * @param elt The target HTML element
- * @param obj The source javascript object
+ * @param obj The source javascript object, which we MAY modify!
  */
 const scatter = (elt, obj) => {
   ELT(elt) && OBJ(obj);
@@ -15,6 +15,34 @@ const scatter = (elt, obj) => {
     if (hasProp(obj, 'x') && !hasProp(obj, 'cx')) obj.cx= obj.x;
     if (hasProp(obj, 'y') && !hasProp(obj, 'cy')) obj.cy= obj.y;
   }
+  // If the target is a g, then build up the transform string and remove those keys.
+  if (elt.tagName=== "g" && !hasProp(obj, 'transform')){
+    const clauses = [];
+    if (hasProp(obj, 'x') && hasProp(obj, 'y') ){
+      clauses.push(`translate(${obj.x}, ${obj.y})`);
+      delete obj.x; delete obj.y;
+    }
+    if (hasProp(obj,'rotate')){
+      clauses.push(`rotate(${obj.rotate})`);
+      delete obj.rotate;
+    }
+    if (hasProp(obj,'scale')){
+      clauses.push(`scale(${obj.scale})`);
+      delete obj.scale;
+    }
+
+    elt.setAttribute("transform", clauses.join(''));
+    if (elt.children.length > 0) {
+      elt = elt.children[0];
+    }
+  }
+
+  if (elt.tagName === "text" && hasProp(obj, 'text')){
+    elt.innerHTML = obj.text;
+    delete obj.text;
+  }
+
+  // Scatter the rest!
   for (const key in obj){
     const old = elt.getAttribute(key);
     if (obj[key] + '' !== old)

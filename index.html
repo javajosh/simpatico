@@ -17,16 +17,18 @@
   Hi! If you're reading this in a browser with a localhost URL, congrats!
   You probably got here by doing something like this:
 </p>
-`
+
 <pre>
   $ git clone https://github.com/javajosh/simpatico.git && cd simpatico
+  $ npm install
   $ npm run serve
   [open chrome with localhost address]
 </pre>
 
 <p>
   You are now looking at this file, <code>simpatico/index.html</code>.
-  <i>ctrl-click</i> on the links below to open them in new tabs.
+  <i>ctrl-click</i> on the links below to open each module in a new tabs.
+
   (You can also look at them one by one.)
   Here they are, roughly in order of their dependencies:
 </p>
@@ -39,20 +41,101 @@
 </ol>
 
 <p>
-  Each html file stands alone as a test harness for its corresponding component. core.html tests core.js, combine.html tests combine.js, and so on.
+  Each html file stands alone as a test harness for its corresponding component.
+  core.html tests core.js, combine.html tests combine.js, etc.
   The file sources are themselves important, and designed to be read.
-  Over time, I anticipate adding more descriptive content that don't require reading the source, but for now please consider the page source as an important part of the content.
+  Please consider the <i>page source</i> as an important part of the content.
 </p>
 
 <p>A brief description of what each does, from <code>readme.md</code>:</p>
 <ol>
-  <li>Core. Very generic, convenience functions that smooth over the JavaScript runtime.
-    Of particular importance is the definition of a comprehensive set of predicates/assertions.
-  <li>Combine. The function used to produce a new state from a previous state plus an input.
+  <li>Core.
+    Functions that smooth over the JavaScript runtime.
+    Comprehensive predicates/assertions.
+  <li>Combine.
+    The function used to produce a new state from a previous state plus an input.
     A generalization of <code>Object.assign()</code> and previously known as "<a href="https://github.com/javajosh/combine-keys">combineKeys</a>".
-  <li>RTree. A <a href="https://en.wikipedia.org/wiki/Trie">trie</a> data structure that organizes inputs into chains that result in different, related states.
-    It is this structure that unifies previous distinct concepts like instantiation vs inheritance, and also provides natural "collections" support.
-  <li>Friendly. A very simple runtime type checking system. The goal is to make strange functions easier to call!
+  <li>RTree.
+    A <a href="https://en.wikipedia.org/wiki/Trie">trie</a> data structure that organizes inputs into chains that result in different, related states.
+    It is this structure that unifies previous distinct programming concepts like instantiation vs inheritance.
+  <li>Friendly Function convention.
+  A function takes a value and returns a result, possibly failing on bad values.
+  A friendly function returns a description of which valid values are acceptable as a pattern.
+  <li>Normalized SVG coordinates.
+    The basic authoring unit is the group ("g") containing a small number of path ("path") elts.
+    Unique elements identified by string ID or by array id, which selects the Nth child recursively [3,5,11,0]
+    Use a small, powerful side-effect primitive, <code>scatter(elt, obj)</code> which uses <code>elt.setAttribute(obj.key,
+    obj.value)</code>.
+  <li>Board-game state convention.
+    Express state only as updates to position of primitives, never creates or destroys elements.
+    The state of the game is fully specified by the positions of the pieces on the board.
+    A choice is a set of translations.
 </ol>
+<p>
+  Find out more about the structure of this file by reading <a href="notes/about_shell.html">About the Simpatico Shell</a>.
+</p>
+
+<style>
+  text {
+    font-size:"normal";
+    font-family:"sans-serif";
+    text-anchor:"middle";
+  }
+</style>
+<svg id="unit-circle" class="natural-units"
+     width="100%" height="100%"
+     viewBox="-1 -1 2 2"
+     style="background-color: #66b7ff"
+>
+  <g transform="scale(1,-1)">
+    <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
+    <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
+    <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
+    <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Scale and reflip text</text></g>
+  </g>
+</svg>
+
+<script id="main" type="module">
+  import {combine, rtree, svg, shuffle} from './simpatico.js';
+  const $ = document.querySelectorAll.bind(document);
+
+  // Kicking tires on rtree and combine
+  window.r = rtree({});
+  console.log(combine(1,1), r.residue());
+
+  // Kicking tires on the display
+  const greenSquare = $("#green-square")[0];
+  const yellowSquare = $("#yellow-square")[0];
+  const someText = $("#some-text")[0];
+  svg.scatter(greenSquare, {x:-.75, y:-.75});
+
+  const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  // Doing a simple animation
+  window.addEventListener('tick', e => {
+    const t = e.detail.t;
+    const {cos, sin} = Math;
+    const C = 1/10000;
+
+    svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t%3600/10});
+    svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t%3600/10});
+    svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: shuffle(letters).join('')});
+  });
+
+</script>
+<script id="module-tick" type="module">
+  // Define a window.ontick custom event.
+  // Usage: window.addEventListener('tick', e => console.log(e.detail.t));
+  let n = 0;
+  const throttle = 1;
+  const tick = () => {
+    if (window.ticking === false) return;
+    if ((++n % throttle) === 0){
+      const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+      window.dispatchEvent(event);
+    }
+    window.requestAnimationFrame(tick);
+  };
+  tick();
+</script>
 </body>
 </html>
