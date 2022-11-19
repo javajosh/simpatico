@@ -45,16 +45,6 @@ wss.on('connection', ws => {
 
 console.log(`Listening for http on port ${ports.http} and websockets on port ${ports.ws}`)
 
-// To put this in an rtree means defining the connection state-machine, then branching 
-// There are some good reasons to do this, not the least of which is to try doing it!
-
-// The really good reason is that if it works we can bring some simpatico ideas to bear on 
-// the exploration period as we find the right shape for the server.
-
-// Each connected device is both a source and sink for strings.
-// Strings are essentially eval'd at the target.
-
-
 
 // A WebSocket client  - see index.html
 // =====================================================
@@ -63,6 +53,7 @@ console.log(`Listening for http on port ${ports.http} and websockets on port ${p
     const conn = new WebSocket(url);
     conn.onopen = () => conn.send('hey');
     conn.onmessage = e => console.log(e.data);
+    conn.send('well, that was fun.');
   </script>
 */
 

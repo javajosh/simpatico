@@ -11,6 +11,20 @@
           %3Ccircle cx='12' cy='12' r='10' /%3E
         %3C/svg%3E"/>
   <title>Simpatico</title>
+  <!-- With the above we thank our progenitors, the inventors of TCP/IP, HTTTP, the maintainers of browsers,
+   and web servers. -->
+  <!-- We thank the inventors of cloud computing for making scalable designs easier to iterate on.
+       We thank the authors of Kubernetes for attacking the problem of orchestration from first principles.
+       I just noticed that one computer is now very fast and capable, and I bet I could service
+       100k simultaneous clients from a single physical server.
+
+       The client is a single html file, this file, written in a peculiar way.
+       For one thing, keep an eye on where we are, vertically, in the source file.
+       It's early yet.
+
+       Our global styles are very generic, optimized for a good looking written document. No reset,
+       just some typographic and layout mode stuff.
+   -->
   <style>
     html {
       box-sizing: border-box;
@@ -66,7 +80,149 @@
   </style>
 </head>
 <body>
+<!-- Finally, the content. For one thing I want to write naturally. -->
 
+<h1>Simpatico Screenshot Sequence Tool</h1>
+<h2>Concept</h2>
+  <p>A new Chrome Browser Extension that records sequences of screenshots of webapps, and a service that
+    that shares and annotates those sequences. What you have produced is a navigable 2D map of
+    screenshots that can itself be considered a true and complete map of an application's characteristic
+    reachable states. This map is presented to the user as a SPA that can zoom in and out of the arrangement.
+    Image data hosted on S3, the interactive sequence reader is sharable (plop it in Confluence or Jira or Github!)
+    Somewhat uniquely data for every domain is stored very simply, as a file of textual objects, filename rotated daily.
+    It is useful to ignore rotation and assume one file per customer for the life of the relationship.
+    (Who knows, maybe this is possible)
+  </p>
+At the top level, I guess we'll break it up by day - movements within, and additions, to the current state of your
+browser. This can be simple, such as when you're building some experience for your friends. That experience is local,
+for your eyes only. It lives on your device, only your device. You can share it that way, and see your friends within
+your running browser tabs, get a sense for "where they are" in the experience. This also assumes either in-person
+or real-time voice/face connection so that they can express, and you can detect, whether they are enjoying the experience.
+Our stories can be hard to tell. They can be harder to listen to, if they are boring, if they don't pay off. Plenty
+of people feel they have a unique and valuable perspective on the world - but how many are right about that? We may share
+an interest, for example in fatherhood. Raising children with, or without, the mother. For those with marital trauma, it is
+too easy to slip into the myriad painful branches of that broken world. (Some people are into emo, and the shadow.
+So find them. Be weirdo friends.
+
+Canonically a Simpatico application is the process reached by first instantiating a Simpatico shell at https://simpatico.io.
+The browser code, at that point, should be considered as being in a state accurately described by feeding the shell a
+list of inputs. We allow for appending to that list of inputs, which advances the state. The default list should be a
+thing of beauty, something to convince you that simpatico is worth checking out.
+
+We tentatively specify a shell that includes an interactive tutorial, where the entire interface is taken over by
+a 2000x2000/2.0x2.0 unit circle SVG image in a webpage. We add shapes to it. In particular, we make a neat 2D array of
+non-overlapping squares and we can number the squares from 0. Layout is achieved by adding to the same row, unless
+there is already a child, in which case place a new row at the end. Picking out related squares should be straight
+forward. An additional area can be used to compute the reduction of this tree at any node. If the process isn't
+halted, then this reduction takes the form of a collapsible template, the union of all possible
+valid inputs for the process. Which at the beginning is just the empty object, and over time is interleaved numbers
+and objects, and that describes the building up of the basic tools and supplies we'll want to build our projects.
+
+While it is convenient, and elegant, to describe a rehman tree all in one place, in memory, the "shape"
+is general enough that you can describe one in a wide variety of ways. Consider an http server process that
+simply generates a new html based on input from the old one. Let us say a POST'ed form. So, you have a site
+whose content is a list of inputs recieved in the past, plus a reduction over those inputs that yields some useful thing,
+perhaps a form request for more input.
+
+"I don't want to quit now. Do you?"
+
+So you create these chains, these sequences of input, and you demonstrate how yes, they can be stored
+locally, in the browser. And yes, you can invite people to "browse" within your private, in browser space.
+What I imagine are lurid travelogues; perhaps heartfelt horror stories about divorce or death. Or perhaps just
+pictures of loved ones, like kids, or pets. But we have this concept of building your own space, inviting people into
+it, one at a time. And also of course visiting other people's spaces that they've built. It should be filled with the
+things that move you; the ideas that inspire you; the music that sounds good; the people you're enjoying the most in
+your life. It's contents come from everywhere else, but you organize those components into a work of art.
+
+Shapes that move. That sync with the music. That tell a story. And you narrate, and maybe answer questions.
+Maybe this becomes a shared artifact that you'll treasure together.
+What if you don't want to hear it, at least not right now?
+What if you wouldn't want to hear it, even from your closest family?
+What if he doesn't take the hint? What if you cut him off and never speak to him again?
+
+You know who wants to hear this story? Literally everyone else with a similar story.
+And you want to feel like you're not alone, because you're not.
+So take your stories that your people are allergic to but you need to tell, but tell them to the right group.
+Get support for your hurts. And there may be enough of us to drive some law changes.
+
+Build out a photo shrine to your kids. Why not? Go ahead and indulge yourself.
+Write an essay about watching your oldest learn how to crawl, and how marvelous it was, how tenacious she was.
+Build out a detailed timeline of events that happened in the divorce, and provide detailed an accurate
+visual aids for any discussion.
+
+No one believes me, and no-one really cares. But start with content from elsewhere in the browser,
+like Instagram, Facebook, Twitter, Google Photos etc. from your own and supporting accounts to produce a
+bouquet of curated content, with the focus on objectively good things, and a section for outrageously bad things.
+each piece of content begins a new row, and new messages are added to the row, moving it to its final place in the composition.
+It's a well-defined particle system.
+It even has a straight-forward DOM representation, as a list of g.transform="X" > image where
+the transform is the final position computed by the row.
+
+
+What do you do when your life is invention, filled with the thrill of discovery?
+To ship the mountain range you shipped the mountain maker and a script.
+To ship the new unit you shipped the unit maker and a script.
+To ship the new user interface you shipped the interface builder and a script.
+
+
+
+
+
+
+<h2>Demo</h2>
+  <p>Try this interactive demo that lets you create a tree of related images.</p>
+  <p>We describe each image as a list of transforms applied to a well-known starting point, the story book.</p>
+  <p>The panel on the right.</p>
+  <p>The panel on the left accumulates, records, integrates the images you pick with the right panel.</p>
+  <p>The left panel is the navigator, zoomer, mover around the tree, and the right panel is just an input picker.</p>
+  <p>An important component of the story book is a JSON object builder which accumulates strings or objects.
+  With strings we alternate between label and value. We try to 'upgrade' the value by applying JSON parse.</p>
+<p>The shared service must support multiple domains, so account serves as the root of the service.</p>
+<p>The addition of a customer and joyful and a slight amount of work to integrate them is acceptable.</p>
+<h2>Our customers are cool and have great taste. Know them.</h2>
+<ol>
+  <li>Blah blah. Our first customer, CTO of cool-ass-startup.com</li>
+  <li>Blah. Our Nth customer, CTO of startup.com</li>
+</ol>
+<h2>Share about your users</h2>
+<ol>
+  <li>What a great tool! It's really revolutionized our discussions and helped us ground the discussion in reality.</li>
+  <li>Our team was able to finally understand the scope of the application after they comprehensively mapped it's visible states using this amazing tool.</li>
+</ol>
+<h2>Share about your dev team and your business plan</h2>
+<h2>Implementation</h2>
+<p>A key element of our success will be to keep costs down, which means minimal infrastructure and complexity</p>
+<p>Keeping things to a single server process simplifies things a lot, if we can do it. For us the server's main job
+will be to serve sequence resources, which are URLs that describe a user/domain/position triple, plus the backing store for the images.</p>
+<p>I suggest that the simplest server is one  </p>
+<p>There is a generous free tier for individuals.</p>
+<p>Companies that this this artifact is crucial to measure and could help with the software description and development process
+then it's worth $10/mo/user. My goal is to turn this into something worth $500/mo/user so that $10 won't hurt at all.</p>
+<p>So basically everyone is adding to the same list all at once, but messages are sorted by account first</p>
+<p>Measurement, threshold and throttle. And the impact of current payment status on these.</p>
+<p>It is the sum total of paying customers and what they pay you for your service.</p>
+<p>And to be sure some of that money goes to pay for commodity services like hosting.</p>
+<p>It can go to pay for all the other services a business needs to grow and thrive, like programming, presenting to conferences, etc..</p>
+<p>I'd like to keep everything open-source. This includes the html shell that specializes the browser into a container into which you can
+record your images, and combine them not only statically in source, but dynamically at runtime, with support for ad hoc user interaction.</p>
+<p>Paying corporate customers get subdomains that map to a user account subdirectory. This user account corresponds to actual, active control
+over the account as a whole, including the management of other (virtual) accounts and their various types. In fact this is the owner of the company
+that begins a subscription arrangement. Your devs will love you. Your product people will love you. Production is going to be this box
+and those accounts are your customers. Their building up accounts. Those accounts contribute to the sequences. Many others look at, interact with and annotate those sequences.</p>
+<p>These sequences serve as real-time interactive tools to explain how things are going wrong, or how we want them to go in the future.</p>
+
+<h2>Needed</h2>
+<ol>
+  <li>Chrome Browser Extension. Locally developed and installed through Dev Tools. A writer to either localstorage or to a local server.</li>
+  <li>Local server. A place to store and share the snaps, and a reader to explore them and their relationships.
+  Each individual's message is added to the context of one shared set of sequences for the entire company.</li>
+  <li>Not all messages are public. person/device/browser/url/account/activity</li>
+  <li>Usually you'd be adding things to your own activities, like adding snaps and commentary.</li>
+  <li>Sometimes you'll want to collab on a sequence. In which case ownership may be shared.</li>
+  <li>End users may be able to take a sequence of snapshots and submit it with any bug report.</li>
+</ol>
+
+<h2></h2>
 <div id="content">
   <h1 id="title">Simpatico</h1>
   <p>
@@ -74,7 +230,65 @@
     <i id="written">2022</i>
     started: <i id="started">0</i>
   </p>
-  <button onclick="bind(event)">render()</button>
+  <button onclick="log(JSONParseDOM("content"))">add(onclick+above)</button>
+
+  <script>
+    function parse(maybeJsonString){
+      try {
+        return JSON.parse(maybeJsonString);
+      } catch {
+        return maybeJsonString;
+      }
+    }
+    const root = {"content": extractObjectFromDom(document.getElementById("content"))}
+    function JSONParseDOM(domNode) {
+      const result = {};
+      const key = domNode.getAttribute("id");
+      if (!exists(key)) return null;
+
+      // The key exists, so now lets compute a value.
+      // 3 possibilities exist:
+      // no children. check innerText. if string value is JSONParsable return the parsed object, string otherwise. return {key:value}
+      // with children. ignore innerText and return {key: combine(children.map(child->{child.id:child.innerText}}
+      // this node has children, so has a vector (object) value,
+      // If there are are child dom nodes, then the value is an object concatenation of those objects
+      const domIdChildren = domNode.children.filter(child => child.hasAttribute("id"));
+      const idEntries = domIdChildren.map(child => extractObjectFromDom(child)).map()
+      if (domIdChildren.length === 0) {
+        // No DOM kids so process innerText, attempting JSON parse
+
+      }
+      if (!exists(id)) return null;
+      const value = domNode.innerText;
+      const result = {};
+      result[id] = value;
+      //If innerText can be parsed as JSON, then replace string value with the parsed value.
+      //Otherwise leave the result[id] string the way it was.
+      try {
+        result[id] = JSON.parse(value);
+      } catch {
+        return value;
+      }
+      // Find all children of this domNode that themselves have id attributes.
+      // Loop over those and create an object entry with key = to dom.id.value and value = dom.id.innerText.
+      domNode.children.forEach(childNode => {
+        const key = childNode.getAttribute("id");
+        if (key){
+          const value = extractObjectFromDom(childNode, result); //recurse
+          result[key] = value;
+        }
+
+
+        if (value)
+        result[key] = value;
+        return result;
+      });
+      return result;
+    }
+    function add(){
+
+    }
+  </script>
 
   <h2>A dialog between alice and bob</h2>
   <ol id="dialog">

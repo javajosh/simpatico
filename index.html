@@ -71,6 +71,56 @@
     The state of the game is fully specified by the positions of the pieces on the board.
     A choice is a set of translations.
 </ol>
+
+<h3>Messages</h3>
+<ol id="simpatico-messages">
+  <li><label>Something:<input onchange="sendMessage(this)" type="text"></label></li>
+  <li>2 > hey</li>
+  <li>1 > wassup</li>
+  <li>2 > you hungry?</li>
+  <li>1 > i could eat</li>
+</ol>
+
+<script>
+  console.log("Simpatico Front-End boot", "UTC", new Date().toUTCString(), "ms since epoch", Date.now(), window.location);
+
+  var eltMessageList = document.getElementById("simpatico-messages");
+
+  const url = 'ws://localhost:8081/';
+  const conn = new WebSocket(url);
+  conn.onopen = () => {
+    conn.send('hey');
+  }
+  conn.onmessage = ({data}) => {
+    const li = document.createElement("li");
+    li.innerHTML = data;
+    eltMessageList.appendChild(li);
+  }
+  document.body.onclick = e => {
+    const elt = e.target;
+    const tag = elt.tagName;
+    if (tag !== 'a') return;
+    const href = elt.href;
+    const startsWithHttp = /^http/.test(href);
+    console.log(elt, href, startsWithHttp);
+    if (!startsWithHttp) {
+      // do some fancy XHR stuff, and maybe set elt.innerHTML to the extracted body.
+      // This works fine if you limit your links to be above and below the current node.
+      // If the link is within the node, perhaps the content could be present astride that node, to the right of it.
+      // For example by appending the node, but slipping it in the flow, and allowing the parent container to expand width.
+      // Or more simply, to simply add the link contents to the string, somewhere useful.
+    }
+    return startsWithHttp;
+  }
+  function sendMessage(elt) {
+    if (conn !== undefined && conn.readyState === conn.OPEN) {
+      conn.send(elt.value);
+      console.log('msg sent', elt.value);
+    }
+  }
+
+</script>
+
 <p>
   Find out more about the structure of this file by reading <a href="notes/about_shell.html">About the Simpatico Shell</a>.
 </p>

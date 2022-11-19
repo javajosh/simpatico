@@ -1,7 +1,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale="1.0">
   <!-- html.lang=en, meta.charset=utf-8 and meta.name=viewport, etc above, are boilerplate. -->
 
   <meta name="description" content="Simpatico Environment">
@@ -28,7 +28,7 @@
 <p>javajosh <i>Mar 2021</i></p>
 <!--HTML comments are specifically for people on their first read through. Simpatico components are made and distributed
 as simple HTML files that conform to some simple patterns (and I also recommend a certain pattern of use, as well).
-This button stops the meta#refresh.content=2 second refresh that helps make a low tech but servicable BTD loop over the file.
+This button stops the meta#refresh.content="2" second refresh that helps make a low tech but servicable BTD loop over the file.
 -->
 <button id="stop-refresh" onclick="window.stop()">Stop 2s Refresh</button>
 
@@ -96,21 +96,21 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 <p>Let there be a green circle in motion on a normalized coordinate system:</p>
 
 <svg id="s1" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
-  <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r=1 unit circle -->
+  <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r="1" unit circle -->
   <!-- scale(1,-1) flips the y-axis so that positive y values move up. -->
   <g transform="scale(1,-1)">
     <!-- This small SVG authoring convention of my own invention includes omitting quotes for dynamic-ish attr values   -->
     <!-- These initial lines of SVG are specifically diagnostic  -->
-    <line class="x-axis-blue" stroke="blue" stroke-width=.001 x1=-1 y1=0  x2=1 y2=0 />
-    <line class="y-axis-red"  stroke="red"  stroke-width=.001 x1=0  y1=-1 x2=0 y2=1 />
+    <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1="-1" y1="0"  x2="1" y2="0" />
+    <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1="0"  y1="-1" x2="0" y2="1" />
 
     <!-- These help orient us by translating in one known direction, which is the varying attribute. -->
-    <circle class="red-y"  fill="red"  cx=.0  cy=.5 r=.05 />
-    <circle class="blue-x" fill="blue" cx=.5  cy=.0 r=.05 />
+    <circle class="red-y"  fill="red"  cx=".0"  cy=".5" r=".05" />
+    <circle class="blue-x" fill="blue" cx=".5"  cy=".0" r=".05" />
 
     <!-- This is the element we'll be moving, the expression of degrees of freedom -->
     <g id="s2-transform" class="transform" >
-      <circle id="s2" class="green-circle" fill="none" stroke="green" stroke-width=".01"  cx=0 cy=0 r=.05 />
+      <circle id="s2" class="green-circle" fill="none" stroke="green" stroke-width=".01"  cx="0" cy="0" r=".05" />
     </g>
     <polygon fill="red" stroke="blue" stroke-width=".001" points="
       .01,.02 .03,.04
@@ -191,11 +191,11 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 <svg id="s4" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
   <g transform="scale(1,-1)">
 
-    <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1=-1 y1=0  x2=1 y2=0 />
-    <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1=0  y1=-1 x2=0 y2=1 />
+    <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1="-1" y1="0"  x2="1" y2="0" />
+    <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1="0"  y1="-1" x2="0" y2="1" />
 
     <g id="s5-transform">
-      <circle id="s5" class="green-circle" fill="none" stroke-width=".01" r=".05" stroke="green" cx=0 cy=0  />
+      <circle id="s5" class="green-circle" fill="none" stroke-width=".01" r=".05" stroke="green" cx="0" cy="0"  />
     </g>
   </g>
 </svg>
@@ -221,7 +221,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
   //uble the width, scootch it over one (so its positive and negative), scale it to .01, add and then
   //the ratio of width * scale determines how big of an apparent movement you make each tick.
   // However this, too, is now randomized! (.15 scales the randomness)
-  const randomWalk = (pos, R=1, dx=Math.random(), dy=Math.random(), A=Math.random() * .20) => ({
+  const randomWalk = (pos, R="1", dx=Math.random(), dy=Math.random(), A=Math.random() * .20) => ({
     x: (pos.x + A * R * (dx * 2 - 1)) % R,
     y: (pos.y + A * R * (dy * 2 - 1)) % R,
   });
@@ -331,7 +331,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
           // Now lets be sensitive to ticks.
           {
             name: 'tick', type: 'handler', desc: 'randomly move the particle randomly every tick (typically 17ms)',
-            handle : (_, {x,y}, R=1, dx=Math.random(), dy=Math.random(), A=Math.random() * .20) => ({
+            handle : (_, {x,y}, R="1", dx=Math.random(), dy=Math.random(), A=Math.random() * .20) => ({
               msg: 'move',
               relative: false,
               x: (x + A * R * (dx * 2 - 1)) % R,
@@ -351,7 +351,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
           -6,
           { // This is a bound path that is a circle that repeats every 360 ticks (6s period)
             name: 'tick', type: 'handler', desc: 'move a particle in a circle',
-            handle : (_, {step=0, theta=0, parts=360}) => ({
+            handle : (_, {step="0", theta="0", parts="360"}) => ({
               msg: 'move',
               relative: false,
               parts, // 360 is 1 degree per tick, so pretty fast! 17ms * 360 = 6120ms, or about 6 seconds per revolution,
@@ -492,6 +492,34 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
   };
   tick();
 </script>
+
+<h2>Testing embedding a local video.</h2>
+<p>
+  What would it be like to self-host a video?
+  Let's use the [video element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video).
+  This was taken through win10 > logi capture, and it suffers from a sound and flicker problem:
+</p>
+
+<video controls height="500px" width="1000px">
+  <source src="vids/2022-11-13_21-49-56.mp4" type="video/mp4" />
+  <p>
+    Your browser doesn't support HTML video. Here is a
+    <a href="vids/2022-11-13_21-49-56.mp4">link to the video</a> instead.
+  </p>
+</video>
+
+<p>
+  This video is taken with win10 > OBS and it's of generally higher quality, but it's a little harder to use.
+</p>
+
+<video controls height="500px" width="1000px">
+  <source src="vids/2022-11-13_21-49-56.mp4" type="video/mp4" />
+  <p>
+    Your browser doesn't support HTML video. Here is a
+    <a href="vids/2022-11-13_21-49-56.mp4">link to the video</a> instead.
+  </p>
+</video>
+
 
 </body>
 </html>
