@@ -50,7 +50,7 @@
 <p>A brief description of what each does, from <code>readme.md</code>:</p>
 <ol>
   <li>Core.
-    Functions that smooth over the JavaScript runtime.
+    Handy functions that smooth over the JavaScript runtime.
     Comprehensive predicates/assertions.
   <li>Combine.
     The function used to produce a new state from a previous state plus an input.
@@ -59,33 +59,30 @@
     A <a href="https://en.wikipedia.org/wiki/Trie">trie</a> data structure that organizes inputs into chains that result in different, related states.
     It is this structure that unifies previous distinct programming concepts like instantiation vs inheritance.
   <li>Friendly Function convention.
-  A function takes a value and returns a result, possibly failing on bad values.
-  A friendly function returns a description of which valid values are acceptable as a pattern.
-  <li>Normalized SVG coordinates.
+    A function takes a value and returns a result, possibly failing on bad values.
+    A friendly function returns a description of which valid values are acceptable as a pattern.
+  <li>(tentative) Normalized SVG coordinates.
     The basic authoring unit is the group ("g") containing a small number of path ("path") elts.
     Unique elements identified by string ID or by array id, which selects the Nth child recursively [3,5,11,0]
     Use a small, powerful side-effect primitive, <code>scatter(elt, obj)</code> which uses <code>elt.setAttribute(obj.key,
     obj.value)</code>.
-  <li>Board-game state convention.
+  <li>(tentative) Board-game state convention.
     Express state only as updates to position of primitives, never creates or destroys elements.
     The state of the game is fully specified by the positions of the pieces on the board.
     A choice is a set of translations.
+  <li>(ideas) html authoring; svg authoring; js binding to dom convention; 1+N process description convention; value key pair one value per line convention.
 </ol>
 
 <h3>Messages</h3>
 <ol id="simpatico-messages">
-  <li><label>Something:<input onchange="sendMessage(this)" type="text"></label></li>
-  <li>2 > hey</li>
-  <li>1 > wassup</li>
-  <li>2 > you hungry?</li>
-  <li>1 > i could eat</li>
+  <li><label>Say something:<input type="text"></label></li>
+  <li>:speaker > :message li created and appended</li>
 </ol>
 
 <script>
   console.log("Simpatico Front-End boot", "UTC", new Date().toUTCString(), "ms since epoch", Date.now(), window.location);
 
-  var eltMessageList = document.getElementById("simpatico-messages");
-
+  const eltMessageList = document.getElementById("simpatico-messages");
   const url = 'ws://localhost:8081/';
   const conn = new WebSocket(url);
   conn.onopen = () => {
@@ -112,10 +109,12 @@
     }
     return startsWithHttp;
   }
-  function sendMessage(elt) {
-    if (conn !== undefined && conn.readyState === conn.OPEN) {
-      conn.send(elt.value);
-      console.log('msg sent', elt.value);
+  document.body.onchange = e => {
+    const msg = e.target.value;
+    const connReady = conn !== undefined && conn.readyState === conn.OPEN;
+    if (connReady) {
+      conn.send(msg);
+      console.log('msg sent', msg);
     }
   }
 
@@ -126,16 +125,19 @@
 </p>
 
 <style>
-  text {
-    font-size:"normal";
-    font-family:"sans-serif";
-    text-anchor:"middle";
+  svg > text {
+    font-size: medium;
+    font-family: "sans-serif";
+    text-anchor: middle;
+  }
+  svg#unit-circle {
+    background-color: #66b7ff;
+    max-width: 800px;
   }
 </style>
 <svg id="unit-circle" class="natural-units"
      width="100%" height="100%"
      viewBox="-1 -1 2 2"
-     style="background-color: #66b7ff"
 >
   <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
   <g transform="scale(1,-1)">
