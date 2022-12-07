@@ -9,7 +9,9 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "serve": "http-server"
+    "serve": "http-server",
+    "start": "node reflector.js",
+    "which": "which node"
   },
   "devDependencies": {
     "http-server": "^14.1.1",

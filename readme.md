@@ -7,7 +7,7 @@ Here is one way to get started:
 
   1. Open a terminal.
   1. `$ git clone https://github.com/javajosh/simpatico.git && cd simpatico`
-  1. `$ npm run serve`
+  1. `$ npm start`
   1. [This prints an `http://localhost...` url]
   1. [Open the above url in a browser]
   1. [Open the test harness for each module in its own tab with `ctrl-click`]
@@ -18,6 +18,8 @@ Note: there is nothing special about the server; all custom code is in the html/
 You could easily run `python -m http.server` or `nginx` or `httpd` instead of the `npm run serve` command.
 The `npm run serve` command is for convenience only, and can be ignored.
 However, because I'm using browser modules, the pages cannot be served from a `file:\\` url.
+
+Note: I've recently included another server, the reflector
 
 ### No front-end build
 

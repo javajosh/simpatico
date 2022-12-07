@@ -1,22 +1,42 @@
-// Static file-server
+// Reflector is a static file server and a web socket server
 // =====================================================
 import fs from 'fs';
 import WebSocket, { WebSocketServer } from 'ws';
 import http from 'http';
 
 const ports = {http:8080, ws: 8081};
-console.log('Josh', process.cwd());
+console.log('Reflector v0.0.3', ports);
+console.log("UTC", new Date().toUTCString(), process.cwd());
 
+// A mini mime type thing. Not great but it avoids a huge dependency.
+const mime = {
+  "html" : "text/html",
+  "js": "application/javascript",
+  "json": "application/json",
+  "css" : "text/css",
+  "svg" : "image/svg",
+}
+const getMimeTypeHeader = (filename, defaultMimeType='text') => {
+  const header = {"content-type": defaultMimeType};
+  Object.entries(mime).forEach(([ext, mimeType])=>{
+    if (filename.endsWith('.' + ext)) {
+      header["content-type"] = mimeType;
+    }
+  });
+  return header;
+}
+
+// The ultra simple http file server
 http.createServer((req, res) => {
   console.log(req.url);
   if (req.url === '/') req.url = '/index.html';
-  fs.readFile(process.cwd() + req.url, (err,data) => {
+  fs.readFile(process.cwd() + req.url, (err, data) => {
     if (err) {
       res.writeHead(404);
       res.end(JSON.stringify(err));
       return;
     }
-    res.writeHead(200);
+    res.writeHead(200, getMimeTypeHeader(req.url));
     res.end(data);
   });
 }).listen(ports.http);
