@@ -322,7 +322,7 @@ Here is an example of an object pattern:
   const userPattern = {
     id: ['num', 'between', 0, 1000],
     name: ['str', 'between', 3,50],
-    nick: ['optional', 'str', 'between', 0, 10],
+    nick: ['optional', 'str', 'between', 0, 1::q:0],
     email: ['str', 'matches', '^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$'],
     role: {
       id: ['num', 'between', 0, 10],

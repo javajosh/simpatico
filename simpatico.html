@@ -39,8 +39,9 @@ to make it easy to distinguish between static html elements we need to reference
 <p>Testable means that if an error is thrown that the favicon and background turn red. Every component needs to load and run without error.</p>
 
 <h3>Opinionated</h3>
-<p>A component is some dom and some code that binds to that dom. Simpatico tends to prefer low-entropy object representations
-that are rendered using a low-entropy visual representation (SVG), and as a set of related specializations of something common.
+<p>
+  A component is some dom and some code that binds to that dom.
+  Simpatico tends to prefer low-entropy object representations that are rendered using a low-entropy visual representation (SVG), and as a set of related specializations of something common.
 SVG for data entry isn't that intimidating, it just sounds tedious but it may just be something to get through.</p>
 <p>The intuition is to think through the svg objects you might want to draw an object. Key value pairs, arranged in 2-dimensions.
 And then also decide on how to represent nested objects. In fact you are defining an n-arry trie, with a value at each list of strings.</p>
@@ -186,6 +187,8 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 
 </p>
 
+<h3>SVG &amp; JS: 2D Random Walk</h3>
+
 <p>SVG and JS are <i>powerful</i> tools for drawing data on the screen.</p>
 
 <svg id="s4" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
@@ -208,7 +211,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
   const g = document.querySelector("g#s5-transform");
 
   // Return which quad the vector is in, counting counter clockwise starting with 0
-  const quad = ({x,y}) => {
+  const quad = ({x, y}) => {
     if (y > 0){ // This *can* be shortened with the ternary operator. But please don't.
       return x > 0 ? 0 : 1;
     } else {
@@ -228,7 +231,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 
   // Static
   const
-    started = Date.now(),
+    started = now(),
     ms = 1,
     timeOut = -4000 * ms; // set timeout negative to disable.
 

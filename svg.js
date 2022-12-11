@@ -4,6 +4,10 @@ const {elt:ELT, obj:OBJ} = as;
 
 /**
  * Scatter the entries of obj onto the attributes of elt. There is no return because it is pure side effect.
+ * If the target is a 'g', then the [x,y,rotate,scale] entries are used to create a valid transform attribute value.
+ * Any of [x,y,rotate,scale] are deleted from obj so they don't scatter to g itself.
+ *
+ * If the target is a 'text' then we allow
  *
  * @param elt The target HTML element
  * @param obj The source javascript object, which we MAY modify!
@@ -15,9 +19,10 @@ const scatter = (elt, obj) => {
     if (hasProp(obj, 'x') && !hasProp(obj, 'cx')) obj.cx= obj.x;
     if (hasProp(obj, 'y') && !hasProp(obj, 'cy')) obj.cy= obj.y;
   }
-  // If the target is a g, then build up the transform string and remove those keys.
-  if (elt.tagName=== "g" && !hasProp(obj, 'transform')){
+  // If the target is a 'g', then build up the transform string and remove those keys.
+  if (elt.tagName === "g" && !hasProp(obj, 'transform')){
     const clauses = [];
+    // Convert x, y into a translate clause
     if (hasProp(obj, 'x') && hasProp(obj, 'y') ){
       clauses.push(`translate(${obj.x}, ${obj.y})`);
       delete obj.x; delete obj.y;
@@ -30,11 +35,12 @@ const scatter = (elt, obj) => {
       clauses.push(`scale(${obj.scale})`);
       delete obj.scale;
     }
-
     elt.setAttribute("transform", clauses.join(''));
-    if (elt.children.length > 0) {
-      elt = elt.children[0];
-    }
+
+    // This is actually a bit strange, not sure why it's here.
+    // if (elt.children.length > 0) {
+    //   elt = elt.children[0];
+    // }
   }
 
   if (elt.tagName === "text" && hasProp(obj, 'text')){
@@ -43,10 +49,10 @@ const scatter = (elt, obj) => {
   }
 
   // Scatter the rest!
-  for (const key in obj){
+  for (const [key, value] in Object.entries(obj)){
     const old = elt.getAttribute(key);
-    if (obj[key] + '' !== old)
-    elt.setAttribute(key, obj[key]);
+    if (value + '' !== old)
+    elt.setAttribute(key, value);
   }
 };
 
@@ -86,7 +92,7 @@ const parseTransform =  elt => {
       case 4: result.rotate = {angle: transform.angle}; break; //TODO handle rotate(angle, x, y) form
       case 5: break; // TODO skewX()
       case 6: break; // TODO skewY(()
-      case 1: break; // probably the matrix form.
+      case 1: break;
       default:
     }
   }
