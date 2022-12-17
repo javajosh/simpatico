@@ -1,4 +1,4 @@
-import {now, as}  from './core.js';
+import {now, as, identity}  from './core.js';
 import {combine} from './combine.js';
 
 
@@ -53,5 +53,8 @@ export default (startValue= {}, reducer = combine) => {
     ms.push(m);
     return m;
   }
-  return {setFocus, getFocus, read, residue, add, ms, branches};
+
+  const getResidues = () => branches.map(branch => branch.residue);
+
+  return {setFocus, getFocus, read, residue, add, ms, branches, getResidues};
 }

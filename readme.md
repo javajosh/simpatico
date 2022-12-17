@@ -332,7 +332,24 @@ Here is an example of an object pattern:
 ```
 This kind of pattern would be useful for any handler that accepts a user.
 
-TO BE CONTINUED...
+## setting up the server
+as root
+  1. `# adduser appuser`
+  1. `# iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080`
+  1. install nvm. See [linode nvm docs](https://www.linode.com/docs/guides/how-to-install-use-node-version-manager-nvm/)
+  1. `# nvm install --lts`
+
+as appuser
+  1. `$ git clone`
+  1. `$ cd simpatico && npm start`
+
+test from remote on 80
+  1. with ip address `172.105.148.242`
+     1. `curl http://172.105.148.242/`
+     1. `curl http://172.105.148.242:8080/`
+  1. with domain name
+    1. `curl http://simpatico.io/`
+    1. `curl http://simpatico.io:8080/`
 
 ## Essays in the craft
 

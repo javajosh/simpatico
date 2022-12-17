@@ -37,10 +37,10 @@ const scatter = (elt, obj) => {
     }
     elt.setAttribute("transform", clauses.join(''));
 
-    // This is actually a bit strange, not sure why it's here.
-    // if (elt.children.length > 0) {
-    //   elt = elt.children[0];
-    // }
+    // Set the child "text" element to be the current elt if it's text.
+    if (elt.children.length > 0 && elt.children[0].tagName === "text") {
+      elt = elt.children[0];
+    }
   }
 
   if (elt.tagName === "text" && hasProp(obj, 'text')){

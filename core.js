@@ -35,6 +35,8 @@ const assertEquals = (actual, expected, msg='') =>
 // Functional logic
 const and = (a,b) => !!a && !!b
 const or = (a,b) => !!a || !!b
+const sub = (a,b) => b - a
+const add = (a,b) => b + a
 
 // Higher order functions
 const identity = a => a
@@ -161,6 +163,8 @@ is.f = () => false
 // Arrays
 is.all = arr => as.arr(arr) && arr.reduce(and, true)
 is.any = arr => as.arr(arr) && arr.reduce(or, false)
+const arrMin = arr => Math.min( ...arr );
+const arrMax = arr => Math.max( ...arr );
 
 // It would be nice if this was expressible as arr.reduce(equals, true), but I couldn't get it to work.
 // Also, this code is probably a lot more performant.
@@ -186,8 +190,6 @@ const as = mapObject(is,([k,v]) =>
 );
 
 // A simple PRNG inside the browser.
-// Note that every call increments state exactly once.
-// Q: convert this into a generator function?
 function RNG(seed) {
   // A simple seedable RNG based on GCC's constants
   // https://en.wikipedia.org/wiki/Linear_congruential_generator
@@ -234,8 +236,8 @@ const shuffle = arr => {
 export {
   now, log, debug, info, error, assert, assertThrows, tryToStringify,
   hasProp, getProp, propType, mapObject,
-  equals, arrEquals, assertEquals,
-  and, or, identity, curryLeft, curryRight, curry, compose,
+  equals, arrEquals, assertEquals, arrMin, arrMax,
+  and, or, sub, add, identity, curryLeft, curryRight, curry, compose,
   peek, push, copy,
   TYPES, getType, size, cast, is, as,
   RNG, shuffle
