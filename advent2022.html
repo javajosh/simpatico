@@ -2300,12 +2300,26 @@
   // Add values to the global environment for debugging.
   window.rt = rt;
   window.cals = cals;
-
 </script>
 
 <h2>Day 2</h2>
 <p>
   Compute the score for a (very long) game of rock, paper, scissors.
+  In the first case, assuming ABC and XYZ are specific moves (rock paper scissors).
+  In the second case, assuming ABC are moves and XYZ are desired outcomes (lose, tie, win).
+</p>
+<p>
+  So far Simpatico hasn't shined, and a missing visualization is probably to blame.
+  One of the strengths this approach has is not just solving a problem, but being very easy to understand.
+  The solution itself needs to bridge the gap between current best-practices and my proposal.
+  So, it made sense to spend time considering HTML, JavaScript, and CSS as authoring tools.
+  Especially when combined with modern machines, browsers, and networks.
+</p>
+<p>
+  HTML authoring runs the risk of encouraging useless chatter.
+  In this case, the useless chatter is all about <i>revising</i> earlier solutions.
+  In particular, to use the rtree to store more state instead of using module-local variables.
+  These solutions would benefit from this, as I have an uncomfortable name <code>INPUT2_KEY</code>
 </p>
 <textarea name="input-2" id="input-2" cols="30" rows="10">B Y
 A Z
@@ -4831,46 +4845,39 @@ C Y
     rt.add({p1, p2});
     if (p1 === p2) {
       rt.add({p1: SCORE.DRAW, p2: SCORE.DRAW});
-    } else if ( //p1 wins
-      (p1 === 1 && p2 === 3) ||
-      (p1 === 2 && p2 === 1) ||
-      (p1 === 3 && p2 === 2)
-    ) {
+    } else if ((p2 + 1) % 3 === p1 % 3) {
       rt.add({p1: SCORE.WIN, p2: SCORE.LOSS});
     } else {
-      rt.add({p2: SCORE.WIN, p1: SCORE.LOSS});
+      rt.add({p1: SCORE.LOSS, p2: SCORE.WIN});
     }
   });
+  const answer1 = rt.residue().p2;
 
-  const INPUT2_KEY = {A:2, B:3, C:1, X:SCORE.LOSS, Y:SCORE.DRAW, Z:SCORE.WIN};
+  // Answer 2
+  const INPUT2_KEY = {A:1, B:2, C:3, X:-1, Y:0, Z:1};
   // Rock = A1, Paper = B2, Scissors = C3
-
   rt.setFocus(1);
   lines.forEach(line => {
     if (!line.length) return;
-    const [p1, p2] = line.split(' ').map(m => INPUT_KEY[m]);
-    rt.add({p1, p2});
-
-    if (p2 === SCORE.DRAW) {
-      rt.add({p2});
-    } else if ( //p1 wins
-      (p1 === 1 && p2 === 3) ||
-      (p1 === 2 && p2 === 1) ||
-      (p1 === 3 && p2 === 2)
-    ) {
-      rt.add({p2: p1});
-    } else {
-      rt.add({p2: });
-    }
+    const [in1, in2] = line.split(' ');
+    const [p1, strat] = [in1, in2].map(m => INPUT2_KEY[m]);
+    const p2score = 3 * (strat + 1);
+    // Note that if rock = 1, paper = 2, scissors = 3, then +1 gives the move that wins.
+    // -1 gives the move that loses, and 0 gives the move that ties.
+    const p2 = 1 + ((p1 -1 + strat) % 3);
+    rt.add({in1, in2, type: 'debug'});
+    rt.add({p1, p2, type: 'moves'});
+    rt.add({'p2': p2score, type: 'score'});
   });
+  const answer2 = rt.residue().p2;
 
-
-  const outputString = `answer1: ${rt.residue().p2}`
+  const outputString = `Day 2 answer1: ${answer1} answer2: ${answer2}`;
   console.log(outputString);
+  output.innerHTML = outputString;
 
   // debugging stuff
   window.rt = rt;
-  output.innerHTML = outputString;
+
 </script>
 
 
