@@ -4854,21 +4854,61 @@ C Y
   const answer1 = rt.residue().p2;
 
   // Answer 2
-  const INPUT2_KEY = {A:1, B:2, C:3, X:-1, Y:0, Z:1};
-  // Rock = A1, Paper = B2, Scissors = C3
+
   rt.setFocus(1);
+  rt.add({
+    name:'move',
+    example: [
+      {msg: 'move', p1: 'A', p2: 'B'},
+      {msg: 'move', p1: 'A', strat: 'X'},
+    ],
+    move_scores: {A:1, B:2, C:3}, //rock, paper, scissors. n+1 beats n, mod 3
+    strats: {X:-1, Y:0, Z:+1}, //lose, tie, win
+    lt_mod3: (a, b) => (a % 3) === (b + 1) % 3, // a = b + 1?
+    add_mod3: (a, b, offset=1) => offset + ((a - offset + b) % 3),
+    handle: function (_, {p1, p2, strat}) {
+      const result = [];
+      const win_scores = Object.entries(this.move_scores).map(([_, score]) => (score - 1) * 3);
+      const [LOSS, TIE, WIN] = [0,1,2];
+      if (strat){
+        p2 = this.add_mod3(p1, strat);
+      }
+      result.push({p1, p2, strat});
+
+      const s1 = this.move_scores[p1];
+      const s2 = this.move_scores[p2];
+      result.push({s1, s2});
+
+      let w1, w2, outcome;
+      if (s1 === s2){
+        outcome = 'tie';
+        w1 = win_scores[TIE];
+        w2 = win_scores[TIE];
+      } else if (this.lt_mod3(s1, s2)){
+        outcome = 'p1 wins'
+        w1 = win_scores[WIN];
+        w2=win_scores[LOSS];
+      } else {
+        outcome = 'p2 wins'
+        w1=win_scores[LOSS];
+        w2=win_scores[WIN];
+      }
+      result.push({outcome, w1, w2 });
+      return result;
+    }
+  });
   lines.forEach(line => {
     if (!line.length) return;
-    const [in1, in2] = line.split(' ');
-    const [p1, strat] = [in1, in2].map(m => INPUT2_KEY[m]);
-    const p2score = 3 * (strat + 1);
-    // Note that if rock = 1, paper = 2, scissors = 3, then +1 gives the move that wins.
-    // -1 gives the move that loses, and 0 gives the move that ties.
-    const p2 = 1 + ((p1 -1 + strat) % 3);
-    rt.add({in1, in2, type: 'debug'});
-    rt.add({p1, p2, type: 'moves'});
-    rt.add({'p2': p2score, type: 'score'});
+    const [p1, strat] = line.split(' ');
+    try{
+      rt.add({msg:'move', p1, strat});
+    } catch (e){
+      console.error({line, p1, strat});
+      throw e;
+    }
+
   });
+
   const answer2 = rt.residue().p2;
 
   const outputString = `Day 2 answer1: ${answer1} answer2: ${answer2}`;
@@ -4879,6 +4919,33 @@ C Y
   window.rt = rt;
 
 </script>
+<script type="module">
+  const ROCK = 0, PAPER = 1, SCISSORS = 2;
+  const moveScores = [1,2,3];
+  const beats = move => [2,0,1][move];
+  const losesTo = move => [1,2,0][move];
+  const ties = move => [0,1,2][move];
+  const getMoveScore = move => moveScores[move];
+  const getGameScore = (p1, p2) => {
+    if (p1 === losesTo(p2)) return 0;
+    if (p1 === ties(p2)) return 3;
+    if (p1 === beats(p2)) return 6;
+  };
+  const getMoveFromDesiredOutcome = (p1, strat) => {
+    if (strat === 0) return losesTo(p1);
+    if (strat === 1) return ties(p1);
+    if (strat === 2) return beats(p1);
+  }
+  const INPUT_KEY = {A:0, B:1, C:2, X:0, Y:1, Z:2};
+  const result = {answer1: 0, answer2: 0};
+  lines.forEach(line => {
+    if (!line.length) return;
+    const [a, b] = line.split(' ').map(token => INPUT_KEY[token]);
+    result.answer1 += getGameScore(a,b) + getMoveScore(b);
+    result.answer2 += getGameScore(a,b) + getMoveScore(getMoveFromDesiredOutcome(b));
+  });
+</script>
+
 
 
 <script id="module-tick" type="module">
