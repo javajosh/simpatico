@@ -24,7 +24,7 @@
   Answer1: Sum the numbers between the blank lines and return the greatest sum.
   Answer2: The sum of the top 3 sums.
 </p>
-<textarea name="input-1" id="input-1" cols="30" rows="10">3864
+<label for="input-1">input-1</label><textarea name="input-1" id="input-1" cols="30" rows="10">3864
 5112
 3233
 3008
@@ -2261,7 +2261,7 @@
 7726
 1760
 </textarea>
-<textarea name="output-1" id="output-1" cols="30" rows="10"></textarea>
+<label for="output-1">output-1</label><textarea name="output-1" id="output-1" cols="30" rows="10"></textarea>
 
 <script id="advent-1" type="module">
   import {rtree, sub, add} from './simpatico.js';
@@ -2321,7 +2321,7 @@
   In particular, to use the rtree to store more state instead of using module-local variables.
   These solutions would benefit from this, as I have an uncomfortable name <code>INPUT2_KEY</code>
 </p>
-<textarea name="input-2" id="input-2" cols="30" rows="10">B Y
+<label for="input-2">input-2</label><textarea name="input-2" id="input-2" cols="30" rows="10">B Y
 A Z
 A Z
 B Y
@@ -4823,127 +4823,81 @@ A X
 C Y
 
 </textarea>
-<textarea name="output-2" id="output-2" cols="30" rows="10">answer: 10314</textarea>
+<label for="output-2">output-2</label><textarea name="output-2" id="output-2" cols="30" rows="10">answer: 10314</textarea>
 
 <script id="advent-2" type="module">
-  import {rtree} from './simpatico.js';
+  import {assertEquals} from './core.js';
   const $ = document.querySelectorAll.bind(document);
   const input = $("#input-2")[0].innerHTML;
   const output = $("#output-2")[0];
-  console.log("Advent of code Day 2", "UTC:", new Date().toUTCString(), window.location, "input.length: ", input.length);
+  const DEBUG = true;
+  console.log("Advent of code Day 2", "UTC:", new Date().toUTCString(), window.location, "input.length: ", input.length, "DEBUG", DEBUG);
 
   const lines = input.split('\n');
 
-  const rt = rtree();
-  rt.add({p1: 0, p2: 0});
-  const INPUT_KEY = {A:1, B:2, C:3, X:1, Y:2, Z:3};
-  // Rock = A1, Paper = B2, Scissors = C3
-  const SCORE = {WIN: 6, LOSS: 0, DRAW: 3};
+  const ROCK = 0, PAPER = 1, SCISSORS = 2;
+  const LOSE = 0, TIE = 1, WIN = 2;
+  const moveScores = [1,2,3];
+  const gameScores = [0,3,6];
+  const whatLosesTo = move => [2,0,1][move]; // or (3*(move - 1)) % 3
+  const whatBeats = move => [1,2,0][move]; // or (move + 1) % 3
+  const ties = move => [0,1,2][move]; // or =move
+  const getMoveScore = move => moveScores[move];
+  const getGameScore = (p1, p2) => {
+    if (p2 === whatLosesTo(p1)) return gameScores[LOSE];
+    if (p2 === ties(p1)) return gameScores[TIE];
+    if (p2 === whatBeats(p1)) return gameScores[WIN];
+    throw `bad input getGameScore(${p1}, ${p2})`;
+  };
+  const getMoveFromDesiredOutcome = (p1, strat) => {
+    if (strat === 0) return whatLosesTo(p1);
+    if (strat === 1) return ties(p1);
+    if (strat === 2) return whatBeats(p1);
+    throw `bad input getMoveFromDesiredOutcome(${p1}, ${strat})`;
+  }
+  const INPUT_KEY = {A:0, B:1, C:2, X:0, Y:1, Z:2};
+
+  const tests = () => {
+    assertEquals(whatLosesTo(PAPER), ROCK);
+    assertEquals(whatLosesTo(ROCK), SCISSORS);
+    assertEquals(whatLosesTo(SCISSORS), PAPER);
+    assertEquals(getGameScore(ROCK, PAPER), 6);
+    assertEquals(getGameScore(PAPER, ROCK), 0);
+    assertEquals(getGameScore(PAPER, PAPER), 3);
+    assertEquals(getMoveFromDesiredOutcome(PAPER, WIN), SCISSORS);
+    assertEquals(getMoveFromDesiredOutcome(PAPER, TIE), PAPER);
+    assertEquals(getMoveFromDesiredOutcome(PAPER, LOSE), ROCK);
+  };
+  tests();
+
+  const result = {answer1: 0, answer2: 0};
   lines.forEach(line => {
     if (!line.length) return;
-    const [p1, p2] = line.split(' ').map(m => INPUT_KEY[m]);
-    rt.add({p1, p2});
-    if (p1 === p2) {
-      rt.add({p1: SCORE.DRAW, p2: SCORE.DRAW});
-    } else if ((p2 + 1) % 3 === p1 % 3) {
-      rt.add({p1: SCORE.WIN, p2: SCORE.LOSS});
-    } else {
-      rt.add({p1: SCORE.LOSS, p2: SCORE.WIN});
-    }
-  });
-  const answer1 = rt.residue().p2;
-
-  // Answer 2
-
-  rt.setFocus(1);
-  rt.add({
-    name:'move',
-    example: [
-      {msg: 'move', p1: 'A', p2: 'B'},
-      {msg: 'move', p1: 'A', strat: 'X'},
-    ],
-    move_scores: {A:1, B:2, C:3}, //rock, paper, scissors. n+1 beats n, mod 3
-    strats: {X:-1, Y:0, Z:+1}, //lose, tie, win
-    lt_mod3: (a, b) => (a % 3) === (b + 1) % 3, // a = b + 1?
-    add_mod3: (a, b, offset=1) => offset + ((a - offset + b) % 3),
-    handle: function (_, {p1, p2, strat}) {
-      const result = [];
-      const win_scores = Object.entries(this.move_scores).map(([_, score]) => (score - 1) * 3);
-      const [LOSS, TIE, WIN] = [0,1,2];
-      if (strat){
-        p2 = this.add_mod3(p1, strat);
-      }
-      result.push({p1, p2, strat});
-
-      const s1 = this.move_scores[p1];
-      const s2 = this.move_scores[p2];
-      result.push({s1, s2});
-
-      let w1, w2, outcome;
-      if (s1 === s2){
-        outcome = 'tie';
-        w1 = win_scores[TIE];
-        w2 = win_scores[TIE];
-      } else if (this.lt_mod3(s1, s2)){
-        outcome = 'p1 wins'
-        w1 = win_scores[WIN];
-        w2=win_scores[LOSS];
-      } else {
-        outcome = 'p2 wins'
-        w1=win_scores[LOSS];
-        w2=win_scores[WIN];
-      }
-      result.push({outcome, w1, w2 });
-      return result;
-    }
-  });
-  lines.forEach(line => {
-    if (!line.length) return;
-    const [p1, strat] = line.split(' ');
-    try{
-      rt.add({msg:'move', p1, strat});
-    } catch (e){
-      console.error({line, p1, strat});
-      throw e;
-    }
-
+    let [a, b] = line.split(' ').map(token => INPUT_KEY[token]);
+    if (DEBUG) console.log(
+      'a', a,
+      'b,', b,
+      'getMoveScore(b)', getMoveScore(b),
+      'getGameScore(a,b)', getGameScore(a,b),
+      'getMoveFromDesiredOutcome(a,b)', getMoveFromDesiredOutcome(a,b),
+      'getGameScore(a,getMoveFromDesiredOutcome(a,b))', getGameScore(a,getMoveFromDesiredOutcome(a,b)),
+    );
+    // interpret b as a move
+    result.answer1 += getGameScore(a,b) + getMoveScore(b);
+    // interpret b as a strategy
+    b = getMoveFromDesiredOutcome(a,b);
+    result.answer2 += getGameScore(a,b) + getMoveScore(b);
   });
 
-  const answer2 = rt.residue().p2;
-
-  const outputString = `Day 2 answer1: ${answer1} answer2: ${answer2}`;
+  const outputString = `Day 2 ${JSON.stringify(result, null, 2)}`;
   console.log(outputString);
   output.innerHTML = outputString;
 
   // debugging stuff
   window.rt = rt;
-
 </script>
 <script type="module">
-  const ROCK = 0, PAPER = 1, SCISSORS = 2;
-  const moveScores = [1,2,3];
-  const beats = move => [2,0,1][move];
-  const losesTo = move => [1,2,0][move];
-  const ties = move => [0,1,2][move];
-  const getMoveScore = move => moveScores[move];
-  const getGameScore = (p1, p2) => {
-    if (p1 === losesTo(p2)) return 0;
-    if (p1 === ties(p2)) return 3;
-    if (p1 === beats(p2)) return 6;
-  };
-  const getMoveFromDesiredOutcome = (p1, strat) => {
-    if (strat === 0) return losesTo(p1);
-    if (strat === 1) return ties(p1);
-    if (strat === 2) return beats(p1);
-  }
-  const INPUT_KEY = {A:0, B:1, C:2, X:0, Y:1, Z:2};
-  const result = {answer1: 0, answer2: 0};
-  lines.forEach(line => {
-    if (!line.length) return;
-    const [a, b] = line.split(' ').map(token => INPUT_KEY[token]);
-    result.answer1 += getGameScore(a,b) + getMoveScore(b);
-    result.answer2 += getGameScore(a,b) + getMoveScore(getMoveFromDesiredOutcome(b));
-  });
+
 </script>
 
 
