@@ -19,8 +19,8 @@ const configDefault = {http: 8080, ws: 8081, host: 'localhost'};
 const args = process.argv.slice(2);
 // Treat input as JSON without proper quotes, which is more convenient to author in a CLI
 const configString = args.length ? args[0]
-  .replace(/(['"])?([a-zA-Z0-9]+)(['"])?:/g, '"$2":')
-  .replace(/:(['"])?([a-zA-Z0-9]+)(['"])?/g, ':"$2"')
+  .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
+  .replace(/:(['"])?([a-zA-Z0-9\\.]+)(['"])?/g, ':"$2"')
   : "{}";
 
 const config = Object.assign(configDefault, JSON.parse(configString));
