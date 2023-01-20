@@ -8,7 +8,7 @@ Here is one way to get started:
   1. Open a terminal.
   1. `$ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash`
      (See [nvm](https://github.com/nvm-sh/nvm), the best way to install [node](https://nodejs.org).)
-  1. `$ nvm install 16 && nvm use 16`
+  1. `$ nvm install 18 && nvm use 18`
   1. `$ git clone https://github.com/javajosh/simpatico.git && cd simpatico`
   1. `$ npm start`
   1. This prints an `http://localhost:8080` url
