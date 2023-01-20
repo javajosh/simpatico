@@ -5,6 +5,7 @@ import http from 'node:http';
 import path from 'node:path';
 import WebSocket, { WebSocketServer } from 'ws';
 
+// todo: tls. more convenient with an nginx proxy, but violates minimalism standard.
 // let tls;
 // try {
 //   tls = await import('node:tls');
@@ -33,7 +34,8 @@ http.createServer((req, res) => {
   fs.readFile(process.cwd() + req.url, (err, data) => {
     if (err) {
       res.writeHead(404);
-      res.end(JSON.stringify(err));
+      res.end('insert cute fail whale type picture here');
+      console.error(JSON.stringify(err));
       return;
     }
     res.writeHead(200, getMimeTypeHeader(req.url));
