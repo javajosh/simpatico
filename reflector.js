@@ -13,9 +13,18 @@ import WebSocket, { WebSocketServer } from 'ws';
 //   return;
 // }
 
-const ports = {http: 8080, ws: 8081};
-console.log('Reflector v0.0.3', ports);
-console.log("UTC", new Date().toUTCString(), process.cwd());
+// Example: node reflector.js "{http:8080, host:foobar}"
+const configDefault = {http: 8080, ws: 8081, host: 'localhost'};
+const args = process.argv.slice(2);
+// Treat input as JSON without proper quotes, which is more convenient to author in a CLI
+const configString = args.length ? args[0]
+  .replace(/(['"])?([a-zA-Z0-9]+)(['"])?:/g, '"$2":')
+  .replace(/:(['"])?([a-zA-Z0-9]+)(['"])?/g, ':"$2"')
+  : "{}";
+
+const config = Object.assign(configDefault, JSON.parse(configString));
+console.log('Reflector v0.0.3', config);
+console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
 // Http file server
 http.createServer((req, res) => {
@@ -30,7 +39,7 @@ http.createServer((req, res) => {
     res.writeHead(200, getMimeTypeHeader(req.url));
     res.end(data);
   });
-}).listen(ports.http);
+}).listen(config.http);
 // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
 const mime = {
   "html": "text/html",
@@ -47,7 +56,7 @@ const getMimeTypeHeader = (filename, defaultMimeType='text') => {
 
 
 // WebSocket server
-const wss = new WebSocketServer({ port: ports.ws });
+const wss = new WebSocketServer({ port: config.ws });
 const connections = [];
 wss.on('connection', ws => {
   // Compute the connection ID,
@@ -84,5 +93,6 @@ wss.on('connection', ws => {
 });
 
 // TODO - add HTTPS; simulate other domain names with hosts file;
-console.log(`Listening for http on port ${ports.http} and websockets on port ${ports.ws}. Start http://localhost:8080/ `)
+console.log(`Listening for http on port ${config.http} and websockets on port ${config.ws}.
+ Start http://${config.host}:${config.http}/`)
 

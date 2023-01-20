@@ -19,9 +19,11 @@
 </p>
 
 <pre>
+  $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+  $ nvm install 16 && nvm use 16
   $ git clone https://github.com/javajosh/simpatico.git && cd simpatico
   $ npm install
-  $ npm run serve
+  $ npm start
   [open chrome with localhost address]
 </pre>
 
@@ -83,7 +85,9 @@
   console.log("Simpatico Front-End boot", "UTC", new Date().toUTCString(), "ms since epoch", Date.now(), window.location);
 
   const eltMessageList = document.getElementById("simpatico-messages");
-  const url = 'ws://localhost:8081/';
+  const host = window.location.hostname;
+  const wsPort = 8081; //akwardly this needs to match reflector.js
+  const url = `ws://${host}:${wsPort}/`;
   const conn = new WebSocket(url);
   conn.onopen = () => {
     conn.send('hey');

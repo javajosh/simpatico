@@ -6,11 +6,14 @@ This prototype is distributed as a collection of 4 ideas, one module per idea, o
 Here is one way to get started:
 
   1. Open a terminal.
+  1. `$ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash`
+     (See [nvm](https://github.com/nvm-sh/nvm), the best way to install [node](https://nodejs.org).)
+  1. `$ nvm install 16 && nvm use 16`
   1. `$ git clone https://github.com/javajosh/simpatico.git && cd simpatico`
   1. `$ npm start`
-  1. [This prints an `http://localhost...` url]
-  1. [Open the above url in a browser]
-  1. [Open the test harness for each module in its own tab with `ctrl-click`]
+  1. This prints an `http://localhost:8080` url
+  1. Open the above url in a browser
+  1. Open the test harness for each module in its own tab with `ctrl-click`
 
 Your browser is now running tests over each the 4 modules, such that if you modify any file they will be reloaded and retested.
 If there is a problem in any module, the `favicon` for the tab will turn red.
@@ -58,11 +61,11 @@ Note that if ES6 modules supported `file:\\` urls, or if I concatenated the modu
 
 More detail about each module is available in the test harness `html` file, and the module source code itself.
 
-## The Goal
+## The Concept
 
 Simpatico is the result of a meditation on what software applications *really are*, independent of their expression in any particular language, framework, protocol, or development methodology.
 At the end of the day, an application is a set of communicating screens with sensors attached ('screensensors'), such that the state of any screen remains constant until new input arrives.
-In the general case, we assume that inputs are immutable, requiring integration with the program state to occur through mediating data-structures, e.g. the `node` structure of a linked list.
+In the general case, we assume that inputs are immutable, requiring integration with the program state to occur through mediating data-structures, e.g. the nodal structure of a linked list.
 The intuition is that a program is a large blob into which we fling new data in the form of (relatively small) input.
 
 Applications differ wildly in the level of their reactivity to input, from programs that just record input (an etch-a-sketch) to those that do arbitrary and complex things (a 3D game).
@@ -73,7 +76,7 @@ Another intuition is how evolutionary biology describes species differentiating 
 
 ## Top-level program structure
 
-A general program has two distinct phases, transient invocation and a steady-state message handling.
+In general a program has two distinct phases, transient invocation and a steady-state message handling.
 Traditional `hello world` is just the first phase, a one-off invocation without a steady-state.
 In practice the arguments to the transient invocation are called "command line arguments" or "configuration", whereas the arguments to steady state handlers are called "requests", "messages", or "events".
 Let us name this ubiquitous pattern "1 + N", where the "1" stands for the unique, singular primordial invocation event, and the N stands for an unknown number of subsequent steady-state event calls.
