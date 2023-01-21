@@ -29,24 +29,45 @@ console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
 // Http file server
 http.createServer((req, res) => {
-  try {
+    // if the request is malformed, return a 500 and log
     if (!req.headers.hasOwnProperty("user-agent")) {
-      throw 'user-agent header required';
+      const e1 = new Error();
+      Object.assign(e1, {
+        code: 500,
+        log: 'missing user-agent header',
+        msg: 'user-agent header required',
+      });
+      console.error(e1.log);
+      res.writeHead(e1.code);
+      res.end(e1.msg);
+      return;
     }
 
-    // Log the request
+    // Log the (valid) request
     console.log(
       new Date().toISOString(),
       req.socket.remoteAddress.replace(/^.*:/, ''),
       req.headers["user-agent"].substr(0, 20),
       req.url,
     );
+
     // Normalize the url
     if (req.url === '/') req.url = '/index.html';
 
     // Read the file
     fs.readFile(process.cwd() + req.url, (err, data) => {
-      if (err) throw JSON.stringify(err);
+      if (err) {
+        const e2 = new Error();
+        Object.assign(e2, {
+          code: 404,
+          log: 'resource not found',
+          msg: 'insert cute fail whale type picture here',
+        });
+        console.error(e2.log);
+        res.writeHead(e2.code);
+        res.end(e2.msg);
+        return;
+      }
       // Send the response
       res.writeHead(
         200,
@@ -57,11 +78,6 @@ http.createServer((req, res) => {
       );
       res.end(data);
     });
-  } catch (e) {
-    console.error(e);
-    res.writeHead(404);
-    res.end('insert cute fail whale type picture here');
-  }
 }).listen(config.http);
 
 // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
