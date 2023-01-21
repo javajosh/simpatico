@@ -29,7 +29,7 @@ console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
 // Http file server
 http.createServer((req, res) => {
-  console.log(req.socket.remoteAddress, req.url, req.headers["user-agent"].substr(0,15));
+  console.log(new Date().toISOString(), req.socket.remoteAddress, req.headers["user-agent"].substr(0,20), req.url);
   if (req.url === '/') req.url = '/index.html';
   fs.readFile(process.cwd() + req.url, (err, data) => {
     if (err) {
@@ -95,6 +95,6 @@ wss.on('connection', ws => {
 });
 
 // TODO - add HTTPS; simulate other domain names with hosts file;
-console.log(`Listening for http on port ${config.http} and websockets on port ${config.ws}.
- Start http://${config.host}:${config.http}/`)
+console.log(`Listening for http on port ${config.http} and websockets on port ${config.ws}. Open http://${config.host}:${config.http}/`)
+console.log("Log format:", "Date().toISOString() | req.socket.remoteAddress | req.headers[\"user-agent\"].substr(0,20) | req.url ")
 
