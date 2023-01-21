@@ -38,7 +38,15 @@ http.createServer((req, res) => {
       console.error(JSON.stringify(err));
       return;
     }
-    res.writeHead(200, getMimeTypeHeader(req.url));
+    res.writeHead(
+      200,
+      Object.assign(
+        getMimeTypeHeader(req.url),
+        // If we cache forever like this, we need to embed hashes in the subresource names.
+        // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
+        // {"cache-control": "private, max-age=2592000"},
+      )
+    );
     res.end(data);
   });
 }).listen(config.http);
