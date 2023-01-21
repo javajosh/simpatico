@@ -29,34 +29,39 @@ console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
 // Http file server
 http.createServer((req, res) => {
-  // Log the request
-  console.log(
-    new Date().toISOString(),
-    req.socket.remoteAddress.replace(/^.*:/, ''),
-    req.headers["user-agent"].substr(0,20),
-    req.url,
-  );
-  // Normalize the url
-  if (req.url === '/') req.url = '/index.html';
-
-  // Read the file
-  fs.readFile(process.cwd() + req.url, (err, data) => {
-    if (err) {
-      res.writeHead(404);
-      res.end('insert cute fail whale type picture here');
-      console.error(JSON.stringify(err));
-      return;
+  try {
+    if (!req.headers.hasOwnProperty("user-agent")) {
+      throw 'user-agent header required';
     }
-    // Send the response
-    res.writeHead(
-      200,
-      Object.assign(
-        getContentTypeHeader(req.url),
-        getCacheHeaders(req.url),
-      )
+
+    // Log the request
+    console.log(
+      new Date().toISOString(),
+      req.socket.remoteAddress.replace(/^.*:/, ''),
+      req.headers["user-agent"].substr(0, 20),
+      req.url,
     );
-    res.end(data);
-  });
+    // Normalize the url
+    if (req.url === '/') req.url = '/index.html';
+
+    // Read the file
+    fs.readFile(process.cwd() + req.url, (err, data) => {
+      if (err) throw JSON.stringify(err);
+      // Send the response
+      res.writeHead(
+        200,
+        Object.assign(
+          getContentTypeHeader(req.url),
+          getCacheHeaders(req.url),
+        )
+      );
+      res.end(data);
+    });
+  } catch (e) {
+    console.error(e);
+    res.writeHead(404);
+    res.end('insert cute fail whale type picture here');
+  }
 }).listen(config.http);
 
 // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
