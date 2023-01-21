@@ -29,8 +29,17 @@ console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
 // Http file server
 http.createServer((req, res) => {
-  console.log(new Date().toISOString(), req.socket.remoteAddress, req.headers["user-agent"].substr(0,20), req.url);
+  // Log the request
+  console.log(
+    new Date().toISOString(),
+    req.socket.remoteAddress.replace(/^.*:/, ''),
+    req.headers["user-agent"].substr(0,20),
+    req.url,
+  );
+  // Normalize the url
   if (req.url === '/') req.url = '/index.html';
+
+  // Read the file
   fs.readFile(process.cwd() + req.url, (err, data) => {
     if (err) {
       res.writeHead(404);
@@ -38,18 +47,18 @@ http.createServer((req, res) => {
       console.error(JSON.stringify(err));
       return;
     }
+    // Send the response
     res.writeHead(
       200,
       Object.assign(
-        getMimeTypeHeader(req.url),
-        // If we cache forever like this, we need to embed hashes in the subresource names.
-        // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
-        // {"cache-control": "private, max-age=2592000"},
+        getContentTypeHeader(req.url),
+        getCacheHeaders(req.url),
       )
     );
     res.end(data);
   });
 }).listen(config.http);
+
 // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
 const mime = {
   "html": "text/html",
@@ -58,10 +67,26 @@ const mime = {
   "css" : "text/css",
   "svg" : "image/svg",
 }
-const getMimeTypeHeader = (filename, defaultMimeType='text') => {
+const getContentTypeHeader = (filename, defaultMimeType='text') => {
   const ext = path.extname(filename).slice(1);
   const type = mime[ext] ? mime[ext] : defaultMimeType;
   return {"content-type": type};
+}
+
+// For primary resources, use an etag
+// For subresources, cache forever and rely on unique urls to update.
+const getCacheHeaders = (filename) => {
+  const result = {};
+  const isPrimaryResource = filename.endsWith('html');
+  if (isPrimaryResource){
+    //result["e-tag"] = "a hash of some kind";
+  } else {
+    // If we cache forever we need to embed hashes in the subresource names.
+    // This means parsing and rewriting html, which can be annoyingly complicated.
+    // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
+    // {"cache-control": "private, max-age=2592000"},
+  }
+  return result;
 }
 
 
