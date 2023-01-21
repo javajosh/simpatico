@@ -10,10 +10,11 @@ Here is one way to get started:
      (See [nvm](https://github.com/nvm-sh/nvm), the best way to install [node](https://nodejs.org).)
   1. `$ nvm install 18 && nvm use 18`
   1. `$ git clone https://github.com/javajosh/simpatico.git && cd simpatico`
-  1. `$ npm start`
-  1. This prints an `http://localhost:8080` url
-  1. Open the above url in a browser
-  1. Open the test harness for each module in its own tab with `ctrl-click`
+  2. `$ npm install`
+  3. `$ npm start`
+  4. This prints an `http://localhost:8080` url
+  5. Open the above url in a browser
+  6. Open the test harness for each module in its own tab with `ctrl-click`
 
 Your browser is now running tests over each the 4 modules, such that if you modify any file they will be reloaded and retested.
 If there is a problem in any module, the `favicon` for the tab will turn red.
