@@ -29,7 +29,7 @@ console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
 // Http file server
 http.createServer((req, res) => {
-  console.log(req.url);
+  console.log(req.socket.address(), req.url, req.headers["user-agent"]);
   if (req.url === '/') req.url = '/index.html';
   fs.readFile(process.cwd() + req.url, (err, data) => {
     if (err) {
