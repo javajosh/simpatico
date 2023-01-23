@@ -52,9 +52,11 @@ http.createServer((req, res) => {
     );
 
     // Normalize the url
-    if (req.url === '/') req.url = '/index.html';
+    if (req.url === '/') {
+      req.url = '/index.html';
+    }
 
-    // Read the file
+    // Read the file asynchronously
     fs.readFile(process.cwd() + req.url, (err, data) => {
       if (err) {
         const e2 = new Error();
@@ -95,7 +97,7 @@ const getContentTypeHeader = (filename, defaultMimeType='text') => {
 }
 
 // For primary resources, use an etag
-// For subresources, cache forever and rely on unique urls to update.
+// For sub-resources, cache forever and rely on unique urls to update.
 const getCacheHeaders = (filename) => {
   const result = {};
   const isPrimaryResource = filename.endsWith('html');
