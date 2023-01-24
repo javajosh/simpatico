@@ -7,18 +7,13 @@
 
 SSH_KEY=
 
-# root ssh keys
-mkdir /root/.ssh
-echo $SSH_KEY >> /root/.ssh/authorized_keys
-chmod 0700 /root/.ssh
-
 # update to latest
-apt-get update -y
-apt-get upgrade -y
+apt update -y
+apt upgrade -y
 
 # install dependencies
-apt-get install -y build-essential curl
-apt-get install -y git || apt-get install -y git-core
+apt install -y build-essential curl
+apt install -y git || apt install -y git-core
 
 # install node
 # TODO update this to use nvm
