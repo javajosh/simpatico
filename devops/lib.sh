@@ -17,8 +17,8 @@
 ###########################################################
 
 function system_primary_ip {
-    local ip_address="$(ip a | awk '/inet / {print $2}')"
-    echo $ip_address | cut -d' ' -f 2 | cut -d/ -f 1
+    local -r ip_address="$(ip a | awk '/inet / {print $2}')"
+    echo "$ip_address" | cut -d' ' -f 2 | cut -d/ -f 1
 }
 
 function system_primary_ipv6 {
@@ -26,8 +26,8 @@ function system_primary_ipv6 {
 }
 
 function system_private_ip {
-    local ip_address="$(ip a | awk '/inet 192.168/ {print $2}')"
-    echo $ip_address | cut -d ' ' -f 2 | cut -d/ -f 1
+    local -r ip_address="$(ip a | awk '/inet 192.168/ {print $2}')"
+    echo "$ip_address" | cut -d ' ' -f 2 | cut -d/ -f 1
 }
 
 function get_rdns {
@@ -38,7 +38,7 @@ function get_rdns {
 
 function get_rdns_primary_ip {
     # returns the reverse dns of the primary IP assigned to this system
-    get_rdns $(system_primary_ip)
+    get_rdns "$(system_primary_ip)"
 }
 
 function system_set_hostname {
@@ -73,10 +73,10 @@ function detect_distro {
         return 1;
     }
 
-    local distro="$(grep "^ID=" /etc/os-release | cut -d= -f2)"
+    local -r distro="$(grep "^ID=" /etc/os-release | cut -d= -f2)"
     distro="$(sed -e 's/^"//' -e 's/"$//' <<<"$distro")"
 
-    local version="$(grep "^VERSION_ID=" /etc/os-release | cut -d= -f2)"
+    local -r version="$(grep "^VERSION_ID=" /etc/os-release | cut -d= -f2)"
     version="$(sed -e 's/^"//' -e 's/"$//' <<<"$version")"
 
     [ -f /etc/debian_version ] && local -r family='debian'
@@ -119,16 +119,14 @@ function system_install_package {
     # Determine which package manager to use, and install the specified package
     case "${detected_distro['family']}" in
         'debian')
-            DEBIAN_FRONTEND=noninteractive apt-get -y install "${packages[@]}" -qq >/dev/null || {
-                printf "One of the packages could not be installed via apt-get\n"
-                printf "Check out /var/log/stackscript.log for more details\n"
+            DEBIAN_FRONTEND=noninteractive apt -y install "${packages[@]}" -qq >/dev/null || {
+                printf "One of the packages could not be installed via apt\n"
                 return 1;
             }
             ;;
         'redhat')
             yum --quiet -y install "${packages[@]}" >/dev/null || {
                 printf "One of the packages could not be installed via yum\n"
-                printf "Check out /var/log/stackscript.log for more details\n"
                 return 1;
             }
             ;;
@@ -136,9 +134,7 @@ function system_install_package {
 }
 
 function system_remove_package {
-    # This function expands a bit on the system_remove_package() by allowing removal of a
-    # list of packages, stored in an array, using a single command instead of requiring scripts
-    # to call the function once for each package removed
+    # Remove a list of packages
     [ -z "$1" ] && {
         printf "system_remove_package() requires the package to be removed as its only argument\n"
         return 1;
@@ -147,16 +143,14 @@ function system_remove_package {
     # Determine which package manager to use, and remove the specified package
     case "${detected_distro['family']}" in
         'debian')
-            DEBIAN_FRONTEND=noninteractive apt-get -y purge "${packages[@]}" -qq >/dev/null || {
-                printf "One of the packages could not be removed via apt-get\n"
-                printf "Check out /var/log/stackscript.log for more details\n"
+            DEBIAN_FRONTEND=noninteractive apt -y purge "${packages[@]}" -qq >/dev/null || {
+                printf "One of the packages could not be removed via apt\n"
                 return 1;
             }
             ;;
         'redhat')
             yum --quiet -y remove "${packages[@]}" >/dev/null || {
                 printf "One of the packages could not be removed via yum\n"
-                printf "Check out /var/log/stackscript.log for more details\n"
                 return 1;
             }
             ;;
@@ -164,84 +158,68 @@ function system_remove_package {
 }
 
 function system_configure_ntp {
-    case "${detected_distro[distro]}" in
-        'debian')
-            if [ "$(echo "${detected_distro[version_major]}")" -ge 10 ]; then
-                systemctl start systemd-timesyncd
-            fi
-            ;;
-        'ubuntu')
-            if [ "$(echo "${detected_distro[version_major]}")" -ge 20 ]; then
-                systemctl start systemd-timesyncd
-            fi
-            ;;
-        *)
-            system_install_package ntp
-            systemctl enable ntpd
-            systemctl start ntpd
-            ;;
-    esac
+  systemctl start systemd-timesyncd
+  system_install_package ntp
+  systemctl enable ntpd
+  systemctl start ntpd
+
 }
 
 ###########################################################
 # Users and Security
 ###########################################################
-
-function user_add_server {
-  [ -z "$1" ] && {
-      printf "No new username and/or public-key entered\n"
-      return 1;
-  }
-  adduser -m \
-    -gecos \
-    -disabled-password \
-    -d /home/"$1" \
-    -s /bin/bash \
-    "$1"
+function ssh_generate_keypair {
+  # Run this on your private laptop once.
+  # Concat the generated public key to /home/user/.ssh/authorized_keys
+  # Use the key with either ssh -i or copy the private key to ~/.ssh/id_ed25519
+  # https://www.ssh.com/academy/ssh/keygen
+  # https://www.cryptopp.com/wiki/Ed25519 <- I guess this is the best as of 2023
+  ssh-keygen -f ~/.ssh/id_ed25519 -t ed25519
 }
 function user_add_admin {
+  # Run this as root once
   # $1 - required - username
   # $2 - required - public key
   [ -z "$1" ] || [ -z "$2" ] && {
       printf "No new username and/or public-key entered\n"
       return 1;
   }
-
-  adduser -m \
-    -gecos \
-    -disabled-password \
-    -d /home/"$1" \
-    -s /bin/bash \
+  adduser \
+    --gecos \
+    --disabled-password \
+    --home /home/"$1" \
+    --shell /bin/bash \
     "$1"
-
+  # echo "${username}:${userpass}" | chpasswd
   adduser "$1" sudo >/dev/null
   user_add_pubkey "$2"
+
+  # Note that redhat does it like this
+  # useradd "$username" && usermod -aG wheel "$username" >/dev/null
 }
 
-function user_add_sudo {
-    # $1 - required - username
-    # $2 - required - password
-    [ -z "$1" ] || [ -z "$2" ] && {
-        printf "No new username and/or password entered\n"
-        return 1;
-    }
-    local -r username="$1" userpass="$2"
-    case "${detected_distro[family]}" in
-        'debian')
-            # Add the user and set the password
-            adduser "$username" --disabled-password --gecos ""
-            echo "${username}:${userpass}" | chpasswd
-            # Add the newly created user to the 'sudo' group
-            adduser "$username" sudo >/dev/null
-            ;;
-        'redhat')
-            # Add the user and set the password
-            useradd "$username"
-            echo "${username}:${userpass}" | chpasswd
-            # Add the newly created user to the 'wheel' group
-            usermod -aG wheel "$username" >/dev/null
-            ;;
-    esac
+function user_add_service {
+  # Run this as root once per service (generally one per VPS)
+  # $1 - required - username
+  [ -z "$1" ] && {
+      printf "No new username\n"
+      return 1;
+  }
+  adduser \
+    --gecos \
+    --disabled-password \
+    --home /home/"$1" \
+    --shell /bin/bash \
+    "$1"
+
+  ## add github known_hosts
+  ## https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+  cat <<EOF > /home/"$1"/.ssh/known_hosts
+  github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+  github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+  github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
+EOF
+
 }
 
 function user_add_pubkey {
@@ -270,16 +248,7 @@ function user_add_pubkey {
     esac
 }
 
-function ssh_generate_keypair {
-  # Run this on your private laptop.
-  # Concat the public key to /home/user/.ssh/authorized_keys
-  # https://www.ssh.com/academy/ssh/keygen
-  # https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
-  # https://en.wikipedia.org/wiki/EdDSA
-  # https://www.cryptopp.com/wiki/Ed25519 <- I guess this is the best as of 2023
-  ssh-keygen -f ~/"$USER"key -t ed25519
-}
-function ssh_revoke_access {
+function user_remove_pubkey {
   sed -i '/ user@domain$/d' ~/.ssh/authorized_keys
 }
 
@@ -384,7 +353,7 @@ function add_ports {
 function save_firewall {
     case "${detected_distro[family]}" in
         'debian')
-            # Save the IPv4 and IPv6 rulesets so that they will stick through a reboot
+            # Save the IPv4 and IPv6 rule-sets so that they will stick through a reboot
             printf "Saving firewall rules for IPv4 and IPv6...\n"
             echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
             echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
@@ -402,13 +371,13 @@ function enable_fail2ban {
     # See https://github.com/fail2ban/fail2ban
     system_install_package fail2ban
     # Configure fail2ban defaults
-    cd /etc/fail2ban
+    cd /etc/fail2ban || exit
     cp fail2ban.conf fail2ban.local
     cp jail.conf jail.local
     sed -i -e "s/backend = auto/backend = systemd/" /etc/fail2ban/jail.local
     systemctl enable fail2ban
     systemctl start fail2ban
-    cd /root/
+    cd /root/ || exit
     # Start fail2ban and enable it as a system service
     systemctl start fail2ban
     systemctl enable fail2ban
@@ -426,6 +395,7 @@ function enable_passwordless_sudo {
 
 function automatic_security_updates {
     # Configure automatic security updates for Debian-based systems
+    # To test use unattended-upgrades --dry-run --debug
     if [ "${detected_distro[family]}" == 'debian' ]; then
         system_install_package unattended-upgrades
         cat > /etc/apt/apt.conf.d/20auto-upgrades <<EOF
@@ -462,16 +432,11 @@ function restartServices {
 }
 
 function randomString {
-    if [ -z "$1" ];
-        then length=20
-        else length="$1"
-    fi
-    # Generate a random string
-    echo "$(</dev/urandom tr -dc A-Za-z0-9 | head -c $length)"
+    LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom | head -c "${1:-20}"
 }
 
 function certbot {
-    local todo=1
+    local -r todo=1
     # Installs a Certbot SSL cert with a basic HTTPS re-direct for
     # TODO See https://certbot.eff.org/instructions?ws=nginx&os=ubuntufocal
     # Also see https://letsencrypt.org/getting-started/
