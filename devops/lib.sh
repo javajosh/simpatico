@@ -271,9 +271,13 @@ function user_add_pubkey {
 }
 
 function ssh_generate_keypair {
+  # Run this on your private laptop.
+  # Concat the public key to /home/user/.ssh/authorized_keys
   # https://www.ssh.com/academy/ssh/keygen
   # https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
-  ssh-keygen -f ~/"$user"key -t ecdsa -b 521
+  # https://en.wikipedia.org/wiki/EdDSA
+  # https://www.cryptopp.com/wiki/Ed25519 <- I guess this is the best as of 2023
+  ssh-keygen -f ~/"$USER"key -t ed25519
 }
 function ssh_revoke_access {
   sed -i '/ user@domain$/d' ~/.ssh/authorized_keys
