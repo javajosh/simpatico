@@ -3,11 +3,14 @@
 ###########################################################
 # This is a library and reference for useful bash commands for both debian and redhat based systems
 # I'm not a good bash programmer, or a good linux sysadmin. These links help:
+# https://tldp.org/LDP/abs/html/abs-guide.html
 # https://zwischenzugs.com/2018/01/06/ten-things-i-wish-id-known-about-bash/
 # https://github.com/fail2ban/fail2ban
 # https://help.ubuntu.com/community/UFW
-# Something that I considered but didn't use
+
+# Some things that I considered but didn't use:
 # https://manpages.ubuntu.com/manpages/kinetic/en/man1/authbind.1.html
+# https://git.rootprojects.org/root/acme.js.git
 
 # Note that most of these functions are designed to be called once during system initialization.
 
@@ -42,7 +45,7 @@ function system_set_hostname {
     # Sets the system's hostname
     # $1 - The hostname to define
     local -r hostname="$1"
-    [ ! -n "$hostname" ] && {
+    [ -z "$hostname" ] && {
         printf "Hostname undefined\n"
         return 1;
     }
@@ -54,7 +57,7 @@ function system_add_host_entry {
     # $2 - The fqdn to set to the IP
     # $3 - The Hostname to set a hosts entry for
     local -r ip_address="$1" fqdn="$2" hostname="$3"
-    [ -z "$ip_address" -o -z "$fqdn" ] && {
+    [ -z "$ip_address" ] || [ -z "$fqdn" ] && {
         printf "IP address and/or fqdn undefined in system_add_host_entry()\n"
         return 1;
     }
@@ -65,7 +68,7 @@ function detect_distro {
     # Determine which distribution is in use - in my case it's ubuntu, which is a debian.
     # But it's nice to have redhat as a reference, too.
     # $1 - required - Which value to echo back to the calling function
-    [ ! -n "$1" ] && {
+    [ -z "$1" ] && {
         printf "detect_distro() requires which value to be returned as its only argument\n"
         return 1;
     }
@@ -98,7 +101,7 @@ function detect_distro {
 
 function system_set_timezone {
     # $1 - required - timezone to set on the system
-    [ ! -n "$1" ] && {
+    [ -z "$1" ] && {
          printf "system_set_timezone() requires the timezone as its only argument\n"
          return 1;
     }
@@ -107,7 +110,7 @@ function system_set_timezone {
 
 function system_install_package {
     # Install a list of packages
-    [ ! -n "$1" ] && {
+    [ -z "$1" ] && {
         printf "system_install_package() requires the package(s) to be installed as its only argument\n"
         return 1;
     }
@@ -136,7 +139,7 @@ function system_remove_package {
     # This function expands a bit on the system_remove_package() by allowing removal of a
     # list of packages, stored in an array, using a single command instead of requiring scripts
     # to call the function once for each package removed
-    [ ! -n "$1" ] && {
+    [ -z "$1" ] && {
         printf "system_remove_package() requires the package to be removed as its only argument\n"
         return 1;
     }
@@ -184,15 +187,45 @@ function system_configure_ntp {
 # Users and Security
 ###########################################################
 
+function user_add_server {
+  [ -z "$1" ] && {
+      printf "No new username and/or public-key entered\n"
+      return 1;
+  }
+  adduser -m \
+    -gecos \
+    -disabled-password \
+    -d /home/"$1" \
+    -s /bin/bash \
+    "$1"
+}
+function user_add_admin {
+  # $1 - required - username
+  # $2 - required - public key
+  [ -z "$1" ] || [ -z "$2" ] && {
+      printf "No new username and/or public-key entered\n"
+      return 1;
+  }
+
+  adduser -m \
+    -gecos \
+    -disabled-password \
+    -d /home/"$1" \
+    -s /bin/bash \
+    "$1"
+
+  adduser "$1" sudo >/dev/null
+  user_add_pubkey "$2"
+}
+
 function user_add_sudo {
     # $1 - required - username
     # $2 - required - password
-    [ ! -n "$1" -o ! -n "$2" ] && {
+    [ -z "$1" ] || [ -z "$2" ] && {
         printf "No new username and/or password entered\n"
         return 1;
     }
     local -r username="$1" userpass="$2"
-    [ ! -x /usr/bin/sudo ] && system_install_package sudo
     case "${detected_distro[family]}" in
         'debian')
             # Add the user and set the password
@@ -216,7 +249,7 @@ function user_add_pubkey {
     # your input variables in "{double quotes and curly braces}", or the key may not load properly
     # $1 - Required - username
     # $2 - Required - public key
-    [ ! -n "$1" -o ! -n "$2" ] && {
+    [ -z "$1" ] || [ -z "$2" ] && {
         printf "Must provide a username and a public key\n"
         return 1;
     }
@@ -235,6 +268,15 @@ function user_add_pubkey {
             chmod 600 /home/"${username}"/.ssh/authorized_keys
             ;;
     esac
+}
+
+function ssh_generate_keypair {
+  # https://www.ssh.com/academy/ssh/keygen
+  # https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
+  ssh-keygen -f ~/"$user"key -t ecdsa -b 521
+}
+function ssh_revoke_access {
+  sed -i '/ user@domain$/d' ~/.ssh/authorized_keys
 }
 
 function ssh_disable_root {
@@ -286,17 +328,17 @@ function configure_basic_firewall {
 function add_port {
     # $1 - required - IP standard to use (IPv4 or IPv6)
     # $2  - Required - Port to open
-    [ ! -n "$1" ] && {
+    [ -z "$1" ] && {
         printf "add_port() requires the IP standard (IPv4/IPv6) as its first argument\n"
         return 1;
     }
 
-    [ ! -n "$2" ] && {
+    [ -z "$2" ] && {
         printf "add_port() requires the port number as its second argument\n"
         return 1;
     }
 
-    [ ! -n "$3" ] && {
+    [ -z "$3" ] && {
         printf "add_port() requires the protocol (TCP/UDP) as its third argument\n"
         return 1;
     }
@@ -370,7 +412,7 @@ function enable_fail2ban {
 
 function enable_passwordless_sudo {
     # $1 - required - Username to grant passwordless sudo access to
-    [ ! -n "$1" ] && {
+    [ -z "$1" ] && {
         printf "enable_passwordless_sudo() requires the username to grant passwordless sudo access to as its only argument\n"
         return 1;
     }
@@ -416,7 +458,7 @@ function restartServices {
 }
 
 function randomString {
-    if [ ! -n "$1" ];
+    if [ -z "$1" ];
         then length=20
         else length="$1"
     fi
@@ -424,10 +466,12 @@ function randomString {
     echo "$(</dev/urandom tr -dc A-Za-z0-9 | head -c $length)"
 }
 
-function certbot_ssl {
+function certbot {
+    local todo=1
     # Installs a Certbot SSL cert with a basic HTTPS re-direct for
     # TODO See https://certbot.eff.org/instructions?ws=nginx&os=ubuntufocal
     # Also see https://letsencrypt.org/getting-started/
+
 }
 
 ###########################################################
@@ -480,15 +524,15 @@ function secure_server {
     # $1 - The username for the limited sudo user
     # $2 - The password for the limited sudo user
     # $3 - Public Key to be used for SSH authentication
-    [ ! -n "$1" ] && {
+    [ -z "$1" ] && {
         printf "secure_server() requires the username for the limited sudo user as its first argument\n"
         return 1;
     }
-    [ ! -n "$2" ] && {
+    [ -z "$2" ] && {
         printf "secure_server() requires the password for the limited sudo user as its second argument\n"
         return 1;
     }
-    [ ! -n "$3" ] && {
+    [ -z "$3" ] && {
         printf "secure_server() requires the Public Key to be used for SSH authentication as its third argument\n"
         return 1;
     }

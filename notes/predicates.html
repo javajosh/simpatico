@@ -75,13 +75,15 @@
 
   const and = (a,b) => a && b;
   const or = (a,b) => a || b;
+  // This looks nice, but it never worked.
   const all = arr => arr.reduce(and, true);
   const any = arr => arr.reduce(or, false);
   const lt = (a,b) => b < a;
   const gt = (a,b) => b > a;
 
-  const pick = (arr,include) =>  arr.reduce((a, elt, i)=>{
-    if (include[i]) a.push(elt);
+  const pick = (arr,arrIndices) =>
+    arr.reduce((a, elt, i)=>{
+    if (arrIndices[i]) a.push(elt);
     return a;
   }, []);
 
@@ -110,7 +112,8 @@
   let preds05 = [number, gt0, lt5];
 
   const passing = (preds, value) => {
-    let passed = preds.map(p=>p(value));
+    let passed = preds.map(p => p(value));
+    return passed.map(()=> preds[i])
     return pick(preds, passed);
   }
   const failing = (preds, value) => {

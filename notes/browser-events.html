@@ -266,8 +266,6 @@ const events = {
   "mouseup": click, //independent
   "click": click, //dependent
   "dblclick": click, //dependent
-  "startTimer": identity, //synthetic
-  "stopTimer": identity, //synthetic
   "tick": identity, //synthetic
   "scroll": identity, //dependent
   "blur": e =>({type: 'blur'}), //browser

@@ -13,22 +13,28 @@
   <li>Start and stop the animation with the space bar.</li>
   <li>Move around manually with the WSAD keys.</li>
   <li>Interact with the dev console; e.g. <code>combine(state, {x:10})</code>.</li>
-  <li>Read the code and maybe send me a tweet @javajosh!</li>
   <li>Notice that you can manually move it outside the view box but the animation will not.</li>
 </ol>
 
-<svg id="svg" width="500" height="300" viewBox="0 0 500 300" style="border:1px solid black">
-  <rect id="greenSquare" x="10" y="10" width="50" height="50" fill="green" rotating="true" stepsPerRotation="120"/>
-  <rect id="redSquare" x="10" y="10" width="20" height="20" fill="red"/>
+<svg id="svg"
+     width="500" height="300"
+     viewBox="0 0 500 300"
+     style="border:1px solid black">
+  <rect id="greenSquare"
+        x="10" y="10"
+        width="50" height="50"
+        fill="green"
+        rotating="true"
+        stepsPerRotation="120"
+  />
+  <rect id="redSquare"
+        x="10" y="10"
+        width="20" height="20"
+        fill="red"
+  />
 </svg>
 
-<script>
-  // The other script tags probably won't even parse.
-  if (navigator.userAgent.indexOf("MSIE") > -1)
-    window.alert('IE is not supported.');
-</script>
 <script type="module">
-  import * as Core from '../core.js'
   import {combine} from '../combine.js'
   import {intersectingElts, scatter, gather} from "../svg.js";
 
@@ -37,16 +43,28 @@
   const greenSquare = document.getElementById('greenSquare');
   const redSquare = document.getElementById('redSquare');
 
-  // Note that the values don't really matter, but the types should be accurate.
-  let state = {x: 0, y: 0, rotating: true, scale: 1, stepsPerRotation: 120, board: {width: 0, height: 0}};
-  // const board = {width: 500, height: 500};
+  // Make a state the old fashioned way
+  let state = {
+    x: 0, y: 0,
+    rotating: true,
+    scale: 1,
+    stepsPerRotation: 120,
+    svg: {width: 0, height: 0}
+  };
+  // Pull values from the DOM
+  gather(greenSquare, state);
+  gather(svg, state.svg);
 
+  // make the state "sensitive to input" by defining a handler and
+  // combining with the state.
   const handlePos = {
     name: 'pos',
+    example: {msg: 'pos', dx: 5, dy: 0},
+    desc: 'attempt to change position of particle; checks bounds!',
     handle: (ctx, msg) => {
       const {dx, dy} = msg;
       const {x, y} = state;
-      const {width, height} = state.board;
+      const {width, height} = state.svg;
       try {
         num(dx) && num(dy);
         between(0, width, x + dx);
@@ -59,8 +77,7 @@
   };
   state = combine(state, handlePos);
 
-  gather(greenSquare, state);
-  gather(svg, state.board);
+
 
   // A generator function that returns a rotating vector
   function* circlePath(stepsPerRotation = 60, theta = 0) {
@@ -106,6 +123,8 @@
   });
 
   animate();
+  window.g = greenSquare;
+  window.combine = combine;
 
 </script>
 </body>
