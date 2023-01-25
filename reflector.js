@@ -18,6 +18,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 const configDefault = {http: 8080, ws: 8081, host: 'localhost'};
 const args = process.argv.slice(2);
 // Treat input as JSON without proper quotes, which is more convenient to author in a CLI
+// Note I may replace this with more standard, simple, bash environment variables.
 const configString = args.length ? args[0]
   .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
   .replace(/:(['"])?([a-zA-Z0-9\\.]+)(['"])?/g, ':"$2"')
@@ -53,7 +54,11 @@ http.createServer((req, res) => {
 
     // Normalize the url
     if (req.url === '/') {
+      // Treat root as a request for index.html
       req.url = '/index.html';
+    } else if (req.url.indexOf('.') === -1) {
+      // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
+      req.url += ".html"
     }
 
     // Read the file asynchronously
