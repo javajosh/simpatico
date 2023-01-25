@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="Josh Rehman">
+
+  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <script src="testable.js"></script>
+
+  <title>svg.js</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<h1>svg.js</h1>
+<p>Josh Rehman <i>2023-1-21</i></p>
+<button onclick="window.stop()">Stop 2s Refresh</button>
+
+<p></p>
+
+<style>
+  svg > text {
+    font-size: medium;
+    font-family: "sans-serif";
+    text-anchor: middle;
+  }
+  svg {
+    background-color: #66b7ff;
+    max-width: 800px;
+  }
+</style>
+<svg id="svg" class="natural-units"
+     width="80%" height="100%"
+     viewBox="-1 -1 2 2"
+>
+  <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
+  <g transform="scale(1,-1)">
+    <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
+    <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
+    <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
+    <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Scale and reflip text</text></g>
+  </g>
+</svg>
+
+<svg class="natural-units"
+     width="100%" height="100%"
+     viewBox="-1 -1 2 2"
+>
+  <desc>A bunch of rectangles inserted using text manipulation</desc>
+  <g id="rects" transform="scale(1,-1)"><!-- Rectangles will go here--></g>
+</svg>
+
+<script type="module">
+  import * as svg from './svg.js';
+  import {assert, assertEquals, now, info, log, debug, tryToStringify} from './core.js';
+  const $ = document.querySelectorAll.bind(document);
+
+  const t = now();
+  info('welcome to core.js - the first 4 statements are testing the log facility. If you only say three change the "default levels" to include "verbose"')
+  log(t.toString());
+  debug('this is a debugging statement') //won't show up if your console isn't set to verbose
+
+  const greenSquare = $("#green-square")[0];
+  const yellowSquare = $("#yellow-square")[0];
+  const someText = $("#some-text")[0];
+  const unitCircle = $("#unit-circle")[0];
+  const rects = $("#rects")[0];
+
+  // Test scatter. The worst thing is you can't add it in piece by piece.
+  // To fix either parse transform string, or move to using matrix.
+  svg.scatter(greenSquare, {x:.5, y:.5, rotate:45});
+  svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: "whoah"});
+  svg.scatter(unitCircle, {x:.5, y: .5})
+
+  // Test gather
+  const gs = svg.gather(greenSquare.children[0], {width: 1, height: 1, fill: ""});
+  // Note: Need usable deepEquals without bringing in lodash
+  // Note: may like to switch expected with actual to support leftCurry.
+  assertEquals(gs.width, .2);
+  assertEquals(gs.height, .2);
+  assertEquals(gs.fill, "#482");
+
+  // Test parseTransform
+  const transform = svg.parseTransform(greenSquare);
+  assertEquals(tryToStringify(transform), '{"translate":{"x":0.5,"y":0.5},"rotate":{"angle":45}}');
+
+  // Test renderTransform
+  const transformString = svg.renderTransform({translate:{x:.5, y:.5}, rotate:{angle: 45}});
+  assertEquals(transformString, "translate(0.5,0.5)rotate(45)");
+
+  // Test intersectRect
+  assert(svg.intersectRect(
+    {top: 0, bottom:  1, left:  0, right: 1  },
+    {top:.5, bottom:1.5, left: .5, right: 1.5}
+  ));
+  assert(!svg.intersectRect(
+    {top: 0, bottom:  1, left:  0, right: 1  },
+    {top:2, bottom:2.5, left: 2, right: 2.5}
+  ));
+
+  // Test some other handy geometry methods
+  assert(svg.isInsideRec({x:0, y:0}, {N: 1, S: -1, E: 1, W: -1}));
+  assert(!svg.isInsideRec({x:2, y:2}, {N: 1, S: -1, E: 1, W: -1}));
+  assert(!svg.intersectingElts(greenSquare, yellowSquare));
+  assert(svg.isPointInPoly([{x:1,y:3},{x:0,y:-7},{x:23,y:-10}], {x:0, y:0}));
+
+  // Show a useful, brute force method to generate visualizations: use strings.
+  const generateRect = (x,y, height=.1, width=.1, fill="red", text="0") =>
+    `<g transform="translate(${x}, ${y})">
+      <rect
+        height="${height}"
+        width="${width}"
+        fill="${fill}" />
+      <g transform="translate(.03,.03)scale(.002,-.002)">
+        <text>${text}</text>
+      </g>
+    </g>`;
+
+  // Generate the first n rects in a regular grid left to right, top to bottom.
+  const generateGrid = n =>{
+    let result = "", count = 0;
+    for (let j = 0; j < 20; j++){
+      for (let i = 0; i < 20; i++) {
+        count = 20 * j + i;
+        result += generateRect(.1 * i - 1, .9 - .1 * j, .095, .095, "purple", count);
+        if (count >= n) return result;
+      }
+    }
+    return result;
+  }
+  rects.innerHTML = generateGrid(314);
+
+</script>
+</body>
+</html>

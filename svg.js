@@ -36,11 +36,12 @@ const scatter = (elt, obj) => {
       delete obj.scale;
     }
     elt.setAttribute("transform", clauses.join(''));
+  }
 
-    // Set the child "text" element to be the current elt if it's text.
-    if (elt.children.length > 0 && elt.children[0].tagName === "text") {
-      elt = elt.children[0];
-    }
+  if (elt.tagName === "g" &&
+    elt.children.length > 0 &&
+    elt.children[0].tagName === "text") {
+    elt = elt.children[0];
   }
 
   if (elt.tagName === "text" && hasProp(obj, 'text')){
@@ -49,7 +50,7 @@ const scatter = (elt, obj) => {
   }
 
   // Scatter the rest!
-  for (const [key, value] in Object.entries(obj)){
+  for (const [key, value] of Object.entries(obj)){
     const old = elt.getAttribute(key);
     if (value + '' !== old)
     elt.setAttribute(key, value);
@@ -76,7 +77,8 @@ const gather = (elt, obj) => {
 };
 
 /**
- * Create an object representation from a string transform representation. Note: this is not complete.
+ * Create an object representation from a string transform representation.
+ * Note: this is not complete.
  *
  * @param elt
  * @returns {{}}
@@ -118,8 +120,8 @@ const renderTransform = obj => {
 /**
  * Given two rectangles in the form {top:a, bottom:b, left: c, right: d} return true if they intersect.
  *
- * @param r1 {{top:a, bottom:b, left: c, right: d}}
- * @param r2 {{top:a, bottom:b, left: c, right: d}}
+ * @param r1 {{top:number, bottom:number, left: number, right: number}}
+ * @param r2 {{top:number, bottom:number, left: number, right: number}}
  * @returns {boolean} true if they intersect
  */
 const intersectRect = (r1, r2) => !(
@@ -129,7 +131,7 @@ const intersectRect = (r1, r2) => !(
     r2.bottom < r1.top
   );
 
-const isInsideRec = ({x, y}, {N, S, E, W}) => (N <= y && y <= S) && (E <= x && x <= W);
+const isInsideRec = ({x, y}, {N, S, E, W}) => (N >= y && y >= S) && (E >= x && x >= W);
 
 /**
  * Compute whether the bounding boxes of two elements intersect.
