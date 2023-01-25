@@ -35,28 +35,19 @@ function installSimpaticoService {
 
 }
 
+
 # systemd script
-cat <<'EOF' >/etc/init/node.conf
-description "simpatico server"
-start on filesystem or runlevel [2345]
-stop on runlevel [!2345]
-respawn
-respawn limit 10 5
-umask 022
-script
-  HOME=/home/simpatico"
-  . $HOME/.profile
-  exec /usr/bin/node $HOME/app/current/app.js >> $HOME/app/shared/logs/node.log 2>&1
-end script
+cat <<'EOF' >/lib/systemd/system/simpatico.service
+[Unit]
+Description=Job that runs the simpatico reflector daemon
+Documentation=man:reflector(1)
 
-post-start script
-  HOME=/home/"$service_username"
-  PID=`status node | awk '/post-start/ { print $4 }'`
-  echo $PID > $HOME/app/shared/pids/node.pid
-end script
+[Service]
+Type=forking
+Environment=statedir=/var/cache/simpatico
+ExecStartPre=/usr/bin/mkdir -p ${statedir}
+ExecStart=/usr/bin/node /home/simpatico/simpatico/reflector.js "{http:80, https:443, hostname:simpatico.io}"}
 
-post-stop script
-  HOME=/home/deploy
-  rm -f $HOME/app/shared/pids/node.pid
-end script
+[Install]
+WantedBy=multi-user.target
 EOF
