@@ -12,11 +12,31 @@
 hostname=cassian
 admin_username=josh
 service_username=simpatico
+service_repo=https://github.com/javajosh/simpatico.git
 # Generate this value
-admin_ssh_pubkey=``
+admin_ssh_pubkey=$()
+
+function installNode() {
+  # https://github.com/nvm-sh/nvm
+  # The script clones the nvm repository to ~/.nvm, and attempts to add the source lines from the snippet below to the correct profile file (~/.bash_profile, ~/.zshrc, ~/.profile, or ~/.bashrc)
+  . ./nvm_install.sh
+  nvm install 18
+  nvm use 18
+}
+
+function startSimpatico() {
+  git clone "$service_repo"
+  cd simpatico || exit
+  npm install
+  node reflector.js "{http:80, ws:8081, host:simpatico.io}"
+}
+
+function installSimpaticoService {
+
+}
 
 # systemd script
-cat <<'EOF' > /etc/init/node.conf
+cat <<'EOF' >/etc/init/node.conf
 description "simpatico server"
 start on filesystem or runlevel [2345]
 stop on runlevel [!2345]
@@ -40,4 +60,3 @@ post-stop script
   rm -f $HOME/app/shared/pids/node.pid
 end script
 EOF
-

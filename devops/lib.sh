@@ -162,7 +162,6 @@ function system_configure_ntp {
   system_install_package ntp
   systemctl enable ntpd
   systemctl start ntpd
-
 }
 
 ###########################################################
@@ -170,7 +169,7 @@ function system_configure_ntp {
 ###########################################################
 function ssh_generate_keypair {
   # Run this on your private laptop once.
-  # Concat the generated public key to /home/user/.ssh/authorized_keys
+  # Concat the generated public key to remote:~/.ssh/authorized_keys
   # Use the key with either ssh -i or copy the private key to ~/.ssh/id_ed25519
   # https://www.ssh.com/academy/ssh/keygen
   # https://www.cryptopp.com/wiki/Ed25519 <- I guess this is the best as of 2023
