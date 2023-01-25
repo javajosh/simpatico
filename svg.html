@@ -14,7 +14,7 @@
 </head>
 <body>
 <h1>svg.js</h1>
-<p>Josh Rehman <i>2023-1-21</i></p>
+<p>javajosh <i>2023</i></p>
 <button onclick="window.stop()">Stop 2s Refresh</button>
 
 <p></p>
@@ -106,19 +106,19 @@
   assert(svg.isPointInPoly([{x:1,y:3},{x:0,y:-7},{x:23,y:-10}], {x:0, y:0}));
 
   // Show a useful, brute force method to generate visualizations: use strings.
-  const generateRect = (x,y, height=.1, width=.1, fill="red", text="0") =>
+  const generateRect = (x, y, height=.1, width=.1, fill="red", text="0") =>
     `<g transform="translate(${x}, ${y})">
       <rect
         height="${height}"
         width="${width}"
         fill="${fill}" />
-      <g transform="translate(.03,.03)scale(.002,-.002)">
+      <g transform="scale(.002,-.002)translate(15,-15)">
         <text>${text}</text>
       </g>
     </g>`;
 
-  // Generate the first n rects in a regular grid left to right, top to bottom.
-  const generateGrid = n =>{
+  // Generate the first n + 1 rects in a regular grid left to right, top to bottom.
+  const generateGridToIndex = n => {
     let result = "", count = 0;
     for (let j = 0; j < 20; j++){
       for (let i = 0; i < 20; i++) {
@@ -129,7 +129,7 @@
     }
     return result;
   }
-  rects.innerHTML = generateGrid(314);
+  rects.innerHTML = generateGridToIndex(399);
 
 </script>
 </body>

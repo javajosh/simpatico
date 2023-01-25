@@ -11,7 +11,7 @@
 </head>
 <body>
 <h1>Simpatico</h1>
-<p>Josh Rehman <i>2023</i></p>
+<p>javajosh <i>2023</i></p>
 
 <p>
   Hi! If you're reading this in a browser with a localhost URL, congrats!
@@ -173,8 +173,8 @@
     const {cos, sin} = Math;
     const C = 1/10000;
 
-    svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t%3600/10});
-    svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t%3600/10});
+    svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
+    svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t % 3600/10});
     svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: shuffle(letters).join('')});
   });
 
