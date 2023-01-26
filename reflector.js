@@ -5,36 +5,39 @@ import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import WebSocket, { WebSocketServer } from 'ws';
-
-// todo: tls. more convenient with an nginx proxy, but violates minimalism standard.
-// let tls;
-// try {
-//   tls = await import('node:tls');
-// } catch (err) {
-//   console.log('Cannot start without tls support; use a different node build.');
-//   return;
-// }
-
-// Example: node reflector.js "{http:8080, host:foobar}"
-const configDefault = {http: 8080, https: 8443, ws: 8081, host: 'localhost'};
+// Sadly json cannot just be imported.
+const info = JSON.parse(fs.readFileSync('./package.json'));
 const args = process.argv.slice(2);
+
+console.info(`reflector.js [${info.version}] started at [${new Date().toUTCString()}] from directory [${process.cwd()}] with args [${args}]`);
+
+// Process reflector config. Override with e.g. node reflector.js "{https:443, host:simpatico.io}"
+const configDefault = {
+  http: 8080,
+  https: 8443,
+  ws: 8081,
+  host: 'localhost'
+};
+
 // Treat input as JSON without proper quotes, which is more convenient to author in a CLI
-// Note I may replace this with more standard, simple, bash environment variables.
+// NB: I may replace this with more standard, simple, bash environment variables.
 const configString = args.length ? args[0]
   .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
   .replace(/:(['"])?([a-zA-Z0-9\\.]+)(['"])?/g, ':"$2"')
   : "{}";
-
 const config = Object.assign(configDefault, JSON.parse(configString));
-console.log('Reflector v0.0.3', config);
-console.log("UTC", new Date().toUTCString(), process.cwd(), args);
-
 const isLocal = config.host === 'localhost';
-// Create an HTTP server - locally, it's your server; deployed, its a redirect to https
+console.info(`computed config: [${JSON.stringify(config)}] isLocal is [${isLocal}]`);
+
+
+
+// todo: add gzip compression. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
+// Create an HTTP server - locally, http is THE server; deployed, http is a redirect to https
 try{
   http.createServer ({keepAlive:'true', headersTimeout:100}, isLocal ? serverLogic : httpRedirectServerLogic).listen(config.http);
 } catch (e) {
-  console.warn('problem spinning up http server', e);
+  console.error('abort: problem spinning up http server', e);
+  throw (e);
 }
 // Create an HTTPS server if not running locally.
 let httpsServer = null;
@@ -47,12 +50,20 @@ if (!isLocal) {
     // process.setuid('simpatico');
     // process.setgid('simpatico');
   } catch (e) {
-    console.warn('problem spinning up https server', e);
+    console.error('abort: problem spinning up https server', e);
+    throw (e);
   }
 }
 
 function httpRedirectServerLogic (req, res) {
-  // TODO: add exception here for certbot's protocol.
+  // Let letsencrypt check my control of the domain.
+  // See https://eff-certbot.readthedocs.io/en/stable/using.html#webroot
+  if (req.url.startsWith('/.well-known/acme-challenge')){
+    res.writeHead(200);
+    res.end(fs.readFileSync(req.url));
+    return;
+  }
+  // Everything else, redirect permanently to https
   const redirectUrl = `https://${req.hostname}:${config.https}${req.url}`;
   res.writeHead(307, {Location: redirectUrl});
   res.end()
@@ -118,8 +129,6 @@ function serverLogic(req, res) {
   // End of the server logic function!
 }
 
-
-
 // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
 const mime = {
   "html": "text/html",
@@ -149,7 +158,6 @@ const getCacheHeaders = (filename) => {
   }
   return result;
 }
-
 
 // Create a webSocket server, sharing https connectivity if not locally running.
 const wssArg = isLocal ? { port: config.ws } : {server: httpsServer};
@@ -189,6 +197,7 @@ wss.on('connection', ws => {
   // TODO clean up connections when they are lost, otherwise is a (slow) memory leak.
 });
 
-// // TODO - add HTTPS; simulate other domain names with hosts file;
-// console.log(`Listening for http on port ${config.http} and websockets on port ${config.ws}. Open http://${config.host}:${config.http}`);
-// console.log("Log format:", "Date().toISOString() | req.socket.remoteAddress | req.headers[\"user-agent\"].substr(0,20) | req.url ");
+const url = isLocal ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
+console.info("Log format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url]");
+console.info(`Intitialization complete. Open ${url}`);
+
