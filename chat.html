@@ -24,7 +24,7 @@
 
   const eltMessageList = document.getElementById("simpatico-messages");
   const host = window.location.hostname;
-  const isLocal = window.location.startsWith('localhost');
+  const isLocal = window.location.host.startsWith('localhost');
   const wsPort = isLocal ? 8081 : 443;
   const wsProtocol = isLocal ? 'ws' : 'wss'
   const url = `${wsProtocol}://${host}:${wsPort}/`;
