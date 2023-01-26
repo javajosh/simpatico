@@ -52,6 +52,18 @@ function updateSimpatico() {
   startSimpatico
 }
 
+function installCertbot() {
+  # From https://certbot.eff.org/instructions?ws=other&os=ubuntufocal
+  sudo snap install core; sudo snap refresh core
+  sudo snap install --classic certbot
+  cd ~/simpatico || exit
+  sudo certbot certonly
+}
+
+function runCertbod() {
+
+}
+
 # systemd script - not yet working
 cat <<'EOF' >/lib/systemd/system/simpatico.service
 [Unit]

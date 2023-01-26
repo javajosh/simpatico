@@ -2,6 +2,7 @@
 // =====================================================
 import fs from 'node:fs';
 import http from 'node:http';
+import https from 'node:https';
 import path from 'node:path';
 import WebSocket, { WebSocketServer } from 'ws';
 
@@ -28,67 +29,85 @@ const config = Object.assign(configDefault, JSON.parse(configString));
 console.log('Reflector v0.0.3', config);
 console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
-// Http file server
-http.createServer((req, res) => {
-  // We are bound to port 80 so we can drop privileges
+// Create an HTTP server
+try{
+  http.createServer ({keepAlive:'true', headersTimeout:100}, serverLogic).listen(config.http);
+} catch (e) {
+  console.warn('problem spinning up http server', e);
+}
+// Create an HTTPS server
+try{
+  const cert = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/fullchain.pem');
+  const key = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/privkey.pem');
+  https.createServer({hostname:'simpatico.io', port: 443, key, cert}, serverLogic).listen(config.https);
+  // We are bound to port 443 (and probably 80) so we can drop privileges
   process.setuid('simpatico');
   process.setgid('simpatico');
-    // if the request is malformed, return a 500 and log
-    if (!req.headers.hasOwnProperty("user-agent")) {
-      const e1 = new Error();
-      Object.assign(e1, {
-        code: 500,
-        log: 'missing user-agent header',
-        msg: 'user-agent header required',
+} catch (e){
+  console.warn('problem spinning up https server', e);
+}
+
+function serverLogic(req, res) {
+  // if the request is malformed, return a 500 and log
+  if (!req.headers.hasOwnProperty("user-agent")) {
+    const e1 = new Error();
+    Object.assign(e1, {
+      code: 500,
+      log: 'missing user-agent header',
+      msg: 'user-agent header required',
+    });
+    console.error(e1.log);
+    res.writeHead(e1.code);
+    res.end(e1.msg);
+    return;
+  }
+
+  // Log the (valid) request
+  console.log(
+    new Date().toISOString(),
+    req.socket.remoteAddress.replace(/^.*:/, ''),
+    req.headers["user-agent"].substr(0, 20),
+    req.url,
+  );
+
+  // Normalize the url
+  if (req.url === '/') {
+    // Treat root as a request for index.html
+    req.url = '/index.html';
+  } else if (req.url.indexOf('.') === -1) {
+    // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
+    req.url += ".html"
+  }
+
+  // Read the file asynchronously
+  const fileName = process.cwd() + req.url;
+  fs.readFile(fileName, (err, data) => {
+    if (err) { // assume all errors are a 404. KISS
+      const e2 = new Error();
+      Object.assign(e2, {
+        code: 404,
+        log: 'resource not found',
+        msg: 'insert cute fail whale type picture here',
       });
-      console.error(e1.log);
-      res.writeHead(e1.code);
-      res.end(e1.msg);
+      console.error(e2.log);
+      res.writeHead(e2.code);
+      res.end(e2.msg);
       return;
     }
-
-    // Log the (valid) request
-    console.log(
-      new Date().toISOString(),
-      req.socket.remoteAddress.replace(/^.*:/, ''),
-      req.headers["user-agent"].substr(0, 20),
-      req.url,
+    // Send the response
+    res.writeHead(
+      200,
+      Object.assign(
+        getContentTypeHeader(req.url),
+        getCacheHeaders(req.url),
+      )
     );
+    res.end(data);
+  });
+  // End of the server logic function!
+}
 
-    // Normalize the url
-    if (req.url === '/') {
-      // Treat root as a request for index.html
-      req.url = '/index.html';
-    } else if (req.url.indexOf('.') === -1) {
-      // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
-      req.url += ".html"
-    }
 
-    // Read the file asynchronously
-    fs.readFile(process.cwd() + req.url, (err, data) => {
-      if (err) {
-        const e2 = new Error();
-        Object.assign(e2, {
-          code: 404,
-          log: 'resource not found',
-          msg: 'insert cute fail whale type picture here',
-        });
-        console.error(e2.log);
-        res.writeHead(e2.code);
-        res.end(e2.msg);
-        return;
-      }
-      // Send the response
-      res.writeHead(
-        200,
-        Object.assign(
-          getContentTypeHeader(req.url),
-          getCacheHeaders(req.url),
-        )
-      );
-      res.end(data);
-    });
-}).listen(config.http);
 
 // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
 const mime = {
@@ -121,7 +140,7 @@ const getCacheHeaders = (filename) => {
 }
 
 
-// WebSocket server
+// Create a webSocket server
 const wss = new WebSocketServer({ port: config.ws });
 const connections = [];
 wss.on('connection', ws => {
@@ -158,7 +177,6 @@ wss.on('connection', ws => {
   // TODO clean up connections when they are lost, otherwise is a (slow) memory leak.
 });
 
-// TODO - add HTTPS; simulate other domain names with hosts file;
-console.log(`Listening for http on port ${config.http} and websockets on port ${config.ws}. Open http://${config.host}:${config.http}/`)
-console.log("Log format:", "Date().toISOString() | req.socket.remoteAddress | req.headers[\"user-agent\"].substr(0,20) | req.url ")
-
+// // TODO - add HTTPS; simulate other domain names with hosts file;
+// console.log(`Listening for http on port ${config.http} and websockets on port ${config.ws}. Open http://${config.host}:${config.http}`);
+// console.log("Log format:", "Date().toISOString() | req.socket.remoteAddress | req.headers[\"user-agent\"].substr(0,20) | req.url ");
