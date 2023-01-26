@@ -37,11 +37,12 @@ try{
   console.warn('problem spinning up http server', e);
 }
 // Create an HTTPS server if not running locally.
+let httpsServer = null;
 if (!isLocal) {
   try {
     const cert = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/fullchain.pem');
     const key = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/privkey.pem');
-    https.createServer({hostname: 'simpatico.io', key, cert}, serverLogic).listen(config.https);
+    httpsServer = https.createServer({hostname: 'simpatico.io', key, cert}, serverLogic).listen(config.https);
     // We are bound to port 443 (and probably 80) so we can drop privileges
     // process.setuid('simpatico');
     // process.setgid('simpatico');
@@ -150,8 +151,9 @@ const getCacheHeaders = (filename) => {
 }
 
 
-// Create a webSocket server
-const wss = new WebSocketServer({ port: config.ws });
+// Create a webSocket server, sharing https connectivity if not locally running.
+const wssArg = isLocal ? { port: config.ws } : httpsServer;
+const wss = new WebSocketServer(wssArg);
 const connections = [];
 wss.on('connection', ws => {
   // Compute the connection ID,
