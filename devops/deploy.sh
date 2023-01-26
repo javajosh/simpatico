@@ -39,7 +39,7 @@ function startSimpatico() {
   # ssh josh@simpatico.io
   # su - simpatico
   # tmux - see https://www.howtogeek.com/671422/how-to-use-tmux-on-linux-and-why-its-better-than-screen/
-  sudo node ~/simpatico/reflector.js "{http:80, ws:8081, host:simpatico.io}"
+  sudo node ~/simpatico/reflector.js "{http:80, https:443 ws:8081, host:simpatico.io}"
   # CTRL-B + D to detach
   # CTRL-B + S to list sessions
   # You can also launch and attach to a named session.
@@ -58,10 +58,6 @@ function installCertbot() {
   sudo snap install --classic certbot
   cd ~/simpatico || exit
   sudo certbot certonly
-}
-
-function runCertbod() {
-
 }
 
 # systemd script - not yet working

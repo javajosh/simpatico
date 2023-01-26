@@ -16,7 +16,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 // }
 
 // Example: node reflector.js "{http:8080, host:foobar}"
-const configDefault = {http: 8080, ws: 8081, host: 'localhost'};
+const configDefault = {http: 8080, https: 8443, ws: 8081, host: 'localhost'};
 const args = process.argv.slice(2);
 // Treat input as JSON without proper quotes, which is more convenient to author in a CLI
 // Note I may replace this with more standard, simple, bash environment variables.
@@ -39,7 +39,7 @@ try{
 try{
   const cert = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/fullchain.pem');
   const key = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/privkey.pem');
-  https.createServer({hostname:'simpatico.io', port: 443, key, cert}, serverLogic).listen(config.https);
+  https.createServer({hostname:'simpatico.io', key, cert}, serverLogic).listen(config.https);
   // We are bound to port 443 (and probably 80) so we can drop privileges
   // process.setuid('simpatico');
   // process.setgid('simpatico');
