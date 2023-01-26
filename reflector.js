@@ -41,8 +41,8 @@ try{
   const key = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/privkey.pem');
   https.createServer({hostname:'simpatico.io', port: 443, key, cert}, serverLogic).listen(config.https);
   // We are bound to port 443 (and probably 80) so we can drop privileges
-  process.setuid('simpatico');
-  process.setgid('simpatico');
+  // process.setuid('simpatico');
+  // process.setgid('simpatico');
 } catch (e){
   console.warn('problem spinning up https server', e);
 }
