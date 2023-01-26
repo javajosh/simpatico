@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="Josh Rehman">
+  <link id="favicon" rel="icon" type="image/png" href="./img/wizard-192x192.png"/>
+
+  <title>html authoring</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<h1>html authoring</h1>
+<p>javajosh <i>2023</i></p>
+
+<p>
+  I did not expect that developing a workable html authoring standard for myself would be necessary.
+  The ability to use universally available tools (text editor, command line) and produce software is to be respected.
+  Even if you generate html, these authoring standards will help.
+  These standards also cover my preferred way to develop modules, described below.
+</p>
+
+<p>Browser api test harnesses</p>
+<ol>
+  <li><a href="/svg.html">svg</a>
+  <li><a href="/websockets.html">websockets</a>
+  <li><a href="/wp.html">localstorage</a>
+</ol>
+<p>Custom module test harnesses</p>
+<ol>
+  <li><a href="/core.html">core</a>
+  <li><a href="/combine.html">combine</a>
+  <li><a href="/rtree.html">rtree</a>
+  <li><a href="/friendly.html">friendly</a>
+</ol>
+
+<p>
+  Each html file stands alone as a test harness for its corresponding component.
+  core.html tests core.js, combine.html tests combine.js, etc.
+  The file sources are themselves important, and designed to be read.
+  Please consider the <i>page source</i> as an important part of the content.
+</p>
+
+<p>A brief description of what each does, from <code>readme.md</code>:</p>
+<ol>
+  <li>Core.
+    Handy functions that smooth over the JavaScript runtime.
+    Comprehensive predicates/assertions.
+  <li>Combine.
+    The function used to produce a new state from a previous state plus an input.
+    A generalization of <code>Object.assign()</code> and previously known as "<a href="https://github.com/javajosh/combine-keys">combineKeys</a>".
+  <li>RTree.
+    A <a href="https://en.wikipedia.org/wiki/Trie">trie</a> data structure that organizes inputs into chains that result in different, related states.
+    It is this structure that unifies previous distinct programming concepts like instantiation vs inheritance.
+  <li>Friendly Function convention.
+    A function takes a value and returns a result, possibly failing on bad values.
+    A friendly function returns a description of which valid values are acceptable as a pattern.
+  <li>(tentative) Normalized SVG coordinates.
+    The basic authoring unit is the group ("g") containing a small number of path ("path") elts.
+    Unique elements identified by string ID or by array id, which selects the Nth child recursively [3,5,11,0]
+    Use a small, powerful side-effect primitive, <code>scatter(elt, obj)</code> which uses <code>elt.setAttribute(obj.key,
+      obj.value)</code>.
+  <li>(tentative) Board-game state convention.
+    Express state only as updates to position of primitives, never creates or destroys elements.
+    The state of the game is fully specified by the positions of the pieces on the board.
+    A choice is a set of translations.
+  <li>(ideas) html authoring; svg authoring; js binding to dom convention; 1+N process description convention; value key pair one value per line convention.
+</ol>
+</body>
+</html>

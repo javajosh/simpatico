@@ -130,7 +130,50 @@
     return result;
   }
   rects.innerHTML = generateGridToIndex(399);
+</script>
 
+<script id="animation" type="module">
+  import {combine, rtree, svg, shuffle} from './simpatico.js';
+  const $ = document.querySelectorAll.bind(document);
+
+  // Kicking tires on rtree and combine
+  window.r = rtree({});
+  console.log(combine(1,1), r.residue());
+
+  // Kicking tires on the display
+  const greenSquare = $("#green-square")[0];
+  const yellowSquare = $("#yellow-square")[0];
+  const someText = $("#some-text")[0];
+  svg.scatter(greenSquare, {x:-.75, y:-.75});
+
+  const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  // Doing a simple animation
+  window.addEventListener('tick', e => {
+    const t = e.detail.t;
+    const {cos, sin} = Math;
+    const C = 1/10000;
+
+    svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
+    svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t % 3600/10});
+    svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: shuffle(letters).join('')});
+  });
+
+</script>
+<script id="module-tick" type="module">
+  // Define a window.ontick custom event.
+  // Usage: window.addEventListener('tick', e => console.log(e.detail.t));
+  let n = 0;
+  const throttle = 1;
+  let animating = false;
+  const tick = () => {
+    if (window.ticking === false) return;
+    if ((++n % throttle) === 0){
+      const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+      window.dispatchEvent(event);
+    }
+    if (animating) window.requestAnimationFrame(tick);
+  };
+  tick();
 </script>
 </body>
 </html>

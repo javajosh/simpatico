@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+  <link id="favicon" rel="icon" type="image/png" href="./img/wizard-192x192.png"/>
+
+  <title>websockets</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<h1>Simpatico</h1>
+<p>javajosh <i>2023</i></p>
+
+<h3>Messages</h3>
+<ol id="simpatico-messages">
+  <li><label>Say something:<input type="text"></label></li>
+  <li>:speaker > :message li created and appended</li>
+</ol>
+
+<script>
+  console.log("Websocket demo boot", "UTC", new Date().toUTCString(), "ms since epoch", Date.now(), window.location);
+
+  const eltMessageList = document.getElementById("simpatico-messages");
+  const host = window.location.hostname;
+  const wsPort = 8081; //akwardly this needs to match reflector.js
+  const url = `ws://${host}:${wsPort}/`;
+  const conn = new WebSocket(url);
+  conn.onopen = () => {
+    conn.send('hey');
+  }
+  conn.onmessage = ({data}) => {
+    const li = document.createElement("li");
+    li.innerHTML = data;
+    eltMessageList.appendChild(li);
+  }
+
+  // handle non-http links as localstorage keys and append clicked links to the dom.
+  // the order of these additions gives every tab a unique character
+  document.body.onclick = e => {
+    const elt = e.target;
+    const tag = elt.tagName;
+    if (tag !== 'a') return;
+
+    const href = elt.href;
+    const startsWithHttp = /^http/.test(href);
+    console.log(elt, href, startsWithHttp);
+    if (!startsWithHttp) {
+      const value = localStorage.getItem(href);
+      window.document.body.innerHTML += value;
+    }
+    return startsWithHttp;
+  }
+
+  // listen for new messages sent to the user.
+  document.body.onchange = e => {
+    const msg = e.target.value;
+    const connReady = conn !== undefined && conn.readyState === conn.OPEN;
+    if (connReady) {
+      conn.send(msg);
+      console.log('msg sent', msg);
+    }
+  }
+</script>
+</body>
+</html>
