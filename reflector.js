@@ -29,9 +29,9 @@ const config = Object.assign(configDefault, JSON.parse(configString));
 console.log('Reflector v0.0.3', config);
 console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
-// Create an HTTP server
+// Create an HTTP server that mainly redirects clients to the HTTPS server
 try{
-  http.createServer ({keepAlive:'true', headersTimeout:100}, serverLogic).listen(config.http);
+  http.createServer ({keepAlive:'true', headersTimeout:100}, httpRedirectServerLogic).listen(config.http);
 } catch (e) {
   console.warn('problem spinning up http server', e);
 }
@@ -45,6 +45,14 @@ try{
   // process.setgid('simpatico');
 } catch (e){
   console.warn('problem spinning up https server', e);
+}
+
+function httpRedirectServerLogic (req, res) {
+  // Note: we may want an exception here for certbot's protocol.
+  let redirectUrl = `https://${req.hostname}:${config.https}${req.url}`;
+  res.location(redirectUrl);
+  res.writeHead(307);
+  res.end()
 }
 
 function serverLogic(req, res) {
