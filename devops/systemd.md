@@ -40,8 +40,32 @@ I can check locally on my laptop, after I push I can check over there.
 
 
 ## Systemd failure on Windows WSL2
-So far so bad testing on Windows. I can still test on laptop and in production.
-  - Windows WSL note: enable systemd by modifying /etc/wsl.conf
-  - Then restart wsl from powershell wsl --shutdown.
+So far so bad testing on Windows.
+[This article lies](https://ubuntu.com/blog/ubuntu-wsl-enable-systemd), systemd is not enable-able in wsl. At least, I wasn't able to get it to work. Note that it's entirely possible there's something wrong with my wsl installation.
+I can still test on laptop and in production.
+  - Windows WSL note: enable systemd by modifying `/etc/wsl.conf`
+  - Then restart wsl from powershell `wsl --shutdown`.
   - Dissapointingly this didn't work for me so I can't test this locally. on my windows machine.
   - I can still test it locally on my laptop :)
+
+## Putting systemd aside for now
+I think writing a solid systemd unit script for the reflector is a good way to proceed.
+I like that its standard and feature rich.
+Once its working I'd have high confidence in it.
+But I don't like that the system is so big and complex and intimidating.
+The time required to really learn systemd seems rather high.
+Getting the BTD loop going for systemd work has been challenging as intelliJ cannot seem to directly edit `/etc/systemd/system/*.service` files even running natively in Linux (complains about inability to save backup file.)
+Probably solveable with a liberal use of `chmod -R /etc/systemd/service`.
+
+The alternative is something I just realized I can do: use tmux to run the reflector as root, allowing me to logout and not interrupt the server process.
+This is a very low-tech way to do things.
+It's simple and I like it.
+It also (re)aquaints me with tmux, a very useful utility in many circumstances.
+However to really make progress here, I need to solve the desktop->server access problem.
+Generate public private key on the desktop. `ssh-keygen -f ~/.ssh/id_ed25519 -t ed25519`
+Get the public key to the laptop (email? chat?). `cat ~/.ssh/id_ed25519.pub`
+From the laptop, ssh into the server. `ssh josh@simpatico.io`.
+(Alternatively their seems to be a special ssh command to push a key to a server).
+Add the desktop public key to the server `vim ~/.ssh/authorized_keys`.
+At this point I can access `josh@simpatico.io` from the desktop.
+I can also revoke access on a per-device basis.

@@ -14,7 +14,7 @@ admin_username=josh
 service_username=simpatico
 service_repo=https://github.com/javajosh/simpatico.git
 # Generate this value
-admin_ssh_pubkey=$()
+admin_ssh_pubkey_=
 
 function installNode() {
   # https://github.com/nvm-sh/nvm
@@ -24,19 +24,35 @@ function installNode() {
   nvm use 18
 }
 
-function startSimpatico() {
-  git clone "$service_repo"
+function installSimpaticoService() {
+  # ssh josh@simpatico.io
+  # sudo su - simpatico
+  installNode
+  sudo apt install tmux
+
+  git clone $service_repo
   cd simpatico || exit
   npm install
-  node reflector.js "{http:80, ws:8081, host:simpatico.io}"
 }
 
-function installSimpaticoService {
-
+function startSimpatico() {
+  # ssh josh@simpatico.io
+  # su - simpatico
+  # tmux - see https://www.howtogeek.com/671422/how-to-use-tmux-on-linux-and-why-its-better-than-screen/
+  sudo node ~/simpatico/reflector.js "{http:80, ws:8081, host:simpatico.io}"
+  # CTRL-B + D to detach
+  # CTRL-B + S to list sessions
+  # You can also launch and attach to a named session.
 }
 
+function updateSimpatico() {
+  cd ~/simpatico || exit
+  git pull
+  npm install
+  startSimpatico
+}
 
-# systemd script
+# systemd script - not yet working
 cat <<'EOF' >/lib/systemd/system/simpatico.service
 [Unit]
 Description=Job that runs the simpatico reflector daemon

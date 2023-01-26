@@ -30,6 +30,9 @@ console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
 // Http file server
 http.createServer((req, res) => {
+  // We are bound to port 80 so we can drop privileges
+  process.setuid('simpatico');
+  process.setgid('simpatico');
     // if the request is malformed, return a 500 and log
     if (!req.headers.hasOwnProperty("user-agent")) {
       const e1 = new Error();
