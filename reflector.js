@@ -152,7 +152,7 @@ const getCacheHeaders = (filename) => {
 
 
 // Create a webSocket server, sharing https connectivity if not locally running.
-const wssArg = isLocal ? { port: config.ws } : httpsServer;
+const wssArg = isLocal ? { port: config.ws } : {server: httpsServer};
 const wss = new WebSocketServer(wssArg);
 const connections = [];
 wss.on('connection', ws => {
