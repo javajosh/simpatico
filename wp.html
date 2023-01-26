@@ -135,6 +135,24 @@ When you click a key, the value is displayed in the display region.
     return false;
   };
 
+
+  // handle non-http links as localstorage keys and append clicked links to the dom.
+  // the order of these additions gives every tab a unique character
+  // document.body.onclick = e => {
+  //   const elt = e.target;
+  //   const tag = elt.tagName;
+  //   if (tag !== 'a') return;
+  //
+  //   const href = elt.href;
+  //   const startsWithHttp = /^http/.test(href);
+  //   console.log(elt, href, startsWithHttp);
+  //   if (!startsWithHttp) {
+  //     const value = localStorage.getItem(href);
+  //     window.document.body.innerHTML += value;
+  //   }
+  //   return startsWithHttp;
+  // }
+
   // And just like that, we have a minimalist ball of mud that makes perfect sense when you *write* it and no sense when you read it!
 
 </script>
