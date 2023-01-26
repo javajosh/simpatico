@@ -13,56 +13,69 @@
 <h1>Simpatico</h1>
 <p>javajosh <i>2023</i></p>
 
+<p>
+  This is a very tiny chat system that demonstrates raw websockets in the browser.
+</p>
+
 <h3>Messages</h3>
-<ol id="simpatico-messages">
+<ol id="display-chat">
   <li><label>Say something:<input type="text"></label></li>
-  <li>:speaker > :message li created and appended</li>
 </ol>
 
-<script>
-  console.log("Websocket demo boot", "UTC", new Date().toUTCString(), "ms since epoch", Date.now(), window.location);
+<script type="module">
+  console.log("Simpatico chat boot", "UTC", new Date().toUTCString(), "ms since epoch", Date.now(), window.location);
+  const elt = document.getElementById.bind(document);
+  const displayChat = elt("display-chat");
 
-  const eltMessageList = document.getElementById("simpatico-messages");
-  const host = window.location.hostname;
-  const isLocal = window.location.host.startsWith('localhost');
-  const wsPort = isLocal ? 8081 : 443;
-  const wsProtocol = isLocal ? 'ws' : 'wss'
-  const url = `${wsProtocol}://${host}:${wsPort}/`;
-  const conn = new WebSocket(url);
-  conn.onopen = () => {
-    conn.send('hey');
+  // tls is omitted if running localhost.
+  function computeWebSocketURL(local={protocol: 'ws', port: 8081}, remote={protocol: 'wss', port: 443}){
+    const host = window.location.hostname;
+    const isLocal = host.startsWith('localhost');
+    const config = isLocal ? local : remote;
+
+    const url = `${config.protocol}://${host}:${config.port}/`;
+    console.debug(`websocket url computed to be ${url}`);
+    return url;
   }
-  conn.onmessage = ({data}) => {
+
+  // Display a string as a new list element
+  const displayHtmlString = (msg, parent = displayChat) => {
+    // Compare with string manipulation version of this
     const li = document.createElement("li");
-    li.innerHTML = data;
-    eltMessageList.appendChild(li);
+    li.innerHTML = msg;
+    parent.appendChild(li);
+    console.debug(`msg received and appended as li [${msg}]`);
   }
 
-  // handle non-http links as localstorage keys and append clicked links to the dom.
-  // the order of these additions gives every tab a unique character
-  document.body.onclick = e => {
-    const elt = e.target;
-    const tag = elt.tagName;
-    if (tag !== 'a') return;
-
-    const href = elt.href;
-    const startsWithHttp = /^http/.test(href);
-    console.log(elt, href, startsWithHttp);
-    if (!startsWithHttp) {
-      const value = localStorage.getItem(href);
-      window.document.body.innerHTML += value;
-    }
-    return startsWithHttp;
+  // Read: Open the socket and route inbound messages to the DOM
+  const connect = (url, greeting = '<b>hey</b>') => {
+    const conn = new WebSocket(url);
+    conn.onopen = () => conn.send(greeting);
+    conn.onmessage = e => displayHtmlString(e.data);
+    return conn;
   }
+  let connection = connect(computeWebSocketURL());
+  const isConnReady = (conn = connection) => conn !== undefined && conn.readyState === conn.OPEN;
 
-  // listen for new messages sent to the user.
+  // Write: User input is received. Route outbound messages from the DOM to the connection.
+  // if the connection is down, try to reestablish.
+  // if the connection is up, send the target.value as a string.
   document.body.onchange = e => {
-    const msg = e.target.value;
-    const connReady = conn !== undefined && conn.readyState === conn.OPEN;
-    if (connReady) {
-      conn.send(msg);
-      console.log('msg sent', msg);
+    try {
+      if (!isConnReady()){
+        console.log('connection down attempting reconnect', url);
+        connection = connect(url);
+      }
+      if (isConnReady()) {
+        const msg = e.target.value;
+        connection.send(msg);
+        console.debug(`msg received ${msg}`);
+      }
+    } catch (e) {
+      console.error('problem processing change input');
+      throw e;
     }
+    return false;
   }
 </script>
 </body>
