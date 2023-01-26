@@ -29,29 +29,31 @@ const config = Object.assign(configDefault, JSON.parse(configString));
 console.log('Reflector v0.0.3', config);
 console.log("UTC", new Date().toUTCString(), process.cwd(), args);
 
-// Create an HTTP server that mainly redirects clients to the HTTPS server
+const isLocal = config.host === 'localhost';
+// Create an HTTP server - locally, it's your server; deployed, its a redirect to https
 try{
-  http.createServer ({keepAlive:'true', headersTimeout:100}, httpRedirectServerLogic).listen(config.http);
+  http.createServer ({keepAlive:'true', headersTimeout:100}, isLocal ? serverLogic : httpRedirectServerLogic).listen(config.http);
 } catch (e) {
   console.warn('problem spinning up http server', e);
 }
-// Create an HTTPS server
-try{
-  const cert = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/fullchain.pem');
-  const key = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/privkey.pem');
-  https.createServer({hostname:'simpatico.io', key, cert}, serverLogic).listen(config.https);
-  // We are bound to port 443 (and probably 80) so we can drop privileges
-  // process.setuid('simpatico');
-  // process.setgid('simpatico');
-} catch (e){
-  console.warn('problem spinning up https server', e);
+// Create an HTTPS server if not running locally.
+if (!isLocal) {
+  try {
+    const cert = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/fullchain.pem');
+    const key = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/privkey.pem');
+    https.createServer({hostname: 'simpatico.io', key, cert}, serverLogic).listen(config.https);
+    // We are bound to port 443 (and probably 80) so we can drop privileges
+    // process.setuid('simpatico');
+    // process.setgid('simpatico');
+  } catch (e) {
+    console.warn('problem spinning up https server', e);
+  }
 }
 
 function httpRedirectServerLogic (req, res) {
-  // Note: we may want an exception here for certbot's protocol.
-  let redirectUrl = `https://${req.hostname}:${config.https}${req.url}`;
-  res.location(redirectUrl);
-  res.writeHead(307);
+  // TODO: add exception here for certbot's protocol.
+  const redirectUrl = `https://${req.hostname}:${config.https}${req.url}`;
+  res.writeHead(307, {Location: redirectUrl});
   res.end()
 }
 
