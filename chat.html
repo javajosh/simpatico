@@ -24,8 +24,10 @@
 
   const eltMessageList = document.getElementById("simpatico-messages");
   const host = window.location.hostname;
-  const wsPort = 8081; //akwardly this needs to match reflector.js
-  const url = `ws://${host}:${wsPort}/`;
+  const isLocal = window.location.startsWith('localhost');
+  const wsPort = isLocal ? 8081 : 443;
+  const wsProtocol = isLocal ? 'ws' : 'wss'
+  const url = `${wsProtocol}://${host}:${wsPort}/`;
   const conn = new WebSocket(url);
   conn.onopen = () => {
     conn.send('hey');
