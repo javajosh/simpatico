@@ -337,27 +337,21 @@ Here is an example of an object pattern:
 This kind of pattern would be useful for any handler that accepts a user.
 
 ## setting up the server
-as root
-  1. `# adduser appuser`
-  1. `# iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080`
-  1. install nvm. See [linode nvm docs](https://www.linode.com/docs/guides/how-to-install-use-node-version-manager-nvm/)
-  1. `# nvm install --lts`
+See the [devops](./devops) directory.
 
-as appuser
-  1. `$ git clone`
-  1. `$ cd simpatico && npm start`
-
-test from remote on 80
-  1. with ip address `172.105.148.242`
-     1. `curl http://172.105.148.242/`
-     1. `curl http://172.105.148.242:8080/`
-  1. with domain name
-    1. `curl http://simpatico.io/`
-    1. `curl http://simpatico.io:8080/`
-
-## Essays in the craft
+## "Essays in the craft"
 
   1. [d3-rectangles](./notes/d3-rectangles.html)
   1. [last-write-wins](./notes/last-write-wins.html)
   1. [browser-events](./notes/browser-events.html)
   1. [memory](./notes/memory.html)
+
+## TODO
+  1. reflector: implement compression
+  1. reflector: implement aggressive client resource caching
+  1. site: replace wizard png favicon with inline svg
+  1. crypto: extract crypto from core; add pki tests to crypto
+  1. chat: add crypto pki
+  1. wp: add crypto symmetric (de/en)cryption.
+  1. devops: tighten up the scripts to support one click deployment of new instance.
+  1. devops: learn more about geographically aware dns
