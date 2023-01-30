@@ -22,11 +22,89 @@
   </style>
 </head>
 <body>
-<h1>RTree.js</h1>
+<h1>RTree</h1>
 <p>
-  Josh Rehman
-  <i>July 2020</i>
+  javajosh
+  <i>2023</i>
 </p>
+
+<p>
+  The RTree is an n-arry tree with a custom addressing scheme for specifying a "parent" of the next node.
+  The RTree also maps all nodes to a reduction of every node up to root.
+  And we suggest an optimization of this map that retains only the mapping at the branch tips
+</p>
+
+<p>The most elegant way to specify this data structure is as a sequence of reductions which accept as input the output of the previous:</p>
+<ol>
+  <li>Reduction 1: The basic input is a list of values, which are interleaved objects and integers.
+    <ol>
+      <li>
+        Integers are interpreted as a 'selection' or 'focus' over either nodes (the positive integers) or the rows (negative integers).
+        Targeting a node creates a new branch, and targeting a branch adds to that branch.
+      </li>
+      <li>
+        Strings are turned into objects, and objects are parented by a new node according to current focus.
+        The stateful focus allows for long runs of input targeted at the same row.
+        It also better represents the essential independence of targeting and messaging at this stage.
+        (We will later explore the possibility of explicitly auto-classifying input using a specialized row type for all input).
+      </li>
+    </ol>
+  </li>
+  <li>Reduction 2: Each branch is reduced with <code>combine()</code> into a residue.
+    <ol>
+      <li>For efficiency, only one residue is kept per branch.</li>
+      <li>One useful purpose of this residue is to express a pattern for new input!</li>
+      <li>A null residue means there can be no new input.</li>
+      <li>This reduction implements "the message cascade" that lets you see why values are what they are.</li>
+    </ol>
+  </li>
+  <li>Reduction 3: All residues are reduced into a summary.
+    <ol>
+      <li>The simplest useful summary simply concatenates.</li>
+      <li>The summary allows controlled interaction between rows during every measurement integration</li>
+    </ol>
+  </li>
+</ol>
+
+
+<p>
+  The intuition is that you're building long rows of objects, and the rows relate to each other in a particular way.
+  But this simple data-structure has some very useful properties for organizing software, particularly when interpreted as a sequence in time.
+  An RTree is a list of measurements binned according to a pattern, and then combined with the bin to produce something useful.
+</p>
+<p>Lots of hierarchical things can be modeled as an RTree, but some make more sense than others</p>
+<ol>
+  <li>git. Commits form an n-arry tree where the branches are...branches.</li>
+  <li>Choose-your-own-adventure style stories.</li>
+  <li>A sequence of low-level input measurements combine with a pattern to produce a value.</li>
+  <li>A sequence of low-level input measurements combine with a list of patterns to produce a structured message, a list of values.</li>
+  <li>a type system with inheritance. a type is a list of handlers, a subtype is a different list of handlers.</li>
+  <li>instantiation and handling of different sequences of inputs.</li>
+  <li>Linux distributions and their relationships</li>
+  <li>A repo full of Dockerfile's that get longer the deeper in the folders you go.</li>
+  <li>The state of a cluster of computers, each being a row with independent new network input over time.</li>
+  <li>The state of a collection of tabs, each tab being a row with new hci input over time </li>
+  <li>Object instantiation and method invocation sequences.
+  Making an anologue to this in Simpatico drove the combine/handler design.</li>
+  <li>New accounts, account activity</li>
+  <li>Linnean system of taxonomic classification</li>
+  <li>An interactive screen sensitive to human interaction with mouse and keyboard and, eventually, a commitment.</li>
+  <li>A set of forms, as with paperwork.</li>
+</ol>
+
+<p>Although I've written the rtree to support any reduction for reduction 2, combine is my favorite.</p>
+
+<h3>Canonical examples</h3>
+<p>We could write an rtree that organizes forms and the data those forms collect over time.
+The forms are represented as built up from scalars, a list of patterns, and the UI a list of ui components.
+Then these forms branch on new input.
+New versions of a form can be made and used simultaneously with old versions of a form.
+  Our "test suite" is always a characteristic set of form inputs that can be reached.
+
+  Note that a "Core" and a set of handlers is a bit like a set of forms.
+
+</p>
+
 <button onclick="window.stop()">Stop 2s Refresh</button>
 <hr>
 <p><b>1</b> <b>2</b> <b>3</b>
