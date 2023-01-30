@@ -1,4 +1,6 @@
-const now = a => a ? Date.now() - a : Date.now()
+const now = () => Date.now() //timestamp
+const date = () => new Date().toISOString() // e.g. 2023-01-29T03:40:21.319Z
+// It's nice to not type "console" all the time but honestly I don't use these much.
 const log = console.log.bind(console)
 const debug = console.debug.bind(console)
 const info = console.info.bind(console)
