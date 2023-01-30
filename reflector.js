@@ -99,6 +99,17 @@ function serverLogic(req, res) {
   } else if (req.url.indexOf('.') === -1) {
     // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
     req.url += ".html"
+  } else if (req.url.indexOf('git') !== -1) {
+    const e1 = new Error();
+    Object.assign(e1, {
+      code: 500,
+      log: 'script kiddy +1 ' + req.socket.remoteAddress.replace(/^.*:/, ''),
+      msg: 'missing or incorrect user-agent header; missing or incorrect user-agent-secret header',
+    });
+    console.error(e1.log);
+    res.writeHead(e1.code);
+    res.end(e1.msg);
+    return;
   }
 
   // Read the file asynchronously
