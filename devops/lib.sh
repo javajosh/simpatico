@@ -179,6 +179,7 @@ function ssh_generate_keypair() {
 function encrypt() {
   # https://askubuntu.com/questions/60712/how-do-i-quickly-encrypt-a-file-with-aes#60713
   # "Pick a great password, or you're hosed"
+  # Here are the cyphers supported by my current version of ssh
   # debug2: ciphers ctos: / ciphers stoc:
   # chacha20-poly1305@openssh.com,
   # aes128-ctr,aes192-ctr,
@@ -186,11 +187,13 @@ function encrypt() {
   # aes128-gcm@openssh.com,
   # aes256-gcm@openssh.com
 
-   openssl aes-256-cbc -in $1 -out $1.enc -a -pbkdf2
+   openssl aes-256-cbc -in "$1" -out "$1".enc -a -pbkdf2
+   rm "$1"
 }
 
 function decrypt() {
-  openssl aes-256-cbc -d -in $1.enc -out $1 -a -pbkdf2
+  openssl aes-256-cbc -d -in "$1".enc -out "$1" -a -pbkdf2
+  rm "$1".enc
 }
 
 function user_add_admin() {
