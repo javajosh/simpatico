@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <script src="testable.js"></script>
+  <!-- End testable.js boilerplate  -->
+
+  <title>svg events</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<h1>svg events</h1>
+<p>javajosh <i>2023</i></p>
+<div class="makeItStop"></div>
+
+<p>One way to visualize events is to create a geometric primitive for the event, and put it in the scene near the mouse.</p>
+
+<!-- What is going on with events coordinates if we listen here?-->
+<svg id="svg" class="natural-units" xmlns='http://www.w3.org/2000/svg'
+     width="80%"
+     viewBox="-1 -1 2 2"
+>
+  <desc>A blank canvas, ready for interaction</desc>
+  <g id="flippedG" transform="scale(1,-1)">
+    <!-- What is going on with events coordinates if we listen here?-->
+    <g transform="translate(0,0)">
+      <circle
+        r=".1"
+        fill="red"></circle>
+      <g transform="scale(.002,-.002)">
+        <text>0</text>
+      </g>
+    </g>
+
+    <g transform="translate(-0.31597,0.17599)">
+      <circle r=".05" fill="red"></circle>
+      <g transform="scale(.002,-.002)">
+        <text>1</text>
+      </g>
+    </g>
+  </g>
+</svg>
+
+
+
+<script type="module">
+  import {scatter, gather} from './svg.js'
+  // Get static references to our HTML-authored DOM elements.
+  const elt = elt=> document.getElementById(elt);
+  const svg = elt('svg');
+  const flipped = elt('flippedG');
+
+
+  const makeSvgElt = tag => document.createElementNS("http://www.w3.org/2000/svg", tag);
+
+  const generateCircle = (x, y, text="", r=.05, fill="green") => {
+    // Clamp inputs
+    x = x.toPrecision(5);
+    y = -y.toPrecision(5);
+
+    // Make the circle
+    const g = scatter(makeSvgElt('g'), {x, y, v:0, g:-9.8});
+    const circle = scatter(makeSvgElt('circle'), {r, fill, opacity:.01});
+    g.appendChild(circle);
+
+    // Now make the text if available.
+    if (text !== null && text !== ""){
+      const g2 = makeSvgElt('g');
+      g2.setAttribute("transform", `scale(.002,-.002)`);
+      const textElt = makeSvgElt('text');
+      textElt.textContent = text;
+      g2.appendChild(textElt);
+      g.appendChild(g2);
+    }
+    return g;
+  }
+
+  // Here is our steady state - add a circle to the scene for every mousemove event.
+  let moveCount = 2;
+  svg.addEventListener('mousemove', e => {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    // transform to SVG coordinates
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+    //Display only every 10th move
+    //console.log(moveCount, pt.x, pt.y, svgP.x, svgP.y)
+    // flipped.innerHTML += ... is simpler but slower.
+    moveCount++;
+    flipped.appendChild(generateCircle(svgP.x, svgP.y, moveCount % 10 ? '' : moveCount));
+  });
+
+  // Here is another steady state - animating the elements we've created to fall off the screen.
+  window.addEventListener('tick', e => {
+    const gs  = Array.from(flipped.children);
+    const dt = .1;
+    gs.forEach(g => {
+      let {x,y,v,a} = gather(g, {x:0,y:0, v:0,a:0});
+      let tx = g.getAttribute('transform');
+      let parsed
+      console.log(g, gather(g, {x:0,y:0, v:0,a:0}));
+      y += v * dt;
+      v += a * dt;
+      scatter(g, {y,v})
+      // const y =
+      // circle.y = circle.y + circle.v * dt;
+      // circle.v = circle.v + circle.g * dt;
+      // circle.g = -9.8;
+      // if (circle.y > 4){
+      //   flipped.removeChild(circle);
+      // } else {
+      //   scatter(circle, {y, v, g})
+      // }
+    });
+    // If they are sufficiently out of view, delete them.
+  });
+</script>
+
+
+<script id="module-tick" type="module">
+  // Define a window.ontick custom event.
+  /* usage:
+  window.addEventListener('tick', e => {
+    console.log(e.detail.t);
+  });
+  Then set "animating" to true, here.
+   */
+  let n = 0;
+  const throttle = 1;
+  let animating = true;
+  const tick = () => {
+    if (window.ticking === false) return;
+    if ((++n % throttle) === 0){
+      const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+      window.dispatchEvent(event);
+    }
+    if (animating) window.requestAnimationFrame(tick);
+  };
+  tick();
+</script>
+</body>
+</html>
