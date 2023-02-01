@@ -55,6 +55,7 @@ const scatter = (elt, obj) => {
     if (value + '' !== old)
     elt.setAttribute(key, value);
   }
+  return elt;
 };
 
 /**

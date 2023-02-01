@@ -1,13 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
-  <meta name="author" content="Josh Rehman">
+  <meta name="author" content="javajosh">
 
-  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <script src="testable.js"></script>
+  <!-- End testable.js boilerplate  -->
 
   <title>svg.js</title>
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -15,7 +20,7 @@
 <body>
 <h1>svg.js</h1>
 <p>javajosh <i>2023</i></p>
-<button onclick="window.stop()">Stop 2s Refresh</button>
+<div class="makeItStop"></div>
 
 <p></p>
 
@@ -54,6 +59,7 @@
 <script type="module">
   import * as svg from './svg.js';
   import {assert, assertEquals, now, info, log, debug, tryToStringify} from './core.js';
+  import rtree from './rtree.js';
   const $ = document.querySelectorAll.bind(document);
 
   const t = now();
@@ -118,18 +124,61 @@
     </g>`;
 
   // Generate the first n + 1 rects in a regular grid left to right, top to bottom.
-  const generateGridToIndex = n => {
-    let result = "", count = 0;
-    for (let j = 0; j < 20; j++){
-      for (let i = 0; i < 20; i++) {
-        count = 20 * j + i;
-        result += generateRect(.1 * i - 1, .9 - .1 * j, .095, .095, "purple", count);
-        if (count >= n) return result;
-      }
+  // For now reject n that is greater than is thoeretically possible to display.
+  // But we may reject other n's depending on the algorithm we use.
+  // In this case we generally go from top-left to the right, building up a row,
+  // And then when you run out of room, create a new row.
+  // We modify this slightly.
+  // We allow you to create a new row by "targeting" an "earlier" node.
+  // So now our state is a function of two variables, n and "target".
+  // If target varies over n, then a pure function that takes some n and returns a target will suffice.
+  // The resulting rtree will be quite specific.
+
+  const generateGridToIndex = (n, targets=[], rows=20, cols=20) => {
+    if (n >= rows * cols || n < 0) {
+      throw `invalid n ${n} for rows ${rows} x cols ${cols}`
     }
-    return result;
+    const useTargets = targets === null || targets.length===0;
+    if (!useTargets) {
+      let result = "", count = 0;
+      for (let j = 0; j < rows; j++) {
+        for (let i = 0; i < cols; i++) {
+          count = cols * j + i;
+          result += generateRect(.1 * i - 1, .9 - .1 * j, .095, .095, "purple", count);
+          if (count >= n) return result;
+        }
+      }
+      return result;
+    } else {
+      // Create a simple rtree over the integers using add as the combine function.
+      const rt = rtree({
+        desc: 'rtree visualization with svg',
+        root: {},
+        residue: {
+          types: {
+            row: {parent, [nodes], row-residue},
+            reticule: {focus: null, display: display(nodeAtFocus(resu))}
+          }
+          instances: {
+            row: []
+          },
+          focus : -1,
+          display: nodeResidue(),
+        },
+        handlers: {
+          add: (msg, ctx) => {
+
+          },
+          focus: (msg, ctx) => {
+
+          }
+        }
+      });
+      // Loop over the target array and parent the add accordingly.
+      targets.forEach((target, i) => rt.add(i, target));
+    }
   }
-  rects.innerHTML = generateGridToIndex(399);
+  rects.innerHTML = generateGridToIndex(399, [null,null,null,3,4,,,,,,10]);
 </script>
 
 <script id="animation" type="module">
