@@ -26,7 +26,10 @@ export default (startValue= {}, reducer = combine) => {
     return read();
   };
 
-  const add = (value) => {
+  const add = (value, newFocus=focus) => {
+    if (newFocus !== focus) {
+      setFocus(newFocus);
+    }
     const parent = read();
     const residue = reducer(parent.residue, value);
     const branch = (focus <= 0) ? parent.branch : -branches.length;
