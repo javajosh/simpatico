@@ -1,9 +1,16 @@
 # Simpatico
 
-This is a browser hosted JavaScript prototype of Simpatico.
+This is a browser-hosted JavaScript prototype of Simpatico.
 Simpatico has the goal of describing a new, minimal characterization of "software application".
 This prototype is distributed as a collection of 4 ideas, one module per idea, one test harness per module.
-Here is one way to get started:
+
+Here is one way to get started using these tools on [simpatico.io](https://simpatico.io).
+Once at that site the simpatico modules are loaded in your browser, and you can play with them with the browser dev tools.
+(This low-tech, self-serve approach is intentional.
+The goal is to achieve the highest power/complexity ratio.
+See [kata](./kata.md) for more info.)
+
+Here is another way to get started running a local server:
 
   1. Open a terminal.
   1. `$ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash`
