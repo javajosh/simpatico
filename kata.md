@@ -54,6 +54,7 @@ Each kata should be executable with the smallest possible requirements. In order
   6. (Optional) Run as root to bind to a lower power: [https://simpatico.local/kata.html],  [wss://simpatico.local]
      Remove the custom port from the URL
   7. (Optional) Run remotely on a vps with custom domain name and tls from letsencrypt: [https://simpatico.io/kata.html],  [wss://simpatico.io]
+  8. (Optional, advanced) Understand how geographically distributed DNS works and design a robust world-wide cluster.
 
 Note that these *kata* are building and upgrading the dojo with the guidance of the sensei.
 In fact, unless you are already a confident black-belt, do not attempt to go past step 3.
@@ -77,7 +78,6 @@ The best time commitments in order:
   1. weekly. A day slot. kids, movie night, social. "something to look forward to"
   1. monthly. Bills, budget and birthday cards.
   1. one-offs. sampling, novelty, adventure
-
 
 
 
