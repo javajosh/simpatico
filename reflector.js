@@ -11,19 +11,21 @@ const args = process.argv.slice(2);
 
 console.info(`reflector.js [${info.version}] started at [${new Date().toUTCString()}] from directory [${process.cwd()}] with args [${args}]`);
 
-// Process reflector config. Override with e.g. node reflector.js "{https:443, host:simpatico.io}"
+// Process reflector config. Override with e.g. node reflector.js "{https:443, host:simpatico.local, cert:localhost.crt, key:localhost.key}"
 const configDefault = {
   http: 8080,
   https: 8443,
   ws: 8081,
-  host: 'localhost'
+  host: 'localhost',
+  cert: './localhost.crt',
+  key: './localhost.key',
 };
 
 // Treat input as JSON without proper quotes, which is more convenient to author in a CLI
 // NB: I may replace this with more standard, simple, bash environment variables.
 const configString = args.length ? args[0]
-  .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
-  .replace(/:(['"])?([a-zA-Z0-9\\.]+)(['"])?/g, ':"$2"')
+    .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
+    .replace(/:(['"])?([a-zA-Z0-9\\.]+)(['"])?/g, ':"$2"')
   : "{}";
 const config = Object.assign(configDefault, JSON.parse(configString));
 const isLocal = config.host === 'localhost';
@@ -43,9 +45,9 @@ try{
 let httpsServer = null;
 if (!isLocal) {
   try {
-    const cert = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/fullchain.pem');
-    const key = fs.readFileSync('/etc/letsencrypt/live/simpatico.io/privkey.pem');
-    httpsServer = https.createServer({hostname: 'simpatico.io', key, cert}, serverLogic).listen(config.https);
+    const cert = fs.readFileSync(config.cert);
+    const key = fs.readFileSync(config.key);
+    httpsServer = https.createServer({hostname: config.host, key, cert}, serverLogic).listen(config.https);
     // We are bound to port 443 (and probably 80) so we can drop privileges
     // process.setuid('simpatico');
     // process.setgid('simpatico');
@@ -99,17 +101,6 @@ function serverLogic(req, res) {
   } else if (req.url.indexOf('.') === -1) {
     // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
     req.url += ".html"
-  } else if (req.url.indexOf('git') !== -1) {
-    const e1 = new Error();
-    Object.assign(e1, {
-      code: 500,
-      log: 'script kiddy +1 ' + req.socket.remoteAddress.replace(/^.*:/, ''),
-      msg: 'missing or incorrect user-agent header; missing or incorrect user-agent-secret header',
-    });
-    console.error(e1.log);
-    res.writeHead(e1.code);
-    res.end(e1.msg);
-    return;
   }
 
   // Read the file asynchronously
