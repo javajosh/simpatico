@@ -60,6 +60,34 @@ function installCertbot() {
   sudo certbot certonly
 }
 
+function addToHosts() {
+  # Windows admin cmd C:\Windows\System32\drivers\etc\hosts
+  # Linux sudo vi /etc/hosts
+  # += 127.0.0.1  simpatico.local
+}
+
+function generateSelfSignedCert() {
+  # Generate root ca - optionally add this RootCA to your browser
+  openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout RootCA.key -out RootCA.pem -subj "/C=US/CN=Simaptico-Root-CA"
+  openssl x509 -outform pem -in RootCA.pem -out RootCA.crt
+
+  # Describe the domain(s) you want to self-sign
+  cat << 'EOF' > domains.ext
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = localhost
+DNS.2 = simpatico.local
+EOF
+
+  # Sign the domains using your new root.
+  openssl req -new -nodes -newkey rsa:2048 -keyout localhost.key -out localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=localhost.local"
+  openssl x509 -req -sha256 -days 1024 -in localhost.csr -CA RootCA.pem -CAkey RootCA.key -CAcreateserial -extfile domains.ext -out localhost.crt
+}
+
+
 # systemd script - not yet working
 cat <<'EOF' >/lib/systemd/system/simpatico.service
 [Unit]
