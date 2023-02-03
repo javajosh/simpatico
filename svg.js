@@ -51,6 +51,16 @@ const scatter = (elt, obj) => {
     delete obj.text;
   }
 
+  if (
+    hasProp(obj, 'fill') &&
+    elt.tagName === "g" &&
+    elt.children.length > 0 &&
+    elt.children[0].tagName !== "g"
+  ){
+    elt.children[0].setAttribute('fill', obj.fill);
+    delete obj.fill;
+  }
+
 
   // Scatter the rest! This is why we deleted entries earlier, btw.
   for (const [key, value] of Object.entries(obj)){

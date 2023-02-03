@@ -36,7 +36,7 @@
 >
   <desc>A blank canvas, ready for interaction</desc>
   <g id="flipYaxis" transform="scale(1,-1)">
-    <g id="redPointer" transform="translate(.2,.5)">
+    <g id="redPointer-1" transform="translate(.2,.5)">
       <circle
         r=".2"
         fill="red"></circle>
@@ -81,6 +81,83 @@
     scatter(redPointer, {x, y, text: moveCount++});
   });
 </script>
+
+
+<p>
+  We then add to this some statically fixed shapes, and write code to determine if two shapes overlap:
+</p>
+
+<svg id="svg-cursor-collision" class="unit-circle" xmlns='http://www.w3.org/2000/svg'
+     width="400px" height="200px"
+     viewBox="-1 -1 2 2"
+     style="cursor:none"
+>
+  <desc>A static field of shapes, plus a pointer</desc>
+  <g id="flipYaxis" transform="scale(1,-1)">
+    <circle id="blue-circle" fill="blue" cx=".25" cy=".25" r=".4" ></circle>
+    <rect id="green-square" fill="green" x ="-1" y="-.12" width=".4" height=".4"></rect>
+    <!-- The pointer should always be on top of the field, so at the bottom of the svg list. -->
+    <g id="redPointer-2" transform="translate(.2,.5)">
+      <circle
+        r=".2"
+        fill="red"></circle>
+      <g transform="scale(.004,-.004)">
+        <text>0</text>
+      </g>
+    </g>
+  </g>
+</svg>
+<p>
+
+</p>
+<script type="module">
+  import {scatter, intersectingElts} from './svg.js';
+  const debug = false;
+  // Get static references to our HTML-authored DOM elements.
+  // Note also we need svg style="cursor:none" above
+  const elt = elt=> document.getElementById(elt);
+  const svg = elt('svg-cursor-collision');
+  const redPointer = elt('redPointer-2');
+  const blueCircle = elt('blue-circle');
+  const greenSquare = elt('green-square');
+
+  // Here is our steady state - add a circle to the scene for every mousemove event.
+  let moveCount = 0;
+  svg.addEventListener('mousemove', e => {
+    const point = svg.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    // transform DOM coords to proper svg coords
+    let {x, y} = point.matrixTransform(svg.getScreenCTM().inverse());
+    // Clamp - this may save memory, but definitely saves sanity.
+    x  = x.toPrecision(5)
+    y = y.toPrecision(5)
+    // Invert y (!). That I have to manually flip the y-axis tells me this does NOT work how I would expect.
+    x =  1 * x;
+    y = -1 * y;
+
+    // Eventually we'll loop over ALL shapes, but not yet.
+    const touchingBlue = intersectingElts(redPointer, blueCircle);
+    const touchingGreen = intersectingElts(redPointer, greenSquare);
+
+    if (debug) console.debug(
+      moveCount, point.x, point.y, x, y,
+      touchingBlue,
+      touchingGreen
+    );
+    const fill = touchingBlue || touchingGreen ? 'violet' : 'red';
+    scatter(redPointer, {x, y, text: moveCount++, fill});
+  });
+</script>
+
+<p>
+  We immediately notice a problem of imprecision - we are checking bounding boxes, which doesn't work well with circles.
+  Also, we really want something like a custom event for collision, and ideally something that works generally.
+  Finally, and most importantly, this way of doing things goes against the grain of SVG.
+  First, you lose the often very useful "target" property of the mouse move event, which is a good way to do poor man's collision detection.
+  You lose this because your cursor element is the one receiving all the events!
+  Second you lose the normal methods of implementing drag and drop. So we won't pursue this direction.
+</p>
 
 </body>
 </html>
