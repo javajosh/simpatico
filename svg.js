@@ -9,17 +9,17 @@ const {elt:ELT, obj:OBJ} = as;
  *
  * If the target is a 'text' then we allow
  *
- * @param elt The target HTML element
- * @param obj The source javascript object, which we MAY modify!
+ * @param elt The target HTML element. Usually a g elt with a transform attribute containing 1 or 2 shapes.
+ * @param obj The source javascript object, which this code will modify!
  */
 const scatter = (elt, obj) => {
   ELT(elt) && OBJ(obj);
-  // x and y coords are applied as cx cy coords, if not already set.
+  // Special treatment for circles: treat x and y as cx cy if not explicitly specified.
   if (elt.tagName === "circle") {
     if (hasProp(obj, 'x') && !hasProp(obj, 'cx')) obj.cx= obj.x;
     if (hasProp(obj, 'y') && !hasProp(obj, 'cy')) obj.cy= obj.y;
   }
-  // If the target is a 'g', then build up the transform string and remove those keys.
+  // If the target is a 'g', then build up the transform string from sub-clauses and remove those keys.
   if (elt.tagName === "g" && !hasProp(obj, 'transform')){
     const clauses = [];
     // Convert x, y into a translate clause
@@ -38,18 +38,21 @@ const scatter = (elt, obj) => {
     elt.setAttribute("transform", clauses.join(''));
   }
 
-  if (elt.tagName === "g" &&
+  // Setting text value assumes a g > (elt) g > text pattern.
+  if (
+    hasProp(obj, 'text') &&
+    elt.tagName === "g" &&
     elt.children.length > 0 &&
-    elt.children[0].tagName === "text") {
-    elt = elt.children[0];
-  }
-
-  if (elt.tagName === "text" && hasProp(obj, 'text')){
-    elt.innerHTML = obj.text;
+    elt.children[1].tagName === "g" &&
+    elt.children[1].children.length > 0 &&
+    elt.children[1].children[0].tagName === "text"
+  ){
+    elt.children[1].children[0].textContent = obj.text;
     delete obj.text;
   }
 
-  // Scatter the rest!
+
+  // Scatter the rest! This is why we deleted entries earlier, btw.
   for (const [key, value] of Object.entries(obj)){
     const old = elt.getAttribute(key);
     if (value + '' !== old)

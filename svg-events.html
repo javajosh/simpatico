@@ -19,134 +19,61 @@
 </head>
 <body>
 <h1>svg events</h1>
-<p>javajosh <i>2023</i></p>
+<p>javajosh <i>2023</i> <a href="/">home</a></p>
 <div class="makeItStop"></div>
 
-<p>One way to visualize events is to create a geometric primitive for the event, and put it in the scene near the mouse.</p>
 
-<!-- What is going on with events coordinates if we listen here?-->
-<svg id="svg" class="natural-units" xmlns='http://www.w3.org/2000/svg'
-     width="80%"
+<h2>Beginning with an SVG cursor</h2>
+<p>
+  One way to visualize events is to create a geometric primitive for the event, and put it in the scene near the mouse.
+  First we sketch out the svg image of an "event" (just a circle):
+</p>
+
+<svg id="svg-cursor" class="unit-circle" xmlns='http://www.w3.org/2000/svg'
+     width="400px" height="200px"
      viewBox="-1 -1 2 2"
+     style="cursor:none"
 >
   <desc>A blank canvas, ready for interaction</desc>
-  <g id="flippedG" transform="scale(1,-1)">
-    <!-- What is going on with events coordinates if we listen here?-->
-    <g transform="translate(0,0)">
+  <g id="flipYaxis" transform="scale(1,-1)">
+    <g id="redPointer" transform="translate(.2,.5)">
       <circle
-        r=".1"
+        r=".2"
         fill="red"></circle>
-      <g transform="scale(.002,-.002)">
+      <g transform="scale(.004,-.004)">
         <text>0</text>
-      </g>
-    </g>
-
-    <g transform="translate(-0.31597,0.17599)">
-      <circle r=".05" fill="red"></circle>
-      <g transform="scale(.002,-.002)">
-        <text>1</text>
       </g>
     </g>
   </g>
 </svg>
 
-
-
 <script type="module">
-  import {scatter, gather} from './svg.js'
+  import {scatter} from './svg.js'
   // Get static references to our HTML-authored DOM elements.
+  // Note also we need svg style="cursor:none" above
   const elt = elt=> document.getElementById(elt);
-  const svg = elt('svg');
-  const flipped = elt('flippedG');
-
-
-  const makeSvgElt = tag => document.createElementNS("http://www.w3.org/2000/svg", tag);
-
-  const generateCircle = (x, y, text="", r=.05, fill="green") => {
-    // Clamp inputs
-    x = x.toPrecision(5);
-    y = -y.toPrecision(5);
-
-    // Make the circle
-    const g = scatter(makeSvgElt('g'), {x, y, v:0, g:-9.8});
-    const circle = scatter(makeSvgElt('circle'), {r, fill, opacity:.01});
-    g.appendChild(circle);
-
-    // Now make the text if available.
-    if (text !== null && text !== ""){
-      const g2 = makeSvgElt('g');
-      g2.setAttribute("transform", `scale(.002,-.002)`);
-      const textElt = makeSvgElt('text');
-      textElt.textContent = text;
-      g2.appendChild(textElt);
-      g.appendChild(g2);
-    }
-    return g;
-  }
+  const svg = elt('svg-cursor');
+  const redPointer = elt('redPointer');
 
   // Here is our steady state - add a circle to the scene for every mousemove event.
-  let moveCount = 2;
+  let moveCount = 0;
   svg.addEventListener('mousemove', e => {
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    // transform to SVG coordinates
-    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const point = svg.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    // transform DOM coords to proper svg coords
+    let {x, y} = point.matrixTransform(svg.getScreenCTM().inverse());
+    // Clamp - this may save memory, but definitely saves sanity.
+    x  = x.toPrecision(5)
+    y = y.toPrecision(5)
+    // Invert y (!). That I have to manually flip the y-axis tells me this does NOT work how I would expect.
+    x =  1 * x;
+    y = -1 * y;
 
-    //Display only every 10th move
-    //console.log(moveCount, pt.x, pt.y, svgP.x, svgP.y)
-    // flipped.innerHTML += ... is simpler but slower.
-    moveCount++;
-    flipped.appendChild(generateCircle(svgP.x, svgP.y, moveCount % 10 ? '' : moveCount));
-  });
-
-  // Here is another steady state - animating the elements we've created to fall off the screen.
-  window.addEventListener('tick', e => {
-    const gs  = Array.from(flipped.children);
-    const dt = .1;
-    gs.forEach(g => {
-      let {x,y,v,a} = gather(g, {x:0,y:0, v:0,a:0});
-      let tx = g.getAttribute('transform');
-      let parsed
-      console.log(g, gather(g, {x:0,y:0, v:0,a:0}));
-      y += v * dt;
-      v += a * dt;
-      scatter(g, {y,v})
-      // const y =
-      // circle.y = circle.y + circle.v * dt;
-      // circle.v = circle.v + circle.g * dt;
-      // circle.g = -9.8;
-      // if (circle.y > 4){
-      //   flipped.removeChild(circle);
-      // } else {
-      //   scatter(circle, {y, v, g})
-      // }
-    });
-    // If they are sufficiently out of view, delete them.
+    console.debug(moveCount, point.x, point.y, x, y);
+    scatter(redPointer, {x, y, text: moveCount++});
   });
 </script>
 
-
-<script id="module-tick" type="module">
-  // Define a window.ontick custom event.
-  /* usage:
-  window.addEventListener('tick', e => {
-    console.log(e.detail.t);
-  });
-  Then set "animating" to true, here.
-   */
-  let n = 0;
-  const throttle = 1;
-  let animating = true;
-  const tick = () => {
-    if (window.ticking === false) return;
-    if ((++n % throttle) === 0){
-      const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
-      window.dispatchEvent(event);
-    }
-    if (animating) window.requestAnimationFrame(tick);
-  };
-  tick();
-</script>
 </body>
 </html>
