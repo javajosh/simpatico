@@ -55,7 +55,8 @@
 </p>
 
 <script type="module">
-  import {scatter} from './svg.js'
+  import {scatter} from './svg.js';
+  const debug = false;
   // Get static references to our HTML-authored DOM elements.
   // Note also we need svg style="cursor:none" above
   const elt = elt=> document.getElementById(elt);
@@ -77,7 +78,7 @@
     x =  1 * x;
     y = -1 * y;
 
-    console.debug(moveCount, point.x, point.y, x, y);
+    if (debug) console.debug(moveCount, point.x, point.y, x, y);
     scatter(redPointer, {x, y, text: moveCount++});
   });
 </script>
