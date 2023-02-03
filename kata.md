@@ -49,12 +49,20 @@ Each kata should be executable with the smallest possible requirements. In order
   3. Run a custom, local http server `npm start`: http://localhost:8080/kata.html,  ws://localhost.
      Adds websockets; security is still omitted.
   4. Run a custom server as 3, and add hostname to `/etc/hosts`:  [http://simpatico.local:8080/kata.html],  [ws://simpatico.local:8080]
-  5. Run a named custom server as 4, generate a root ca, add ca to local browser, use ca to create a tls key and cert file, and add those files to custom server. [https://simpatico.local:8443/kata.html],  [wss://simpatico.local:8443]
+  5. Run a named custom server as 4, generate a root ca, add ca to local browser, use ca to create a tls key and cert file, and add those files to custom server.
+     [https://simpatico.local:8443/kata.html],  [wss://simpatico.local:8443]
+     See [deploy.sh#generateSelfSignedCert](/devops/deploy.sh)
      Complete API access
-  6. (Optional) Run as root to bind to a lower power: [https://simpatico.local/kata.html],  [wss://simpatico.local]
+  6. (Optional) Run as root to bind to a lower port: [https://simpatico.local/kata.html],  [wss://simpatico.local]
      Remove the custom port from the URL
   7. (Optional) Run remotely on a vps with custom domain name and tls from letsencrypt: [https://simpatico.io/kata.html],  [wss://simpatico.io]
   8. (Optional, advanced) Understand how geographically distributed DNS works and design a robust world-wide cluster.
+
+All code will run on a level 5 dojo; level 6 is "nice to have"; level 7 & 8 are "strong professional" steps.
+[simpatico.io](https://simpatico.io) is a *shared level 7 dojo* that I set up for everyone!
+Note that a separate dojo must be formed on every device on which you practice.
+If you do not keep your dojos at the same level on all devices then you will be confused.
+For example, if you have a desktop with a level 5 dojo, and you have a laptop with a level 3 dojo, you should upgrade the laptop (or downgrade the desktop).
 
 Note that these *kata* are building and upgrading the dojo with the guidance of the sensei.
 In fact, unless you are already a confident black-belt, do not attempt to go past step 3.
