@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <script src="testable.js" type="module"></script>
+  <!-- End testable.js boilerplate  -->
+
+  <title>crypto</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>crypto</h1>
+<p>javajosh <i>2023</i></p>
+<div class="makeItStop"></div>
+
+<p>
+  Exercise cryptographic primitives.
+  See the console.
+</p>
+
+<script type="module">
+import {generateKey, encrypt, pack, decrypt, unpack} from './crypto.js';
+
+  const app = async () => {
+    // encrypt message
+    const msg = 'Hey crypto cats!!';
+    const key = await generateKey();
+    const { cipher, iv } = await encrypt(msg, key);
+
+    // pack and transmit
+    // await fetch('/secure-api', {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     cipher: pack(cipher),
+    //     iv: pack(iv),
+    //   }),
+    // })
+    // retrieve
+    // const response = await fetch('/secure-api').then(res => res.json())
+    const fakeResponse = {
+      cipher: pack(cipher),
+      iv: pack(iv),
+    }
+
+    // unpack and decrypt message
+    const final = await decrypt(
+      unpack(fakeResponse.cipher),
+      key,
+      unpack(fakeResponse.iv),
+    );
+    console.log(final); // logs 'Hello, World!'
+  }
+  app();
+</script>
+</body>
+</html>
