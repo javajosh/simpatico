@@ -6,7 +6,8 @@
 # Note, if the private key file is lost or you forget its passwd, you'll have to recreate the server.
 
 # Load up our handy functions.
-. ./lib.sh
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+. $SCRIPT_DIR/lib.sh
 
 # Pick these values
 hostname=cassian
@@ -61,16 +62,27 @@ function installCertbot() {
 }
 
 function addToHosts() {
+  true
   # Windows admin cmd C:\Windows\System32\drivers\etc\hosts
   # Linux sudo vi /etc/hosts
   # += 127.0.0.1  simpatico.local
 }
 
-function generateSelfSignedCert() {
-  # Generate root ca - optionally add this RootCA to your browser
-  openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout RootCA.key -out RootCA.pem -subj "/C=US/CN=Simaptico-Root-CA"
-  openssl x509 -outform pem -in RootCA.pem -out RootCA.crt
+function generateRootCA() {
+  # Generate root ca once per device.
+  # For each browser on the device, add the root ca.
+  # You may want to share the RootCA.pem file
+  # Note that if you're in WSL or another VM you may need to copy these files to the correct host directory.
+  openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 \
+  -keyout ~/.ssh/RootCA.key \
+  -out ~/.ssh/RootCA.pem \
+  -subj "/C=US/CN=Simpatico-Root-CA"
 
+  openssl x509 -outform pem -in ~/.ssh/RootCA.pem -out ~/.ssh/RootCA.crt
+}
+
+function generateSelfSignedCert() {
+  # This only needs to be done once per simulated domain, but it doesn't hurt to regenerate.
   # Describe the domain(s) you want to self-sign
   cat << 'EOF' > domains.ext
 authorityKeyIdentifier=keyid,issuer
@@ -83,13 +95,15 @@ DNS.2 = simpatico.local
 EOF
 
   # Sign the domains using your new root.
-  openssl req -new -nodes -newkey rsa:2048 -keyout localhost.key -out localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=localhost.local"
-  openssl x509 -req -sha256 -days 1024 -in localhost.csr -CA RootCA.pem -CAkey RootCA.key -CAcreateserial -extfile domains.ext -out localhost.crt
+  openssl req -new -nodes -newkey rsa:2048 -keyout localhost.key -out localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=simpatico.local"
+  openssl x509 -req -sha256 -days 1024 -in localhost.csr -CA ~/.ssh/RootCA.pem -CAkey ~/.ssh/RootCA.key -CAcreateserial -extfile domains.ext -out localhost.crt
+
+  # Now you can run reflector with something like "{http:8080, https:8443, host:simpatico.local, cert:localhost.crt, key:localhost.key}"
 }
 
-
-# systemd script - not yet working
-cat <<'EOF' >/lib/systemd/system/simpatico.service
+function addSimpaticoUnitFile() {
+  # systemd script - not yet working
+  cat <<'EOF' >/lib/systemd/system/simpatico.service
 [Unit]
 Description=Job that runs the simpatico reflector daemon
 Documentation=man:reflector(1)
@@ -103,3 +117,6 @@ ExecStart=/usr/bin/node /home/simpatico/simpatico/reflector.js "{http:80, https:
 [Install]
 WantedBy=multi-user.target
 EOF
+}
+
+
