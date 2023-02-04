@@ -2,3 +2,9 @@
 node_modules
 /.idea/
 *.swp
+
+# Ignore self-signed TLS files
+localhost.crt
+localhost.csr
+localhost.key
+domains.ext
