@@ -8,36 +8,40 @@ const generateSymmetricKey = async () => {
   }, true, ['encrypt', 'decrypt'])
 }
 
+// A kind of salt that you need to keep with the key. See:
 // https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 // https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
 const generateIv = () => window.crypto.getRandomValues(new Uint8Array(12));
 
+// TextEncoder/TextDecoder look like a relatively recent, useful browser addition.
 // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder
-const encode = (data) => new TextEncoder().encode(data);
 // https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder
+const encode = (data) => new TextEncoder().encode(data);
 const decode = (byteStream) => new TextDecoder().decode(byteStream);
 
+// Encrypt cleartext with secret; returns the cipherText and the one-time iv.
+// For classic naive operation the "message" would send both parts.
+// That is, an attacker would get both parameters - but they still don't have the secret.
 // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt
-const encrypt = async (data, key) => {
-  const encoded = encode(data);
+const encrypt = async (clearText, secret) => {
+  const encoded = encode(clearText);
   const iv = generateIv();
-  const cipher = await window.crypto.subtle.encrypt({
-    name: 'AES-GCM',
-    iv: iv,
-  }, key, encoded);
+  const cipherText = await window.crypto.subtle.encrypt({name: 'AES-GCM', iv,
+  }, secret, encoded);
 
   return {
-    cipher,
+    cipherText,
     iv,
   }
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/decrypt
 const decrypt = async (cipher, key, iv) => {
-  const encoded = await window.crypto.subtle.decrypt({
-    name: 'AES-GCM',
-    iv: iv,
-  }, key, cipher)
+  const encoded = await window.crypto.subtle.decrypt(
+    {name: 'AES-GCM', iv },
+    key,
+    cipher
+  )
 
   return decode(encoded)
 }
