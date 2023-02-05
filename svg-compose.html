@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+<!-- Refresh is very annoying in any kata wanting user interaction, especially if they are intended to author something.
+ So turn it off
+ -->
+<!--  <meta id="refresh" http-equiv="refresh" content="2">-->
+  <script src="testable.js"></script>
+  <!-- End testable.js boilerplate  -->
+
+  <title>svg compose</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<h1>svg compose</h1>
+<p>javajosh <i>2023</i></p>
+<div class="makeItStop"></div>
+
+
+<p>
+  Here is a simple tool that interprets the string on the left as an svg on the right.
+</p>
+
+<div>
+  <p>This is the code into which your string is inserted:</p>
+  <p class="aside">
+    Shoutout to the <a href="https://plugins.jetbrains.com/plugin/2162-string-manipulation">String Manip intellij plugin</a>.
+    It always feels wrong to use an online tool to encode/decode strings, and now I don't have to use one!
+  </p>
+  <!-- I admit that having to escape HTML in HTML makes me a little sad. -->
+  <code><pre>
+&lt;svg id=&quot;svg&quot; class=&quot;natural-units&quot; xmlns=&#39;http://www.w3.org/2000/svg&#39;
+     width=&quot;80%&quot;
+     viewBox=&quot;-1 -1 2 2&quot;&gt;
+  &lt;g transform=&quot;scale(1,-1)&quot;&gt;
+    &lt;!-- Your SVG goes here, in a unit square with +y up. --&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;
+  </pre></code>
+
+  <p>Here is an example of the kind of string you might put in there:</p>
+  <code><pre>
+&lt;g transform=&quot;translate(.5,.5)&quot;&gt;
+ &lt;circle r=&quot;.5&quot; fill=&quot;red&quot; /&gt;
+ &lt;circle cy=&quot;&quot; r=&quot;.3&quot; fill=&quot;blue&quot; /&gt;
+&lt;/g&gt;
+&lt;g transform=&quot;scale(.01, .01)&quot;&gt;
+&lt;text fill=&quot;white&quot;&gt;Hello&lt;/text&gt;
+&lt;/g&gt;
+  </pre></code>
+</div>
+<div>
+  <!--  Don't really need the form here, but it's not doing any harm -->
+  <p>Enter the SVG string you want to display:</p>
+  <form action="return false;">
+    <textarea name="svgIn" id="svgIn" cols="30" rows="10"></textarea>
+  </form>
+
+  <p>The string interpreted as SVG looks like:</p>
+  <img id="svgOut" src="">
+</div>
+
+<script type="module">
+  const debug = false;
+  const elt = elt => document.getElementById(elt);
+  const svgIn = elt('svgIn');
+  const svgOut = elt('svgOut');
+
+  const wrapSvgString = svgString => `data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='-1 -1 2 2'>
+        <g transform="scale(1,-1)">
+            ${svgString}
+        </g>
+    </svg>
+    `;
+  const display = svgString => {
+    svgOut.setAttribute('src', wrapSvgString(svgString));
+  };
+
+  svgIn.addEventListener('input', e => {
+    if (debug) console.debug(e, e.target.value);
+    display(e.target.value);
+  });
+</script>
+
+</body>
+</html>
