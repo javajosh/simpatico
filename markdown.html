@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <script src="testable.js" type="module"></script>
+  <!-- End testable.js boilerplate  -->
+
+  <title>markdown.js</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>markdown.js</h1>
+<p>javajosh <i>2023</i></p>
+<div class="makeItStop"></div>
+
+<p>
+  This <a href="kata">kata</a> gives you the write to author in markdown.
+  Because you pay hommage to the elder, the html file, and give your markdown its canonical meaning, as HTML.
+  For expedience I will be using showdown, but I am unhappy with its enormous (160kb, readable) size.
+</p>
+<p>
+  Here is the simplest thing that works, creating an HTML string from markdown and displaying it:
+</p>
+
+<pre id="input-1">
+# Heading 1`
+With a new paragraph
+  1. And a
+  2. list
+</pre>
+<p id="output-1"></p>
+<!-- wget https://unpkg.com/showdown/dist/showdown.js -->
+<script src="./showdown.js"></script>
+<script>
+  const elt = id => document.getElementById(id);
+  const input1 = elt("input-1");
+  const output1 = elt("output-1");
+
+  const converter = new showdown.Converter(),
+    text      = input1.innerText,
+    html      = converter.makeHtml(text);
+
+  output1.innerHTML = html;
+</script>
+</body>
+</html>

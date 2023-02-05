@@ -44,8 +44,8 @@ Each kata should be executable with the smallest possible requirements. In order
 
   1. Browser loads kata.html as a file url.
      The basics. Limited API access, nothing network or security related.
-    2. Run a simple, generic http server e.g. `python http server` and load http://localhost:8080/kata.html.
-     Adds network related APIs; omits websockets and security still.
+  2. Run a simple, generic http server e.g. `python http server` and load http://localhost:8080/kata.html.
+     Adds network related APIs; omits websockets and security.
   3. Run a custom, local http server `npm start`: http://localhost:8080/kata.html,  ws://localhost.
      Adds websockets; security is still omitted.
   4. Run a custom server as 3, and add hostname to `/etc/hosts`:  [http://simpatico.local:8080/kata.html],  [ws://simpatico.local:8080]
@@ -64,9 +64,12 @@ Note that a separate dojo must be formed on every device on which you practice.
 If you do not keep your dojos at the same level on all devices then you will be confused.
 For example, if you have a desktop with a level 5 dojo, and you have a laptop with a level 3 dojo, you should upgrade the laptop (or downgrade the desktop).
 
-Note that these *kata* are building and upgrading the dojo with the guidance of the sensei.
-In fact, unless you are already a confident black-belt, do not attempt to go past step 3.
+Note that these particular *kata* are about building and upgrading the dojo itself, with the guidance of the sensei.
+In fact, unless you are already a confident black-belt, do not attempt to build a dojo above stage 3.
 If you want to play with apis that require tls, I suggest that you use [simpatico.io] itself.
+Note also that your dojos will need to be created on every device on which you work.
+This means desktop and laptop, and (perhaps) your phone and tablet.
+(If you cannot build a dojo on the device, do you own it?)
 
 I like this series on CSS from [netuts](https://code.tutsplus.com/tutorials/from-psd-to-html-building-a-set-of-website-designs-step-by-step--net-37).
 It is done in a similar "starting with the basics and building up systematically" sort of way.
@@ -90,6 +93,17 @@ The best time commitments in order:
   1. monthly. Bills, budget and birthday cards.
   1. one-offs. sampling, novelty, adventure
 
+## Apology
+I realized after writing this I broke a rule and used markdown instead of html.
+One solution is to renounce markdown and author in plain html only.
+This has some appeal, but I like markdown!
+*The primary problem is that markdown is only directly support by github itself*
+One solution to use markdown with a local server is to *introduce a build step*!
+Either with [pandoc] or [showdown](https://github.com/showdownjs/showdown)
+And then triggered off of [entr](https://github.com/eradman/entr) (And see this [excellent StackExchange article on the subject of file watching](https://superuser.com/questions/181517/how-to-execute-a-command-whenever-a-file-changes).)
+
+Pandoc looks like a handy tool, as is entr, so I'm glad to make their acquaintance.
+But *for now* I think its sufficient to allow some markdown to seep into the project and take no action.
 
 
 
