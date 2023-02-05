@@ -68,6 +68,9 @@ Note that these *kata* are building and upgrading the dojo with the guidance of 
 In fact, unless you are already a confident black-belt, do not attempt to go past step 3.
 If you want to play with apis that require tls, I suggest that you use [simpatico.io] itself.
 
+I like this series on CSS from [netuts](https://code.tutsplus.com/tutorials/from-psd-to-html-building-a-set-of-website-designs-step-by-step--net-37).
+It is done in a similar "starting with the basics and building up systematically" sort of way.
+
 ## Durability
 Durability is important.
 If you don't have it, you cannot incrementally improve.
