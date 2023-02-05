@@ -10,7 +10,7 @@
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
       <rect width='1' height='1' fill='white' />
   </svg>"/>
-  <meta id="refresh" http-equiv="refresh" content="2">
+<!--  <meta id="refresh" http-equiv="refresh" content="2">-->
   <script src="testable.js" type="module"></script>
   <!-- End testable.js boilerplate  -->
 
@@ -24,16 +24,17 @@
 
 <p>
   Exercise cryptographic primitives.
-  See the console.
+  In this case use the crypto library to generate a key, encrypt a thing, then decrypt.
+  Note that, at this point, we cannot save the generated keys for later use.
 </p>
 
 <script type="module">
-import {generateKey, encrypt, pack, decrypt, unpack} from './crypto.js';
+import {generateSymmetricKey, encrypt, pack, decrypt, unpack} from './crypto.js';
 
   const app = async () => {
     // encrypt message
     const msg = 'Hey crypto cats!!';
-    const key = await generateKey();
+    const key = await generateSymmetricKey();
     const { cipher, iv } = await encrypt(msg, key);
 
     // pack and transmit
@@ -60,6 +61,33 @@ import {generateKey, encrypt, pack, decrypt, unpack} from './crypto.js';
     console.log(final); // logs 'Hello, World!'
   }
   app();
+</script>
+
+<p>
+  Let's <a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto">export the key</a> so we can use it over time.
+  This covered in <a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/exportKey">MDN's exportKey() docs</a>
+  That is, you can reuse a key you generated once over and over, potentially for communication.
+  In general though we should rotate keys fairly often, even as often as once a day.
+  More often than that is certainly excessive.
+  Less often may even make sense, for example, once a month.
+  One simply shares the new public key across all old channels.
+  This is a slow "keep alive" for all of your relationships.
+</p>
+
+<script type="module">
+  import {generateSymmetricKey, pack} from './crypto.js';
+
+  const key = await generateSymmetricKey();
+
+  // Export by picking a format and calling exportKey
+  const formats = {'raw':'raw', 'pkcs8':'pkcs8', 'spki':'spki', 'jwk':'jwk'};
+  const exportedKey = await window.crypto.subtle.exportKey(formats.raw, key);
+  const exportedKeyString = pack(exportedKey);
+  console.log('ArrayBuffer[32]', exportedKeyString);
+  // A this point we have a key that can be stored and recovered
+  // A key part of the durable process, haha.
+
+  // NEXT: do this with public/private keys.
 </script>
 </body>
 </html>

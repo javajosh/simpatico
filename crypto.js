@@ -1,6 +1,7 @@
+// Symmetrical encryption - this is like generatng a very strong password.
 // Adapted from https://voracious.dev/blog/a-practical-guide-to-the-web-cryptography-api
 // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey
-const generateKey = async () => {
+const generateSymmetricKey = async () => {
   return window.crypto.subtle.generateKey({
     name: 'AES-GCM',
     length: 256,
@@ -58,4 +59,4 @@ const unpack = (packed) => {
   return buffer
 }
 
-export {generateKey, encode, decode, generateIv, encrypt, decrypt, pack, unpack}
+export {generateSymmetricKey, encode, decode, generateIv, encrypt, decrypt, pack, unpack}
