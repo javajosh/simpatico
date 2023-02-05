@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ###########################################################
 # This is a library and reference for useful bash commands for both debian and redhat based systems
 # I'm not a good bash programmer, or a good linux sysadmin. These links help:
