@@ -22,8 +22,42 @@
   </style>
 </head>
 <body>
-<h1>sqlite3 in the browser</h1>
-<a href="https://developer.chrome.com/blog/sqlite-wasm-in-the-browser-backed-by-the-origin-private-file-system/"></a>
+<h1>                   sqlite3 in the browser</h1>
+<p>
+  Most of this kata was adapted from
+  <a href="https://developer.chrome.com/blog/sqlite-wasm-in-the-browser-backed-by-the-origin-private-file-system/">This excellent blog from Google</a>.
+  explaining how to connect the pieces.
+  I followed the directions, and it worked great.
+  450kb of code, and you have a relationsional database running in your browser.
+  (Definitely need to get zipping working in reflector)
+  I'd like to explore limitations, and also storage issues, before relying on this for real stuff.
+  But I am hopeful.
+</p>
+
+<p>
+  Given that it's a 450kb blob, it would be good to revisit <s><a href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity">subresource integrity</a></s>.
+  (And also revisit <a href="https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses">adding zlip compression to the reflector</a>)
+</p>
+<hr>
+<!--<p>-->
+<!--  Note that you get sha sums on  <a href="https://sqlite.org/download.html">the sqlite download page</a> but this only applies to the zip.-->
+<!--  Also that hash is using 'sha3-256' which is an unsupported algorithm-->
+<!--  Naively*, we recompute a hash:-->
+<!--</p>-->
+<!--<pre>-->
+<!--  cat /db/sqlite-wasm/jswasm/sqlite3.wasm | openssl dgst -sha256 -binary | openssl base64 -A-->
+<!--  47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=-->
+<!--  sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=-->
+<!--  integrity="sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="-->
+<!--</pre>-->
+
+<!--<p class="aside">-->
+<!--  Why is it naive? Because recomputing a hash isn't as good as using a public known good hash.-->
+<!--  Consider that I may have built a nefarious version of sqlite already - SRI just ensures the integrity of this bad copy.-->
+<!--  It is also naive because there is nowhere to put the integrity attribute here.-->
+<!--  The wasm code is loaded dynamically by javascript in the WebWorker constructor.-->
+<!--</p>-->
+
 <script>
   const logHtml = function (cssClass, ...args) {
     const ln = document.createElement('div');
