@@ -11,14 +11,17 @@ const args = process.argv.slice(2);
 
 console.info(`reflector.js [${info.version}] started at [${new Date().toUTCString()}] from directory [${process.cwd()}] with args [${args}]`);
 
+
+// eg  sudo node reflector.js "{http:80, https:443, ws:8081, host:simpatico.io cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem key:/etc/letsencrypt/live/simpatico.io/privkey.pem}"
 // Process reflector config. Override with e.g. node reflector.js "{https:443, host:simpatico.local, cert:localhost.crt, key:localhost.key}"
 const configDefault = {
   http: 8080,
   https: 8443,
   ws: 8081,
   host: 'localhost',
-  cert: './localhost.crt',
-  key: './localhost.key',
+  // todo figure out why these aren't passing in correctly with my psuedo json; and/or switch to env_vars.
+  cert: '/etc/letsencrypt/live/simpatico.io/fullchain.pem',
+  key: '/etc/letsencrypt/live/simpatico.io/privkey.pem',
 };
 
 // Treat input as JSON without proper quotes, which is more convenient to author in a CLI
