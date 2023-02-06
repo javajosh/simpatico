@@ -80,7 +80,7 @@ import {generateSymmetricKey, encrypt, pack, decrypt, unpack} from './crypto.js'
 </p>
 
 <script type="module">
-  import {generateSymmetricKey, pack} from './crypto.js';
+  import {generateSymmetricKey, importSymmetricKey, pack} from './crypto.js';
   import {mapObject, getProp, as} from './core.js';
 
   const key = await generateSymmetricKey();
@@ -93,47 +93,46 @@ import {generateSymmetricKey, encrypt, pack, decrypt, unpack} from './crypto.js'
   // For each format try to export it in that format.
   // Measure unsupported formats
   const unsupported = {};
-  let exportedKey, exportedKeyPacked;
+  let exportedKey;
   mapObject(formats, async ([_, format]) => {
     try {
       exportedKey = await window.crypto.subtle.exportKey(format, key);
-    } catch (e) {
-      //usually something like "DOMException: Operation is not supported"
+    } catch (e) {//usually something like "DOMException: Operation is not supported"
       unsupported[format] = format;
-      return;
     }
-    exportedKeyPacked = pack(exportedKey);
-    console.log(format, exportedKey, exportedKeyPacked);
   });
 
-  // Let's see if we can serialize the jwk version
-  const k2 = await window.crypto.subtle.exportKey(formats.jwk, key);
-  console.log(JSON.stringify(k2));
+  exportedKey = await window.crypto.subtle.exportKey('jwk', key);
+  const exportedKeyPacked = pack(exportedKey);
+  console.log(exportedKey, exportedKeyPacked);
 
-  // That worked lets try to summarize in a function:
-  const exportKeyAsString = async (key, format='jwk') => await JSON.stringify(window.crypto.subtle.exportKey(format, key));
+  // exportedKeyPacked is something I can pass around or use as part of an address.
+
+
+  await window.crypto.subtle.importKey('jwk', exportedKey,'A256GCM', true, ['encrypt', 'decrypt']);
+
 
   // The reverse is the import - feed it a string, and get back a key object
   // NB: Having some trouble getting this to work, and the error message is not helpful.
   // Feeling drained, will put aside for now and rest the brain.
-  const importKeyAsString = async (keyString="{}", format='jwk', caps=['encrypt', 'decrypt']) => {
-    as.str(keyString) && as.str(format);
-    const keyObject = JSON.parse(keyString);
-    const alg = getProp(keyObject, 'alg', '');
-    console.debug('importKeyAsString()', keyString, format, caps, alg, keyObject)
-    return await window.crypto.subtle.importKey(
-      format,
-      keyObject,
-      alg,
-      true,
-      caps,
-    );
-  }
-
-  // const testString = "{\"alg\":\"A256GCM\",\"ext\":true,\"k\":\"QeAC4fzCD1MwIyJv6IwypLUuO2MQyRwHg1yEB3scMD0\",\"key_ops\":[\"encrypt\",\"decrypt\"],\"kty\":\"oct\"}"
-  const testString = await exportKeyAsString(key);
-  console.log('testString', testString, key);
-  const testKey = importKeyAsString(testString);
+  // const importKeyAsString = async (keyString="{}", format='jwk', caps=['encrypt', 'decrypt']) => {
+  //   as.str(keyString) && as.str(format);
+  //   const keyObject = JSON.parse(keyString);
+  //   const alg = getProp(keyObject, 'alg', '');
+  //   console.debug('importKeyAsString()', keyString, format, caps, alg, keyObject)
+  //   return await window.crypto.subtle.importKey(
+  //     format,
+  //     keyObject,
+  //     alg,
+  //     true,
+  //     caps,
+  //   );
+  // }
+  //
+  // // const testString = "{\"alg\":\"A256GCM\",\"ext\":true,\"k\":\"QeAC4fzCD1MwIyJv6IwypLUuO2MQyRwHg1yEB3scMD0\",\"key_ops\":[\"encrypt\",\"decrypt\"],\"kty\":\"oct\"}"
+  // const testString = await exportKeyAsString(key);
+  // console.log('testString', testString, key);
+  // const testKey = importKeyAsString(testString);
   //do stuff with the key
 </script>
 

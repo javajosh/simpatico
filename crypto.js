@@ -8,6 +8,19 @@ const generateSymmetricKey = async () => {
   }, true, ['encrypt', 'decrypt'])
 }
 
+// Make a new key from a raw uintarray if present, or from a new random array if not
+const importSymmetricKey = (rawKey) => {
+  rawKey = rawKey ? rawKey : window.crypto.getRandomValues(new Uint8Array(16));
+  return window.crypto.subtle.importKey(
+      "raw",
+      rawKey,
+      "AES-GCM",
+      true,
+      ["encrypt", "decrypt"]
+    );
+
+}
+
 // A kind of salt that you need to keep with the key. See:
 // https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
 // https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams
@@ -63,4 +76,4 @@ const unpack = (packed) => {
   return buffer
 }
 
-export {generateSymmetricKey, encode, decode, generateIv, encrypt, decrypt, pack, unpack}
+export {generateSymmetricKey, importSymmetricKey, encode, decode, generateIv, encrypt, decrypt, pack, unpack}
