@@ -98,7 +98,12 @@ function serverLogic(req, res) {
   if (req.url === '/') {
     // Treat root as a request for index.html
     req.url = '/index.html';
-  } else if (req.url.indexOf('.') === -1) {
+  }
+  // Strip parameters to find the underlying file.
+  if (req.url.indexOf('?') > -1) {
+    req.url = req.url.substr(0,req.url.indexOf('?'));
+  }
+  if (req.url.indexOf('.') === -1) {
     // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
     req.url += ".html"
   }
@@ -124,6 +129,10 @@ function serverLogic(req, res) {
       Object.assign(
         getContentTypeHeader(req.url),
         getCacheHeaders(req.url),
+        // https://getpocket.com/read/3784699081
+        // Enable SharedArrayBuffer
+        {'Cross-Origin-Opener-Policy' : 'same-origin'},
+        {'Cross-Origin-Embedder-Policy' : 'require-corp'},
       )
     );
     res.end(data);
@@ -138,6 +147,7 @@ const mime = {
   "json": "application/json",
   "css" : "text/css",
   "svg" : "image/svg",
+  "wasm": "application/wasm"
 }
 const getContentTypeHeader = (filename, defaultMimeType='text') => {
   const ext = path.extname(filename).slice(1);
