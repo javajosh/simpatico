@@ -36,7 +36,7 @@ console.info(`computed config: [${JSON.stringify(config)}] isLocal is [${isLocal
 
 
 
-// todo: add gzip compression. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
+
 // Create an HTTP server - locally, http is THE server; deployed, http is a redirect to https
 try{
   http.createServer ({keepAlive:'true', headersTimeout:100}, isLocal ? serverLogic : httpRedirectServerLogic).listen(config.http);
@@ -111,6 +111,7 @@ function serverLogic(req, res) {
     req.url += ".html"
   }
 
+  // todo: add gzip compression. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
   // Read the file asynchronously
   const fileName = process.cwd() + req.url;
   fs.readFile(fileName, (err, data) => {
