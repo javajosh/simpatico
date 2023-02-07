@@ -5,6 +5,9 @@ import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import WebSocket, { WebSocketServer } from 'ws';
+import {pipeline} from "node:stream";
+import zlib from "node:zlib";
+import { URL } from 'node:url';
 // Sadly json cannot just be imported.
 const info = JSON.parse(fs.readFileSync('./package.json'));
 const args = process.argv.slice(2);
@@ -104,45 +107,47 @@ function serverLogic(req, res) {
   }
   // Strip parameters to find the underlying file.
   if (req.url.indexOf('?') > -1) {
-    req.url = req.url.substr(0,req.url.indexOf('?'));
+    req.url = req.url.substr(0, req.url.indexOf('?'));
   }
   if (req.url.indexOf('.') === -1) {
     // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
     req.url += ".html"
   }
 
-  // todo: add gzip compression. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
-  // Read the file asynchronously
-  const fileName = process.cwd() + req.url;
-  fs.readFile(fileName, (err, data) => {
-    if (err) { // assume all errors are a 404. KISS
-      const e2 = new Error();
-      Object.assign(e2, {
-        code: 404,
-        log: 'resource not found',
-        msg: 'insert cute fail whale type picture here',
-      });
-      console.error(e2.log);
-      res.writeHead(e2.code);
-      res.end(e2.msg);
-      return;
-    }
-    // Send the response
-    res.writeHead(
-      200,
-      Object.assign(
-        getContentTypeHeader(req.url),
-        getCacheHeaders(req.url),
-        // https://getpocket.com/read/3784699081
-        // Enable SharedArrayBuffer
-        {'Cross-Origin-Opener-Policy' : 'same-origin'},
-        {'Cross-Origin-Embedder-Policy' : 'require-corp'},
-      )
-    );
-    res.end(data);
+  // Read the file as a stream and use gzip if the client supports it.
+  // todo: cache these resources.
+  // https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
+  const fileName = req.url.substr(1); // debt: make this more robust maybe with https://nodejs.org/api/url.html
+  const raw = fs.createReadStream(fileName);
+  const acceptEncodingHeader = req.headers['accept-encoding'];
+  console.log('fileName', fileName, acceptEncodingHeader, typeof acceptEncodingHeader)
+  const gzip = acceptEncodingHeader ? acceptEncodingHeader.indexOf('gzip') > -1 : false;
+  const encoder = gzip ? zlib.createGzip() : undefined;
+  const acceptEncodingHeaders = gzip ? {
+    'Content-Encoding': 'gzip',
+    'Vary': 'Accept-Encoding',
+  } : {};
+
+  res.writeHead(
+    200,
+    Object.assign(
+      getContentTypeHeader(req.url),
+      getCacheHeaders(req.url),
+      // Enable SharedArrayBuffer for wasm. see https://getpocket.com/read/3784699081
+      {'Cross-Origin-Opener-Policy': 'same-origin'},
+      {'Cross-Origin-Embedder-Policy': 'require-corp'},
+      acceptEncodingHeaders,
+    )
+  );
+  // Getting "Error [ERR_STREAM_CANNOT_PIPE]: Cannot pipe, not readable" here.
+  pipeline(raw, res, encoder, err => {
+    Object.assign(err, {
+      log: 'problem with streaming, but already sent 200. terminating stream.',
+    });
+    console.error(err);
+    res.end();
   });
-  // End of the server logic function!
-}
+}; // end server
 
 // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
 const mime = {
