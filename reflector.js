@@ -1,3 +1,4 @@
+import process from 'node:process';
 import fs from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
@@ -10,7 +11,7 @@ import { combine, combineAllArgs } from './combine.js';
 
 // Our global state
 const DEBUG = false;
-const sensitive = {password: '******', jdbc: '******'}; //
+const sensitive = {password: '******', jdbc: '******'};
 const elide = (obj, hide=sensitive) => DEBUG ? obj : combine(obj, hide);
 const connections = [];
 
@@ -19,7 +20,9 @@ const config = processConfig();
 info(`reflector.js [${JSON.stringify(elide(config), null, 2)}]`);
 const bindStatus = bindToPorts();
 info( 'bound', bindStatus);
-dropProcessPrivs();
+// We are bound to port 443 (and probably 80) so we can drop privileges
+// To fine this id either cat /etc/passwd or use `id username`
+// if (config.user) dropProcessPrivs(config.user);
 
 // Welcome message
 const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
@@ -34,6 +37,7 @@ function processConfig(envPrefix='REFL_') {
     host: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
+    user: 'simpatico',
     password: 'secret',
     //isLocalHost: true, //updated below
     //measured: {}, //updated below
@@ -115,10 +119,13 @@ function bindToPorts() {
   return result;
 }
 
-function dropProcessPrivs() {
-  // We are bound to port 443 (and probably 80) so we can drop privileges
-  // process.setuid('simpatico');
-  // process.setgid('simpatico');
+function dropProcessPrivs(user) {
+  try{
+    process.seteuid(user);
+  } catch(e) {
+    info('dropProcessPrivs', user, e);
+  }
+
 }
 
 function httpRedirectServerLogic (req, res) {
