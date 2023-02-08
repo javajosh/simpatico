@@ -1,17 +1,22 @@
 {
   "name": "simpatico",
-  "version": "1.0.0",
+  "homepage": "https://simpatico.io",
+  "version": "0.3.6",
   "description": "building software, together",
   "main": "simpatico.js",
   "repository": "https://github.com/javajosh/simpatico.git",
   "author": "javajosh <josh@javajosh.com>",
+  "funding": {
+    "type": "patreon",
+    "url": "https://patreon.com/Simpatico243"
+  },
   "license": "MIT",
   "private": false,
   "type": "module",
   "scripts": {
     "start": "node reflector.js"
   },
-  "devDependencies": {
+  "dependencies": {
     "ws": "8.11.0"
   }
 }
