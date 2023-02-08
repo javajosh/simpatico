@@ -27,17 +27,6 @@
   const elt = document.getElementById.bind(document);
   const displayChat = elt("display-chat");
 
-  // tls is omitted if running localhost.
-  function computeWebSocketURL(local={protocol: 'ws', port: 8081}, remote={protocol: 'wss', port: 443}){
-    const host = window.location.hostname;
-    const isLocal = host.startsWith('localhost');
-    const config = isLocal ? local : remote;
-
-    const url = `${config.protocol}://${host}:${config.port}/`;
-    console.debug(`websocket url computed to be ${url}`);
-    return url;
-  }
-
   // Display a string as a new list element
   const displayHtmlString = (msg, parent = displayChat) => {
     // Compare with string manipulation version of this
@@ -54,7 +43,8 @@
     conn.onmessage = e => displayHtmlString(e.data);
     return conn;
   }
-  let connection = connect(computeWebSocketURL());
+  const websocketURL = window.location.toString().replace(/^http/, 'ws');
+  let connection = connect(websocketURL);
   const isConnReady = (conn = connection) => conn !== undefined && conn.readyState === conn.OPEN;
 
   // Write: User input is received. Route outbound messages from the DOM to the connection.
