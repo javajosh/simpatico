@@ -3,6 +3,7 @@ import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import WebSocket, { WebSocketServer } from 'ws';
+import chokidar from 'chokidar';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
@@ -138,7 +139,13 @@ function fileServerLogic() {
   // Make a file cache and watch for file changes to invalidate it.
   let cache = {};
   // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
-  fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
+  // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
+  // fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
+  chokidar.watch('.', {
+    ignored: /(^|[\/\\])\../, // ignore dotfiles
+    persistent: false
+  }).on('change', path => {delete cache[path]})
+    .on('unlink', path => {delete cache[path]});
 
   // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
   const mime = {

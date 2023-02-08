@@ -8,7 +8,7 @@
   "author": "javajosh <josh@javajosh.com>",
   "funding": {
     "type": "patreon",
-    "url": "https://patreon.com/Simpatico243"
+    "url": "https://patreon.com/simpatico1"
   },
   "license": "MIT",
   "private": false,
@@ -17,6 +17,7 @@
     "start": "node reflector.js"
   },
   "dependencies": {
+    "chokidar": "^3.5.3",
     "ws": "8.11.0"
   }
 }
