@@ -1,8 +1,10 @@
 import {assert, cast, debug, getType, is, now, tryToStringify, TYPES} from './core.js';
 import {gather, scatter} from "./svg.js";
 
+const DEBUG = false;
+
 const combine = (target, msg, rules = getRules()) => {
-  const {NUL, FUN, ARR, ANY} = TYPES;
+  const {NUL, FUN, ARR, ANY, UNDEF} = TYPES;
   let ttarget = getType(target);
   let tmsg = getType(msg);
 
@@ -10,6 +12,8 @@ const combine = (target, msg, rules = getRules()) => {
   // This saves us from repetitive rule writing
   if (ttarget === NUL) {
     tmsg = ANY;
+  } else if (tmsg === UNDEF) {
+    return target;
   } else if (tmsg !== NUL) {
     // Functions just invoke, so erase the counter type
     if (tmsg === FUN) ttarget = ANY;
@@ -35,7 +39,7 @@ const combine = (target, msg, rules = getRules()) => {
   // debug(debugObject);
   const result = rule(target, msg);
   debugObject.result = tryToStringify(result);
-  debug(debugObject);
+  if (DEBUG) debug(debugObject);
 
   return result;
 }
