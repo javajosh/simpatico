@@ -159,6 +159,19 @@
   c.assertThrows(() => all([true, false]))
   c.assertThrows(() => num(cast(TYPES.NUM, 'a')))
   c.assertThrows(() => assertEquals({a: 1, b: [2, 3]}, {a: 1, b: [2, 3, false]}))
+
+  const parsed = c.parseObjectLiteralString(`{http:80, https:443, ws:8081, host:simpatico.io,
+    cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem,
+    key:/etc/letsencrypt/live/simpatico.io/privkey.pem
+  }`)
+  // Doesn't do type conversion, but that's okay
+  str(parsed.http)
+  // Only take strings
+  c.assertThrows(() => c.parseObjectLiteralString())
+  c.assertThrows(() => c.parseObjectLiteralString({}))
+  // You must not have spaces between key, colon and value. I'd like to relax this, but am not a regexpert.
+  // This also means that you can't have a value with a leading space, which is possibly annoying
+  c.assertThrows(() => c.parseObjectLiteralString(`{http :80, https:443}`))
 </script>
 </body>
 </html>

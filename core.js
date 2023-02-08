@@ -230,10 +230,29 @@ const shuffle = arr => {
   return arr;
 }
 
-// Consider adding handy regexes for common
-// string representations of important data types
-// like dates, hostnames, email addresses
-// jdbc urls and similar.
+/*
+ * Treat input as JSON without proper quotes, which is more convenient to author in many places, particular in a terminal.
+ * Write "{http:80, https:443}" instead of having to quote (and escape those quotes).
+ * Limitations: all values are treated as strings; spaces not allowed around the colon; no leading spaces supported.
+ *
+ * See https://regexr.com/77sar to improve this, and issue a PR at https://github.com/javajosh/simpatico
+ */
+const parseObjectLiteralString = arg => {
+  as.str(arg);
+  // Quote anything that isn't quoted
+  // Currently no space is allowed between quotes - !
+  const quoted = arg.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:(['"])?([a-zA-Z0-9\\.\/]+)(['"])?/g, '"$2":"$5"');
+  return JSON.parse(quoted);
+}
+
+const regex ={
+  email: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/, //regexr.com/2rhq7
+  password: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/, //regexr.com/3bfsi
+  matchNonAscii: /[^\x00-\x7F]+\ *(?:[^\x00-\x7F]| )*/, //regexr.com/3acrs
+  ipAddress: /\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\b/, // regexr.com/38odc
+  svgOptimize: /(\d*\.\d{3})\d*/, // regexr.com/2ri1h really like the simplicity
+  url: /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/, //regexr.com/2rj36 too permisive but its okay
+}
 
 export {
   now, log, debug, info, error, assert, assertThrows, tryToStringify,
@@ -242,5 +261,6 @@ export {
   and, or, sub, add, identity, curryLeft, curryRight, curry, compose,
   peek, push, copy,
   TYPES, getType, size, cast, is, as,
-  RNG, shuffle
+  RNG, shuffle,
+  parseObjectLiteralString, regex
 }
