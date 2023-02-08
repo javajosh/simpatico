@@ -4,22 +4,23 @@ import https from 'node:https';
 import path from 'node:path';
 import WebSocket, { WebSocketServer } from 'ws';
 
-import { info, error, debug, mapObject, parseObjectLiteralString } from './core.js';
+import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
 
-
-// Our globals
+// Our global state
 const DEBUG = false;
-const sensitive = {password: '******', jdbc: 'jdbc://******'};
+const sensitive = {password: '******', jdbc: '******'}; //
 const elide = (obj, hide=sensitive) => DEBUG ? obj : combine(obj, hide);
 const connections = [];
 
+// Boot up
 const config = processConfig();
 info(`reflector.js [${JSON.stringify(elide(config), null, 2)}]`);
 const bindStatus = bindToPorts();
 info( 'bound', bindStatus);
 dropProcessPrivs();
 
+// Welcome message
 const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
 info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url]");
 info(`Initialization complete. Open ${url}`);
@@ -30,8 +31,6 @@ function processConfig(envPrefix='REFL_') {
     http: 8080,
     https: 8443,
     host: 'localhost',
-    // ssl is disabled for localhost,
-    // to generate these, see devops
     cert: './fullchain.pem',
     key: './privkey.pem',
     password: 'secret',
@@ -96,7 +95,7 @@ function bindToPorts() {
       ).listen(config.https);
       result.https = config.https;
     } catch (e) {
-      console.error('abort: problem spinning up https server', e);
+      console.error('unable to start ssl/tls server; either bind to localhost or generate a self-signed cert according to devops/deploy.sh', e);
       throw e;
     }
   }
@@ -136,6 +135,11 @@ function httpRedirectServerLogic (req, res) {
 }
 
 function fileServerLogic() {
+  // Make a file cache and watch for file changes to invalidate it.
+  let cache = {};
+  // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
+  fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
+
   // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
   const mime = {
     "html": "text/html",
@@ -145,6 +149,15 @@ function fileServerLogic() {
     "svg" : "image/svg",
     "wasm": "application/wasm"
   }
+  /**
+   * Required for most browsers to use SharedArrayBuffer and load wasm.
+   * See  https://getpocket.com/read/3784699081
+   */
+  const getCrossOriginHeaders = ()=> ({
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Cross-Origin-Embedder-Policy': 'require-corp',
+  });
+
   const getContentTypeHeader = (filename, defaultMimeType='text') => {
     const ext = path.extname(filename).slice(1);
     const type = mime[ext] ? mime[ext] : defaultMimeType;
@@ -196,44 +209,54 @@ function fileServerLogic() {
     }
     // Strip parameters to find the underlying file.
     if (req.url.indexOf('?') > -1) {
-      req.url = req.url.substr(0,req.url.indexOf('?'));
+      req.url = req.url.substr(0, req.url.indexOf('?'));
     }
     if (req.url.indexOf('.') === -1) {
       // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
       req.url += ".html"
     }
 
-    // todo: add gzip compression. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
-    // Read the file asynchronously
+    // Check the cache for the file, if not present read off disk and add to cache. If present, use cache.
+    // todo: add gzip cache, too. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
     const fileName = process.cwd() + req.url;
-    fs.readFile(fileName, (err, data) => {
-      if (err) { // assume all errors are a 404. KISS
-        const e2 = new Error();
-        Object.assign(e2, {
-          code: 404,
-          log: 'resource not found',
-          msg: 'insert cute fail whale type picture here',
-        });
-        console.error(e2.log);
-        res.writeHead(e2.code);
-        res.end(e2.msg);
-        return;
-      }
-      // Send the response
+    if (hasProp(cache, fileName)) {
       res.writeHead(
         200,
         Object.assign(
           getContentTypeHeader(req.url),
           getCacheHeaders(req.url),
-          // https://getpocket.com/read/3784699081
-          // Enable SharedArrayBuffer
-          {'Cross-Origin-Opener-Policy' : 'same-origin'},
-          {'Cross-Origin-Embedder-Policy' : 'require-corp'},
+          getCrossOriginHeaders(),
         )
       );
-      res.end(data);
-    });
-    // End of the server logic function!
+      res.end(cache[fileName]);
+    } else {
+      fs.readFile(fileName, (err, data) => {
+        if (DEBUG) debug('cache miss for', fileName);
+        if (err) { // assume all errors are a 404. pareto
+          const e2 = new Error();
+          Object.assign(e2, {
+            code: 404,
+            log: 'resource not found',
+            msg: 'insert cute fail whale type picture here',
+          });
+          console.error(e2.log);
+          res.writeHead(e2.code);
+          res.end(e2.msg);
+          return;
+        }
+        cache[fileName] = data;
+        // Send the response
+        res.writeHead(
+          200,
+          Object.assign(
+            getContentTypeHeader(req.url),
+            getCacheHeaders(req.url),
+            getCrossOriginHeaders(),
+          )
+        );
+        res.end(data);
+      });
+    }
   }
 }
 
