@@ -40,7 +40,10 @@ function startSimpatico() {
   # ssh josh@simpatico.io
   # su - simpatico
   # tmux - see https://www.howtogeek.com/671422/how-to-use-tmux-on-linux-and-why-its-better-than-screen/
-  sudo node ~/simpatico/reflector.js "{http:80, https:443 ws:8081, host:simpatico.io}"
+  sudo node ~/simpatico/reflector.js "{http:80, https:443 ws:8081, host:simpatico.io, cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem',
+  key: /etc/letsencrypt/live/simpatico.io/privkey.pem}"
+  # Alternative you can use environment variables with a prefix, e.g. REFL_HTTP=80 sudo - node reflector...
+  # Note: command line options take precedent.
   # CTRL-B + D to detach
   # CTRL-B + S to list sessions
   # You can also launch and attach to a named session.

@@ -5,60 +5,91 @@ import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import WebSocket, { WebSocketServer } from 'ws';
-// Sadly json cannot just be imported.
-const info = JSON.parse(fs.readFileSync('./package.json'));
-const args = process.argv.slice(2);
 
-console.info(`reflector.js [${info.version}] started at [${new Date().toUTCString()}] from directory [${process.cwd()}] with args [${args}]`);
+import { info, error, debug, mapObject, parseObjectLiteralString } from './core.js';
+import { combineAllArgs } from './combine.js';
 
+// Our globals
+const DEBUG = true;
+let config = {};
+let httpServer;
+let httpsServer; //this ref used to connect the wss server
 
 // eg  sudo node reflector.js "{http:80, https:443, ws:8081, host:simpatico.io cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem key:/etc/letsencrypt/live/simpatico.io/privkey.pem}"
 // Process reflector config. Override with e.g. node reflector.js "{https:443, host:simpatico.local, cert:localhost.crt, key:localhost.key}"
-const configDefault = {
-  http: 8080,
-  https: 8443,
-  ws: 8081,
-  host: 'localhost',
-  // todo figure out why these aren't passing in correctly with my psuedo json; and/or switch to env_vars.
-  cert: '/etc/letsencrypt/live/simpatico.io/fullchain.pem',
-  key: '/etc/letsencrypt/live/simpatico.io/privkey.pem',
-};
+function processConfig(envPrefix='REFL_') {
+  //hardcoded defaults, usually best for new devs
+  const baseConfig = {
+    http: 8080,
+    https: 8443,
+    host: 'localhost',
+    // ssl is disabled for localhost,
+    // to generate these, see devops
+    cert: './fullchain.pem',
+    key: './privkey.pem',
+    //isLocalHost: true, //updated below
+    //measured: {}, //updated below
+  };
+  const envConfig = mapObject(baseConfig, ([key,_]) => ([key, process.env[`${envPrefix}${key.toUpperCase()}`]]));
+  const argConfig = parseObjectLiteralString(process.argv[2]);
 
-// Treat input as JSON without proper quotes, which is more convenient to author in a CLI
-// NB: I may replace this with more standard, simple, bash environment variables.
-const configString = args.length ? args[0]
-    .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
-    .replace(/:(['"])?([a-zA-Z0-9\\.]+)(['"])?/g, ':"$2"')
-  : "{}";
-const config = Object.assign(configDefault, JSON.parse(configString));
-const isLocal = config.host === 'localhost';
-console.info(`computed config: [${JSON.stringify(config)}] isLocal is [${isLocal}]`);
+  const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+  const measured = { measured: {
+    name: packageJson.name,
+    version: packageJson.version,
+    args: process.argv,
+    cwd: process.cwd(),
+    started: new Date().toUTCString(),
+  }};
 
+  config = combineAllArgs(baseConfig, envConfig, argConfig, measured);
+  config.isLocalHost = (config.host === 'localhost');
 
-
+  if (DEBUG) debug('DEBUG',
+    '\nbaseConfig', baseConfig,
+    '\nenvConfig',envConfig,
+    '\nmeasured', measured,
+    '\nconfig', config
+  );
+  return config;
+}
+config = processConfig();
+info(`reflector.js[${JSON.stringify(config, null, 2)}]`);
 
 // Create an HTTP server - locally, http is THE server; deployed, http is a redirect to https
 try{
-  http.createServer ({keepAlive:'true', headersTimeout:100}, isLocal ? serverLogic : httpRedirectServerLogic).listen(config.http);
+  httpServer = http.createServer (
+    { keepAlive : 100,
+      headersTimeout : 100},
+    config.isLocalHost ? serverLogic : httpRedirectServerLogic
+  ).listen(config.http);
 } catch (e) {
-  console.error('abort: problem spinning up http server', e);
+  error('abort: problem spinning up http server', e);
   throw (e);
 }
-// Create an HTTPS server if not running locally.
-let httpsServer = null;
-if (!isLocal) {
+// Only spin up a tls server if requested hostname isn't localhost
+if (!config.isLocalHost) {
   try {
     const cert = fs.readFileSync(config.cert);
     const key = fs.readFileSync(config.key);
-    httpsServer = https.createServer({hostname: config.host, key, cert}, serverLogic).listen(config.https);
-    // We are bound to port 443 (and probably 80) so we can drop privileges
-    // process.setuid('simpatico');
-    // process.setgid('simpatico');
+    httpsServer = https.createServer(
+      {key, cert},
+      serverLogic
+    ).listen(config.https);
   } catch (e) {
     console.error('abort: problem spinning up https server', e);
     throw (e);
   }
 }
+
+
+// Our two main servers are up, so drop proecss privs
+function dropProcessPrivs() {
+  // We are bound to port 443 (and probably 80) so we can drop privileges
+  // process.setuid('simpatico');
+  // process.setgid('simpatico');
+}
+dropProcessPrivs();
 
 function httpRedirectServerLogic (req, res) {
   // Let letsencrypt check my control of the domain.
@@ -176,10 +207,14 @@ const getCacheHeaders = (filename) => {
 }
 
 // Create a webSocket server, sharing https connectivity if not locally running.
-const wssArg = isLocal ? { port: config.ws } : {server: httpsServer};
-const wss = new WebSocketServer(wssArg);
 const connections = [];
-wss.on('connection', ws => {
+const wssArg = config.isLocalHost ?
+  { server: httpServer  } :
+  { server: httpsServer };
+const wss = new WebSocketServer(wssArg);
+wss.on('connection', chatServerLogic);
+
+function chatServerLogic(ws) {
   // Compute the connection ID,
   const id = connections.length;
 
@@ -210,10 +245,9 @@ wss.on('connection', ws => {
       }
     });
   });
-  // TODO clean up connections when they are lost, otherwise is a (slow) memory leak.
-});
+}
 
-const url = isLocal ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
+const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
 console.info("Log format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url]");
 console.info(`Intitialization complete. Open ${url}`);
 
