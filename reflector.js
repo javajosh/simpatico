@@ -21,8 +21,7 @@ info(`reflector.js [${JSON.stringify(elide(config), null, 2)}]`);
 const bindStatus = bindToPorts();
 info( 'bound', bindStatus);
 // We are bound to port 443 (and probably 80) so we can drop privileges
-// To fine this id either cat /etc/passwd or use `id username`
-// if (config.user) dropProcessPrivs(config.user);
+if (config.user) dropProcessPrivs(config.user);
 
 // Welcome message
 const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
@@ -37,10 +36,11 @@ function processConfig(envPrefix='REFL_') {
     host: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
-    user: 'simpatico',
-    password: 'secret',
-    //isLocalHost: true, //updated below
-    //measured: {}, //updated below
+    user: null,
+    useCache: false,
+    password: 's3cret',
+    // isLocalHost: true, //added below
+    // measured: {},      //added below
   };
   const envConfig = mapObject(baseConfig, ([key,_]) => ([key, process.env[`${envPrefix}${key.toUpperCase()}`]]));
   const argConfig = parseObjectLiteralString(process.argv[2]);
@@ -148,7 +148,7 @@ function fileServerLogic() {
   // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
   // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
   // fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
-  chokidar.watch('.', {
+  if (config.useCache) chokidar.watch('.', {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: false
   }).on('change', path => {delete cache[path]})
@@ -233,7 +233,7 @@ function fileServerLogic() {
     // Check the cache for the file, if not present read off disk and add to cache. If present, use cache.
     // todo: add gzip cache, too. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
     const fileName = process.cwd() + req.url;
-    if (hasProp(cache, fileName)) {
+    if (config.useCache && hasProp(cache, fileName)) {
       res.writeHead(
         200,
         Object.assign(
@@ -258,7 +258,7 @@ function fileServerLogic() {
           res.end(e2.msg);
           return;
         }
-        cache[fileName] = data;
+        if (config.useCache) cache[fileName] = data;
         // Send the response
         res.writeHead(
           200,
