@@ -333,7 +333,7 @@ Here is an example of an object pattern:
   const userPattern = {
     id: ['num', 'between', 0, 1000],
     name: ['str', 'between', 3,50],
-    nick: ['optional', 'str', 'between', 0, 1::q:0],
+    nick: ['optional', 'str', 'between', 0, 10],
     email: ['str', 'matches', '^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}$'],
     role: {
       id: ['num', 'between', 0, 10],
@@ -354,11 +354,14 @@ See the [devops](./devops) directory.
   1. [memory](./notes/memory.html)
 
 ## TODO
-  1. reflector: implement compression
+  1. ~~reflector: support env and cli object literal args~~
+  1. reflector: implement ~~server cache~~ and zlib.
   1. reflector: implement aggressive client resource caching
-  1. site: replace wizard png favicon with inline svg
-  1. crypto: extract crypto from core; add pki tests to crypto
-  1. chat: add crypto pki
-  1. wp: add crypto symmetric (de/en)cryption.
+  1. ~~site: replace wizard png favicon with inline svg~~
+  1. ~~crypto: extract crypto from core;~~
+  1. add pki tests to crypto module
+  1. chat, reflector: add crypto pki scheme to the default (device, browser, sdp)
   1. devops: tighten up the scripts to support one click deployment of new instance.
   1. devops: learn more about geographically aware dns
+  1. maps: what would it take to have a map of the local area in your offline browser?
+      Your phone is still very powerful even when it is offline!
