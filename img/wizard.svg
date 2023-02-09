@@ -3,7 +3,7 @@
     <style>
       .hat, .staff-tip-1, .robe {fill:#4289c1;}
       .staff {fill:#d99e82;}
-      .fae, .hand {fill:#ffdc5d;}
+      .face, .hand {fill:#ffdc5d;}
       .staff-tip-2 {fill:#b0f0ff;}
       .nose, .mouth {fill:#c1694f;}
       .eye {fill:#662113;}
