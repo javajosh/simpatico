@@ -178,43 +178,57 @@ function fileServerLogic() {
     return {"content-type": type};
   }
 
-// For primary resources, use an etag
-// For sub-resources, cache forever and rely on unique urls to update.
+  // For primary resources, use an etag
+  // For sub-resources, cache forever and rely on unique urls to update.
+  // See https://httpwg.org/specs/rfc9110.html#field.accept-encoding
+  // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
   const getCacheHeaders = (filename) => {
     const result = {};
     const isPrimaryResource = filename.endsWith('html');
     if (isPrimaryResource){
       //result["e-tag"] = "a hash of some kind";
     } else {
-      // If we cache forever we need to embed hashes in the subresource names.
-      // This means parsing and rewriting html, which can be annoyingly complicated.
-      // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
       // {"cache-control": "private, max-age=2592000"},
     }
     return result;
   }
+
   return (req, res) => {
-    // if the request is malformed, return a 500 and log
+    const respondWithError = (err) => {
+      console.error(err.log);
+      res.writeHead(err.code);
+      res.end(err.msg);
+    }
+    const respondWithData = data => {
+      res.writeHead(
+        200,
+        Object.assign(
+          getContentTypeHeader(req.url),
+          getCacheHeaders(req.url),
+          getCrossOriginHeaders(),
+        )
+      );
+      res.end(data);
+    }
+
+    const logRequest = () => {
+      console.log(
+        new Date().toISOString(),
+        req.socket.remoteAddress.replace(/^.*:/, ''),
+        req.headers["user-agent"].substr(0, 20),
+        req.url,
+      );
+    }
+
+    // Missing use-agent -> error
     if (!req.headers.hasOwnProperty("user-agent")) {
-      const e1 = new Error();
-      Object.assign(e1, {
+      respondWithError(combine(new Error(), {
         code: 500,
         log: 'missing user-agent header',
         msg: 'user-agent header required',
-      });
-      console.error(e1.log);
-      res.writeHead(e1.code);
-      res.end(e1.msg);
+      }));
       return;
     }
-
-    // Log the (valid) request
-    console.log(
-      new Date().toISOString(),
-      req.socket.remoteAddress.replace(/^.*:/, ''),
-      req.headers["user-agent"].substr(0, 20),
-      req.url,
-    );
 
     // Normalize the url
     if (req.url === '/') {
@@ -234,41 +248,20 @@ function fileServerLogic() {
     // todo: add gzip cache, too. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
     const fileName = process.cwd() + req.url;
     if (config.useCache && hasProp(cache, fileName)) {
-      res.writeHead(
-        200,
-        Object.assign(
-          getContentTypeHeader(req.url),
-          getCacheHeaders(req.url),
-          getCrossOriginHeaders(),
-        )
-      );
-      res.end(cache[fileName]);
+      respondWithData(cache[fileName]);
     } else {
       fs.readFile(fileName, (err, data) => {
         if (DEBUG) debug('cache miss for', fileName);
         if (err) { // assume all errors are a 404. pareto
-          const e2 = new Error();
-          Object.assign(e2, {
+          respondWithError(Object.assign(new Error(), {
             code: 404,
             log: 'resource not found',
-            msg: 'insert cute fail whale type picture here',
-          });
-          console.error(e2.log);
-          res.writeHead(e2.code);
-          res.end(e2.msg);
+            msg: 'Not found. \n' + failWhale,
+          }));
           return;
         }
         if (config.useCache) cache[fileName] = data;
-        // Send the response
-        res.writeHead(
-          200,
-          Object.assign(
-            getContentTypeHeader(req.url),
-            getCacheHeaders(req.url),
-            getCrossOriginHeaders(),
-          )
-        );
-        res.end(data);
+        respondWithData(data);
       });
     }
   }
@@ -289,6 +282,12 @@ function chatServerLogic(ws) {
   // Register a callback for messages sent from that connection.
   // Simplest case: broadcast every msg to all connections!
   ws.on('message', message => {
+    // Ignore long messages
+    if (message.length > 300) {
+      ws.send('your message was too long');
+      return;
+    }
+
     connections.forEach(conn => {
       try{
         // Connections can die without us knowing.
@@ -306,3 +305,10 @@ function chatServerLogic(ws) {
     });
   });
 }
+
+const failWhale = `
+ ___        _  _       __      __ _           _
+| __| __ _ (_)| |      \\ \\    / /| |_   __ _ | | ___
+| _| / _\` || || |       \\ \\/\\/ / |   \\ / _\` || |/ -_)
+|_|  \\__/_||_||_|        \\_/\\_/  |_||_|\\__/_||_|\\___|
+  `
