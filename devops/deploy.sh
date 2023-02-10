@@ -104,6 +104,16 @@ EOF
   # Now you can run reflector with something like "{http:8080, https:8443, host:simpatico.local, cert:localhost.crt, key:localhost.key}"
 }
 
+function headlessChromium {
+  # Useful flags. See: https://developer.chrome.com/blog/headless-chrome/
+  #     --disable-gpu \
+  #    --remote-debugging-port=9222 \
+  # Note that you must install the root ca from above in Chromium for ssl to work
+  chromium \
+    --headless \
+    https://simpatico.local:8443/
+}
+
 function addSimpaticoUnitFile() {
   # systemd script - not yet working
   cat <<'EOF' >/lib/systemd/system/simpatico.service
