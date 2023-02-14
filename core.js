@@ -220,7 +220,6 @@ RNG.prototype.choice = function (arr) {
 }
 // In-place Fisher-Yates shuffle using ES6 swap
 const shuffle = arr => {
-  as.arr(arr);
   if (arr.length < 2) return arr;
   let right, left, {floor, random} = Math;
   for (right = arr.length - 1; right > 0; right--) {
