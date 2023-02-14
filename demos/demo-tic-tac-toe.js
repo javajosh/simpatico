@@ -1,4 +1,4 @@
-import rtree from '../rtree.js';
+import stree from '../stree.js';
 import {combine} from '../combine.js';
 import {validate} from "../friendly";
 import C from '../core';
@@ -6,7 +6,7 @@ import C from '../core';
 const {assert, assertThrows} = C.asserts;
 
 // The simplest tictactoe implementation
-let t3 = rtree({
+let t3 = stree({
     turn: 1,
     moves: [],
     winner: -1,

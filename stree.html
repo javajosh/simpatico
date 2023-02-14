@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="keywords" content="Simpatico, rtree, es6">
+  <meta name="keywords" content="Simpatico, STree, es6">
   <meta name="author" content="Josh Rehman">
 
   <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <script type="module" src="testable.js"></script>
 
-  <title>RTree.js</title>
+  <title>STree.js</title>
   <link rel="stylesheet" type="text/css" href="style.css">
   <style>
     b {
@@ -22,16 +22,42 @@
   </style>
 </head>
 <body>
-<h1>RTree</h1>
+<h1>Simpatico/Summary Tree: STree</h1>
 <p>
   javajosh
   <i>2023</i>
 </p>
 
+
 <p>
-  The RTree is an n-arry tree with a custom addressing scheme for specifying a "parent" of the next node.
-  The RTree also maps all nodes to a reduction of every node up to root.
-  And we suggest an optimization of this map that retains only the mapping at the branch tips
+  The Simpatico Tree, Summary Tree, or STree or STrie is an n-arry tree with these features:
+</p>
+<ol>
+  <li>Unification of different kinds of specialization, especially inheritance vs instantiation.</li>
+  <li>Similar strategy for integration of disparate families of inputs, e.g. network AND hci inputs.</li>
+  <li>We push for the design of the most important stree: your personal graph.</li>
+  <li>The primary type is "person" and each row represents a relationship and the messages passed over time.</li>
+  <li>The opposite of egalitarian is utilitarian, genes, family, or value.</li>
+  <li>Associate a reduction with every node over the values from root to that node.</li>
+  <li>Provide a novel, hopefully useful reduction, the <a href="/combine">combine function</a></li>
+  <li>Guidance on the use of this data-structure and algorithm as a fundamental programming primitive.</li>
+  <li>We demonstrate parts of the operation elsewhere:
+    <ol>
+      <li><a href="/notes/browser-events.html">Browser events</a> demonstrates techniques for trapping and integrating HCI events.</li>
+      <li><a href="/chat">Chat</a> demonstrates integrating network events.</li>
+      <li><a href="/combine">Combine</a> demonstrates message cascade. </li>
+    </ol>
+  </li>
+  <li>A "component" can interpret arbitrary input.</li>
+  <li>The canonical component is an HTML file (although we will define other equivalent configurations)</li>
+  <li>The primary data-structure is always human-centered, the contents of the relationship, with various analyses available.</li>
+  <li>Connection takes effort, time, money, and thought.</li>
+  <li>Prioritize those projects, or you will die alone.</li>
+  <li>Discovery takes effort, time, money and thought.</li>
+  <li>Prioritize those projects, or you will die unknown.</li>
+</ol>
+<p>
+
 </p>
 
 <p>The most elegant way to specify this data structure is as a sequence of reductions which accept as input the output of the previous:</p>
@@ -70,9 +96,9 @@
 <p>
   The intuition is that you're building long rows of objects, and the rows relate to each other in a particular way.
   But this simple data-structure has some very useful properties for organizing software, particularly when interpreted as a sequence in time.
-  An RTree is a list of measurements binned according to a pattern, and then combined with the bin to produce something useful.
+  An STree is a list of measurements binned according to a pattern, and then combined with the bin to produce something useful.
 </p>
-<p>Lots of hierarchical things can be modeled as an RTree, but some make more sense than others</p>
+<p>Lots of hierarchical things can be modeled as an STree, but some make more sense than others</p>
 <ol>
   <li>git. Commits form an n-arry tree where the branches are...branches.</li>
   <li>Choose-your-own-adventure style stories.</li>
@@ -95,10 +121,10 @@
   <li>Related sequences of build targets (e.g. gradle)</li>
 </ol>
 
-<p>Although I've written the rtree to support any reduction for reduction 2, combine is my favorite.</p>
+<p>Although I've written the STree to support any reduction for reduction 2, combine is my favorite.</p>
 
 <h3>Canonical examples</h3>
-<p>We could write an rtree that organizes forms and the data those forms collect over time.
+<p>We could write an STree that organizes forms and the data those forms collect over time.
 The forms are represented as built up from scalars, a list of patterns, and the UI a list of ui components.
 Then these forms branch on new input.
 New versions of a form can be made and used simultaneously with old versions of a form.
@@ -143,7 +169,7 @@ New versions of a form can be made and used simultaneously with old versions of 
 
 <!--
 /**
- This rtree is implemented with arrays.
+ This stree is implemented with arrays.
  The data-structure looks like this:
 
  0 - 0 1 2 3 8 {}
@@ -158,7 +184,7 @@ New versions of a form can be made and used simultaneously with old versions of 
 
  For example, row 1 {} is ∫[0 1 2 4 5], and row 2 {} is ∫[0 1 2 6 7]
 
- The RTree has a mutable state, the focus, which determines what happens on the next add.
+ The STree has a mutable state, the focus, which determines what happens on the next add.
 
  The focus can be on any node, using its index "i". Note that this implies that focus and input events happen in a set order, on the same timeline. We could make an arbitrary distinction between strings and numbers, and imagine a single timeline in which they are interleaved, giving rise to a peculiar, but quite compact (and useful) representation of a Tree. In this sense it can be seen as a reduction, or a folding of a list that looks like (a, b, c, 0, d, e, 1, f...) into something that looks like:
 
@@ -180,10 +206,10 @@ New versions of a form can be made and used simultaneously with old versions of 
 
 <script type="module">
   import {assertEquals} from './core.js';
-  import rtree from './rtree.js';
+  import stree from './stree.js';
 
-  // A very simple RTree using integers as inputs and "add" instead of combine.
-  const r = rtree(0);
+  // A very simple STree using integers as inputs and "add" instead of combine.
+  const r = stree(0);
   assertEquals(r.branches.length, 1);
   assertEquals(r.branches[0].residue, 0);
   assertEquals(r.getFocus(), 0);
@@ -237,8 +263,8 @@ New versions of a form can be made and used simultaneously with old versions of 
   assertEquals(r.getFocus(), -2);
   assertEquals(r.residue(), 7);
 
-  // Now an rtree with objects
-  const s = rtree()
+  // Now an stree with objects
+  const s = stree()
   assertEquals(s.branches.length, 1)
   assertEquals(s.branches[0].residue, {})
   assertEquals(s.getFocus(), 0)

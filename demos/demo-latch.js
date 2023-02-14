@@ -1,10 +1,10 @@
 import {tryToStringify, hasProp} from '../core.js';
 import {validate} from '../friendly.js'
-import rtree from '../rtree.js';
+import stree from '../stree.js';
 
 
 // Let's build a little countdown latch
-const latch = rtree({count: 100});
+const latch = stree({count: 100});
 
 latch.add({
   name: 'dec',

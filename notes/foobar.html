@@ -49,7 +49,7 @@ let fib = {name:'fib', handle: ({a=1,b=1}) => [{a:b, b:a+b}]};
 let next = {handler:'fib'};
 
 
-// rtree tests
+// stree tests
 let t = rtree(0, sum, false);
 assertEquals(t.residue(0), 0)
 t.add(1); // default is branch 0

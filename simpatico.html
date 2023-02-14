@@ -394,7 +394,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 <p>The key here is to leverage software's super-power, which is copying complexity without error. First step is to make a particle in an Rtree, then make it sensitive to ticks. Then introduce code to render the particle (or the entire RTree - not sure yet.</p>
 
 <script type="module">
-  import * as RTree from './rtree.js';
+  import * as RTree from './stree.js';
   const {rtree} = RTree;
 </script>
 
@@ -405,7 +405,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 
 <!--  <p>Simpatico is easiest to understand if you understand the ideas behind <a href="react redux">Redux</a>, namely the idea that you can (and <i>should</i>!) model your application state as a monolithic object which is rendered into the current browser state by the pure functions of your UI. A straightforward idea, but complexity arises, and not just because of performance issues. It turns out that writing that function is a challenge, although JSX helps by allowing you to more cleanly write components that are explicit about taking state and rendering it.</p>-->
 
-<!--	<p>Simpatico is improved state management for browser applications. However, the ideas within it generalize across other domains. Simpatico models the running process as a tree of "cores" that are rooted at the physical level, with one long-lived global object, the global core. This core is made "sensitive" to the outside world via a singular S() method. It always starts at {} and on startup we proceed. By convention we allow row 0 in the rtree to represent the initial startup of the process, delegating most if not all further change to branches.</p>-->
+<!--	<p>Simpatico is improved state management for browser applications. However, the ideas within it generalize across other domains. Simpatico models the running process as a tree of "cores" that are rooted at the physical level, with one long-lived global object, the global core. This core is made "sensitive" to the outside world via a singular S() method. It always starts at {} and on startup we proceed. By convention we allow row 0 in the stree to represent the initial startup of the process, delegating most if not all further change to branches.</p>-->
 
 <!--  <p>Combined with a good visualization, the S() method can help you explore your design space, to characterize in a precise way the state-space of your application. Although cores can be used to accumulate and process low-level measurement, they can also be used to accumulate higher level messages into overall application state. The former corresponds to UI componentry, whereas the latter corresponds to server componentry.</p>-->
 
@@ -413,14 +413,14 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 ">-->
 <!--    import * as Core from './core.js';-->
 <!--    import * as Combine from './combine.js';-->
-<!--    import * as RTree from './rtree.js';-->
+<!--    import * as RTree from './stree.js';-->
 
-<!--    const {rtree} = RTree;-->
+<!--    const {stree} = RTree;-->
 <!--    const {combine} = Combine;-->
 <!--    const {assertEquals} = Core.default.asserts;-->
 <!--    const {now, RNG, log} = Core.default.utils;-->
 
-<!--    const S = rtree;-->
+<!--    const S = stree;-->
 
 <!--    // Note that S() should print out a friendly explanation of how to call it-->
 <!--    // We generally assume that localStorage is entirely ours. In this case, we'll use-->

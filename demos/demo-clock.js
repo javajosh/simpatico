@@ -1,11 +1,11 @@
-import rtree from "../rtree.js";
+import stree from "../stree.js";
 import { now, debug } from "../core.js";
 
 /**
  Clock with a requestAnimationFrame (raf) pump.
  Note: the basic raf() pattern is fn(){stuff; raf(fn)}.
  */
-let clock = rtree();
+let clock = stree();
 
 clock.add({
   interval: 0,

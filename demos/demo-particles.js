@@ -1,4 +1,4 @@
-import rtree from '../rtree.js';
+import stree from '../stree.js';
 import {scatter} from '../svg.js';
 
 
@@ -6,7 +6,7 @@ import {scatter} from '../svg.js';
 // it will change color if you intersect the target. Note that this isn't general
 // because if the collision is caused by the other particle's motion, it won't be
 // detected here. Yet another reason to define a coupling reduction between rows...
-let particle = rtree({x:0,y:0});
+let particle = stree({x:0,y:0});
 particle.add({ particleElt: document.getElementById('particle')});
 particle.add({ targetElt: document.getElementById('target')});
 particle.add({name:'move', handle: function(ctx, msg) {
