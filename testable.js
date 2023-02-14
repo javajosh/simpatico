@@ -5,7 +5,8 @@
  4. enjoy
  */
 
-const biolerplate = (fill='white', src='testable.js') => `
+/*
+  const biolerplate = (fill='white', src='testable.js') => `
   <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
@@ -15,7 +16,7 @@ const biolerplate = (fill='white', src='testable.js') => `
   <script src="testable.js"></script>
   <!-- End testable.js boilerplate  -->
 `;
-
+*/
 
 
 let fail = false;
@@ -49,7 +50,6 @@ window.addEventListener('error', () => {
 })
 
 // Add a convenient way to stop refresh, press space or s.
-
 window.addEventListener('keyup', ({key}) => {
   if (key === ' ') {
     window.stop();
