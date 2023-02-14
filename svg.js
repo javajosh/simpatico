@@ -38,16 +38,14 @@ const scatter = (elt, obj) => {
     elt.setAttribute("transform", clauses.join(''));
   }
 
-  // Setting text value assumes a g > (elt) g > text pattern.
+  // Setting text value assumes one text elt somewhere beneath the g
   if (
-    hasProp(obj, 'text') &&
-    elt.tagName === "g" &&
-    elt.children.length > 0 &&
-    elt.children[1].tagName === "g" &&
-    elt.children[1].children.length > 0 &&
-    elt.children[1].children[0].tagName === "text"
+    hasProp(obj, 'text')
   ){
-    elt.children[1].children[0].textContent = obj.text;
+    const textElt = elt.querySelector('text');
+    if (textElt) {
+      textElt.textContent = obj.text;
+    }
     delete obj.text;
   }
 
