@@ -160,7 +160,7 @@ function fileServerLogic() {
     "js"  : "application/javascript",
     "json": "application/json",
     "css" : "text/css",
-    "svg" : "image/svg",
+    "svg" : "image/svg+xml",
     "wasm": "application/wasm"
   }
   /**
