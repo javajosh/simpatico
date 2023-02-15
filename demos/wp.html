@@ -5,12 +5,12 @@
   <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
   <meta name="author" content="Josh Rehman">
 
-  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
+  <link id="favicon" rel="icon" type="image/png" href="../img/white.png"/>
 <!--  <meta id="refresh" http-equiv="refresh" content="2">-->
 <!--  <script src="testable.js"></script>-->
 
   <title>wp</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="../style.css">
 </head>
 <body>
 <h1>wp - the simple word processor</h1>
@@ -74,11 +74,13 @@ When you click a key, the value is displayed in the display region.
   localStorage.removeItem("example-key-1");
   //localStorage.clear();
   //put some test values in there
-  const safeSetItem = (key, value) => {
-    const keyExists = localStorage.getItem(key) !== null;
+  const safeSetItem = (key, value, ls=window.localStorage) => {
+    const keyExists = ls.getItem(key) !== null;
     if (!keyExists) {
-      localStorage.setItem(key, value);
+      ls.setItem(key, value);
+      return true;
     }
+    return false;
   }
   safeSetItem("example-key-1", "<b>a very important value</b>");
   safeSetItem("example-key-2", "<b>another very important value</b>");

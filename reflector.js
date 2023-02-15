@@ -155,13 +155,16 @@ function fileServerLogic() {
     .on('unlink', path => {delete cache[path]});
 
   // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
+  // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
   const mime = {
     "html": "text/html",
     "js"  : "application/javascript",
     "json": "application/json",
     "css" : "text/css",
     "svg" : "image/svg+xml",
-    "wasm": "application/wasm"
+    "wasm": "application/wasm",
+    "pdf" : "application/pdf",
+    "md"  : "text/plain",
   }
   /**
    * Required for most browsers to use SharedArrayBuffer and load wasm.
@@ -231,9 +234,9 @@ function fileServerLogic() {
     }
 
     // Normalize the url
-    if (req.url === '/') {
-      // Treat root as a request for index.html
-      req.url = '/index.html';
+    if (req.url.endsWith('/')) {
+      // Treat directories (including root) as a request for index.html
+      req.url += 'index.html';
     }
     // Strip parameters to find the underlying file.
     if (req.url.indexOf('?') > -1) {
