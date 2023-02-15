@@ -197,7 +197,7 @@ function fileServerLogic() {
     const respondWithError = (err) => {
       console.error(err.log);
       res.writeHead(err.code);
-      res.end(err.msg);
+      res.end(err.message);
     }
     const respondWithData = data => {
       res.writeHead(
@@ -225,7 +225,7 @@ function fileServerLogic() {
       respondWithError(combine(new Error(), {
         code: 500,
         log: 'missing user-agent header',
-        msg: 'user-agent header required',
+        message: 'user-agent header required',
       }));
       return;
     }
@@ -256,7 +256,7 @@ function fileServerLogic() {
           respondWithError(Object.assign(new Error(), {
             code: 404,
             log: 'resource not found',
-            msg: 'Not found. \n' + failWhale,
+            message: 'Not found. \n' + failWhale,
           }));
           return;
         }
