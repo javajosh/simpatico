@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+<!--  <meta id="refresh" http-equiv="refresh" content="2">-->
+  <script src="testable.js" type="module"></script>
+  <!-- End testable.js boilerplate  -->
+
+  <title>Core.js</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>time</h1>
+<p>javajosh <i>2023</i></p>
+<!--<div class="makeItStop"></div>-->
+
+<p>The <a href="https://en.wikipedia.org/wiki/Year_2038_problem">Year 2038 problem</a> is when "32-bits of milliseconds since the 1970 epoch" runs out.</p>
+<p>Interestingly, Javascript with <code>Date.now()</code> and <code>+new Date()</code></p>
+<p><a href="https://stackoverflow.com/questions/50061746/storing-64-bits-timestamps-in-javascript-53-bits-number-format">Here</a> is an interesting Stack Overflow discussion of using 53-bits of a Javascript float as a timestamp.
+  So, it is probably that Javascript runtimes that rely on a ms-since-epoch timestamp will be okay for a couple hundred thousand more years.
+  Which is nice overhead.
+</p>
+
+<script type="module">
+  import * as c from './core.js';
+  const t = c.now();
+  console.log(t);
+
+  // Number.MAX_SAFE_INTEGER, 2^53 - 1, has a value of 9,007,199,254,740,991
+  console.log(Number.MAX_SAFE_INTEGER, 9007199254740991, Number.MAX_SAFE_INTEGER === 9007199254740991);
+  // This is ±285 years with microseconds, ±285,000 years with milliseconds.
+  console.log('μs', 9007199254740991, 9007199254740991/1000000/3600/24/365);
+  console.log('ms', 9007199254740991, 9007199254740991/1000/3600/24/365);
+  // Assuming Date.now() is milliseconds from epoch, and has a 53-bit limit, then JavaScript timestamps are good for 285,616 years.
+  // If the epoch starts Jan 1 1970 then this is good (285,616 + 1970) to the year 287586AD.
+  // The year 10,191 in Dune is trivially representable to millisecond accuracy (259429755600000)
+  console.log('the year 10,191 timestamp value: ', +(new Date('Jan 1, 10191')));
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
+  performance.now();
+  // We should also explore setTimeout() and requestAnimationFrame()
+</script>
+</body>
+</html>
