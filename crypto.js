@@ -39,7 +39,9 @@ const decode = (byteStream) => new TextDecoder().decode(byteStream);
 const encrypt = async (clearText, secret) => {
   const encoded = encode(clearText);
   const iv = generateIv();
-  const cipherText = await window.crypto.subtle.encrypt({name: 'AES-GCM', iv,
+  const cipherText = await window.crypto.subtle.encrypt({
+    name: 'AES-GCM',
+    iv,
   }, secret, encoded);
 
   return {

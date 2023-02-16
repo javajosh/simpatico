@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+<!--  <meta id="refresh" http-equiv="refresh" content="2">-->
+<!--  <script src="/testable.js" type="module"></script>-->
+  <!-- End testable.js boilerplate  -->
+
+  <title>crypto</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<h1>crypto</h1>
+<p>javajosh <i>2023</i></p>
+<div class="makeItStop"></div>
+
+<p>
+  Exercise cryptographic primitives.
+  In this case use the crypto library to generate a key, encrypt a thing, then decrypt.
+  Note that, at this point, we cannot save the generated keys for later use.
+  This is enough to save ciphertext and later decrypt it.
+  References:
+</p>
+<ol>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey">MDN's generateKey() docs</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/exportKey">MDN's exportKey() docs</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey">MDN's importKey() docs</a></li>
+</ol>
+
+
+<script type="module">
+  import {assertEquals, log} from './core.js';
+  import {generateSymmetricKey, encrypt, pack, decrypt, unpack} from './crypto.js';
+
+  // encrypt message
+  const msg = 'Hey crypto cats!!';
+  log('initializing', msg);
+  const key = await generateSymmetricKey();
+  log('generated key', key);
+  const { cipherText, iv } = await encrypt(msg, key);
+  log('encrypted message', {cipherText, iv});
+  // pack and transmit
+  // await fetch('/secure-api', {
+  //   method: 'POST',
+  //   body: JSON.stringify({
+  //     cipher: pack(cipher),
+  //     iv: pack(iv),
+  //   }),
+  // })
+  // retrieve
+  // const response = await fetch('/secure-api').then(res => res.json())
+  const fakeResponse = {
+    cipherText: pack(cipherText),
+    iv: pack(iv),
+  }
+    log('fakeResponse', fakeResponse);
+  // unpack and decrypt message
+  const final = await decrypt(
+    unpack(fakeResponse.cipherText),
+    key,
+    unpack(fakeResponse.iv),
+  );
+  log('decrypted message', final);
+  assertEquals(final, msg);
+</script>
+
+
+<script type="module">
+  import {generateSymmetricKey, importSymmetricKey, pack} from './crypto.js';
+  import {mapObject, getProp, as} from './core.js';
+
+  const key = await generateSymmetricKey();
+
+
+  // Export by picking a format and calling exportKey
+  // On my machine only raw and jwk are supported.
+  const formats = {'raw':'raw', 'pkcs8':'pkcs8', 'spki':'spki', 'jwk':'jwk'};
+
+  // For each format try to export it in that format.
+  // Measure unsupported formats
+  const unsupported = {};
+  let exportedKey;
+  mapObject(formats, async ([_, format]) => {
+    try {
+      exportedKey = await window.crypto.subtle.exportKey(format, key);
+    } catch (e) {//usually something like "DOMException: Operation is not supported"
+      unsupported[format] = format;
+    }
+  });
+
+  exportedKey = await window.crypto.subtle.exportKey('jwk', key);
+  const exportedKeyPacked = pack(exportedKey);
+  console.log(exportedKey, exportedKeyPacked);
+
+  // exportedKeyPacked is something I can pass around or use as part of an address.
+
+  // This step is failing with:
+  // Uncaught DOMException: Failed to execute 'importKey' on 'SubtleCrypto': Algorithm: Unrecognized name
+  // at https://simpatico.local:8443/crypto:112:30
+  // await window.crypto.subtle.importKey('jwk', exportedKey,'A256GCM', true, ['encrypt', 'decrypt']);
+
+
+  // The reverse is the import - feed it a string, and get back a key object
+  // NB: Having some trouble getting this to work, and the error message is not helpful.
+  // Feeling drained, will put aside for now and rest the brain.
+  // const importKeyAsString = async (keyString="{}", format='jwk', caps=['encrypt', 'decrypt']) => {
+  //   as.str(keyString) && as.str(format);
+  //   const keyObject = JSON.parse(keyString);
+  //   const alg = getProp(keyObject, 'alg', '');
+  //   console.debug('importKeyAsString()', keyString, format, caps, alg, keyObject)
+  //   return await window.crypto.subtle.importKey(
+  //     format,
+  //     keyObject,
+  //     alg,
+  //     true,
+  //     caps,
+  //   );
+  // }
+  //
+  // // const testString = "{\"alg\":\"A256GCM\",\"ext\":true,\"k\":\"QeAC4fzCD1MwIyJv6IwypLUuO2MQyRwHg1yEB3scMD0\",\"key_ops\":[\"encrypt\",\"decrypt\"],\"kty\":\"oct\"}"
+  // const testString = await exportKeyAsString(key);
+  // console.log('testString', testString, key);
+  // const testKey = importKeyAsString(testString);
+  //do stuff with the key
+</script>
+
+<p>
+  Consider how important it is that you protect your data.
+  Consider how important it is that no-one be able to post as you online or in an app.
+  Consider how little protection individuals actually have from these actions.
+  We rely on vague notions of fairness and inaccurate notions of enforcement.
+
+</body>
+</html>

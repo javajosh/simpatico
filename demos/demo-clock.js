@@ -28,12 +28,12 @@ clock.add({
   handle: (c, m) => {
     const { row, interval, delay, started } = c;
     if (started) throw `row ${row} already started at ${started}`;
-    const pump = (a) => {
+    const pump = () => {
       // Gotcha: We cannot access c.ticks and c.stopped directly because
       // the 'c' here is as it was at the beginning of the row.
       clock.focus(row);
       const { ticks, stopped } = clock.residue();
-      clock.add({ handler: "tick" });
+      clock.add({ msg: "tick" });
       if (!stopped) {
         if (interval) {
           // Q: Is there a better way to artificially slow down the interval?
