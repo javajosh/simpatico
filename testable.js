@@ -13,11 +13,10 @@
       <rect width='1' height='1' fill='white' />
   </svg>"/>
   <meta id="refresh" http-equiv="refresh" content="2">
-  <script src="testable.js"></script>
+  <script src="testable.js" type="module"></script>
   <!-- End testable.js boilerplate  -->
 `;
 */
-
 
 let fail = false;
 const favicon = document.getElementById('favicon');
@@ -47,6 +46,10 @@ window.addEventListener('error', () => {
   fail = true;
   favicon.href = svgIcon('red');
   document.body.style.backgroundColor = 'red';
+  const isIframe = window.parent !== null;
+  if (isIframe) {
+    window.parent.dispatchEvent(new CustomEvent('test-failure'));
+  }
 })
 
 // Add a convenient way to stop refresh, press space or s.
