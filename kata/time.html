@@ -48,5 +48,22 @@
   performance.now();
   // We should also explore setTimeout() and requestAnimationFrame()
 </script>
+
+<script id="module-tick" type="module">
+  // Define a window.ontick custom event.
+  // Usage: window.addEventListener('tick', e => console.log(e.detail.t));
+  let n = 0;
+  const throttle = 1; // emit every Nth tick, where N=throttle
+  let animating = true;
+  const tick = () => {
+    if (window.ticking === false) return;
+    if ((++n % throttle) === 0){
+      const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+      window.dispatchEvent(event);
+    }
+    if (animating) window.requestAnimationFrame(tick);
+  };
+  tick();
+</script>
 </body>
 </html>
