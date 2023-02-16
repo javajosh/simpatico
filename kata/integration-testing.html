@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
+  <meta name="author" content="javajosh">
+
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+  <script src="testable.js" type="module"></script>
+  <!-- End testable.js boilerplate  -->
+
+
+  <title>Kata</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<h1>Integration testing</h1>
+<p>javajosh <i>2023</i></p>
+
+<p>
+  The best tool for testing is the browser (ideally that your users use; or one you use)
+  The second best tool is curl.
+  To simulate my personal Firefox you'd use a curl command like this:
+</p>
+
+<h2>Curl</h2>
+<p>
+  The lowest common denominator.
+  Browser dev tools network pane copy value as curl:
+</p>
+<code><pre>
+  curl 'https://simpatico.io/' \
+  -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/109.0' \
+  -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'\
+  -H 'Accept-Language: en-US,en;q=0.5' \
+  -H 'Accept-Encoding: gzip, deflate, br' \
+  -H 'DNT: 1' \
+  -H 'Connection: keep-alive' \
+  -H 'Upgrade-Insecure-Requests: 1' \
+  -H 'Sec-Fetch-Dest: document' \
+  -H 'Sec-Fetch-Mode: navigate' \
+  -H 'Sec-Fetch-Site: none' \
+  -H 'Sec-Fetch-User: ?1' \
+  -H 'Pragma: no-cache' \
+  -H 'Cache-Control: no-cache'
+</pre></code>
+
+<p>
+  Manipulation of the request at this level is useful for testing code that rejects invalid requests.
+  For example, missing User-Agent headers.
+  Note that the <code>reflector</code> is insensitive to almost all of these headers.
+  However, <code>node:http</code> <i>may</i> be sensitive to them.
+</p>
+
+<h2>Fetch</h2>
+<p>
+  Browser dev tools network pane copy value as fetch.
+  This can be used in browser javascript, or in node javascript.
+  See html source:
+</p>
+<script type="module">
+  // This "fetch()" is equivalent to the curl above
+  if (!window.location) await fetch("https://simpatico.io/", {
+    "credentials": "omit",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/109.0",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Upgrade-Insecure-Requests": "1",
+      "Sec-Fetch-Dest": "document",
+      "Sec-Fetch-Mode": "navigate",
+      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-User": "?1",
+      "Pragma": "no-cache",
+      "Cache-Control": "no-cache"
+    },
+    "method": "GET",
+    "mode": "cors"
+  });
+</script>
+
+<h2>iframe</h2>
+<p>
+  If your test suite is self-executing html pages, then just including them as an
+  <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a> and checking their color is enough.
+  This technique is mapping over html resources with a "fresh" browser to produce a tab state.
+  Next we want to export a boolean (did it pass?)
+  We also want to explore logging and console control.
+</p>
+<!--This list naturally wants to be automated - but why, really? -->
+<iframe id="homepage-frame"
+        title="homepage"
+        width="300"
+        height="200"
+        src="/index.html">
+</iframe>
+<iframe id="core-frame"
+        title="core"
+        width="300"
+        height="200"
+        src="/core">
+</iframe>
+<iframe id="combine-frame"
+        title="combine"
+        width="300"
+        height="200"
+        src="/combine">
+</iframe>
+<iframe id="stree-frame"
+        title="stree"
+        width="300"
+        height="200"
+        src="/stree">
+</iframe>
+<iframe id="crypto-frame"
+        title="crypto"
+        width="300"
+        height="200"
+        src="/crypto">
+</iframe>
+<iframe id="friendly-frame"
+        title="friendly"
+        width="300"
+        height="200"
+        src="/friendly">
+</iframe>
+<iframe id="svg-frame"
+        title="svg"
+        width="300"
+        height="200"
+        src="/svg">
+</iframe>
+<iframe id="chat-frame"
+        title="chat"
+        width="300"
+        height="200"
+        src="/chat">
+</iframe>
+
+<script type="module">
+  const svgIcon = fill => `data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='${fill}' />
+  </svg>`;
+
+  // Testable.js above will emit a test failure event in the parent context.
+  window.addEventListener('test-failure', e => {
+    favicon.href = svgIcon('red');
+    document.body.style.backgroundColor = 'red';
+  })
+</script>
+
