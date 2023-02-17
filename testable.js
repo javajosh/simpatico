@@ -19,6 +19,7 @@
 */
 
 let fail = false;
+const isIframe = window.parent !== null;
 const favicon = document.getElementById('favicon');
 if (!favicon) throw 'testable.js requires a #favicon element in the document';
 
@@ -38,6 +39,9 @@ window.addEventListener('load', () => {
   if (!fail){
     favicon.href = svgIcon('green');
     console.log('Tests succeeded!');
+    if (isIframe) {
+      window.parent.dispatchEvent(new CustomEvent('test-success'));
+    }
   }
 })
 
@@ -46,7 +50,7 @@ window.addEventListener('error', () => {
   fail = true;
   favicon.href = svgIcon('red');
   document.body.style.backgroundColor = 'red';
-  const isIframe = window.parent !== null;
+
   if (isIframe) {
     window.parent.dispatchEvent(new CustomEvent('test-failure'));
   }
