@@ -10,8 +10,8 @@
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
       <rect width='1' height='1' fill='white' />
   </svg>"/>
-<!--  <meta id="refresh" http-equiv="refresh" content="2">-->
-<!--  <script src="/testable.js" type="module"></script>-->
+  <meta id="refresh" http-equiv="refresh" content="2">
+  <script src="/testable.js" type="module"></script>
   <!-- End testable.js boilerplate  -->
 
   <title>crypto</title>
@@ -22,6 +22,7 @@
 <p>javajosh <i>2023</i></p>
 <div class="makeItStop"></div>
 
+<h2>Encrypt/Decrypt</h2>
 <p>
   Exercise cryptographic primitives.
   In this case use the crypto library to generate a key, encrypt a thing, then decrypt.
@@ -33,12 +34,14 @@
   <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey">MDN's generateKey() docs</a></li>
   <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/exportKey">MDN's exportKey() docs</a></li>
   <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey">MDN's importKey() docs</a></li>
+  <li><a href="https://w3c.github.io/webcrypto/#dfn-SubtleCrypto-method-generateKey">See the w3c web crypto spec</a></li>
+  <li><a href="https://www.crypto101.io/">Crypto 101 is a good intro text to the field.</a></li>
 </ol>
 
 
 <script type="module">
-  import {assertEquals, log} from './core.js';
-  import {generateSymmetricKey, encrypt, pack, decrypt, unpack} from './crypto.js';
+  import {assertEquals, log, assert} from './core.js';
+  import {generateSymmetricKey, encrypt, pack, decrypt, unpack, equalBuffers} from './crypto.js';
 
   // encrypt message
   const msg = 'Hey crypto cats!!';
@@ -47,7 +50,7 @@
   log('generated key', key);
   const { cipherText, iv } = await encrypt(msg, key);
   log('encrypted message', {cipherText, iv});
-  // pack and transmit
+
   // await fetch('/secure-api', {
   //   method: 'POST',
   //   body: JSON.stringify({
@@ -55,88 +58,75 @@
   //     iv: pack(iv),
   //   }),
   // })
-  // retrieve
   // const response = await fetch('/secure-api').then(res => res.json())
+
   const fakeResponse = {
     cipherText: pack(cipherText),
     iv: pack(iv),
+  };
+
+  const unpacked = {
+    cipherText: unpack(fakeResponse.cipherText),
+    iv: unpack(fakeResponse.iv),
   }
-    log('fakeResponse', fakeResponse);
+  log('fakeResponse', fakeResponse, 'unpacked', unpacked);
+  assertEquals(unpacked.cipherText, cipherText);
+  assert(equalBuffers(unpacked.iv, iv));
+
   // unpack and decrypt message
   const final = await decrypt(
-    unpack(fakeResponse.cipherText),
+    {cipherText, iv},
     key,
-    unpack(fakeResponse.iv),
   );
   log('decrypted message', final);
   assertEquals(final, msg);
 </script>
 
+<h2>Export keys</h2>
+<p>
+  Export by picking a format and calling exportKey
+  Format support depends on the type of underlying key.
+  I believe that 'raw' is universally supported, however.
+</p>
 
 <script type="module">
-  import {generateSymmetricKey, importSymmetricKey, pack} from './crypto.js';
-  import {mapObject, getProp, as} from './core.js';
+  import {generateIv, generateSymmetricKey, importSymmetricKey, pack, encrypt, decrypt} from './crypto.js';
+  import {log, mapObject, getProp} from './core.js';
 
+  //Make a key and encrypt something with it
   const key = await generateSymmetricKey();
+  const { cipherText, iv } = await encrypt("hello!", key);
 
+  // How to remove a key?
 
-  // Export by picking a format and calling exportKey
-  // On my machine only raw and jwk are supported.
-  const formats = {'raw':'raw', 'pkcs8':'pkcs8', 'spki':'spki', 'jwk':'jwk'};
-
-  // For each format try to export it in that format.
-  // Measure unsupported formats
-  const unsupported = {};
-  let exportedKey;
-  mapObject(formats, async ([_, format]) => {
-    try {
-      exportedKey = await window.crypto.subtle.exportKey(format, key);
-    } catch (e) {//usually something like "DOMException: Operation is not supported"
-      unsupported[format] = format;
-    }
-  });
-
-  exportedKey = await window.crypto.subtle.exportKey('jwk', key);
+  // Export the key in raw; check what is supported with checkSupportedKeyExportFormats()
+  let exportedKey = await window.crypto.subtle.exportKey('raw', key);
   const exportedKeyPacked = pack(exportedKey);
-  console.log(exportedKey, exportedKeyPacked);
-
-  // exportedKeyPacked is something I can pass around or use as part of an address.
-
-  // This step is failing with:
-  // Uncaught DOMException: Failed to execute 'importKey' on 'SubtleCrypto': Algorithm: Unrecognized name
-  // at https://simpatico.local:8443/crypto:112:30
-  // await window.crypto.subtle.importKey('jwk', exportedKey,'A256GCM', true, ['encrypt', 'decrypt']);
+  log(exportedKey, exportedKeyPacked);
 
 
-  // The reverse is the import - feed it a string, and get back a key object
-  // NB: Having some trouble getting this to work, and the error message is not helpful.
-  // Feeling drained, will put aside for now and rest the brain.
-  // const importKeyAsString = async (keyString="{}", format='jwk', caps=['encrypt', 'decrypt']) => {
-  //   as.str(keyString) && as.str(format);
-  //   const keyObject = JSON.parse(keyString);
-  //   const alg = getProp(keyObject, 'alg', '');
-  //   console.debug('importKeyAsString()', keyString, format, caps, alg, keyObject)
-  //   return await window.crypto.subtle.importKey(
-  //     format,
-  //     keyObject,
-  //     alg,
-  //     true,
-  //     caps,
-  //   );
-  // }
-  //
-  // // const testString = "{\"alg\":\"A256GCM\",\"ext\":true,\"k\":\"QeAC4fzCD1MwIyJv6IwypLUuO2MQyRwHg1yEB3scMD0\",\"key_ops\":[\"encrypt\",\"decrypt\"],\"kty\":\"oct\"}"
-  // const testString = await exportKeyAsString(key);
-  // console.log('testString', testString, key);
-  // const testKey = importKeyAsString(testString);
-  //do stuff with the key
+  // Import the key. The signature is:
+  // importKey(format, keyData, algorithm, extractable, keyUsages)
+  const key2 = await window.crypto.subtle.importKey(
+    'raw',
+    exportedKey,
+    {
+      name: 'AES-GCM',
+      iv,
+    },
+    true,
+    ['encrypt', 'decrypt']
+  );
+
+  // Now we can use the key again!
+  const final = await decrypt(
+    {cipherText, iv},
+    key2,
+  );
+  log(final);
+
 </script>
 
-<p>
-  Consider how important it is that you protect your data.
-  Consider how important it is that no-one be able to post as you online or in an app.
-  Consider how little protection individuals actually have from these actions.
-  We rely on vague notions of fairness and inaccurate notions of enforcement.
 
 </body>
 </html>

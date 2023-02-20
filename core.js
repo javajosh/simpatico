@@ -184,6 +184,7 @@ is.same = (arr) => {
 is.contains = (arr, a) => as.arr(arr) && arr.includes(a);
 is.excludes = (arr, a) => !is.contains(arr, a);
 is.arrEquals = arrEquals;
+is.equals = equals;
 
 // This is awkward because we have to guess the cardinality of the predicate.
 // Another reason why the more straight-forward form is probably better.
