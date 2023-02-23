@@ -127,6 +127,56 @@
 
 </script>
 
+<h2>Asymmetric keys</h2>
+<p>
+  Now lets make asymmetric keys and use them to sign things, and also to wrap things.
+</p>
+
+<script type="module">
+  import {encode} from './crypto.js';
+
+  const msg = 'hello world';
+
+  // Add an "A" and then figure out the arguments.
+  // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey
+  // https://developer.mozilla.org/en-US/docs/Web/API/EcKeyGenParams
+  // name = ECDSA or ECDH
+  // namedCurve = P-256, P-384, P-521
+  const generateAsymmetricKey = () => {
+    return window.crypto.subtle.generateKey({
+      name: 'ECDSA',
+      namedCurve: 'P-384',
+    }, true, ['sign', 'verify'])
+  }
+  const keyPair = await generateAsymmetricKey();
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/sign
+  // https://developer.mozilla.org/en-US/docs/Web/API/EcdsaParams
+  const signature = await window.crypto.subtle.sign({
+      name: 'ECDSA',
+      hash: 'SHA-384'
+    }, keyPair.privateKey,
+    encode(msg)
+  );
+  console.log('keypair', keyPair, 'msg', msg, 'signature', signature);
+
+  //https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
+  // bool = verify(algorithm, key, signature, data)
+  const verified = await window.crypto.subtle.verify({
+      name: 'ECDSA',
+      hash: 'SHA-384'
+    }, keyPair.publicKey,
+    signature,
+    encode(msg),
+  );
+  console.log('verified', verified);
+
+</script>
+
+<h2>Exporting a wrapped symmetric key</h2>
+<p>
+  Finally, we have what we need
+</p>
 
 </body>
 </html>

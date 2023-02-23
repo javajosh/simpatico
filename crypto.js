@@ -1,6 +1,6 @@
 // Make a new key using generateKey()
 // See https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey
-const generateSymmetricKey = async () => {
+const generateSymmetricKey = () => {
   return window.crypto.subtle.generateKey({
     name: 'AES-GCM',
     length: 256,
