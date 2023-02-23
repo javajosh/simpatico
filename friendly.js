@@ -1,4 +1,4 @@
-import { assert, is, tryToStringify, size } from "./core.js";
+import { assert, is, tryToStringify, size, hasProp } from "./core.js";
 
 /**
  *  Validate an object against a pattern obj.
@@ -76,6 +76,15 @@ export const checkValue = (predArray, value) => {
       if (!pass) {
         failedPreds.push(pred, lo, hi);
       }
+    } else if (pred === "pick") {
+      const count = predArray[i + 1];
+      const options = predArray.slice(i + 2);
+      i += 1 + options.length;
+
+      pass = options.includes(value);
+      if (!pass) {
+        failedPreds.push(pred, count, options);
+      }
     } else if (pred === "optional") {
       //optional means we skip if it's missing
       if (is.undef(value)) {
@@ -83,6 +92,7 @@ export const checkValue = (predArray, value) => {
       }
     } else {
       // You can call any predicate by name - typically this will be a type check
+      if (!hasProp(is, pred)) throw `missing predicate ${pred}`
       pass = is[pred](value);
       if (!pass) failedPreds.push(pred);
     }

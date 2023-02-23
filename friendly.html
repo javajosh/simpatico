@@ -58,7 +58,8 @@
     d: {
       e: ['num', 'between', 0, 10],
       f: ['optional', 'str', 'between', 3, 8],
-    }
+    },
+    g: ['str', 'pick', 1, 'apple', 'orange', 'bannana'],
   };
 
   // Here's a value that matches
@@ -67,8 +68,9 @@
     b: 'hi',
     d: {
       e: 3,
-      f: 'abcd'
-    }
+      f: 'abcd',
+    },
+    g: 'apple'
   };
 
   // Here's one that doesn't
@@ -77,8 +79,9 @@
     b: 'hi',
     d: {
       e: 11, //this one fails.
-      f: 'abcd'
-    }
+      f: 'abcd',
+    },
+    g: 'pear', // so does this one
   };
 
   // checkValue() tests - The normal happy cases
@@ -197,17 +200,20 @@
 
   // the full monty
   assertEquals(validate(testPattern, testValid), undefined, 'full monty should be valid');
-  assertEquals(validate(testPattern, testNotValid), {d: {e: ['between', 0, 10]}}, 'full monty should NOT be valid');
+  assertEquals(validate(testPattern, testNotValid), {d: {e: ['between', 0, 10]}, g:["pick", 1, ["apple","orange","bannana"] ]}, 'full monty should NOT be valid');
 
   /** docs
-   A simple friendly function. Note that friendly functions can only take one object arg. It's better if they don't return objects if they execute normally, since this clashes with the descriptive failure mode We will see that in a handler context these conditions are very natural and easy
+   A simple friendly function.
+   Friendly functions can only take one object arg.
+   If the the argument is valid, we execute the function.
+   If the argument is invalid, we return the failed pattern.
    */
   const friendly = input => {
     const pattern = {a: ['bool']};
     if (!validate(pattern, input)) { // concern: It's not intuitive to check !validate. rename to 'invalid'?
       return 2;
     } else {
-      return pattern;
+      return validate(pattern, input);
     }
   }
 
