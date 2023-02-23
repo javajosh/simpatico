@@ -150,7 +150,7 @@ const cast = (type, str) => {
 
 // is looks something like {NUL: a => getType(a) === NUL, STR: a => getType(a) === STR ...}
 // ASSERT wraps with an assertion  {NUL: (a, msg) => assert(getType(a) === NUL, msg), STR: (a,msg) => assert(getType(a) === STR, msg)}
-const is = mapObject(TYPES,([k, v]) =>
+const is = mapObject(TYPES, ([k, v]) =>
   [k.toLowerCase(), a => getType(a) === v]
 )
 is.int = (a) => is.num(a) && (a % 1 === 0)
@@ -182,6 +182,7 @@ is.same = (arr) => {
   return true;
 }
 is.contains = (arr, a) => as.arr(arr) && arr.includes(a);
+is.includes = is.contains;
 is.excludes = (arr, a) => !is.contains(arr, a);
 is.arrEquals = arrEquals;
 is.equals = equals;
