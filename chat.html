@@ -23,43 +23,46 @@
 </ol>
 
 <script type="module">
-  console.log("Simpatico chat boot", "UTC", new Date().toUTCString(), "ms since epoch", Date.now(), window.location);
+  const DEBUG = true;
   const elt = document.getElementById.bind(document);
   const displayChat = elt("display-chat");
 
-  // Display a string as a new list element
-  const displayHtmlString = (msg, parent = displayChat) => {
-    // Compare with string manipulation version of this
-    const li = document.createElement("li");
-    li.innerHTML = msg;
-    parent.appendChild(li);
-    console.debug(`msg received and appended as li [${msg}]`);
-  }
-
-  // Read: Open the socket and route inbound messages to the DOM
-  const connect = (url, greeting = '<b>hey</b>') => {
-    const conn = new WebSocket(url);
-    conn.onopen = () => conn.send(greeting);
-    conn.onmessage = e => displayHtmlString(e.data);
-    return conn;
-  }
   const websocketURL = window.location.toString().replace(/^http/, 'ws');
   let connection = connect(websocketURL);
-  const isConnReady = (conn = connection) => conn !== undefined && conn.readyState === conn.OPEN;
+  document.body.onchange = onWrite;
+
+  // Read: Open the socket and route inbound messages to the DOM
+  function connect (url, greeting = '<b>hey</b>') {
+    const conn = new WebSocket(url);
+    conn.onopen = () => conn.send(greeting);
+    conn.onmessage = e => addListItem(e.data);
+    return conn;
+  }
+
+  // Display a string as a new list element
+  function addListItem (itemHtml, parent = displayChat) {
+    const li = document.createElement("li");
+    li.innerHTML = itemHtml;
+    parent.appendChild(li);
+    if (DEBUG) console.debug(`itemHtml received and appended as li [${itemHtml}]`);
+  }
+
+  function isConnReady (conn = connection) {
+    return conn !== undefined && conn.readyState === conn.OPEN
+  }
 
   // Write: User input is received. Route outbound messages from the DOM to the connection.
   // if the connection is down, try to reestablish.
   // if the connection is up, send the target.value as a string.
-  document.body.onchange = e => {
+  function onWrite(e) {
     try {
       if (!isConnReady()){
-        console.log('connection down attempting reconnect', url);
-        connection = connect(url);
-      }
-      if (isConnReady()) {
+        if (DEBUG) console.log('connection down attempting reconnect', url);
+        connection = connect(url); // need a backoff timer to avoid floods in more complex cases.
+      } else {
         const msg = e.target.value;
         connection.send(msg);
-        console.debug(`msg received ${msg}`);
+        if (DEBUG) console.debug(`msg sent ${msg}`);
       }
     } catch (e) {
       console.error('problem processing change input');
