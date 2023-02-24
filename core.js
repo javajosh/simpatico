@@ -267,7 +267,6 @@ const safeSetItem = (key, value, ls=window.localStorage) => {
   return false;
 }
 
-const elt = document.getElementById.bind(document);
 
 export {
   now, log, debug, info, error, assert, assertThrows, tryToStringify,
@@ -277,5 +276,5 @@ export {
   peek, push, copy,
   TYPES, getType, size, cast, is, as,
   RNG, shuffle,
-  parseObjectLiteralString, regex, elt
+  parseObjectLiteralString, regex
 }

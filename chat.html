@@ -24,11 +24,10 @@
 
 <script type="module">
   import * as wcb from './webcryptobox.js';
-  import {elt} from './core.js';
 
   const DEBUG = false;
   const DURABLE_KEY = 'durable-process';
-  const displayChat = elt('display-chat');
+  const displayChat = document.getElementById('display-chat');
   const ls = window.localStorage;
 
 
