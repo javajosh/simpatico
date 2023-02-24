@@ -23,19 +23,63 @@
 </ol>
 
 <script type="module">
-  const DEBUG = true;
-  const elt = document.getElementById.bind(document);
-  const displayChat = elt("display-chat");
+  import * as wcb from './webcryptobox.js';
+  import {elt} from './core.js';
 
+  const DEBUG = false;
+  const DURABLE_KEY = 'durable-process';
+  const displayChat = elt('display-chat');
+  const ls = window.localStorage;
+
+
+  // Initialize either by restoring a keypair or generating a new one.
+  const {keyPair, keyPairPem} = await initializeDurableProcess(DURABLE_KEY);
+
+  // Connect to the reflector over websockets
   const websocketURL = window.location.toString().replace(/^http/, 'ws');
-  let connection = connect(websocketURL);
-  document.body.onchange = onWrite;
+  const connection = connect(websocketURL, keyPair, keyPairPem, e => {
+    addListItem(e.data);
+  });
 
-  // Read: Open the socket and route inbound messages to the DOM
-  function connect (url, greeting = '<b>hey</b>') {
+
+  async function initializeDurableProcess(key=DURABLE_KEY) {
+    let keyPair, keyPairPem;
+    // useful for debugging: ls.removeItem(key);
+    if (!ls.hasOwnProperty(key)) {
+      // Generate a new keypair
+      keyPair = await wcb.generateKeyPair();
+      keyPairPem = {
+        publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
+        privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey)
+      };
+      ls.setItem(key, JSON.stringify(keyPairPem));
+      if (DEBUG) console.log('created durable-process keypair in localStorage', keyPairPem, keyPair);
+    } else {
+      try{
+        const keyPairString = ls.getItem(key);
+        keyPairPem = JSON.parse(keyPairString);
+        keyPair = {
+          publicKey: await wcb.importPublicKeyPem(keyPairPem.publicKeyPem),
+          privateKey: await wcb.importPrivateKeyPem(keyPairPem.privateKeyPem)
+        };
+        if (DEBUG) console.log('recovered durable-process keypair from localStorage', keyPairPem, keyPair);
+      } catch (e) {
+        console.error('invalid keys, deleting and start again');
+        ls.removeItem(key);
+        throw e;
+      }
+    }
+    return {keyPair, keyPairPem};
+  }
+
+  // Read: Open the socket and become capable of sending and recieving messages
+  function connect (url, keyPair={}, keyPairPem={}, handler) {
     const conn = new WebSocket(url);
-    conn.onopen = () => conn.send(greeting);
-    conn.onmessage = e => addListItem(e.data);
+    conn.onopen = () => {
+      conn.send(keyPairPem.publicKeyPem);
+      document.body.onchange = onWrite;
+    }
+    conn.onmessage = handler;
     return conn;
   }
 
