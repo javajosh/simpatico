@@ -160,7 +160,7 @@
   );
   console.log('keypair', keyPair, 'msg', msg, 'signature', signature);
 
-  //https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
+  // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
   // bool = verify(algorithm, key, signature, data)
   const verified = await window.crypto.subtle.verify({
       name: 'ECDSA',
@@ -173,10 +173,43 @@
 
 </script>
 
-<h2>Exporting a wrapped symmetric key</h2>
+<h2>Exporting a derived symmetric key</h2>
 <p>
-  Finally, we have what we need
+  It turns out what we needed was the <a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey">deriveKey</a> method.
+  However, I found a really good library, <a href="https://github.com/jo/webcryptobox">webcryptobox</a>, written in an eerily similar style as the rest of simpatico.
+  It is small, build-less, written with modern ES6 and quite legible.
 </p>
 
+<script type="module">
+  // The excellent https://github.com/jo/webcryptobox
+  import * as wcb from './webcryptobox.js';
+  import {assertEquals} from './core.js';
+
+  const log = ('emit', 1) ? (await import('./core.js')).log : ()=>{};
+
+  const alice = await wcb.generateKeyPair();
+  const bob = await wcb.generateKeyPair();
+  const text = 'Nobody else can offer me something, something heart felt like you did it.';
+  const message = wcb.decodeText(text);
+  const box = await wcb.encryptTo({ message, privateKey: alice.privateKey, publicKey: bob.publicKey });
+  const decryptedBox = await wcb.decryptFrom({ box, privateKey: bob.privateKey, publicKey: alice.publicKey });
+  const decryptedText = wcb.encodeText(decryptedBox);
+
+  // Now lets see if we can export and import the keys and have it work the same way
+  const alicePub = await wcb.exportPublicKeyPem(alice.publicKey);
+  const alicePriv = await wcb.exportPrivateKeyPem(alice.privateKey);
+  log('asymm', alicePub, alicePriv);
+  const alicePubImported = await wcb.importPublicKeyPem(alicePub);
+  const alicePrivImported = await wcb.importPrivateKeyPem(alicePriv);
+  log('asymm', alicePubImported, alicePrivImported);
+  const alice2 = {publicKey: alicePubImported, privateKey: alicePrivImported};
+  const box2 = await wcb.encryptTo({ message, privateKey: alice2.privateKey, publicKey: bob.publicKey });
+  log('asymm', alice2, box2);
+  const decryptedBox2 = await wcb.decryptFrom({ box: box2, privateKey: bob.privateKey, publicKey: alice2.publicKey });
+  const decryptedText2 = wcb.encodeText(decryptedBox2);
+
+  assertEquals(decryptedText, decryptedText2);
+
+</script>
 </body>
 </html>
