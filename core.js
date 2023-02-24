@@ -255,6 +255,20 @@ const regex ={
   url: /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/, //regexr.com/2rj36 too permisive but its okay
 }
 
+// For limits, see: https://stackoverflow.com/questions/2989284/what-is-the-max-size-of-localstorage-values
+// Gives ways to measure, suggests 5MB total, 5242878, 5.2M characters
+const safeSetItem = (key, value, ls=window.localStorage) => {
+  // If the key isn't already in there, write it and return true, otherwise leave it alone return false.
+  // Refrain from returning the value because it makes calling this function and interpreting the result too confusing.
+  if (!ls.hasOwnProperty(key)) {
+    ls.setItem(key, value);
+    return true;
+  }
+  return false;
+}
+
+const elt = document.getElementById.bind(document);
+
 export {
   now, log, debug, info, error, assert, assertThrows, tryToStringify,
   hasProp, getProp, propType, mapObject,
@@ -263,5 +277,5 @@ export {
   peek, push, copy,
   TYPES, getType, size, cast, is, as,
   RNG, shuffle,
-  parseObjectLiteralString, regex
+  parseObjectLiteralString, regex, elt
 }
