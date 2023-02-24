@@ -75,8 +75,8 @@ When you click a key, the value is displayed in the display region.
   //localStorage.clear();
   //put some test values in there
   const safeSetItem = (key, value, ls=window.localStorage) => {
-    const keyExists = ls.getItem(key) !== null;
-    if (!keyExists) {
+    // Yes, this could be a one-liner but please: make a better choice.
+    if (!ls.hasOwnProperty(key)) {
       ls.setItem(key, value);
       return true;
     }
