@@ -15,6 +15,7 @@
 
 <p>
   This is a very tiny chat system that demonstrates raw websockets in the browser.
+  <button id="reset-button">Reset keypair</button>
 </p>
 
 <h3>Messages</h3>
@@ -26,24 +27,35 @@
   import * as wcb from './webcryptobox.js';
 
   const DEBUG = false;
-  const DURABLE_KEY = 'durable-process';
+  const DP_LOCAL_STORAGE_KEY = 'durable-process';
+  const body = document.body;
   const displayChat = document.getElementById('display-chat');
+  const resetButton = document.getElementById('reset-button');
+  const websocketURL = window.location.toString().replace(/^http/, 'ws');
   const ls = window.localStorage;
 
-
   // Initialize either by restoring a keypair or generating a new one.
-  const {keyPair, keyPairPem} = await initializeDurableProcess(DURABLE_KEY);
+  const {keyPair, keyPairPem} = await initializeDurableProcess(DP_LOCAL_STORAGE_KEY);
 
-  // Connect to the reflector over websockets
-  const websocketURL = window.location.toString().replace(/^http/, 'ws');
-  const connection = connect(websocketURL, keyPair, keyPairPem, e => {
-    addListItem(e.data);
+  // Start the connection, register a listener/msg handler
+  // This connection may be lost and recreated.
+  let connection = connect(websocketURL, keyPair, keyPairPem, e => receiveMessage(e.data));
+
+  // Turn body change events (emitted by form fields) into msg sends.
+  body.addEventListener('change', e =>  sendMessage(e.target.value));
+
+  // Delete the old keys, make new ones, and refresh the path.
+  resetButton.addEventListener('click', () => {
+    initializeDurableProcess(DP_LOCAL_STORAGE_KEY, true);
+    window.location.reload();
+    return false;
   });
 
-
-  async function initializeDurableProcess(key=DURABLE_KEY) {
+  // ==============================================================
+  // Begin support functions:
+  async function initializeDurableProcess(key=DP_LOCAL_STORAGE_KEY, resetKeys = false) {
     let keyPair, keyPairPem;
-    // useful for debugging: ls.removeItem(key);
+    if (resetKeys) ls.removeItem(key);
     if (!ls.hasOwnProperty(key)) {
       // Generate a new keypair
       keyPair = await wcb.generateKeyPair();
@@ -71,16 +83,15 @@
     return {keyPair, keyPairPem};
   }
 
-  // Read: Open the socket and become capable of sending and recieving messages
-  function connect (url, keyPair={}, keyPairPem={}, handler) {
+  // Read: Open the socket and) become capable of sending and recieving messages
+  function connect (url, keyPair, keyPairPem, handler) {
     const conn = new WebSocket(url);
     conn.onopen = () => {
-      conn.send(keyPairPem.publicKeyPem);
-      document.body.onchange = onWrite;
+      sendMessage(keyPairPem.publicKeyPem);
     }
     conn.onmessage = handler;
     return conn;
-  }
+  };
 
   // Display a string as a new list element
   function addListItem (itemHtml, parent = displayChat) {
@@ -91,28 +102,26 @@
   }
 
   function isConnReady (conn = connection) {
-    return conn !== undefined && conn.readyState === conn.OPEN
+    return (conn !== undefined) && (conn.readyState === conn.OPEN);
   }
 
-  // Write: User input is received. Route outbound messages from the DOM to the connection.
-  // if the connection is down, try to reestablish.
-  // if the connection is up, send the target.value as a string.
-  function onWrite(e) {
+  // Send a message over the websocket, reconnecting if necessary.
+  function sendMessage(msg) {
+    if (!isConnReady(connection)) throw 'connection is not ready';
     try {
-      if (!isConnReady()){
-        if (DEBUG) console.log('connection down attempting reconnect', url);
-        connection = connect(url); // need a backoff timer to avoid floods in more complex cases.
-      } else {
-        const msg = e.target.value;
-        connection.send(msg);
-        if (DEBUG) console.debug(`msg sent ${msg}`);
-      }
-    } catch (e) {
-      console.error('problem processing change input');
-      throw e;
+      connection.send(msg);
+      if (DEBUG) console.debug(`msg sent ${msg}`);
+      return true;
+    } catch (ex) {
+      console.error('problem sending message');
+      throw ex;
     }
     return false;
   }
+  function receiveMessage(msg) {
+    addListItem(msg);
+  }
+
 </script>
 </body>
 </html>
