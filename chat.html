@@ -44,7 +44,7 @@
   // Turn body change events (emitted by form fields) into msg sends.
   body.addEventListener('change', e =>  sendMessage(e.target.value));
 
-  // Delete the old keys, make new ones, and refresh the path.
+  // A click deletes the old keys, make new ones, and refreshes the page.
   resetButton.addEventListener('click', () => {
     initializeDurableProcess(DP_LOCAL_STORAGE_KEY, true);
     window.location.reload();
