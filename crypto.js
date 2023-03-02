@@ -9,15 +9,19 @@ const generateSymmetricKey = () => {
 
 // Make a new key from a raw uintarray if present, or from a new random array if not
 // See https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
-const importSymmetricKey = (rawKey) => {
-  rawKey = rawKey || window.crypto.getRandomValues(new Uint8Array(16));
+const importSymmetricKey = async (rawKey, iv) => {
+  // Import the key. The signature is:
+  // importKey(format, keyData, algorithm, extractable, keyUsages)
   return window.crypto.subtle.importKey(
-      "raw",
-      rawKey,
-      "AES-GCM",
-      true,
-      ["encrypt", "decrypt"]
-    );
+    'raw',
+    rawKey,
+    {
+      name: 'AES-GCM',
+      iv,
+    },
+    true,
+    ['encrypt', 'decrypt']
+  );
 }
 
 // Iv is a kind of salt that you need to keep with the key. See:

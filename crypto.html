@@ -90,33 +90,19 @@
 </p>
 
 <script type="module">
-  import {generateIv, generateSymmetricKey, importSymmetricKey, pack, encrypt, decrypt} from './crypto.js';
+  import {generateSymmetricKey, importSymmetricKey, pack, encrypt, decrypt} from './crypto.js';
   import {log, mapObject, getProp} from './core.js';
 
   //Make a key and encrypt something with it
   const key = await generateSymmetricKey();
   const { cipherText, iv } = await encrypt("hello!", key);
 
-  // How to remove a key?
-
   // Export the key in raw; check what is supported with checkSupportedKeyExportFormats()
   let exportedKey = await window.crypto.subtle.exportKey('raw', key);
   const exportedKeyPacked = pack(exportedKey);
   log(exportedKey, exportedKeyPacked);
 
-
-  // Import the key. The signature is:
-  // importKey(format, keyData, algorithm, extractable, keyUsages)
-  const key2 = await window.crypto.subtle.importKey(
-    'raw',
-    exportedKey,
-    {
-      name: 'AES-GCM',
-      iv,
-    },
-    true,
-    ['encrypt', 'decrypt']
-  );
+  const key2 = await importSymmetricKey(exportedKey, iv);
 
   // Now we can use the key again!
   const final = await decrypt(
