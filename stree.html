@@ -5,11 +5,16 @@
   <meta name="keywords" content="Simpatico, STree, es6">
   <meta name="author" content="Josh Rehman">
 
-  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
   <meta id="refresh" http-equiv="refresh" content="2">
-  <script type="module" src="testable.js"></script>
+  <script src="testable.js" type="module"></script>
+  <!-- End testable.js boilerplate  -->
 
-  <title>STree.js</title>
+  <title>Simpatico - STree</title>
   <link rel="stylesheet" type="text/css" href="style.css">
   <style>
     b {
@@ -22,187 +27,200 @@
   </style>
 </head>
 <body>
-<h1>Simpatico/Summary Tree: STree</h1>
-<p>
-  javajosh
-  <i>2023</i>
-</p>
+
+<main>
+  <h1>Simpatico/Summary Tree: STree</h1>
+  <p>
+    javajosh
+    <i>2023</i>
+  </p>
 
 
-<p>
-  The Simpatico Tree, Summary Tree, or STree or STrie is an n-arry tree with these features:
-</p>
-<ol>
-  <li>Unification of different kinds of specialization, especially inheritance vs instantiation.</li>
-  <li>Similar strategy for integration of disparate families of inputs, e.g. network AND hci inputs.</li>
-  <li>We push for the design of the most important stree: your personal graph.</li>
-  <li>The primary type is "person" and each row represents a relationship and the messages passed over time.</li>
-  <li>The opposite of egalitarian is utilitarian, genes, family, or value.</li>
-  <li>Associate a reduction with every node over the values from root to that node.</li>
-  <li>Provide a novel, hopefully useful reduction, the <a href="/combine">combine function</a></li>
-  <li>Guidance on the use of this data-structure and algorithm as a fundamental programming primitive.</li>
-  <li>We demonstrate parts of the operation elsewhere:
-    <ol>
-      <li><a href="/notes/browser-events.html">Browser events</a> demonstrates techniques for trapping and integrating HCI events.</li>
-      <li><a href="/chat">Chat</a> demonstrates integrating network events.</li>
-      <li><a href="/combine">Combine</a> demonstrates message cascade. </li>
-    </ol>
-  </li>
-  <li>A "component" can interpret arbitrary input.</li>
-  <li>The canonical component is an HTML file (although we will define other equivalent configurations)</li>
-  <li>The primary data-structure is always human-centered, the contents of the relationship, with various analyses available.</li>
-  <li>Connection takes effort, time, money, and thought.</li>
-  <li>Prioritize those projects, or you will die alone.</li>
-  <li>Discovery takes effort, time, money and thought.</li>
-  <li>Prioritize those projects, or you will die unknown.</li>
-</ol>
-<p>
-
-</p>
-
-<p>The most elegant way to specify this data structure is as a sequence of reductions which accept as input the output of the previous:</p>
-<ol>
-  <li>Reduction 1: The basic input is a list of values, which are interleaved objects and integers.
-    <ol>
-      <li>
-        Integers are interpreted as a 'selection' or 'focus' over either nodes (the positive integers) or the rows (negative integers).
-        Targeting a node creates a new branch, and targeting a branch adds to that branch.
-      </li>
-      <li>
-        Strings are turned into objects, and objects are parented by a new node according to current focus.
-        The stateful focus allows for long runs of input targeted at the same row.
-        It also better represents the essential independence of targeting and messaging at this stage.
-        (We will later explore the possibility of explicitly auto-classifying input using a specialized row type for all input).
-      </li>
-    </ol>
-  </li>
-  <li>Reduction 2: Each branch is reduced with <code>combine()</code> into a residue.
-    <ol>
-      <li>For efficiency, only one residue is kept per branch.</li>
-      <li>One useful purpose of this residue is to express a pattern for new input!</li>
-      <li>A null residue means there can be no new input.</li>
-      <li>This reduction implements "the message cascade" that lets you see why values are what they are.</li>
-    </ol>
-  </li>
-  <li>Reduction 3: All residues are reduced into a summary.
-    <ol>
-      <li>The simplest useful summary simply concatenates.</li>
-      <li>The summary allows controlled interaction between rows during every measurement integration</li>
-    </ol>
-  </li>
-</ol>
+  <p>
+    The Simpatico Tree, Summary Tree, or STree or STrie is an n-arry tree with these features:
+  </p>
+  <ol>
+    <li>Unification of different kinds of specialization, especially inheritance vs instantiation.</li>
+    <li>Similar strategy for integration of disparate families of inputs, e.g. network AND hci inputs.</li>
+    <li>We push for the design of the most important stree: your personal graph.</li>
+    <li>The primary type is "person" and each row represents a relationship and the messages passed over time.</li>
+    <li>The opposite of egalitarian is utilitarian, genes, family, or value.</li>
+    <li>Associate a reduction with every node over the values from root to that node.</li>
+    <li>Provide a novel, hopefully useful reduction, the <a href="/combine">combine function</a></li>
+    <li>Guidance on the use of this data-structure and algorithm as a fundamental programming primitive.</li>
+    <li>We demonstrate parts of the operation elsewhere:
+      <ol>
+        <li><a href="/notes/browser-events.html">Browser events</a> demonstrates techniques for trapping and integrating
+          HCI events.
+        </li>
+        <li><a href="/chat">Chat</a> demonstrates integrating network events.</li>
+        <li><a href="/combine">Combine</a> demonstrates message cascade.</li>
+      </ol>
+    </li>
+    <li>A "component" can interpret arbitrary input.</li>
+    <li>The canonical component is an HTML file (although we will define other equivalent configurations)</li>
+    <li>The primary data-structure is always human-centered, the contents of the relationship, with various analyses
+      available.
+    </li>
+    <li>Connection takes effort, time, money, and thought.</li>
+    <li>Prioritize those projects, or you will die alone.</li>
+    <li>Discovery takes effort, time, money and thought.</li>
+    <li>Prioritize those projects, or you will die unknown.</li>
+  </ol>
 
 
-<p>
-  The intuition is that you're building long rows of objects, and the rows relate to each other in a particular way.
-  But this simple data-structure has some very useful properties for organizing software, particularly when interpreted as a sequence in time.
-  An STree is a list of measurements binned according to a pattern, and then combined with the bin to produce something useful.
-</p>
-<p>Lots of hierarchical things can be modeled as an STree, but some make more sense than others</p>
-<ol>
-  <li>git. Commits form an n-arry tree where the branches are...branches.</li>
-  <li>Choose-your-own-adventure style stories.</li>
-  <li>A sequence of low-level input measurements combine with a pattern to produce a value.</li>
-  <li>A sequence of low-level input measurements combine with a list of patterns to produce a structured message, a list of values.</li>
-  <li>a type system with inheritance. a type is a list of handlers, a subtype is a different list of handlers.</li>
-  <li>instantiation and handling of different sequences of inputs.</li>
-  <li>Linux distributions and their relationships</li>
-  <li>A repo full of Dockerfile's that get longer the deeper in the folders you go.</li>
-  <li>The state of a cluster of computers, each being a row with independent new network input over time.</li>
-  <li>The state of a collection of tabs, each tab being a row with new hci input over time </li>
-  <li>
-    Object instantiation and method invocation sequences.
-    Making an anologue to this in Simpatico drove the combine/handler design.
-  </li>
-  <li>New accounts, account activity</li>
-  <li>Linnean system of taxonomic classification</li>
-  <li>An interactive screen sensitive to human interaction with mouse and keyboard and, eventually, a commitment.</li>
-  <li>A set of forms, as with paperwork.</li>
-  <li>Related sequences of build targets (e.g. gradle)</li>
-</ol>
+  <p>The most elegant way to specify this data structure is as a sequence of reductions which accept as input the output
+    of the previous:</p>
+  <ol>
+    <li>Reduction 1: The basic input is a list of values, which are interleaved objects and integers.
+      <ol>
+        <li>
+          Integers are interpreted as a 'selection' or 'focus' over either nodes (the positive integers) or the rows
+          (negative integers).
+          Targeting a node creates a new branch, and targeting a branch adds to that branch.
+        </li>
+        <li>
+          Strings are turned into objects, and objects are parented by a new node according to current focus.
+          The stateful focus allows for long runs of input targeted at the same row.
+          It also better represents the essential independence of targeting and messaging at this stage.
+          (We will later explore the possibility of explicitly auto-classifying input using a specialized row type for
+          all input).
+        </li>
+      </ol>
+    </li>
+    <li>Reduction 2: Each branch is reduced with <code>combine()</code> into a residue.
+      <ol>
+        <li>For efficiency, only one residue is kept per branch.</li>
+        <li>One useful purpose of this residue is to express a pattern for new input!</li>
+        <li>A null residue means there can be no new input.</li>
+        <li>This reduction implements "the message cascade" that lets you see why values are what they are.</li>
+      </ol>
+    </li>
+    <li>Reduction 3: All residues are reduced into a summary.
+      <ol>
+        <li>The simplest useful summary simply concatenates.</li>
+        <li>The summary allows controlled interaction between rows during every measurement integration</li>
+      </ol>
+    </li>
+  </ol>
 
-<p>Although I've written the STree to support any reduction for reduction 2, combine is my favorite.</p>
 
-<h3>Canonical examples</h3>
-<p>We could write an STree that organizes forms and the data those forms collect over time.
-The forms are represented as built up from scalars, a list of patterns, and the UI a list of ui components.
-Then these forms branch on new input.
-New versions of a form can be made and used simultaneously with old versions of a form.
-  Our "test suite" is always a characteristic set of form inputs that can be reached.
+  <p>
+    The intuition is that you're building long rows of objects, and the rows relate to each other in a particular way.
+    But this simple data-structure has some very useful properties for organizing software, particularly when
+    interpreted as a sequence in time.
+    An STree is a list of measurements binned according to a pattern, and then combined with the bin to produce
+    something useful.
+  </p>
+  <p>Lots of hierarchical things can be modeled as an STree, but some make more sense than others</p>
+  <ol>
+    <li>git. Commits form an n-arry tree where the branches are...branches.</li>
+    <li>Choose-your-own-adventure style stories.</li>
+    <li>A sequence of low-level input measurements combine with a pattern to produce a value.</li>
+    <li>A sequence of low-level input measurements combine with a list of patterns to produce a structured message, a
+      list of values.
+    </li>
+    <li>a type system with inheritance. a type is a list of handlers, a subtype is a different list of handlers.</li>
+    <li>instantiation and handling of different sequences of inputs.</li>
+    <li>Linux distributions and their relationships</li>
+    <li>A repo full of Dockerfile's that get longer the deeper in the folders you go.</li>
+    <li>The state of a cluster of computers, each being a row with independent new network input over time.</li>
+    <li>The state of a collection of tabs, each tab being a row with new hci input over time</li>
+    <li>
+      Object instantiation and method invocation sequences.
+      Making an anologue to this in Simpatico drove the combine/handler design.
+    </li>
+    <li>New accounts, account activity</li>
+    <li>Linnean system of taxonomic classification</li>
+    <li>An interactive screen sensitive to human interaction with mouse and keyboard and, eventually, a commitment.</li>
+    <li>A set of forms, as with paperwork.</li>
+    <li>Related sequences of build targets (e.g. gradle)</li>
+  </ol>
 
-  Note that a "Core" and a set of handlers is a bit like a set of forms.
+  <p>Although I've written the STree to support any reduction for reduction 2, combine is my favorite.</p>
 
-</p>
+  <h3>Canonical examples</h3>
+  <p>We could write an STree that organizes forms and the data those forms collect over time.
+    The forms are represented as built up from scalars, a list of patterns, and the UI a list of ui components.
+    Then these forms branch on new input.
+    New versions of a form can be made and used simultaneously with old versions of a form.
+    Our "test suite" is always a characteristic set of form inputs that can be reached.
 
-<button onclick="window.stop()">Stop 2s Refresh</button>
-<hr>
-<p><b>1</b> <b>2</b> <b>3</b>
-<hr>
-<p><b>1</b> <b>2</b> <b>3</b> <b>7</b> <b>8</b><i></i>
-<p><b>4</b> <b>5</b> <b>10</b> <b>11</b>
-<p><b>6</b> <b>9</b>
-<hr>
-<p><b>1</b> <b>2</b> <b>3</b> <b>7</b> <b>8</b><i></i>
-<p><b>4</b> <b>5</b> <b>10</b> <b>11</b>
-<p><b>6</b> <b>9</b>
-<h2>The Problem of State Management</h2>
+    Note that a "Core" and a set of handlers is a bit like a set of forms.
 
-<p>The problem of process state management is currently tackled by software components like Redux.</p>
+  </p>
 
-<p>Note that server side software doesn't have state; or rather, it's state is a very tightly coupled to the static
-  source code. That type of code is dominated by the definition of singletons (and the reuse of them), to support,
-  ultimately, Controllers that do the work. In general, a server must be responsible for its own security.
-</p>
+  <button onclick="window.stop()">Stop 2s Refresh</button>
+  <hr>
+  <p><b>1</b> <b>2</b> <b>3</b>
+  <hr>
+  <p><b>1</b> <b>2</b> <b>3</b> <b>7</b> <b>8</b><i></i>
+  <p><b>4</b> <b>5</b> <b>10</b> <b>11</b>
+  <p><b>6</b> <b>9</b>
+  <hr>
+  <p><b>1</b> <b>2</b> <b>3</b> <b>7</b> <b>8</b><i></i>
+  <p><b>4</b> <b>5</b> <b>10</b> <b>11</b>
+  <p><b>6</b> <b>9</b>
+  <h2>The Problem of State Management</h2>
 
-<p>These singletons recapitulate many of the same concerns that arise in build systems; in fact its the same concern but
-  handled at compile time by one tool (Maven) and at runtime by another tool (Spring). Or on the client by one tool at
-  compile-time (npm, ng) and another at runtime (angular module annotations). </p>
+  <p>The problem of process state management is currently tackled by software components like Redux.</p>
 
-<p>The natural data-structure then would be to model state as a special dynamic part of the head of a linked list of
-  input. It doesn't really have to be dynamic. </p>
+  <p>Note that server side software doesn't have state; or rather, it's state is a very tightly coupled to the static
+    source code. That type of code is dominated by the definition of singletons (and the reuse of them), to support,
+    ultimately, Controllers that do the work. In general, a server must be responsible for its own security.
+  </p>
 
-<p>Well, it's a kind of tree that is built up in a particular way. It's a constrained kind of n-arry tree, which is
-  optimized for long runs. We imagine the tree composed of rows, and each row has a parent, rather than each node.
-  Moreover, we introduce a special coordinate system that supports rows and nodes as parents, and provide a (stateful)
-  pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent.
-  Otherwise, you're just adding to the row.</p>
+  <p>These singletons recapitulate many of the same concerns that arise in build systems; in fact its the same concern
+    but
+    handled at compile time by one tool (Maven) and at runtime by another tool (Spring). Or on the client by one tool at
+    compile-time (npm, ng) and another at runtime (angular module annotations). </p>
 
-<!--
-/**
- This stree is implemented with arrays.
- The data-structure looks like this:
+  <p>The natural data-structure then would be to model state as a special dynamic part of the head of a linked list of
+    input. It doesn't really have to be dynamic. </p>
 
- 0 - 0 1 2 3 8 {}
- 1 - 2 4 5 {}
- 2 - 6 7 {}
- focus: 0
+  <p>Well, it's a kind of tree that is built up in a particular way. It's a constrained kind of n-arry tree, which is
+    optimized for long runs. We imagine the tree composed of rows, and each row has a parent, rather than each node.
+    Moreover, we introduce a special coordinate system that supports rows and nodes as parents, and provide a (stateful)
+    pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent.
+    Otherwise, you're just adding to the row.</p>
 
- The first column is the row number (included for readability)
- The next number is the parent node for the row.
- The next numbers indicate the values in the order they came in.
- The last object is the residue of the row all the way back to root.
+  <!--
+  /**
+   This stree is implemented with arrays.
+   The data-structure looks like this:
 
- For example, row 1 {} is ∫[0 1 2 4 5], and row 2 {} is ∫[0 1 2 6 7]
+   0 - 0 1 2 3 8 {}
+   1 - 2 4 5 {}
+   2 - 6 7 {}
+   focus: 0
 
- The STree has a mutable state, the focus, which determines what happens on the next add.
+   The first column is the row number (included for readability)
+   The next number is the parent node for the row.
+   The next numbers indicate the values in the order they came in.
+   The last object is the residue of the row all the way back to root.
 
- The focus can be on any node, using its index "i". Note that this implies that focus and input events happen in a set order, on the same timeline. We could make an arbitrary distinction between strings and numbers, and imagine a single timeline in which they are interleaved, giving rise to a peculiar, but quite compact (and useful) representation of a Tree. In this sense it can be seen as a reduction, or a folding of a list that looks like (a, b, c, 0, d, e, 1, f...) into something that looks like:
+   For example, row 1 {} is ∫[0 1 2 4 5], and row 2 {} is ∫[0 1 2 6 7]
 
- Which in turn represents a tree with 3 branches.
+   The STree has a mutable state, the focus, which determines what happens on the next add.
 
- abc
- ade
- bf
+   The focus can be on any node, using its index "i". Note that this implies that focus and input events happen in a set order, on the same timeline. We could make an arbitrary distinction between strings and numbers, and imagine a single timeline in which they are interleaved, giving rise to a peculiar, but quite compact (and useful) representation of a Tree. In this sense it can be seen as a reduction, or a folding of a list that looks like (a, b, c, 0, d, e, 1, f...) into something that looks like:
 
- (One clever thing to do (possibly too clever!) is to target either an index or a row by using the negative coordinates to correspond to rows. This would make a very compact focus interface, 2D that takes only 1 integer!)
+   Which in turn represents a tree with 3 branches.
 
- Row focus is just a number. This is the default.
- Branching focus is an array: [row,col] or [node]
+   abc
+   ade
+   bf
 
- row ={row, parent, values, residue}
+   (One clever thing to do (possibly too clever!) is to target either an index or a row by using the negative coordinates to correspond to rows. This would make a very compact focus interface, 2D that takes only 1 integer!)
 
- */
--->
+   Row focus is just a number. This is the default.
+   Branching focus is an array: [row,col] or [node]
+
+   row ={row, parent, values, residue}
+
+   */
+  -->
+</main>
 
 <script type="module">
   import {assertEquals} from './core.js';
