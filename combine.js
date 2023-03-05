@@ -1,5 +1,5 @@
 import {assert, cast, debug, getType, is, now, tryToStringify, TYPES} from './core.js';
-import {gather, scatter} from "./svg.js";
+// import {gather, scatter} from "./svg.js";
 
 const DEBUG = false;
 
@@ -77,8 +77,8 @@ const getRules = () => {
   rules[FUN + ANY] = (a, b) => a(b);
   rules[ANY + FUN] = (a, b) => b(a);
 
-  rules[ELT + OBJ] = (a, b) => scatter(a, b);
-  rules[OBJ + ELT] = (a, b) => gather(a, b);
+  // rules[ELT + OBJ] = (a, b) => scatter(a, b);
+  // rules[OBJ + ELT] = (a, b) => gather(a, b);
 
   rules[OBJ + OBJ] = (a, b) => {
     // B is defensively copied, mutated and returned, not A!

@@ -1,6 +1,5 @@
-const now = () => Date.now() //timestamp
+const now = () => Date.now() // e.g. 1678023832587
 const date = () => new Date().toISOString() // e.g. 2023-01-29T03:40:21.319Z
-// It's nice to not type "console" all the time but honestly I don't use these much.
 const log = console.log.bind(console)
 const debug = console.debug.bind(console)
 const info = console.info.bind(console)
@@ -26,21 +25,52 @@ const getProp = (obj, prop, defaultValue = null) => hasProp(obj, prop) ? obj[pro
 const propType = (obj, prop) => getType(obj[prop])
 // noinspection JSCheckFunctionSignatures
 const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn)) //fn([k,v]) => [k2,v2]
-const equals = (a,b) => typeof a === 'object' ? tryToStringify(a) === tryToStringify(b) : a === b; //needs work
-const arrEquals = (a,b) =>
-  as.arr(a) && as.arr(b) && a.length === b.length &&
-  a.map((v,i) => v === b[i]).reduce(and, true)
+
+
+// Equality is easy for the scalar types (string, number, boolean)
+const scalarEquals = (a, b) => a === b;
+const arrEquals = (a, b) => {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (!equals(a[i], b[i])) return false;
+  }
+  return true;
+}
+const objEquals = (a, b) => {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+
+  for (let key of aKeys) {
+    if (!equals(a[key], b[key])) return false;
+  }
+  return true;
+}
+const equals = (a, b) => {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (getType(a) !== getType(b)) return false;
+  if (getType(a) === 'array') {
+    return arrEquals(a, b);
+  } else if (getType(a) === 'object'){
+    return objEquals(a, b);
+  }
+  return scalarEquals(a, b);
+}
+
 
 const assertEquals = (actual, expected, msg='') =>
   assert(equals(actual, expected), `actual is ${tryToStringify(actual)} but expected ${tryToStringify(expected)}. ${msg}`)
 
-// Functional logic
-const and = (a,b) => !!a && !!b
-const or = (a,b) => !!a || !!b
-const sub = (a,b) => b - a
-const add = (a,b) => b + a
-
-// Higher order functions
+// Can probably eliminate these, I rarely use them.
+const and = (a, b) => !!a && !!b
+const or = (a, b) => !!a || !!b
+const sub = (a, b) => b - a
+const add = (a, b) => b + a
 const identity = a => a
 const curryLeft = (f, a) => b => f(a,b) //left to right
 const curryRight = (f, a) => b => f(b,a) //right to left
@@ -49,7 +79,7 @@ const compose = (f, g) => a => g(f(a))
 
 // It is tempting to add peek like this, but it's in bad taste. So use the functional version:
 // Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null};
-const peek = (arr, defaultValue=null) => arr.length ? arr[arr.length - 1] : defaultValue
+const peek = (arr, defaultValue=null, depth=1) => (arr.length - depth >= 0) ? arr[arr.length - depth] : defaultValue
 const push = (arr, a) => {arr.push(a); return arr} //mutating
 
 // Copies good for arrays
@@ -165,8 +195,8 @@ is.f = () => false
 // Arrays
 is.all = arr => as.arr(arr) && arr.reduce(and, true)
 is.any = arr => as.arr(arr) && arr.reduce(or, false)
-const arrMin = arr => Math.min( ...arr );
-const arrMax = arr => Math.max( ...arr );
+
+
 
 // It would be nice if this was expressible as arr.reduce(equals, true), but I couldn't get it to work.
 // Also, this code is probably a lot more performant.
@@ -192,6 +222,13 @@ is.equals = equals;
 const as = mapObject(is,([k,v]) =>
   [k, (a, b, c, d) => assert(v(a,b,c), d)]
 );
+
+// ====================================
+// Math stuff
+// ===================================
+
+const arrMin = arr => Math.min( ...arr );
+const arrMax = arr => Math.max( ...arr );
 
 // A simple PRNG inside the browser.
 function RNG(seed) {

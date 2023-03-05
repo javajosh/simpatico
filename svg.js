@@ -1,4 +1,4 @@
-import {as, getType, cast, hasProp} from './core.js';
+import {as, is, getType, cast, hasProp} from './core.js';
 
 const {elt:ELT, obj:OBJ} = as;
 
@@ -181,7 +181,49 @@ const isPointInPoly = (poly, point) => {
   return false;
 }
 
-const xpath = (strExpr, doc=window.document) => doc.evaluate(strExpr, doc, null, XPathResult.ANY_TYPE, null);
 
-export {scatter, gather, parseTransform, renderTransform, intersectRect, isInsideRec, intersectingElts, isPointInPoly, xpath};
+const xpath = (strExpr, doc=d) => doc.evaluate(strExpr, doc, null, XPathResult.ANY_TYPE, null);
+
+const $ = document.querySelectorAll.bind(document);
+const elt = id => document.getElementById(id);
+
+// Create a new requestAnimationFrame pump driven clock.
+// Throttle is an integer, will emit only every Nth tick() call.
+const clock = (throttle = 1, ticking = true, polite = true, n = 0) => {
+  const tick = () => {
+    if ((++n % throttle) === 0) {
+      const event = new CustomEvent('tick', {detail: {t: Date.now()}});
+      window.dispatchEvent(event);
+    }
+    if (ticking) window.requestAnimationFrame(tick);
+  };
+
+  if (polite) {
+    // Disable ticks in the background, useful because websockets will keep the page alive.
+    window.addEventListener('visibilitychange', () => {
+      const visible = document.visibilityState === 'visible';
+      const hidden = document.visibilityState === 'hidden';
+      if (!(visible || hidden)) throw 'invalid visibility state ' + document.visibilityState;
+      ticking = visible;
+    });
+  }
+  if (ticking){
+    tick();
+  }
+  return {
+    start: () => {ticking = true; tick()},
+    stop:  () => {ticking = false},
+    reset: () => {n = 0},
+    n,
+  }
+}
+
+export {
+  scatter, gather,
+  parseTransform, renderTransform,
+  intersectRect, isInsideRec, intersectingElts, isPointInPoly,
+  xpath,
+  $, elt,
+  clock,
+};
 

@@ -115,6 +115,8 @@
   c.assertEquals(c.size(null), 0)
   c.assertEquals(c.size(), 0)
 
+  c.assertEquals({},{})
+  // c.assertEquals([1],[1])
 
   str('foobar')
   num(1)
@@ -146,8 +148,7 @@
   same([{}, {}, {}, {}])
 
   c.assertEquals({a: 1, b: [2, 3]}, {a: 1, b: [2, 3]})
-  // TODO: make object equals() insensitive to object key order.
-  // assertEquals({b:[2,3], a:1},{a:1, b:[2,3]});
+  c.assertEquals({b:[{a:1},{b:2}], a:1},{a:1, b:[{a:1},{b:2}]});
 
   // Some negative testing.
   c.assertThrows(() => num('1'))

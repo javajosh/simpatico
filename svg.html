@@ -10,7 +10,7 @@
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
       <rect width='1' height='1' fill='white' />
   </svg>"/>
-<!--  <meta id="refresh" http-equiv="refresh" content="2">-->
+  <!--  <meta id="refresh" http-equiv="refresh" content="2">-->
   <script src="testable.js"></script>
   <!-- End testable.js boilerplate  -->
 
@@ -28,103 +28,184 @@
     }
   </style>
 </head>
-<body>
 
 <h1>svg.js</h1>
 <p>javajosh <i>2023</i></p>
 <div class="makeItStop"></div>
 
-<p>Scalable Vector Graphics, or SVG, is an important component of Simpatico.
-  The browser also offers Canvas and WebGL, and of course DOM manipulation, as other ways to draw.
-  We pick SVG and drive toward a state where <i>drawing</i> is done statically, and program state is characterized by a list of vectors interpreted to move these shapes.
-  One particularly interesting application is drawing an <a href="/stree">stree</a> visualization, and then animating it under various conditions.
-</p>
-<p>
-  Building up to that, we build up a few techniques
-</p>
-<p>First, an inline svg that uses a classical schoolroom coordinate system: the unit circle, (0,0) in the center, y up.
-  Those new to programming graphics may be surprised that the standard way to program puts the origin at the top left with y increasing downward.
-  This is a very good coordinate system if you want to always render text, starting from the upper left, and making a newline.
-  This is how we write letters, school papers, and books, fiction and non-fiction.
-  But <i>math</i> is usually taught on this particular coordinate system.
-</p>
-<ol>
-  <li>The old system optimized for english text on highly resource constrained computers.
-  Modern systems are vastly more powerful, allowing us to <i>start</i> from a more general primitive.</li>
-  <li>Our primary target for graphics will be an inline svg in an html resource.</li>
-  <li>SVG has several good features we want such as:
-    <ol>
-      <li>Object persistence. You can author a shape, or a group of shapes, and then move them around later.</li>
-      <li>Arbitrary control over coordinate system - which we use to recover school math intuition</li>
-    </ol>
-  </li>
-</ol>
+<!-- These container divs make code-folding possible -->
+<div id="natural-units">
+  <h2>Natural Units</h2>
+  <p>Scalable Vector Graphics, or SVG, is an important component of Simpatico.
+    The browser also offers Canvas and WebGL, and of course DOM manipulation, as other ways to draw.
+    We pick SVG and drive toward a state where <i>drawing</i> is done statically, and program state is characterized by a list of vectors interpreted to move these shapes.
+    One particularly interesting application is drawing an <a href="/stree">stree</a> visualization, and then animating it under various conditions.
+  </p>
+  <p>
+    Building up to that, we build up a few techniques
+  </p>
+  <p>First, an inline svg that uses a classical schoolroom coordinate system: the unit circle, (0,0) in the center, y up.
+    Those new to programming graphics may be surprised that the standard way to program puts the origin at the top left with y increasing downward.
+    This is a very good coordinate system if you want to always render text, starting from the upper left, and making a newline.
+    This is how we write letters, school papers, and books, fiction and non-fiction.
+    But <i>math</i> is usually taught on this particular coordinate system.
+  </p>
+  <ol>
+    <li>The old system optimized for english text on highly resource constrained computers.
+      Modern systems are vastly more powerful, allowing us to <i>start</i> from a more general primitive.</li>
+    <li>Our primary target for graphics will be an inline svg in an html resource.</li>
+    <li>SVG has several good features we want such as:
+      <ol>
+        <li>Object persistence. You can author a shape, or a group of shapes, and then move them around later.</li>
+        <li>Arbitrary control over coordinate system - which we use to recover school math intuition</li>
+      </ol>
+    </li>
+  </ol>
 
 
-<svg id="svg" class="natural-units"
-     width="80%" height="100%"
-     viewBox="-1 -1 2 2"
->
-  <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
-  <g transform="scale(1,-1)">
-    <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
-    <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
-    <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
-    <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Scale and reflip text</text></g>
-  </g>
-</svg>
+  <svg class="natural-units"
+       width="200px" height="200px"
+       viewBox="-1 -1 2 2"
+  >
+    <desc>A static svg unit circle</desc>
+    <g transform="scale(1,-1)">
+      <g transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
+      <g transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
+      <g transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
+      <g transform="translate(0,0)scale(.01,-.01)"><text>Scale and reflip text</text></g>
+    </g>
+  </svg>
 
-<p>Referencing an svg as an image:</p>
-<img width="200px" src="/img/wizard.svg" alt="simpatico wizard" />
+</div>
 
-<p>Referencing an svg with built-in styles and javascript as an image, from :</p>
-<img width="200px" src="/img/draggable.svg" alt="minimal draggable object demo" />
-<p>To make the javascript work, you must right-click and "open image in new tab" where you can then interact (!) with it.</p>
-<p>This technique was originally described by <a href="https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/">Peter Collingridge</a></p>
+<div id="svg-references">
+  <h2>Different ways to reference SVG</h2>
+  <h3>Referencing an svg as an <code>img</code> tag:</h3>
+  <code><pre>&lt;img width=&quot;200px&quot; src=&quot;/img/wizard.svg&quot; alt=&quot;simpatico wizard&quot; /&gt;</pre></code>
+  <br>
+  <img width="200px" src="/img/wizard.svg" alt="simpatico wizard" />
 
+  <h3>Referencing an svg with built-in styles and javascript as an image, from :</h3>
+  <code><pre>&lt;img width=&quot;200px&quot; src=&quot;/img/draggable.svg&quot; alt=&quot;minimal draggable object demo&quot; /&gt;</pre></code>
+  <p>To make the javascript work, you must right-click and "open image in new tab" where you can then interact (!) with it.</p>
+  <p>This technique was originally described by <a href="https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/">Peter Collingridge</a></p>
+  <img width="200px" src="/img/draggable.svg" alt="minimal draggable object demo" />
+</div>
 
-<script id="animation" type="module">
-  import {combine, rtree, svg, shuffle} from './simpatico.js';
-  const $ = document.querySelectorAll.bind(document);
+<div id="svg-animation">
+  <h2>SVG animation with scatter(elt, obj)</h2>
+  <p>
+    The basic idea is to scatter objects into svg elements.
+  </p>
+  <p>
+    First you author an svg image inline, as above.
+    This time you add ids to the pieces you want to animate (and I use a simple naming convention to make names easier).
+    Each of these ids will become a named variable in your code.
+    As the author, you usually want to add a characteristic list of elements and 'meaningful' attribute values.
+    In our case, <i>transform</i> is very important!
+  </p>
+  <pre>
+    svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
+  </pre>
+  <p>
+    This example call to <code>scatter()</code> is typical, where you have
+    1) a reference to the DOM elt to be mutated, and
+    2) a nice object representation for mutating that elt.
+    I wanted objects of the form "{attr: value}" combining (and decomposing) the transform attribute with the child shape.
+    (This might even be considered a special type of svg elt, g>shape, or most generally g>path and the union of those attributes is what you scatter to).
+  </p>
+  <p>
+    In this example we adopt the more conventional "unidirectional dataflow" from a low entropy source.
+    That source is a custom "tick" event emitted by a handy global module.
+    We use that one parameter, time, to produce a time-dependent object for each animation target.
+  </p>
 
-  // Kicking tires on stree and combine
-  window.r = rtree({});
-  console.log(combine(1, 1), r.residue());
+  <svg id="rotating-squares-animation" class="natural-units"
+       width="200px" height="200px"
+       viewBox="-1 -1 2 2"
+  >
+    <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
+    <g transform="scale(1,-1)">
+      <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
+      <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
+      <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
+      <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Scale and (re)flip text</text></g>
+    </g>
+  </svg>
 
-  // Kicking tires on the display
-  const greenSquare = $("#green-square")[0];
-  const yellowSquare = $("#yellow-square")[0];
-  const someText = $("#some-text")[0];
-  svg.scatter(greenSquare, {x:-.75, y:-.75});
+  <script id="animation" type="module">
+    import {svg, shuffle, now, log} from '/simpatico.js';
+    const DEBUG = false;
+    const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
-  const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
-  // Doing a simple animation
-  window.addEventListener('tick', e => {
-    const t = e.detail.t;
+    // Grab a reference to the display we'll be mutating.
+    const greenSquare = svg.elt("green-square");
+    const yellowSquare = svg.elt("yellow-square");
+    const someText = svg.elt("some-text");
+
     const {cos, sin} = Math;
     const C = 1/10000;
 
-    svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
-    svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t % 3600/10});
-    svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: shuffle(letters).join('')});
-  });
+    // The steady-state is driven by the clock
+    window.addEventListener('tick', e => animate(e.detail.t));
 
-</script>
+    // Kick off the steady- raf on my machine likes a throttle of 2 to hit 60fps.
+    const clock = svg.clock();
+
+    // The fun part: transform your target by specifying an object.
+    function animate(t) {
+      svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
+      svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t % 3600/10});
+      svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: shuffle(letters).join('')});
+    }
+
+    // A simple way to get timing data on a periodic process; gives the last 10 intervals.
+    (() => {
+      // Measuring setInterval
+      let depth = 10, ts = [], dts = [], t0 = now(), n = 0;
+      setInterval(() => {
+        let t1 = now(), dt = t1 - t0;
+        ts.unshift(t1); dts.unshift(dt);
+        ts = ts.slice(0, depth); dts = dts.slice(0, depth);
+        if (DEBUG) log('n', n++, 't0', t0, 't1', t1);
+        if (DEBUG) log('ts', ts, 'dts', dts);
+        t0 = t1;
+      }, 1000);
+    })()
+
+  </script>
+
+  <h3>Discussion</h3>
+  <p>
+    I imagine there are some interesting possibilities storing application data directly in the DOM.
+    Clearly persistence between tab sessions an issue (right?).
+  </p>
+  <p>
+    I'd like to factor out the tick module into another file and perhaps import and start it, once, per page.
+    I am slighlty concerned about maintaining a singleton pump per tab - although I'm unsure of the performance implications of having lots of pumps.
+    This also pushes at the boundary of my knowledge of javascript modules and their lifespans/state.
+  </p>
+  <p>
+    If we were to commit to some representation of state in the DOM, as D3 does, then we can specify a full application loop with:
+  </p>
+  <pre>
+    until quit:
+      gather
+      map
+      scatter
+  </pre>
+  <p>
+    This is the essence of what I call the "boardgame" representation of state: transforms over the position of a finite set of pieces over a meaningful space (board).
+    This immediately shows a classic time/space tradeoff since we might want a small number of persistent objects which we use for everything.
+    However it may be convenient to pretend like those objects were always present.
+  </p>
+</div>
+
 <script id="module-tick" type="module">
   // Define a window.ontick custom event.
   // Usage: window.addEventListener('tick', e => console.log(e.detail.t));
-  let n = 0;
-  const throttle = 1;
-  let animating = true;
-  const tick = () => {
-    if (window.ticking === false) return;
-    if ((++n % throttle) === 0){
-      const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
-      window.dispatchEvent(event);
-    }
-    if (animating) window.requestAnimationFrame(tick);
-  };
-  tick();
+  // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+  // See https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+
 </script>
-</body>
-</html>
+
