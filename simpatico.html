@@ -32,34 +32,11 @@ This button stops the meta#refresh.content="2" second refresh that helps make a 
 -->
 <button id="stop-refresh" onclick="window.stop()">Stop 2s Refresh</button>
 
-<h3>Literate</h3>
-<p>Simpatico is fundamentally "literate" because it's embedded in the same HTML your programs are running in. However we will take care
-to make it easy to distinguish between static html elements we need to reference in our programs, and free-form content like this.</p>
-<h3>Testable</h3>
-<p>Testable means that if an error is thrown that the favicon and background turn red. Every component needs to load and run without error.</p>
-
-<h3>Opinionated</h3>
+<h3>Fun</h3>
 <p>
-  A component is some dom and some code that binds to that dom.
-  Simpatico tends to prefer low-entropy object representations that are rendered using a low-entropy visual representation (SVG), and as a set of related specializations of something common.
-SVG for data entry isn't that intimidating, it just sounds tedious but it may just be something to get through.</p>
-<p>The intuition is to think through the svg objects you might want to draw an object. Key value pairs, arranged in 2-dimensions.
-And then also decide on how to represent nested objects. In fact you are defining an n-arry trie, with a value at each list of strings.</p>
-<p>Next, you imagine that you always build up more complex objects from simpler ones. You also can define special locations
-called "call points" which are rows with available degrees of freedom. I am a fan of both really simple, static concrete
-images, but also of the functional style, so we will also give a characterization that way. A program is considered the state
-acquired after integrating some ordered set of inputs. We can normalize and simplify the integration using something like the combine
-function. The combine function, meanwhile, allows for a version of function invocation, when you send in an object of a certain shape.</p>
-<p>In all cases we treat the process-level rtree singleton specially, and store a version of it in localstorage.</p>
-<p></p>
-
-<p>The canonical visualization is a rehman tree, but you can get there starting with events dropping from pipes and collected somewhere.
-The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
-
-<p>This tab runs a test. This test will change the favicon different colors depending on the outcome of this test.
-  We say precisely that the test consists of setting the initial favicon, and then setting it to green if "successful", and red if there's a failure.</p>
-
-<p>Because our browser space is so clean and nice, we can breathe. The browser is coming into contact with each line as you write it.</p>
+  Because our browser space is so clean and nice, we can breathe.
+  The browser is coming into contact with each line as you write it.
+</p>
 
 <p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding things is going to involve more than concatenation</p>
 
@@ -166,26 +143,23 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 
 </script>
 
-<p class="sidenote">There are two ways to move an SVG elt, with attributes and a g transform. By convention we reserve the first kind of motion for "drawing a symbol" and the second kind of motion for "moving a symbol". Consider the contrast:
+<div class="sidenote">There are two ways to move an SVG elt, with attributes and a g transform. By convention we reserve the first kind of motion for "drawing a symbol" and the second kind of motion for "moving a symbol". Consider the contrast:
   <pre><code>  const vec = {x: -.25, y: -.25};
   combine(s2, vec);
   combine(s3, {transform: `translate(${vec.x},${vec.y})`});
 </code></pre>
   <i>Q: do we bother with syntax highlighting for code samples like this? What complexity is acceptable to make that happen?</i>
-</p>
+</div>
 
-<p class="sidenote">
+<div class="sidenote">
   Questions:
   <ol>
     <li>How would you allow the square to slow down?
     <li>How much faster does this simulation run "headless", without animation?
     <li>Which function is being called the most? How often?
   </ol>
-</p>
+</div>
 
-<p class="sidenote">
-
-</p>
 
 <h3>SVG &amp; JS: 2D Random Walk</h3>
 
@@ -204,30 +178,11 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
 </svg>
 
 <script type="module">
-  import {now } from './core.js';
-  import {combine} from './combine.js';
+  import {svg, now} from './simpatico.js'
 
-  const svg = document.querySelector("svg#s4");
+  const s4 = document.querySelector("svg#s4");
   const g = document.querySelector("g#s5-transform");
 
-  // Return which quad the vector is in, counting counter clockwise starting with 0
-  const quad = ({x, y}) => {
-    if (y > 0){ // This *can* be shortened with the ternary operator. But please don't.
-      return x > 0 ? 0 : 1;
-    } else {
-      return x < 0 ? 2 : 3;
-    }
-  }
-
-  const draw = ({x, y}, g = g) => combine(g, {transform: `translate(${x},${y})`});
-
-  //uble the width, scootch it over one (so its positive and negative), scale it to .01, add and then
-  //the ratio of width * scale determines how big of an apparent movement you make each tick.
-  // However this, too, is now randomized! (.15 scales the randomness)
-  const randomWalk = (pos, R="1", dx=Math.random(), dy=Math.random(), A=Math.random() * .20) => ({
-    x: (pos.x + A * R * (dx * 2 - 1)) % R,
-    y: (pos.y + A * R * (dy * 2 - 1)) % R,
-  });
 
   // Static
   const
@@ -245,7 +200,7 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
     currVisible = lastVisible;
 
   // Steady-state entry-point #1 - click the svg elt -> start/stop animation
-  svg.addEventListener('click', () => {
+  s4.addEventListener('click', () => {
     running = !running
   });
 
@@ -255,126 +210,28 @@ The collections are best modelled as rows in a (relatively ephemeral) rtree.</p>
       pos = randomWalk(pos, 2);
       draw(pos, g);
 
+      lastQuad = currQuad;
       currQuad = quad(pos);
       const quadChanged = currQuad !== lastQuad;
-      if ( false && quadChanged) {
-        console.log([ // Start off on Row 0 with a start/stop pair, to show how they interact, how sessions are recorded, how tabs are managed within the same browser, and so on. We halt, and go back to 0, branch, and start again on row 1 where the rest of our msgs lay.
-          {
-            id: 0, name:'start', type:'handler',
-            _handle: '() => ({started:Date.now(), browser:!!window, pid: Math.random()})',
-            handle: eval(this._handle)
-          },
-          {id: 1, msg:'start'},
-          {session: 0, started: 'Date.now()', browser: true, tab: 0,
-            localStorageKey: 'os + browser + tab + resource + pubkey', localStorageValue: '[{},{},1,{},-1,{}]'},
-
-          {id: 2, msg: 'stop'},
-          {session: 0, stopped: 'Date.now()', persisted: true, explicit: false},
-          // At this point, anything other than a number should throw an error. We have no degrees of freedom.
-          // Alternatively, we could take the attempt to to send a message to a dead session as an invitation to create a new one.
-          // Okay, now we're getting somewhere. At this point we have a program that starts and stops and at least pretends to be
-          // taking care of durability. now that we've handled overall life cycle, lets back up, start a
-          // second session, by sending a second "start" message, and branching the program
-          0,
-          {msg: 'start'}, // We are now on Row 1
-          {session: 1, log:[]},
-          {
-            name: 'log', type: 'handler', desc: 'Print messages to the console, and store them',
-            // call with {msg: "hi"}
-            msg: {log:{ msg: ['str']}},
-            ctx: {
-              started: ['num', 'gt', 0, 'auto', Date.now], // set by init, when the handler is added, or explicit integration or initialization, which is roughly hydrating the auto validation rules and then combining with residue.
-              // push with {log:{t:1, elapsed: 2, msg: "hi"}}
-              log:[{
-                t:['num', 'auto', Date.now], // now()
-                elapsed:['num', 'gt', 0, 'auto', (_, {started}) => Date.now() - started], // t - ctx.started
-                msg: ['str'], // DoF
-              }],
-              // Meanwhile, we
-            },
-            handle: function log({msg}, {started, log}){
-              // Let's be friendly. If the msg doesn't validate, return the failures.
-              // const mps = validate(msg, this.msg); if (!!mps) return mps;
-              // If the context doesn't validate, this is an internal error that must be resolved
-              // by a programmer. In fact, I would say that a handler needs a "prepare" step
-              // const cps = validate(ctx, this.ctx); if (!!cps) throw `ctx validation failed ${ctx} // ${cps}`;
-
-              const t = Date.now();
-              const elapsed = t - ctx.started;
-              const result =  {log: {t, elapsed, msg: msg.log.msg}};
-              // It would be good form to validate result against this.ctx.log[0] now before insertion.
-              console.log(result); // write msg to the console.
-              return result; //append msg to the (session) log
-            }
-          },
-          {msg: 'log', log:{msg:'hello log'}},
-          {log:{t: 1232321, elapsed: 399, msg:'hello log'}},
-          // Not going to go back to zero because this logger will be handy, I hope.
-          // Lets model a bounded particle with a 2D position
-          {x:0, y:0, r:1, relative: true},
-          {
-            name: 'move', type: 'handler', desc: 'Either set or add a 2D vector to current position',
-            msg:{ x:['num', 'between', -r, r], y:['num', 'between', -r, r], relative:['optional', 'bool']},
-            ctx:{ x:['num', 'between', -r, r], y:['num', 'between', -r, r]},
-            handle: function move(ctx, msg) {
-              const a = validate(msg, this.msg); if (!!a) return a;
-              const b = validate(ctx, this.ctx); if (!!b) throw `ctx validation failed ${ctx} // ${b}`;
-              const rel = msg.hasOwnProperty('relative') ? msg.relative : ctx.relative;
-              return rel ?
-                {x: (ctx.x + msg.x), y: (ctx.y + msg.y)} :
-                {x: msg.x, y: msg.y};
-            }
-          },
-          {msg: 'move', x:.1, y:.1},
-          {x:.1, y:.1},
-          {msg: 'move', x:0, y:0, relative: false},
-          {x:0, y:0}, // still row 1
-          // and so on
-
-          // Now lets be sensitive to ticks.
-          {
-            name: 'tick', type: 'handler', desc: 'randomly move the particle randomly every tick (typically 17ms)',
-            handle : (_, {x,y}, R="1", dx=Math.random(), dy=Math.random(), A=Math.random() * .20) => ({
-              msg: 'move',
-              relative: false,
-              x: (x + A * R * (dx * 2 - 1)) % R,
-              y: (y + A * R * (dy * 2 - 1)) % R,
-            }),
-          },
-          // So now ticks give us the jitters
-          {msg: 'tick'},
-          {i: 1, x:0.243, y:0.322},
-          {msg: 'tick'},
-          {i: 1, x:-.001, y: 0.221},
-          //To make a new particle, go back in time and split the old one from -4
-          -4, // Now on row 2 tickListeners:2}
-          {msg: 'tick'},
-          {i:2, x:-.387, y: -.123},
-          // We can also go back and make a new particle with a different "equation of motion".
-          -6,
-          { // This is a bound path that is a circle that repeats every 360 ticks (6s period)
-            name: 'tick', type: 'handler', desc: 'move a particle in a circle',
-            handle : (_, {step="0", theta="0", parts="360"}) => ({
-              msg: 'move',
-              relative: false,
-              parts, // 360 is 1 degree per tick, so pretty fast! 17ms * 360 = 6120ms, or about 6 seconds per revolution,
-              step: step + 1,
-              theta: (step % parts) * 2 * Math.PI,
-              // Here is the motion associated with this particle, expressed as cartesian coordinates.
-              // Note that the equations make no reference to time. All we know is that it takes N ticks to come back to the start.
-              // In fact, rather than store state as theta, we might be better off storing it as the "ith part".
-              // For animation, I think it makes sense to think in terms of degrees.
-              // However for math, it's more useful to think in terms of radians.
-              x: Math.cos(theta),
-              y: Math.sin(theta),
-              vx: -Math.sin(theta),
-              vy: Math.cos(theta),
-            }),
-          },
-          ],
-        )
-      }
     }
+  });
+  // Return which quad the vector is in, counting counter clockwise starting with 0
+  const quad = ({x, y}) => {
+    if (y > 0){ // This *can* be shortened with the ternary operator. But please don't.
+      return x < 0 ? 1 : 0;
+    } else {
+      return x < 0 ? 2 : 3;
+    }
+  }
+
+  const draw = ({x, y}, g = g) => svg.scatter(g, {transform: `translate(${x},${y})`});
+
+  //uble the width, scootch it over one (so its positive and negative), scale it to .01, add and then
+  //the ratio of width * scale determines how big of an apparent movement you make each tick.
+  // However this, too, is now randomized! (.15 scales the randomness)
+  const randomWalk = (pos, R=1, dx=Math.random(), dy=Math.random(), A=Math.random() * .04) => ({
+    x: (pos.x + A * R * (dx * 2 - 1)) % R,
+    y: (pos.y + A * R * (dy * 2 - 1)) % R,
   });
 
 </script>
