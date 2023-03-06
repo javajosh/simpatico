@@ -47,8 +47,8 @@ const equals = (a, b) => {
   const bType = getType(b);
   if (aType !== bType) return false;
 
-  if (aType === 'array') return arrEquals(a, b);
-  else if (aType === 'object') return objEquals(a, b);
+  if (aType === 'array' ) return arrEquals(a, b); else
+  if (aType === 'object') return objEquals(a, b); else
   return scalarEquals(a, b);
 }
 
