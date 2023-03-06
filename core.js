@@ -27,35 +27,28 @@ const propType = (obj, prop) => getType(obj[prop])
 const mapObject = (a,fn) => Object.fromEntries(Object.entries(a).map(fn)) //fn([k,v]) => [k2,v2]
 
 
-// Equality is easy for the scalar types (string, number, boolean)
-const scalarEquals = (a, b) => a === b;
+// Equality is broken up into scalar and vector types. Only equals is exported.
 // every() works well with sparse arrays, skipping blanks and allowing exit by returning false (unlike foreach)
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Indexed_collections#sparse_arrays
+const scalarEquals = (a, b) => a === b;
 const arrEquals = (a, b) => {
-  if (a === b) return true;
-  if (a == null || b == null) return false;
   if (a.length !== b.length) return false;
   return a.every((ai, i) => equals(ai, b[i]));
-
 }
 const objEquals = (a, b) => {
-  if (a === b) return true;
-  if (a == null || b == null) return false;
   const aKeys = Object.keys(a);
   const bKeys = Object.keys(b);
   if (aKeys.length !== bKeys.length) return false;
-
-  for (let key of aKeys) {
-    if (!equals(a[key], b[key])) return false;
-  }
-  return true;
+  return aKeys.every(key => equals(a[key], b[key]));
 }
 const equals = (a, b) => {
   if (a === b) return true;
-  if (a == null || b == null) return false;
-  if (getType(a) !== getType(b)) return false;
-  if (getType(a) === 'array') return arrEquals(a, b);
-  else if (getType(a) === 'object') return objEquals(a, b);
+  const aType = getType(a);
+  const bType = getType(b);
+  if (aType !== bType) return false;
+
+  if (aType === 'array') return arrEquals(a, b);
+  else if (aType === 'object') return objEquals(a, b);
   return scalarEquals(a, b);
 }
 

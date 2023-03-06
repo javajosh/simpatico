@@ -10,7 +10,7 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<h1>Simpatico</h1>
+<h1>Chat</h1>
 <p>javajosh <i>2023</i></p>
 
 <p>
@@ -38,7 +38,7 @@
   const {keyPair, keyPairPem} = await initializeDurableProcess(DP_LOCAL_STORAGE_KEY);
 
   // Start the connection, register a listener/msg handler
-  // This connection may be lost and recreated.
+  // TODO: connection may be lost and recreated.
   let connection = connect(websocketURL, keyPair, keyPairPem, e => receiveMessage(e.data));
 
   // Turn body change events (emitted by form fields) into msg sends.
@@ -87,11 +87,11 @@
   function connect (url, keyPair, keyPairPem, handler) {
     const conn = new WebSocket(url);
     conn.onopen = () => {
-      sendMessage(keyPairPem.publicKeyPem);
+      sendMessage(keyPairPem.publicKeyPem, conn);
     }
     conn.onmessage = handler;
     return conn;
-  };
+  }
 
   // Display a string as a new list element
   function addListItem (itemHtml, parent = displayChat) {
@@ -106,17 +106,16 @@
   }
 
   // Send a message over the websocket, reconnecting if necessary.
-  function sendMessage(msg) {
-    if (!isConnReady(connection)) throw 'connection is not ready';
+  function sendMessage(msg, conn = connection) {
+    if (!isConnReady(conn)) throw 'connection is not ready';
     try {
-      connection.send(msg);
+      conn.send(msg);
       if (DEBUG) console.debug(`msg sent ${msg}`);
-      return true;
+      return conn;
     } catch (ex) {
       console.error('problem sending message');
       throw ex;
     }
-    return false;
   }
   function receiveMessage(msg) {
     addListItem(msg);
