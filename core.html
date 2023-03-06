@@ -29,7 +29,7 @@
 
   const {
     str, num, bool, fun, obj, arr, between, exists,
-    arrEquals, all, same, contains, excludes
+    equals, all, same, contains, excludes
   } = c.as
 
   const a = {a: 1}, b = {b: 2}
@@ -64,11 +64,11 @@
   c.assert(!c.equals(a, {a: 1, b: 2}))
 
   const arr0 = [], arr1 = [1, 3, 5], arr2 = [1, 3, 5], arr3 = [1, 3], arr4 = [1, 3, 5, 'a']
-  c.assert(c.arrEquals(arr1, arr2))
-  c.assert(!c.arrEquals(arr0, arr1))
-  c.assert(!c.arrEquals(arr1, arr3))
-  c.assert(!c.arrEquals(arr1, arr4))
-  c.assert(!c.arrEquals(arr0, arr4))
+  c.assert(c.equals(arr1, arr2))
+  c.assert(!c.equals(arr0, arr1))
+  c.assert(!c.equals(arr1, arr3))
+  c.assert(!c.equals(arr1, arr4))
+  c.assert(!c.equals(arr0, arr4))
 
   c.assert(c.and(true, true))
   c.assert(!c.and(true, false))
@@ -94,8 +94,8 @@
 
   const grow = [1, 2, 2]
   let foo = c.push(grow, 3)
-  c.assert(c.arrEquals([1, 2, 2, 3], grow))
-  c.assert(c.arrEquals(foo, grow))
+  c.assert(c.equals([1, 2, 2, 3], grow))
+  c.assert(c.equals(foo, grow))
 
   c.assertEquals(c.getType(1), c.TYPES.NUM)
   c.assertEquals(c.getType([]), c.TYPES.ARR)
@@ -131,7 +131,7 @@
   exists({})
   exists(0)
 
-  arrEquals([], [])
+  equals([], [])
   contains([1, 3, 4], 3)
   excludes([1, 3, 4], 5)
 
