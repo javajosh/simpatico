@@ -271,7 +271,7 @@ function fileServerLogic() {
         if (fileName.endsWith('.md')){
           if (DEBUG) debug('making markdown', fileName, data);
           data = markdown.makeHtml(data + '');
-          data = header(fileName) + data + footer;
+          data = header(fileName.replace(/^.*(\\|\/|\:)/, '')) + data + footer;
         }
         if (config.useCache) {
           cache[fileName] = data;
