@@ -3,8 +3,10 @@ import fs from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
+
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
+import showdown from './showdown.js';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
@@ -20,6 +22,9 @@ const config = processConfig();
 info(`reflector.js [${JSON.stringify(elide(config), null, 2)}]`);
 const bindStatus = bindToPorts();
 info( 'bound', bindStatus);
+const markdown = new showdown.Converter();
+markdown.setFlavor('github');
+markdown.setOption('backslashEscapesHTMLTags', true);
 // We are bound to port 443 (and probably 80) so we can drop privileges
 if (config.user) dropProcessPrivs(config.user);
 
@@ -164,7 +169,7 @@ function fileServerLogic() {
     "svg" : "image/svg+xml",
     "wasm": "application/wasm",
     "pdf" : "application/pdf",
-    "md"  : "text/plain",
+    "md"  : "text/html",
   }
   /**
    * Required for most browsers to use SharedArrayBuffer and load wasm.
@@ -263,7 +268,14 @@ function fileServerLogic() {
           }));
           return;
         }
-        if (config.useCache) cache[fileName] = data;
+        if (fileName.endsWith('.md')){
+          if (DEBUG) debug('making markdown', fileName, data);
+          data = markdown.makeHtml(data + '');
+          data = header(fileName) + data + footer;
+        }
+        if (config.useCache) {
+          cache[fileName] = data;
+        }
         respondWithData(data);
       });
     }
@@ -315,3 +327,8 @@ const failWhale = `
 | _| / _\` || || |       \\ \\/\\/ / |   \\ / _\` || |/ -_)
 |_|  \\__/_||_||_|        \\_/\\_/  |_||_|\\__/_||_|\\___|
   `
+const header = (title='Simpatico') => `
+  <title>${title}</title>
+  <link rel="stylesheet" href="showdown.css">
+`;
+const footer = ``;
