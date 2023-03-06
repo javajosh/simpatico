@@ -38,6 +38,7 @@ This clarity and simplicity is surprisingly hard to attain - one must work to si
 My 'Simpatico dojo' as a "dedicated module" on two devices and one server with (public) github backup and my experience is dominated by intellij manipulating `html` and `js` files.
 `md` files like this one
 
+## Dojo Levels
 Much of this repo is currently (Feb, 2023) 'browser kata' that I have done for myself.
 Each browser kata is a short, self-contained html file with minimal sub-resources.
 Each kata should be executable with the smallest possible requirements. In order of preference:
@@ -57,6 +58,7 @@ Each kata should be executable with the smallest possible requirements. In order
      Remove the custom port from the URL
   7. (Optional) Run remotely on a vps with custom domain name and tls from letsencrypt: [https://simpatico.io/kata.html],  [wss://simpatico.io]
   8. (Optional, advanced) Understand how geographically distributed DNS works and design a robust world-wide cluster.
+     Requires more understanding of [BGP](https://en.wikipedia.org/wiki/Border_Gateway_Protocol) than I currently have.
 
 All code will run on a level 5 dojo; level 6 is "nice to have"; level 7 & 8 are "strong professional" steps.
 [simpatico.io](https://simpatico.io) is a *shared level 7 dojo* that I set up for everyone!
@@ -83,15 +85,6 @@ One should not be ashamed of your *kata* in any condition!
 Progress is laudable at any speed.
 In fact, progress on kata may halt if you've accumulated all the kata you need to becoming a professional fighter.
 
-## Commitment
-Commitment can be measured.
-If you are committed, then you will be creating space (on your device), time (in a calendar) and budget (tools, supplies, and training).
-
-The best time commitments in order:
-  1. daily, rain or shine. Pick an hourly slot. Writing. Working out. Meditation.
-  1. weekly. A day slot. kids, movie night, social. "something to look forward to"
-  1. monthly. Bills, budget and birthday cards.
-  1. one-offs. sampling, novelty, adventure
 
 ## Apology
 I realized after writing this I broke a rule and used markdown instead of html.
