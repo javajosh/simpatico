@@ -1,385 +1,277 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale="1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- html.lang=en, meta.charset=utf-8 and meta.name=viewport, etc above, are boilerplate. -->
 
-  <meta name="description" content="Simpatico Environment">
-  <meta name="keywords" content="programming, state, actor model, message oriented programming, finite state automata, btd, json">
+  <meta name="description" content="This html file is the largely self-contained Simpatico Shell and the source is designed to be read.">
+  <meta name="keywords" content="programming, browser, javascript, html, websockets ">
   <meta name="author" content="javajosh">
-  <title>Simpatico.io</title>
 
-  <!-- The code should not fail, and if it does signal it clearly. Also, reload every 2s, but can cancel with 's' or space.  -->
-  <link id="favicon" rel="icon" type="image/png" class="subresource" href="./img/white.png">
+  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
   <meta id="refresh" http-equiv="refresh" content="2">
-  <script type="module" src="testable.js"></script>
+  <script src="testable.js" type="module"></script>
+  <!-- End testable.js boilerplate  -->
 
-  <!-- Sorry to say I cannot recall why the page is styled like this. Since I'm focused on SVG components, we can safely
-    leave this alone, and not even bother with a reset. However if you want to make CSS styled HTML components,
-    you'd want to put "global" styles here. -->
-  <style>
-    html { height: 100%; overflow:auto; }
-    body { height: 100%; }
-  </style>
+  <title>Simpatico.io</title>
+  <script type="module">
+    import {svg} from './simpatico.js';
+    svg.clock();
+  </script>
 </head>
 <body>
 
-<h1>Simpatico.js</h1>
-<p>javajosh <i>Mar 2021</i></p>
+<h1>Simpatico</h1>
+
 <!--HTML comments are specifically for people on their first read through. Simpatico components are made and distributed
 as simple HTML files that conform to some simple patterns (and I also recommend a certain pattern of use, as well).
 This button stops the meta#refresh.content="2" second refresh that helps make a low tech but servicable BTD loop over the file.
 -->
 <button id="stop-refresh" onclick="window.stop()">Stop 2s Refresh</button>
 
-<h3>Fun</h3>
-<p>
-  Because our browser space is so clean and nice, we can breathe.
-  The browser is coming into contact with each line as you write it.
-</p>
+<div id="fun">
+  <h3>Fun</h3>
+  <p>
+    Because our browser space is so clean and nice, we can breathe.
+    The browser is coming into contact with each line as you write it.
+  </p>
 
-<p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding things is going to involve more than concatenation</p>
+  <p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding things is going to involve more than concatenation</p>
 
-<p>It allows us to do what people so rarely do these days, which is have fun with <span id="s0">the browser medium</span>.</p>
+  <p>It allows us to do what people so rarely do these days, which is have fun with <span id="s0">the browser medium</span>.</p>
 
-<!--  The use of modules allows me to isolate scripts on the page from each other-->
-<!--  and code in a more natural way. It does make REPL (dev tools) interaction a little harder, however.-->
-<script type="module">
-  // s stands for "span". increment these s0 numbers over time
-  // The tag is redundant but useful for giving context to the elt;
-  const span = document.querySelector('span#s0');
+  <!--  The use of modules allows me to isolate scripts on the page from each other-->
+  <!--  and code in a more natural way. It does make REPL (dev tools) interaction a little harder, however.-->
+  <script type="module">
+    import {svg, now} from './simpatico.js'
 
-  // Let's spin that sucker!
-  const ms = 1, Hz = 1, pi = Math.PI; // Show units in code!
-  const rotPeriod = 4000 * ms; // rotational period
-  const tp = 17 * ms; // tick period
-  const timeOut = 2 * rotPeriod;
+    const s0 = svg.elt('s0');
 
-  const theta_at_t = (t = (Date.now() - started)) => (2 * pi * t) / (rotPeriod);
-  const draw = () => span.setAttribute('style', `position: absolute; transform: rotate(${theta_at_t()}rad`);
+    // Let's spin that sucker!
+    const ms = 1, Hz = 1, pi = Math.PI; // Show units in code!
+    const rotationalPeriod = 4000 * ms;
+    const timeOut = 2 * rotationalPeriod; // stop animating after this length of time in ms
 
-  let running = true;
-  const started = Date.now();
+    const theta_at_t = (t = (now() - started)) => (2 * pi * t) / (rotationalPeriod);
+    const draw = () => s0.setAttribute('style', `position: absolute; transform: rotate(${theta_at_t()}rad`);
+    const draw2 = () => svg.scatter(s0, {rotate: theta_at_t() + 'rad'})
 
-  span.addEventListener('click', e => {
-    running = !running
-  });
+    let running = true;
+    const started = Date.now();
 
-  window.addEventListener('tick', e => {
-    if (running && (Date.now() < (started + timeOut)))
-      draw();
-  });
-</script>
+    // Click on the svg to start or stop the animation
+    s0.addEventListener('click', e => {
+      running = !running
+    });
 
-<p>Let there be a green circle in motion on a normalized coordinate system:</p>
-
-<svg id="s1" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
-  <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r="1" unit circle -->
-  <!-- scale(1,-1) flips the y-axis so that positive y values move up. -->
-  <g transform="scale(1,-1)">
-    <!-- This small SVG authoring convention of my own invention includes omitting quotes for dynamic-ish attr values   -->
-    <!-- These initial lines of SVG are specifically diagnostic  -->
-    <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1="-1" y1="0"  x2="1" y2="0" />
-    <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1="0"  y1="-1" x2="0" y2="1" />
-
-    <!-- These help orient us by translating in one known direction, which is the varying attribute. -->
-    <circle class="red-y"  fill="red"  cx=".0"  cy=".5" r=".05" />
-    <circle class="blue-x" fill="blue" cx=".5"  cy=".0" r=".05" />
-
-    <!-- This is the element we'll be moving, the expression of degrees of freedom -->
-    <g id="s2-transform" class="transform" >
-      <circle id="s2" class="green-circle" fill="none" stroke="green" stroke-width=".01"  cx="0" cy="0" r=".05" />
-    </g>
-    <polygon fill="red" stroke="blue" stroke-width=".001" points="
-      .01,.02 .03,.04
-    "/>
-    <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector for how to do it, but its very bulky. -->
-  </g>
-</svg>
-
-<p class="sidenote">The value of normalized units is considerable. Consider that as we enter digits of a number after the decimal, we are always becoming more precise, and not invalidating the previous numbers. Our number system encourages us to to stop just short of any goal, and then move toward it cautiously. When you add numbers in front of the decimal, each number changes the meanings of the ones before. This is in part why numbers are right aligned, because your digits "push" the other digits to the left. The present is constantly modifying the past, and by a factor of 10! Horrible! I don't think it's odd to wonder what the bounds are on your life and work - what does 1.0 mean for you?</p>
-
-<script type="module">
-  // Now that we're oriented, lets move the green circle around.
-  // We'll do it in two ways
-  const svg = document.querySelector("svg#s1")
-  const g = document.querySelector("g#s2-transform");
-
-  // Write every (obj entry key value) into (svg attr key value)
-  const combine = (elt, obj) => {
-    if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y}); // Support (x,y) -> (cx, cy) for circles
-    for (const [key, value] of Object.entries(obj)){
-      elt.setAttribute(key,  value.toString());
-    }
-  }
-
-  // Animate green circle motion using js state in 'pos'.
-  let pos = {x: 0, y: 0};
-  const translate = ({x, y}) => `translate(${x},${y})`;
-  const write = ({x, y}, g=g) => combine(g, {transform: translate({x, y})});
-
-  const circularMotion = (t, a, b, c, d) => ({
-    x: a * Math.cos(b * t + c) + d,
-    y: a * Math.sin(b * t + c) + d,
-  });
-
-  const state = {
-    pos,
-    running: true,
-    started: Date.now(),
-    timeOut: 4000, //negative to cancel
-  };
-  svg.addEventListener('click', () => {
-    running = !running
-  });
-
-  window.addEventListener('tick', e => {
-    const t = Date.now();
-    if (state.running && (t < (state.started + state.timeOut) || state.timeOut < 0)) {
-      state.pos = circularMotion(t, 1, .001, 0, 0);
-      write(state.pos, g);
-    }
-  });
-
-</script>
-
-<div class="sidenote">There are two ways to move an SVG elt, with attributes and a g transform. By convention we reserve the first kind of motion for "drawing a symbol" and the second kind of motion for "moving a symbol". Consider the contrast:
-  <pre><code>  const vec = {x: -.25, y: -.25};
-  combine(s2, vec);
-  combine(s3, {transform: `translate(${vec.x},${vec.y})`});
-</code></pre>
-  <i>Q: do we bother with syntax highlighting for code samples like this? What complexity is acceptable to make that happen?</i>
+    // Custom tick events drive the animation
+    window.addEventListener('tick', e => {
+      if (running && ((timeOut > 0) && (now() < (started + timeOut))))
+        draw();
+    });
+  </script>
 </div>
 
-<div class="sidenote">
-  Questions:
-  <ol>
-    <li>How would you allow the square to slow down?
-    <li>How much faster does this simulation run "headless", without animation?
-    <li>Which function is being called the most? How often?
-  </ol>
+<div id="green-circle">
+  <p>Let there be a green circle in motion on a normalized coordinate system:</p>
+
+  <svg id="s1" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
+    <!-- The viewbox is centered on 0,0 with just enough space to inscribe an r="1" unit circle -->
+    <!-- scale(1,-1) flips the y-axis so that positive y values move up. -->
+    <g transform="scale(1,-1)">
+      <!-- This small SVG authoring convention of my own invention includes omitting quotes for dynamic-ish attr values   -->
+      <!-- These initial lines of SVG are specifically diagnostic  -->
+      <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1="-1" y1="0"  x2="1" y2="0" />
+      <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1="0"  y1="-1" x2="0" y2="1" />
+
+      <!-- These help orient us by translating in one known direction, which is the varying attribute. -->
+      <circle class="red-y"  fill="red"  cx=".0"  cy=".5" r=".05" />
+      <circle class="blue-x" fill="blue" cx=".5"  cy=".0" r=".05" />
+
+      <!-- This is the element we'll be moving, the expression of degrees of freedom -->
+      <g id="s2-transform" class="transform" >
+        <circle id="s2" class="green-circle" fill="none" stroke="green" stroke-width=".01"  cx="0" cy="0" r=".05" />
+      </g>
+      <polygon fill="red" stroke="blue" stroke-width=".001" points="
+        .01,.02 .03,.04
+      "/>
+      <!-- SVG does not directly support vectors with arrows, sadly. See, for example: http://www.cheat-sheets.org/own/svg/index.xhtml#vector for how to do it, but its very bulky. -->
+    </g>
+  </svg>
+
+  <p class="sidenote">The value of normalized units is considerable. Consider that as we enter digits of a number after the decimal, we are always becoming more precise, and not invalidating the previous numbers. Our number system encourages us to to stop just short of any goal, and then move toward it cautiously. When you add numbers in front of the decimal, each number changes the meanings of the ones before. This is in part why numbers are right aligned, because your digits "push" the other digits to the left. The present is constantly modifying the past, and by a factor of 10! Horrible! I don't think it's odd to wonder what the bounds are on your life and work - what does 1.0 mean for you?</p>
+
+  <script type="module">
+    // Now that we're oriented, lets move the green circle around.
+    // We'll do it in two ways
+    const svg = document.querySelector("svg#s1")
+    const g = document.querySelector("g#s2-transform");
+
+    // Write every (obj entry key value) into (svg attr key value)
+    const combine = (elt, obj) => {
+      if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y}); // Support (x,y) -> (cx, cy) for circles
+      for (const [key, value] of Object.entries(obj)){
+        elt.setAttribute(key,  value.toString());
+      }
+    }
+
+    // Animate green circle motion using js state in 'pos'.
+    let pos = {x: 0, y: 0};
+    const translate = ({x, y}) => `translate(${x},${y})`;
+    const write = ({x, y}, g=g) => combine(g, {transform: translate({x, y})});
+
+    const circularMotion = (t, a, b, c, d) => ({
+      x: a * Math.cos(b * t + c) + d,
+      y: a * Math.sin(b * t + c) + d,
+    });
+
+    const state = {
+      pos,
+      running: true,
+      started: Date.now(),
+      timeOut: 4000, //negative to cancel
+    };
+    svg.addEventListener('click', () => {
+      running = !running
+    });
+
+    window.addEventListener('tick', e => {
+      const t = Date.now();
+      if (state.running && (t < (state.started + state.timeOut) || state.timeOut < 0)) {
+        state.pos = circularMotion(t, 1, .001, 0, 0);
+        write(state.pos, g);
+      }
+    });
+
+  </script>
+
+  <div class="sidenote">There are two ways to move an SVG elt, with attributes and a g transform. By convention we reserve the first kind of motion for "drawing a symbol" and the second kind of motion for "moving a symbol". Consider the contrast:
+    <pre><code>  const vec = {x: -.25, y: -.25};
+    combine(s2, vec);
+    combine(s3, {transform: `translate(${vec.x},${vec.y})`});
+  </code></pre>
+    <i>Q: do we bother with syntax highlighting for code samples like this? What complexity is acceptable to make that happen?</i>
+  </div>
+
+  <div class="sidenote">
+    Questions:
+    <ol>
+      <li>How would you allow the square to slow down?
+      <li>How much faster does this simulation run "headless", without animation?
+      <li>Which function is being called the most? How often?
+    </ol>
+  </div>
 </div>
 
+<div id="random-walk">
+  <h3>SVG &amp; JS: 2D Random Walk</h3>
 
-<h3>SVG &amp; JS: 2D Random Walk</h3>
+  <p>SVG and JS are <i>powerful</i> tools for drawing data on the screen.</p>
 
-<p>SVG and JS are <i>powerful</i> tools for drawing data on the screen.</p>
+  <svg id="s4" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
+    <g transform="scale(1,-1)">
 
-<svg id="s4" width="200" height="200" style="border: solid gray 1px" viewbox="-1,-1 2,2">
-  <g transform="scale(1,-1)">
+      <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1="-1" y1="0"  x2="1" y2="0" />
+      <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1="0"  y1="-1" x2="0" y2="1" />
 
-    <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1="-1" y1="0"  x2="1" y2="0" />
-    <line class="y-axis-red"  stroke="red"  stroke-width=".001" x1="0"  y1="-1" x2="0" y2="1" />
-
-    <g id="s5-transform">
-      <circle id="s5" class="green-circle" fill="none" stroke-width=".01" r=".05" stroke="green" cx="0" cy="0"  />
+      <g id="s5-transform">
+        <circle id="s5" class="green-circle" fill="none" stroke-width=".01" r=".05" stroke="green" cx="0" cy="0"  />
+      </g>
     </g>
-  </g>
-</svg>
+  </svg>
 
-<script type="module">
-  import {svg, now} from './simpatico.js'
+  <script type="module">
+    import {svg, now} from './simpatico.js'
 
-  const s4 = document.querySelector("svg#s4");
-  const g = document.querySelector("g#s5-transform");
+    const s4 = document.querySelector("svg#s4");
+    const g = document.querySelector("g#s5-transform");
 
 
-  // Static
-  const
-    started = now(),
-    ms = 1,
-    timeOut = -4000 * ms; // set timeout negative to disable.
+    // Static
+    const
+      started = now(),
+      ms = 1,
+      timeOut = -4000 * ms; // set timeout negative to disable.
 
-  // Dynamic
-  let
-    pos = {x: 0, y: 0},
-    running = true,
-    lastQuad = 0,
-    currQuad = lastQuad,
-    lastVisible = true,
-    currVisible = lastVisible;
+    // Dynamic
+    let
+      pos = {x: 0, y: 0},
+      running = true,
+      lastQuad = 0,
+      currQuad = lastQuad,
+      lastVisible = true,
+      currVisible = lastVisible;
 
-  // Steady-state entry-point #1 - click the svg elt -> start/stop animation
-  s4.addEventListener('click', () => {
-    running = !running
-  });
+    // Steady-state entry-point #1 - click the svg elt -> start/stop animation
+    s4.addEventListener('click', () => {
+      running = !running
+    });
 
-  // Steady-state entry-point #2 - tick -> update particle position
-  window.addEventListener('tick', e => {
-    if (running && (e.detail.t < (started + timeOut) || timeOut < 0)) {
-      pos = randomWalk(pos, 2);
-      draw(pos, g);
+    // Steady-state entry-point #2 - tick -> update particle position
+    window.addEventListener('tick', e => {
+      if (running && (e.detail.t < (started + timeOut) || timeOut < 0)) {
+        pos = randomWalk(pos, 2);
+        draw(pos, g);
 
-      lastQuad = currQuad;
-      currQuad = quad(pos);
-      const quadChanged = currQuad !== lastQuad;
+        lastQuad = currQuad;
+        currQuad = quad(pos);
+        const quadChanged = currQuad !== lastQuad;
+      }
+    });
+    // Return which quad the vector is in, counting counter clockwise starting with 0
+    const quad = ({x, y}) => {
+      if (y > 0){ // This *can* be shortened with the ternary operator. But please don't.
+        return x < 0 ? 1 : 0;
+      } else {
+        return x < 0 ? 2 : 3;
+      }
     }
-  });
-  // Return which quad the vector is in, counting counter clockwise starting with 0
-  const quad = ({x, y}) => {
-    if (y > 0){ // This *can* be shortened with the ternary operator. But please don't.
-      return x < 0 ? 1 : 0;
-    } else {
-      return x < 0 ? 2 : 3;
-    }
-  }
 
-  const draw = ({x, y}, g = g) => svg.scatter(g, {transform: `translate(${x},${y})`});
+    const draw = ({x, y}, g = g) => svg.scatter(g, {transform: `translate(${x},${y})`});
 
-  //uble the width, scootch it over one (so its positive and negative), scale it to .01, add and then
-  //the ratio of width * scale determines how big of an apparent movement you make each tick.
-  // However this, too, is now randomized! (.15 scales the randomness)
-  const randomWalk = (pos, R=1, dx=Math.random(), dy=Math.random(), A=Math.random() * .04) => ({
-    x: (pos.x + A * R * (dx * 2 - 1)) % R,
-    y: (pos.y + A * R * (dy * 2 - 1)) % R,
-  });
+    //uble the width, scootch it over one (so its positive and negative), scale it to .01, add and then
+    //the ratio of width * scale determines how big of an apparent movement you make each tick.
+    // However this, too, is now randomized! (.15 scales the randomness)
+    const randomWalk = (pos, R=1, dx=Math.random(), dy=Math.random(), A=Math.random() * .04) => ({
+      x: (pos.x + A * R * (dx * 2 - 1)) % R,
+      y: (pos.y + A * R * (dy * 2 - 1)) % R,
+    });
 
-</script>
+  </script>
 
-<p class="questions">
-  <ol>
-    <li>How many iterations does it take, on average, for the circle to leave the viewport?
-  </ol>
-</p>
+  <div class="questions">
+    <ol>
+      <li>How many iterations does it take, on average, for the circle to leave the viewport?
+    </ol>
+  </div>
+</div>
 
-<h3>Errata</h3>
-<p>Unfortunately,</p>
-<p>The idea so far is to highlight what the browser can do without library support. This counts as "minimalism" these days! However, these "naive" solutions tend to fall down in real life. In particular, we have no abstraction for a "particle" and so no real way to talk about a "system of particles", each of which may interact. One thing it may be worth talking about is *why* this is important, and how this complexity rears its head in real applications. For example, we still see the "1+N" structure in these simple examples - but which parts of these examples tend to grow in complexity?</p>
+<div id="errata">
+  <h2>Errata</h2>
 
-<h2>Multiple Particles</h2>
+  <h3>Simpatico and Redux</h3>
 
-<p>The key here is to leverage software's super-power, which is copying complexity without error. First step is to make a particle in an Rtree, then make it sensitive to ticks. Then introduce code to render the particle (or the entire RTree - not sure yet.</p>
+  <p>Simpatico is easiest to understand if you understand the ideas behind <a href="https://redux.js.org/">Redux</a>.
+  namely the idea that you can (and <i>should</i>!) model your application state as a monolithic object which is rendered into the current browser state by the pure functions of your UI.
+  A straightforward idea, but complexity arises, and not just because of performance issues.
+  It turns out that writing that function is a challenge, although JSX helps by allowing you to more cleanly write components that are explicit about taking state and rendering it.
 
-<script type="module">
-  import * as RTree from './stree.js';
-  const {rtree} = RTree;
-</script>
+  <p>Simpatico is improved state management for browser applications.
+  However, the ideas within it generalize across other domains.
+  Simpatico models the running process as a tree of "cores" that are rooted at the physical level, with one long-lived global object, the global core.
+  This core is made "sensitive" to the outside world via a singular S() method.
+  It always starts at {} and on startup we proceed.
+  By convention we allow row 0 in the stree to represent the initial startup of the process, delegating most if not all further change to branches.
 
-    <p class="sidenote">This marks the first use of an <code>import</code> statement in the body of this document. It adds a subresource dependency.</p>
+  <p>Combined with a good visualization, the S() method can help you explore your design space, to characterize in a precise way the state-space of your application.
+  Although cores can be used to accumulate and process low-level measurement, they can also be used to accumulate higher level messages into overall application state.
+  The former corresponds to UI componentry, whereas the latter corresponds to server componentry.
 
-
-<!--	<h2>Simpatico</h2>-->
-
-<!--  <p>Simpatico is easiest to understand if you understand the ideas behind <a href="react redux">Redux</a>, namely the idea that you can (and <i>should</i>!) model your application state as a monolithic object which is rendered into the current browser state by the pure functions of your UI. A straightforward idea, but complexity arises, and not just because of performance issues. It turns out that writing that function is a challenge, although JSX helps by allowing you to more cleanly write components that are explicit about taking state and rendering it.</p>-->
-
-<!--	<p>Simpatico is improved state management for browser applications. However, the ideas within it generalize across other domains. Simpatico models the running process as a tree of "cores" that are rooted at the physical level, with one long-lived global object, the global core. This core is made "sensitive" to the outside world via a singular S() method. It always starts at {} and on startup we proceed. By convention we allow row 0 in the stree to represent the initial startup of the process, delegating most if not all further change to branches.</p>-->
-
-<!--  <p>Combined with a good visualization, the S() method can help you explore your design space, to characterize in a precise way the state-space of your application. Although cores can be used to accumulate and process low-level measurement, they can also be used to accumulate higher level messages into overall application state. The former corresponds to UI componentry, whereas the latter corresponds to server componentry.</p>-->
-
-
-">-->
-<!--    import * as Core from './core.js';-->
-<!--    import * as Combine from './combine.js';-->
-<!--    import * as RTree from './stree.js';-->
-
-<!--    const {stree} = RTree;-->
-<!--    const {combine} = Combine;-->
-<!--    const {assertEquals} = Core.default.asserts;-->
-<!--    const {now, RNG, log} = Core.default.utils;-->
-
-<!--    const S = stree;-->
-
-<!--    // Note that S() should print out a friendly explanation of how to call it-->
-<!--    // We generally assume that localStorage is entirely ours. In this case, we'll use-->
-<!--    // just one entry, and store any browser-durable state in one long string. By convention-->
-<!--    // this is a JSON object, in fact an array of JSON objects interleaved with integers, that-->
-<!--    // describes the state of the RTree. There are actually 2 representations of the process state: one is-->
-<!--    // the list of measurements that brought the process to a particular state, and the other-->
-<!--    // is that terminating state, the one that we resurrect to "pick up where we left off".-->
-<!--    // localstorage-->
-
-<!--    const localStorageObject = Object.keys(localStorage).reduce((obj, str) => {-->
-<!--      obj[str] = JSON.parse(localStorage.getItem(str));-->
-<!--      return obj-->
-<!--    }, {});-->
-
-<!--    const cookies = document.cookie.split(';').reduce((obj, str) => {-->
-<!--      const s = str.split('=');-->
-<!--      obj[s[0].trim()] = s[1];-->
-<!--      return obj;-->
-<!--    }, {});-->
-
-<!--    S({-->
-<!--      id: 0,-->
-<!--      measurement: 'START',-->
-<!--      timestamp: now(),-->
-<!--      pid: Math.random(),-->
-<!--      global: window,-->
-<!--      runtime: "macos chrome timezone language",-->
-<!--      localStorage: localStorageObject,-->
-<!--      cookies,-->
-<!--      input: {keydown:[], mousemove:[], net:[], console:[], clock:[], dice:[], screen:[], zoom:[]},-->
-<!--      output: {screen: window.document.body, storage: window.localStorage, cookie: window.document.cookie},-->
-<!--      apps: {-->
-<!--        root: {msgs:[{},{},{},2,{},3,{},{}], residue: {}},-->
-<!--        string : {msgs:[{},{},{},2,{},3,{},{}], residue: {}},-->
-<!--      },-->
-<!--      // os windows, applications, files, functions, components-->
-<!--      // request, response, sub-resources, timings embeded in response, etc.-->
-<!--    });-->
-
-<!--    // Collision and combination. An application is a list of values then connected together in useful ways by paths.-->
-<!--    // The paths describe, in general, an RTree who's various branches have been usefully combined into a cohesive interface.-->
-<!--    // The degrees of freedom of this core can be said to be all of the arrays above. The computation that occurs-->
-<!--    // is with the exploration of various paths through those values. Those paths are recorded independently as branches-->
-<!--    // in an RTree. It is a kind of generalization of the back button, such that you can move in and out of a nested data-->
-<!--    // structure easily and smoothly, over time.-->
-
-<!--    // Now we need to make S sensitive to inputs and outputs. Let's start with the mouse. We rely on event bubbling,-->
-<!--    // and register only on the body element.-->
-<!--    window.document.body.onkeydown = e => {-->
-<!--      log(e);-->
-<!--      S({events:{keydown:e}});-->
-<!--    }-->
-
-<!--    window.document.body.onmousemove = e => {-->
-<!--      log(e);-->
-<!--      S({events:{mousemove:e}});-->
-<!--    }-->
-
-<script type="module" id="module-tick" >
-  // Scroll to the bottom, if I'm on local host, because I'm working there.
-  if (false && window.location.host.startsWith('localhost')){
-    setTimeout(() => window.scrollTo(0, window.document.body.scrollHeight), 0);
-  }
-
-  // Define a window.ontick custom event.
-  // Usage: window.addEventListener('tick', e => console.log(e.detail.t));
-  const tick = () => {
-    const event = new CustomEvent('tick', {detail: {t: Date.now()}}); // See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
-    window.dispatchEvent(event);
-    window.requestAnimationFrame(tick);
-  };
-  tick();
-</script>
-
-<h2>Testing embedding a local video.</h2>
-<p>
-  What would it be like to self-host a video?
-  Let's use the [video element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video).
-  This was taken through win10 > logi capture, and it suffers from a sound and flicker problem:
-</p>
-
-<video controls height="500px" width="1000px">
-  <source src="vids/2022-11-13_21-49-56.mp4" type="video/mp4" />
-  <p>
-    Your browser doesn't support HTML video. Here is a
-    <a href="vids/2022-11-13_21-49-56.mp4">link to the video</a> instead.
-  </p>
-</video>
-
-<p>
-  This video is taken with win10 > OBS and it's of generally higher quality, but it's a little harder to use.
-</p>
-
-<video controls height="500px" width="1000px">
-  <source src="vids/2022-11-13_21-49-56.mp4" type="video/mp4" />
-  <p>
-    Your browser doesn't support HTML video. Here is a
-    <a href="vids/2022-11-13_21-49-56.mp4">link to the video</a> instead.
-  </p>
-</video>
-
+</div>
 
 </body>
 </html>

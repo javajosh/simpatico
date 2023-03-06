@@ -184,6 +184,28 @@
     pointer to the target. The rule is that if you're pointing at a node, you create a new row with that as it's parent.
     Otherwise, you're just adding to the row.</p>
 
+  <h3>Some code</h3>
+  <p>A nice sketch of what a top-level stree residue might look like.</p>
+  <code><pre>
+  S({
+    id: 0,
+    measurement: 'START',
+    timestamp: now(),
+    pid: Math.random(),
+    global: window,
+    runtime: "macos chrome timezone language",
+    localStorage: localStorageObject,
+    cookies,
+    input: {keydown:[], mousemove:[], net:[], console:[], clock:[], dice:[], screen:[], zoom:[]},
+    output: {screen: window.document.body, storage: window.localStorage, cookie: window.document.cookie},
+    apps: {
+      root: {msgs:[{},{},{},2,{},3,{},{}], residue: {}},
+      string : {msgs:[{},{},{},2,{},3,{},{}], residue: {}},
+    },
+    // os windows, applications, files, functions, components
+    // request, response, sub-resources, timings embeded in response, etc.
+  });
+  </pre></code>
   <!--
   /**
    This stree is implemented with arrays.
