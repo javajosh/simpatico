@@ -1,4 +1,5 @@
 // This file has been modified to be easier to import in modern browsers and node.
+/* showdown v 2.1.0 - 21-04-2022 */
 function getDefaultOpts (simple) {
   'use strict';
 
