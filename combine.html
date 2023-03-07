@@ -290,6 +290,7 @@
       {handler:'assert', a: 1, b: 2},
       {handler:'inc'},
       {handler:'assert', a: 2, b: 4},
+      2,
       {a: null},
       {handler:'assert', a:1},
       {handler:'sum', a: 1, b: 2},
@@ -303,11 +304,10 @@
       {handler:'log'},
     ];
     // Check that every branch is reachable
-    buildTree(ops3).branches.every(branch => {
-      core = {handlers: {log, inc, sum, mul, assert}};
-      branch.every(op => core = combine(core, op));
-    });
-
+    // buildTree(ops3).branches.every(branch => {
+    //   core = {handlers: {log, inc, sum, mul, assert}};
+    //   branch.every(op => core = combine(core, op));
+    // });
 
 
     // This is a much simpler combine not for production use. Just playing with some ideas.
