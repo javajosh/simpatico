@@ -167,11 +167,75 @@
 
 <div id="simple-combine">
   <script type="module">
-    console.log(combine({a:[1,3,4]}, {a:[1]}))
+    import {assertEquals} from './core.js';
 
+    assertEquals({a: [2, 3, 4]}, combine({a: [1, 3, 4]}, {a: [1]}));
+    assertEquals({a: [2, 3, {b: 2}], c: false}, combine({a: [1, 3, {b: 1}]}, {a: [1, 0, {b: 1}], c: false}))
+
+    // Noops
+    assertEquals({a: [1, 3, {b: 1}]}, combine({a: [1, 3, {b: 1}]}, undefined));
+    assertEquals({a: [1, 3, {b: 1}]}, combine({a: [1, 3, {b: 1}]}, {}));
+
+    assertEquals({}, combine({a: [1, 3, {b: 1}]}, null))
+    assertEquals({a: []}, combine({a: [1, 3, {b: 1}]}, {a: null}))
+
+    // Boolean has an odd behavior with null - let's test it.
+    assertEquals(true, combine(false, null));
+    assertEquals(false, combine(true, null));
+    assertEquals(true, combine(false, true));
+    assertEquals(false, combine(true, false));
+
+    // Strings replace
+    assertEquals('', combine('anything', null));
+    assertEquals('b', combine('a', 'b'));
+    // Numbers add
+    assertEquals(3, combine(1, 2));
+
+    const log = {handle: (a, b) => {console.log(a, b)}};
+    const inc = {handle: () => [{a: 1}, {b: 2}]};
+    const sum = {handle: (_, {a, b}) => [{a: a + b}]};
+    const mul = {handle: ({a},{a: b}) => [{a: null}, {a: a * b }]}; // clear out the previous value with the null set
+    const assert = {handle: (core, msg) => {
+      Object.entries(msg).forEach(([key, msgValue]) => {
+        if (key === 'handler') return; // skip the handler name itself
+        if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
+        else throw 'core is missing asserted property ' + key;
+      });
+    }};
+    // These functions are easy to call and test on their own, as normal pure functions:
+    assertEquals(undefined, log.handle(1, 2));
+    assertEquals([{a: 1}, {b: 2}], inc.handle());
+    assertEquals([{a: 5}], sum.handle({}, {a: 2, b: 3}));
+    assertEquals([{a: null}, {a: 6}], mul.handle({a: 2}, {a: 3}));
+
+    // We use these handlers to form a "core" and treat interaction as a monotonic sequence of additions.
+    let core = {handlers: {log, inc, sum, mul, assert}};
+
+    const ops = [
+      {handler:'log', v: 3},
+      {handler:'inc', v: 5},
+      {handler:'assert', a: 1, b: 2},
+      {handler:'inc', v: 5},
+      {handler:'assert', a: 2, b: 4},
+      {a: null},
+      {handler:'assert', a: 0},
+      {handler:'sum', a: 1, b: 2},
+      {handler:'assert', a: 3},
+      {a: null},
+      {a: 2},
+      {a: 2},
+      {handler:'assert', a: 4},
+      {handler:'mul', a: 10},
+      {handler:'assert', a: 40},
+      {handler:'log', v: 3},
+    ];
+    ops.every(op => core = combine(core, op));
+
+    // This is a much simpler combine not for production use. Just playing with some ideas. It's missing functions and handlers.\
     function combine(a, b) {
       // this convention implies b "acts on" a, in this case by 'zeroing a out' when b is null.
       // we can't zero out a boolean without introducing null, so we toggle it instead.
+      // combine is not associative, but it does have an identity and a zero.
       if (typeof a === 'undefined' || a === null) return b; // 'something is better than nothing'
       if (typeof b === 'undefined') return a; // 'avoid special cases and let nothing compose as a noop'
       if (b === null) { // 'use null as a signal to set a type-dependent zero
@@ -187,8 +251,19 @@
         return a.map((ai, i) => combine(ai, b[i]));
       }
 
+      const isCore = a => typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
+      const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle') && typeof a['handle'] === 'function';
+      const isMsg = a => typeof a === 'object' && a.hasOwnProperty('handler') && typeof a['handler'] === 'string';
       // If both args are plain objects, combine every shared key, and add the non-shared keys, too.
       if (typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
+        if (isCore(a) && isMsg(b)){
+          // treat b as a measurement targeting a handler by name
+          if (!isHandler(a.handlers[b.handler])) throw `Unable to find valid handler ${b.handler} in core ${a}`;
+          let result = a.handlers[b.handler].handle(a, b);
+          if (!Array.isArray(result)) result = [result];
+          result.every(obj => a = combine(a, obj));
+          return a;
+        }
         const result = {};
         for (const key of Object.keys(a)) {
           result[key] = a[key];

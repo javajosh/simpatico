@@ -52,8 +52,8 @@ const equals = (a, b) => {
   return scalarEquals(a, b);
 }
 
-const assertEquals = (actual, expected, msg='') =>
-  assert(equals(actual, expected), `actual is ${tryToStringify(actual)} but expected ${tryToStringify(expected)}. ${msg}`)
+const assertEquals = (expected, actual, msg='') =>
+  assert(equals(expected, actual), `expected is ${tryToStringify(expected)} but actual is ${tryToStringify(actual)}. ${msg}`)
 
 // Can probably eliminate these, I rarely use them.
 const and = (a, b) => !!a && !!b
