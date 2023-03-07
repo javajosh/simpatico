@@ -42,7 +42,10 @@
   let connection = connect(websocketURL, keyPair, keyPairPem, e => receiveMessage(e.data));
 
   // Turn body change events (emitted by form fields) into msg sends.
-  body.addEventListener('change', e =>  sendMessage(e.target.value));
+  body.addEventListener('change', e =>  {
+    sendMessage(e.target.value);
+    e.target.value = "";
+  });
 
   // A click deletes the old keys, make new ones, and refreshes the page.
   resetButton.addEventListener('click', () => {
