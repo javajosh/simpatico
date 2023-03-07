@@ -169,6 +169,8 @@
   <script type="module">
     import {assertEquals} from './core.js';
 
+    const DEBUG = false;
+
     assertEquals({a: [2, 3, 4]}, combine({a: [1, 3, 4]}, {a: [1]}));
     assertEquals({a: [2, 3, {b: 2}], c: false}, combine({a: [1, 3, {b: 1}]}, {a: [1, 0, {b: 1}], c: false}))
 
@@ -192,7 +194,7 @@
     assertEquals(3, combine(1, 2));
 
     // Now lets build up a (very contrived) core from handlers and run it through a list of operations
-    const log = {handle: (a, b) => {console.log(a, b)}};
+    const log = {handle: (a, b) => {if (DEBUG) console.log(a, b)}};
     const inc = {handle: () => [{a: 1}, {b: 2}]};
     const sum = {handle: (_, {a, b}) => [{a: a + b}]};
     const mul = {handle: ({a},{a: b}) => [{a: null}, {a: a * b }]}; // clear out the previous value with the null set
@@ -236,10 +238,12 @@
     const isNum = d => typeof d === 'number';
     const peek = (arr, def=null) => arr.length ? arr[arr.length - 1] : def;
 
+    // Take an array with sprinkled integers and turn it into a tree of related elements
     const buildTree = arr => {
       const rows = [[]];
       const nodes = [];
       let currRow = rows[0];
+
       arr.every(d => {
         if (isNum(d) && d >= 0 ){
           // Positive numbers mean the target is a node
@@ -251,7 +255,7 @@
           if (-d >= rows.length) throw 'invalid row ' + d;
           currRow = rows[-d];
         } else {
-          // Anything other than numbers is considered input
+          // Non-numbers are input (especially objects)
           let parent = peek(currRow);
           d.parent = isNum(parent) ? nodes[parent] : parent;
           currRow.push(d);
@@ -259,18 +263,42 @@
         }
         return true;
       });
+
+      // Build up each branch array by walking up to root
       const branches = () => rows.map(row => {
         let node = peek(row);
         const result = [node];
         while (node.parent){
           node = node.parent;
-          result.push(node)
+          result.unshift(node)
         }
-        return result.reverse();
+        return result;
       });
 
-      return {rows, nodes, branches: branches()};
+      // Return true if the given core can reach all points on all branches of this tree.
+      const allBranchesReachable = core => branches().every((branch, branchi) => {
+        let state = core;
+        return branch.every((op, opi) => {
+          try {
+            state = combine(state, op);
+            return true;
+          } catch (e) {
+            console.error(`cannot combine op ${JSON.stringify(op)} at branch ${branchi} and op i ${opi} ${JSON.stringify(state)}`);
+            throw e;
+          }
+        });
+      });
+
+      // Map each branch to a residue by reducing the branch under combine
+      // This can be optimized but don't worry about that now
+      const residues = (reduction=combine, start={}) => branches().map(branch => branch.reduce(reduction, start));
+
+      // Finally, we can combine all the residues into a summary, by default using combine for both reductions
+      const summary = (r1=combine, r2=combine, s1={}, s2={}) => residues(r1, s1).reduce(r2, s2);
+
+      return {rows, nodes, branches: branches(), allBranchesReachable, residues: residues(), summary: summary()};
     }
+
     const o = {};
     const a1 = {a:1};
     const a2 = {a:2};
@@ -278,11 +306,17 @@
     const a4 = {a:4};
     const a5 = {a:5};
     const a6 = {a:6};
-    const ops2 = [o,a1,a2,0,a3,a4,2,a5,-1,a6];
+    const ops2 = [
+       o, a1, a2,
+       0, a3, a4,
+       2, a5,
+      -1, a6
+    ];
     const {nodes, rows, branches} = buildTree(ops2);
-    assertEquals([o,a1,a2,a3,a4,a5,a6], buildTree(ops2).nodes);
-    assertEquals([[o,a1,a2],[0,a3,a4,a6],[2,a5]], buildTree(ops2).rows);
-    assertEquals([[o,a1,a2],[o,a3,a4,a6],[o,a1,a2,a5]],buildTree(ops2).branches);
+    assertEquals([o,a1,a2,a3,a4,a5,a6], nodes);
+    assertEquals([[o,a1,a2],[0,a3,a4,a6],[2,a5]], rows);
+    assertEquals([[o,a1,a2],[o,a3,a4,a6],[o,a1,a2,a5]], branches);
+
 
     const ops3 = [
       {handler:'log'},
@@ -292,22 +326,21 @@
       {handler:'assert', a: 2, b: 4},
       2,
       {a: null},
-      {handler:'assert', a:1},
+      {handler:'assert', a: 0},
       {handler:'sum', a: 1, b: 2},
       {handler:'assert', a: 3},
       {a: null},
+      {a: 3},
       {a: 2},
-      {a: 2},
-      {handler:'assert', a: 4},
+      {handler:'assert', a: 5},
       {handler:'mul', a: 10},
-      {handler:'assert', a: 40},
+      {handler:'assert', a: 50},
       {handler:'log'},
     ];
-    // Check that every branch is reachable
-    // buildTree(ops3).branches.every(branch => {
-    //   core = {handlers: {log, inc, sum, mul, assert}};
-    //   branch.every(op => core = combine(core, op));
-    // });
+    const {branches: branches3, allBranchesReachable, residues, summary} = buildTree(ops3);
+    allBranchesReachable({handlers: {log, inc, sum, mul, assert}});
+    console.log('branches3', branches3, 'residues', residues, 'summary', summary);
+
 
 
     // This is a much simpler combine not for production use. Just playing with some ideas.
@@ -331,13 +364,13 @@
         return a.map((ai, i) => combine(ai, b[i]));
       }
 
-      const isCore = a => typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
-      const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle') && typeof a['handle'] === 'function';
-      const isMsg = a => typeof a === 'object' && a.hasOwnProperty('handler') && typeof a['handler'] === 'string';
+      const isCore = a =>    typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
+      const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
+      const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
+      const isObj = a =>     typeof a === 'object' && !Array.isArray(a);
       // If both args are plain objects, combine every shared key, and add the non-shared keys, too.
-      if (typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
+      if (isObj(a) && isObj(b)) {
         if (isCore(a) && isMsg(b)){
-          // treat b as a measurement targeting a handler by name
           if (!isHandler(a.handlers[b.handler])) throw `Unable to find valid handler ${b.handler} in core ${a}`;
           let result = a.handlers[b.handler].handle(a, b);
           if (!Array.isArray(result)) result = [result];
