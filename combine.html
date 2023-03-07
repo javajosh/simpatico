@@ -129,5 +129,42 @@
   assertThrows(a => combine(result, invalid));
 
 </script>
+
+<div id="fib">
+  <p>
+    <span id="output">1</span>
+    <button id="compute-next-fib-button">Compute Next Fibonacci Number</button>
+  </p>
+  <code><pre>
+    const firstFibs = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89,144,233,377,610,987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811]
+    let s = {a: 0, b: 1};
+    s = combine(s, {a: s.b + '', b: s.a});
+    display(s);
+  </pre></code>
+
+  <script type="module">
+    import {svg, combine, log} from './simpatico.js';
+
+    const DEBUG = true;
+    const computeNextFibButton = svg.elt('compute-next-fib-button');
+    const output = svg.elt('output');
+
+    let s = {a: 0, b: 1};
+
+    // The steady-state: compute the next fibonacci number interactively
+    computeNextFibButton.addEventListener('click', _ => {
+      s = combine(s, {a: s.b + '', b: s.a});
+      display(s);
+    });
+
+    function display(s, elt=output){
+      elt.innerText = s.b;
+      if (DEBUG) log('s', s);
+    }
+
+  </script>
+</div>
+
+</div>
 </body>
 </html>
