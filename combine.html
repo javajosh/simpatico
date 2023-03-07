@@ -191,6 +191,7 @@
     // Numbers add
     assertEquals(3, combine(1, 2));
 
+    // Now lets build up a (very contrived) core from handlers and run it through a list of operations
     const log = {handle: (a, b) => {console.log(a, b)}};
     const inc = {handle: () => [{a: 1}, {b: 2}]};
     const sum = {handle: (_, {a, b}) => [{a: a + b}]};
@@ -202,20 +203,21 @@
         else throw 'core is missing asserted property ' + key;
       });
     }};
-    // These functions are easy to call and test on their own, as normal pure functions:
+    // We can test handlers on their own, as simple pure functions:
     assertEquals(undefined, log.handle(1, 2));
     assertEquals([{a: 1}, {b: 2}], inc.handle());
     assertEquals([{a: 5}], sum.handle({}, {a: 2, b: 3}));
     assertEquals([{a: null}, {a: 6}], mul.handle({a: 2}, {a: 3}));
 
-    // We use these handlers to form a "core" and treat interaction as a monotonic sequence of additions.
+    // We use these handlers to form a "core" and treat input as a monotonic sequence of object additions.
     let core = {handlers: {log, inc, sum, mul, assert}};
 
+    // a simple case: all handlers are available all the time and can be called in any order.
     const ops = [
-      {handler:'log', v: 3},
-      {handler:'inc', v: 5},
+      {handler:'log'},
+      {handler:'inc'},
       {handler:'assert', a: 1, b: 2},
-      {handler:'inc', v: 5},
+      {handler:'inc'},
       {handler:'assert', a: 2, b: 4},
       {a: null},
       {handler:'assert', a: 0},
@@ -227,11 +229,11 @@
       {handler:'assert', a: 4},
       {handler:'mul', a: 10},
       {handler:'assert', a: 40},
-      {handler:'log', v: 3},
+      {handler:'log'},
     ];
     ops.every(op => core = combine(core, op));
 
-    // This is a much simpler combine not for production use. Just playing with some ideas. It's missing functions and handlers.\
+    // This is a much simpler combine not for production use. Just playing with some ideas.
     function combine(a, b) {
       // this convention implies b "acts on" a, in this case by 'zeroing a out' when b is null.
       // we can't zero out a boolean without introducing null, so we toggle it instead.
