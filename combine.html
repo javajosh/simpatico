@@ -198,7 +198,7 @@
     const mul = {handle: ({a},{a: b}) => [{a: null}, {a: a * b }]}; // clear out the previous value with the null set
     const assert = {handle: (core, msg) => {
       Object.entries(msg).forEach(([key, msgValue]) => {
-        if (key === 'handler') return; // skip the handler name itself
+        if (key === 'handler' || key === 'parent') return; // skip the handler name itself
         if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
         else throw 'core is missing asserted property ' + key;
       });
@@ -232,6 +232,83 @@
       {handler:'log'},
     ];
     ops.every(op => core = combine(core, op));
+
+    const isNum = d => typeof d === 'number';
+    const peek = (arr, def=null) => arr.length ? arr[arr.length - 1] : def;
+
+    const buildTree = arr => {
+      const rows = [[]];
+      const nodes = [];
+      let currRow = rows[0];
+      arr.every(d => {
+        if (isNum(d) && d >= 0 ){
+          // Positive numbers mean the target is a node
+          if (d >= nodes.length) throw 'invalid parent node ' + d;
+          currRow = [d];
+          rows.push(currRow);
+        } else if(isNum(d) && d < 0) {
+          // Negative numbers means the target is a row.
+          if (-d >= rows.length) throw 'invalid row ' + d;
+          currRow = rows[-d];
+        } else {
+          // Anything other than numbers is considered input
+          let parent = peek(currRow);
+          d.parent = isNum(parent) ? nodes[parent] : parent;
+          currRow.push(d);
+          nodes.push(d);
+        }
+        return true;
+      });
+      const branches = () => rows.map(row => {
+        let node = peek(row);
+        const result = [node];
+        while (node.parent){
+          node = node.parent;
+          result.push(node)
+        }
+        return result.reverse();
+      });
+
+      return {rows, nodes, branches: branches()};
+    }
+    const o = {};
+    const a1 = {a:1};
+    const a2 = {a:2};
+    const a3 = {a:3};
+    const a4 = {a:4};
+    const a5 = {a:5};
+    const a6 = {a:6};
+    const ops2 = [o,a1,a2,0,a3,a4,2,a5,-1,a6];
+    const {nodes, rows, branches} = buildTree(ops2);
+    assertEquals([o,a1,a2,a3,a4,a5,a6], buildTree(ops2).nodes);
+    assertEquals([[o,a1,a2],[0,a3,a4,a6],[2,a5]], buildTree(ops2).rows);
+    assertEquals([[o,a1,a2],[o,a3,a4,a6],[o,a1,a2,a5]],buildTree(ops2).branches);
+
+    const ops3 = [
+      {handler:'log'},
+      {handler:'inc'},
+      {handler:'assert', a: 1, b: 2},
+      {handler:'inc'},
+      {handler:'assert', a: 2, b: 4},
+      {a: null},
+      {handler:'assert', a:1},
+      {handler:'sum', a: 1, b: 2},
+      {handler:'assert', a: 3},
+      {a: null},
+      {a: 2},
+      {a: 2},
+      {handler:'assert', a: 4},
+      {handler:'mul', a: 10},
+      {handler:'assert', a: 40},
+      {handler:'log'},
+    ];
+    // Check that every branch is reachable
+    buildTree(ops3).branches.every(branch => {
+      core = {handlers: {log, inc, sum, mul, assert}};
+      branch.every(op => core = combine(core, op));
+    });
+
+
 
     // This is a much simpler combine not for production use. Just playing with some ideas.
     function combine(a, b) {
