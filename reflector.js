@@ -328,7 +328,8 @@ const failWhale = `
 |_|  \\__/_||_||_|        \\_/\\_/  |_||_|\\__/_||_|\\___|
   `
 const header = (title='Simpatico') => `
-  <title>${title}</title>
-  <link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<title>${title}</title>
+<link rel="stylesheet" href="style.css">
 `;
 const footer = ``;
