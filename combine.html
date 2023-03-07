@@ -243,9 +243,10 @@
       if (b === null) { // 'use null as a signal to set a type-dependent zero
         if (Array.isArray(a))       return [];
         if (typeof a === 'object')  return {};
-        if (typeof a === 'number')  return 0;
+        if (typeof a === 'number')  return  0;
         if (typeof a === 'string')  return '';
         if (typeof a === 'boolean') return !a;
+        if (typeof a === 'function') return () => {};
       }
 
       // If both args are arrays, combine every element - concatenation is also a reasonable rule
