@@ -14,17 +14,15 @@
 </head>
 <body>
 <div id="content">
-
-
-<h1>Combine.js</h1>
-<p>javajosh <i>(c) 2021</i></p>
-<button onclick="window.stop()">Stop 2s Refresh</button>
-<p>
-  <code>combine(a, b)</code> combines two object arguments <code>b</code> with <code>a</code> and returns the object result.
-  You can invoke functions, by targeting special parts of an object called <i>handlers</i>.
-  Handlers are specialized functions that return objects that recursively integrate with the original target in a "message cascade".
-  The intuition is of something like splashing in the water, with the water itself splashing up, and splashing again, until it the water is still again.
-</p>
+  <h1>Combine.js</h1>
+  <p>javajosh <i>(c) 2021</i></p>
+  <button onclick="window.stop()">Stop 2s Refresh</button>
+  <p>
+    <code>combine(a, b)</code> combines two object arguments <code>b</code> with <code>a</code> and returns the object result.
+    You can invoke functions, by targeting special parts of an object called <i>handlers</i>.
+    Handlers are specialized functions that return objects that recursively integrate with the original target in a "message cascade".
+    The intuition is of something like splashing in the water, with the water itself splashing up, and splashing again, until it the water is still again.
+  </p>
   <p>
     Collision and combination.
     An application is a list of values then connected together in useful ways by paths.
@@ -166,12 +164,19 @@
 </div>
 
 <div id="simple-combine">
+  <p>
+    I like this code. I will need to convert this page to markdown and then write about it more.
+  </p>
   <script type="module">
     import {assertEquals} from './core.js';
 
     const DEBUG = false;
     const isNum = d => typeof d === 'number';
     const peek = (arr, def=null) => arr.length ? arr[arr.length - 1] : def;
+    const isCore = a =>    typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
+    const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
+    const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
+    const isObj = a =>     typeof a === 'object' && !Array.isArray(a);
 
     // Test basic assertions about combine
     {
@@ -222,7 +227,7 @@
       // We use these handlers to form a "core" and treat input as a monotonic sequence of object additions.
       let core = {handlers: {log, inc, sum, mul, assert}};
 
-      // a simple case: all handlers are available all the time and can be called in any order.
+      // 1: a simple case: all handlers are available all the time and can be called in any order.
       const ops = [
         {handler: 'log'},
         {handler: 'inc'},
@@ -243,6 +248,7 @@
       ];
       ops.every(op => core = combine(core, op));
 
+      // 2: Now lets experiment with adding integers to the operations list, forming a trie
       const o = {};
       const a1 = {a: 1};
       const a2 = {a: 2};
@@ -262,7 +268,7 @@
       assertEquals([[o, a1, a2], [0, a3, a4, a6], [2, a5]], rows);
       assertEquals([[o, a1, a2], [o, a3, a4, a6], [o, a1, a2, a5]], branches);
 
-      // Same as ops but with more integers
+      // 3: Same as ops but with more interspersed integers
       const ops3 = [
         {handler: 'log'},
         {handler: 'inc'},
@@ -284,7 +290,7 @@
       ];
       const {branches: branches3, allBranchesReachable, residues, summary} = buildTree(ops3);
       allBranchesReachable({handlers: {log, inc, sum, mul, assert}});
-      console.log('branches3', branches3, 'residues', residues, 'summary', summary);
+      if (DEBUG) console.log('branches3', branches3, 'residues', residues, 'summary', summary);
     }
 
     // A much simpler combine not for production use - just playing with some ideas.
@@ -308,10 +314,6 @@
         return a.map((ai, i) => combine(ai, b[i]));
       }
 
-      const isCore = a =>    typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
-      const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
-      const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
-      const isObj = a =>     typeof a === 'object' && !Array.isArray(a);
       // If both args are plain objects, combine every shared key, and add the non-shared keys, too.
       if (isObj(a) && isObj(b)) {
         if (isCore(a) && isMsg(b)){
@@ -369,7 +371,7 @@
         return true;
       });
 
-      // Build up each branch array by walking up to root
+      // Build up each branch array by walking up to root from the tip
       const branches = () => rows.map(row => {
         let node = peek(row);
         const result = [node];
@@ -382,7 +384,7 @@
 
       // Return true if the given core can reach all points on all branches of this tree.
       const allBranchesReachable = core => branches().every((branch, branchi) => {
-        let state = core;
+        let state = core; // reset the core before every branch
         return branch.every((op, opi) => {
           try {
             state = combine(state, op);
@@ -395,7 +397,7 @@
       });
 
       // Map each branch to a residue by reducing the branch under combine
-      // This can be optimized but don't worry about that now
+      // This can be highly optimized by storing residue at the branch tips. Don't worry about it now.
       const residues = (reduction=combine, start={}) => branches().map(branch => branch.reduce(reduction, start));
 
       // Finally, we can combine all the residues into a summary, by default using combine for both reductions
