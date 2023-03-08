@@ -177,6 +177,13 @@
     const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
     const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
     const isObj = a =>     typeof a === 'object' && !Array.isArray(a);
+    const assertHandler = {handle: (core, msg) => {
+        Object.entries(msg).forEach(([key, msgValue]) => {
+          if (key === 'handler' || key === 'parent') return; // skip the handler name itself
+          if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
+          else throw 'core is missing asserted property ' + key;
+        });
+      }};
 
     // Test basic assertions about combine
     {
@@ -205,27 +212,18 @@
 
     // Create a (very contrived) core from handlers and run it through a list of operations
     {
-      const log = { handle: (a, b) => {if (DEBUG) console.log(a, b)}};
-      const inc = {handle: () => [{a: 1}, {b: 2}]};
-      const sum = {handle: (_, {a, b}) => [{a: a + b}]};
+      const log = {handle: (a, b)        => {if (DEBUG) console.log(a, b)}};
+      const inc = {handle: ()            => [{a: 1}, {b: 2}]};
+      const sum = {handle: (_  , {a, b}) => [{a: a + b}]};
       const mul = {handle: ({a}, {a: b}) => [{a: null}, {a: a * b}]}; // clear out the previous value with the null set
-      const assert = {
-        handle: (core, msg) => {
-          Object.entries(msg).forEach(([key, msgValue]) => {
-            if (key === 'handler' || key === 'parent') return; // skip the handler name itself
-            if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
-            else throw 'core is missing asserted property ' + key;
-          });
-        }
-      };
       // We can test handlers on their own, as simple pure functions:
-      assertEquals(undefined, log.handle(1, 2));
-      assertEquals([{a: 1}, {b: 2}], inc.handle());
-      assertEquals([{a: 5}], sum.handle({}, {a: 2, b: 3}));
+      assertEquals(undefined,           log.handle(1, 2));
+      assertEquals([{a: 1}, {b: 2}],    inc.handle());
+      assertEquals([{a: 5}],            sum.handle({}, {a: 2, b: 3}));
       assertEquals([{a: null}, {a: 6}], mul.handle({a: 2}, {a: 3}));
 
       // We use these handlers to form a "core" and treat input as a monotonic sequence of object additions.
-      let core = {handlers: {log, inc, sum, mul, assert}};
+      let core = {handlers: {log, inc, sum, mul, assert: assertHandler}};
 
       // 1: a simple case: all handlers are available all the time and can be called in any order.
       const ops = [
@@ -289,8 +287,42 @@
         {handler: 'log'},
       ];
       const {branches: branches3, allBranchesReachable, residues, summary} = buildTree(ops3);
-      allBranchesReachable({handlers: {log, inc, sum, mul, assert}});
+      allBranchesReachable({handlers: {log, inc, sum, mul, assert: assertHandler}});
       if (DEBUG) console.log('branches3', branches3, 'residues', residues, 'summary', summary);
+    }
+
+    // (Re) building out an example of classic OOP types and instantiation with Simpatico
+    {
+      const h1 = { handle: (a, b) => [{b}],            example: {handler: 'h1', b:1} };
+      const h2 = { handle: (a, b) => [{a: null}] ,     example: {handler: 'h2'} };
+      const h3 = { handle: (a, b) => [{a: 1}, {b: 2}], example: {handler: 'h3'} };
+      const h4 = { handle: (a, b) => [{b: null}],      example: {handler: 'h4'} };
+
+      // helper functions to build the ops
+      const h = a => [0,h1,h2,h3,h4][a].example;
+      const a = a => ({a});
+      const b = b => ({b});
+      const as = a => ({handler: 'assert', ...a});
+      assertEquals({handler: 'h1', b:1}, h(1));
+      assertEquals({handler: 'h4'}, h(4));
+      assertEquals({a: 2}, a(2));
+      assertEquals({handler: 'assert', a: 7}, as({a:7}));
+
+      // In this case we're building up a simple type tree and instantiating some of the types (and asserting things)
+      const ops = [
+        {handlers: {assert: assertHandler}},
+        0, {type: 'foo'}, {handlers: {h1, h2}}, // the last elt in this row is node index 2
+        0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // last elt in row is 5; note the split handlers, which is equiv.
+        -1,{type: 'baz'}, {handlers: {h3, h4}}, // last elt in row is 7
+        2, a(2), as({a: 2}), // instance of foo, pointing to node index 2
+        5, a(5), as({a: 5}),
+        7, a(8), a(1), b(10), as({a: 9}),
+      ];
+      const {branches, allBranchesReachable, residues, summary, nodes, branchTips} = buildTree(ops);
+      allBranchesReachable();
+      console.log('branches', branches, 'residues', residues, 'nodes', nodes, 'summary', summary());
+
+      // todo: demonstrate type versioning; explore a way to avoid calculating node offsets for instance rows.
     }
 
     // A much simpler combine not for production use - just playing with some ideas.
@@ -312,6 +344,12 @@
       // If both args are arrays, combine every element - concatenation is also a reasonable rule
       if (Array.isArray(a) && Array.isArray(b)) {
         return a.map((ai, i) => combine(ai, b[i]));
+      }
+
+      // if the target is an array, push the argument onto the array
+      if (Array.isArray(a) && !Array.isArray(b)) {
+        a.push(b);
+        return a;
       }
 
       // If both args are plain objects, combine every shared key, and add the non-shared keys, too.
@@ -338,11 +376,12 @@
         return result;
       }
 
-      if (typeof a === 'string' && typeof b === 'string') return b;
-      if (typeof a === 'boolean' && typeof b === 'boolean') return b;
-      if (typeof a === 'number' && typeof b === 'number') return a + b;
+      if (typeof a === 'string'   && typeof b === 'string'  ) return b;
+      if (typeof a === 'boolean'  && typeof b === 'boolean' ) return b;
+      if (typeof a === 'function' && typeof b === 'function') return b;
+      if (typeof a === 'number'   && typeof b === 'number'  ) return a + b;
 
-      throw `unable to combine ${a} and ${b}`
+      throw `unable to combine ${a} and ${b} types ${typeof a} ${typeof b}`
     }
 
     // Take an array with sprinkled integers and turn it into a tree of related elements
@@ -369,6 +408,11 @@
           nodes.push(d);
         }
         return true;
+      });
+
+      const branchTips = () => rows.map(row => {
+        let node = peek(row);
+        return nodes.indexOf(node);
       });
 
       // Build up each branch array by walking up to root from the tip
@@ -403,7 +447,7 @@
       // Finally, we can combine all the residues into a summary, by default using combine for both reductions
       const summary = (r1=combine, r2=combine, s1={}, s2={}) => residues(r1, s1).reduce(r2, s2);
 
-      return {rows, nodes, branches: branches(), allBranchesReachable, residues: residues(), summary: summary()};
+      return {rows, nodes, branches: branches(), allBranchesReachable, residues: residues(), summary, branchTips: branchTips()};
     }
 
   </script>
