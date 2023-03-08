@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link id="favicon" rel="icon" type="image/png" href="/img/wizard-192x192.png"/>
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <meta charset="UTF-8">
+  <title>Binary Search</title>
+</head>
+<body>
+<h1>Traditional binary search tree algorithms</h1>
+<p>
+  See the source.
+  The non-recursive walk <code>walk2()</code> is quite cool, IMHO.
+</p>
+
+<script>
+  const n = null;
+  // A node making function that defaults left and right to null
+  // note in js object key order is arbitrary
+  const node = (V, L=n, R=n) => ({L, V, R});
+
+  // recursive in-order traversal
+  const walk1 = x => {
+    if (x !== n){
+      walk1(x.L)
+      console.log(x.V)
+      walk1(x.R)
+    }
+  }
+
+  // non recursive in-order traversal; this one is cool!
+  const walk2 = root => {
+    let current = root, pre = null
+
+    while (current !== null) {
+      if (!current.L) {
+        // no predecessor, so just print and go right
+        console.log(current.V)
+        current = current.R
+      } else {
+        // Find the predecessor of current
+        // start with immediate left
+        pre = current.L
+        // keep moving right on pre until we hit null (or R is current, which is impossible in first iteration... but wait!)
+        while (pre.R !== n && pre.R !== current){
+          pre = pre.R
+        }
+
+        if (pre.R === n) {
+          pre.R = current // if pre.R is null, stash current there! this now impacts our predecessor loop above. this is the cleverness.
+          current = current.L // move current left, and continue
+        } else {
+          pre.R = n // pre.R is not null, which means we can undo the cleverness above, and put it back to null.
+          console.log(current.V) // print
+          current = current.R // move current right, and continue
+        }
+      }
+    }
+  }
+
+  const search = (x, v) => {
+    if ((x === n )|| (v === x.v)){
+      return x;
+    }
+    return search ((v < x.v) ? x.l : x.r, v)
+  }
+
+
+  // A simple hand produced binary tree that satisfies the "binary search tree property",
+  // e.g. that all values left of any node are smaller, and all values on the right are bigger.
+  let ex1 = node(
+    10,
+    node(
+      9,
+      node(
+        8,
+        node(
+          7
+        ),
+      ),
+    ),
+    node(
+      11,
+    )
+  );
+
+  // Here is the declarative object representation of ex1
+  // BTW this is why I picked single letter member names; uppercase so "L" is distinguishable.
+  // JSON.stringify(ex1).replaceAll('"', '').replaceAll('null', 'n');
+  let ex1_obj = {L: {L: {L: {L: n, V: 7, R: n}, V: 8, R: n}, V: 9, R: n}, V: 10, R: {L: n, V: 11, R: n}};
+
+  // Go head and test our walk on our example literal.
+  walk1(ex1);
+  walk2(ex1);
+</script>
+</body>
+</html>
