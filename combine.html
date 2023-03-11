@@ -433,9 +433,16 @@
       const nodes = [];
       let currRow = rows[0];
 
+      // Support cheap(er) creation of branch state from row state
+      // Given a node index, give me the row that contains the node up to the node.
+      // We can do this statelessly with indexOf, but this is much faster.
       let currRowIndex = 0;
-      let currEltInRowIndex = 0;
       let nodeToRowMap = [[0,0]];
+      const getPartialRow = nodei => {
+        const [rowi, elti] = nodeToRowMap[nodei];
+        const row = rows[rowi];
+        return row.slice(0, elti)
+      }
 
       arr.every(add);
 
@@ -452,7 +459,7 @@
           currRow = rows[-d];
           currRowIndex = -d;
         } else {
-          nodeToRowMap.push([currRowIndex, currEltInRowIndex]);
+          nodeToRowMap.push([currRowIndex, currRow.length]);
           currRow.push(d);
           nodes.push(d);
         }
@@ -466,11 +473,11 @@
 
       // Build up each branch array by walking up to root from the tip
       const branches = () => rows.map(row => {
-        let node = peek(row);
-        const result = [node];
-        while (node.parent){
-          node = node.parent;
-          result.unshift(node)
+        let result = [...row];
+        while (isNum(row[0])){
+          row = getPartialRow(row[0]);
+          // Replace the node index with the partial parent row
+          result = [...row, ...result.slice(1)];
         }
         return result;
       });
