@@ -433,6 +433,10 @@
       const nodes = [];
       let currRow = rows[0];
 
+      let currRowIndex = 0;
+      let currEltInRowIndex = 0;
+      let nodeToRowMap = [[0,0]];
+
       arr.every(add);
 
       function add(d) {
@@ -440,16 +444,15 @@
           // Positive numbers mean the target is a node
           if (d >= nodes.length) throw 'invalid parent node ' + d;
           currRow = [d];
+          currRowIndex = currRow.length;
           rows.push(currRow);
         } else if(isNum(d) && d < 0) {
           // Negative numbers means the target is a row.
           if (-d >= rows.length) throw 'invalid row ' + d;
           currRow = rows[-d];
+          currRowIndex = -d;
         } else {
-          // Non-numbers are input (especially objects)
-          let parent = peek(currRow);
-          // Mutating input is very bad! We need to fix this, probably with a wrapper object.
-          d.parent = isNum(parent) ? nodes[parent] : parent;
+          nodeToRowMap.push([currRowIndex, currEltInRowIndex]);
           currRow.push(d);
           nodes.push(d);
         }
