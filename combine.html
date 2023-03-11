@@ -168,7 +168,7 @@
     I like this code. I will need to convert this page to markdown and then write about it more.
   </p>
   <script type="module">
-    import {assertEquals} from './core.js';
+    import {assertEquals, mapObject} from './core.js';
 
     const DEBUG = false;
     const isNum = d => typeof d === 'number';
@@ -315,14 +315,57 @@
         0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // last elt in row is 5; note the split handlers, which is equiv.
         -1,{type: 'baz'}, {handlers: {h3, h4}}, // last elt in row is 7
         2, a(2), as({a: 2}), // instance of foo, pointing to node index 2
-        5, a(5), as({a: 5}),
-        7, a(8), a(1), b(10), as({a: 9}),
+        5, a(5), as({a: 5}), // instance of bar, pointing to node index 2
+        7, a(8), a(1), b(10), as({a: 9, b: 10}), // instance of baz, pointing to node index 2
       ];
-      const {branches, allBranchesReachable, residues, summary, nodes, branchTips} = buildTree(ops);
+      const {branches, allBranchesReachable, residues, summary, nodes} = buildTree(ops);
       allBranchesReachable();
       console.log('branches', branches, 'residues', residues, 'nodes', nodes, 'summary', summary());
 
       // todo: demonstrate type versioning; explore a way to avoid calculating node offsets for instance rows.
+
+      // For some reason now is the time to play with function de/serialization.
+      {
+        const serializeHandler = a => {
+          a.handle = a.handle.toString();
+          return a;
+        }
+        const deserializeHandler = a => {
+          // We can and should do some more validation and checking, perhaps limit length, for security purposes.
+          a.handle = eval(a.handle);
+          return a;
+        }
+        const h6 = {handle: '(a, b) => 42'};
+        const h7 = {handle: (a, b) => 42};
+        assertEquals(h6.handle, h7.handle.toString());
+        assertEquals(h6, serializeHandler(h7))
+        assertEquals(h7.handle.toString(), deserializeHandler(h6).handle.toString());
+
+        const serializeOps = ops => {
+          // This is awful, I should use map() and not mutate with delete,
+          ops.every(op => {
+            if (!isObj(op)) return;
+            delete op[parent];
+            if (isCore(op))
+              op.handlers = mapObject(op.handlers, ([k, v]) => [k, serializeHandler(v)])
+            return true;
+          });
+          return ops;
+        };
+
+        const deserializeOps = ops => {
+          ops.every(op => {
+            if (isCore(op))
+              // This is awful, I should use map() and not mutate with reassignment,
+              op.handlers = mapObject(op.handlers, ([k, v]) => [k, deserializeHandler(v)])
+          });
+          return ops;
+        };
+        assertEquals([], serializeOps([]));
+        assertEquals([a(1)], serializeOps([a(1)]));
+        // assertEquals([{handlers: {h6: h6.toString()}}], serializeOps([{handlers: {h6: h7.toString()}}]));
+        // assertEquals([{handlers: {h7}}], deserializeOps([{handlers: {h6}}]));
+      }
     }
 
     // A much simpler combine not for production use - just playing with some ideas.
@@ -385,12 +428,14 @@
     }
 
     // Take an array with sprinkled integers and turn it into a tree of related elements
-    function buildTree(arr) {
+    function buildTree(arr = [{}]) {
       const rows = [[]];
       const nodes = [];
       let currRow = rows[0];
 
-      arr.every(d => {
+      arr.every(add);
+
+      function add(d) {
         if (isNum(d) && d >= 0 ){
           // Positive numbers mean the target is a node
           if (d >= nodes.length) throw 'invalid parent node ' + d;
@@ -403,12 +448,13 @@
         } else {
           // Non-numbers are input (especially objects)
           let parent = peek(currRow);
+          // Mutating input is very bad! We need to fix this, probably with a wrapper object.
           d.parent = isNum(parent) ? nodes[parent] : parent;
           currRow.push(d);
           nodes.push(d);
         }
         return true;
-      });
+      }
 
       const branchTips = () => rows.map(row => {
         let node = peek(row);
@@ -434,7 +480,7 @@
             state = combine(state, op);
             return true;
           } catch (e) {
-            console.error(`cannot combine op ${JSON.stringify(op)} at branch ${branchi} and op i ${opi} ${JSON.stringify(state)}`);
+            console.error(`cannot combine op ${JSON.stringify(op)} op i ${opi} at branch i ${branchi} and core ${JSON.stringify(core)}`);
             throw e;
           }
         });
@@ -447,7 +493,16 @@
       // Finally, we can combine all the residues into a summary, by default using combine for both reductions
       const summary = (r1=combine, r2=combine, s1={}, s2={}) => residues(r1, s1).reduce(r2, s2);
 
-      return {rows, nodes, branches: branches(), allBranchesReachable, residues: residues(), summary, branchTips: branchTips()};
+      return {
+        rows,
+        nodes,
+        add,
+        allBranchesReachable,
+        summary,
+        branches: branches(),
+        residues: residues(),
+        branchTips: branchTips(),
+      };
     }
 
   </script>
