@@ -49,6 +49,7 @@ const equals = (a, b) => {
 
   if (aType === 'array' ) return arrEquals(a, b); else
   if (aType === 'object') return objEquals(a, b); else
+  if (aType === 'function') return (a.toString() === b.toString()); else
   return scalarEquals(a, b);
 }
 
