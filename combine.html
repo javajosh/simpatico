@@ -314,7 +314,7 @@
         0, {type: 'foo'}, {handlers: {h1, h2}}, // the last elt in this row is node index 2
         0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // last elt in row is 5; note the split handlers, which is equiv.
         -1,{type: 'baz'}, {handlers: {h3, h4}}, // last elt in row is 7
-        2, a(2), as({a: 2}), // instance of foo, pointing to node index 2
+        2, a(2), as({a: 2}), a(2), as({a:4}), // instance of foo, pointing to node index 2
         5, a(5), as({a: 5}), // instance of bar, pointing to node index 2
         7, a(8), a(1), b(10), as({a: 9, b: 10}), // instance of baz, pointing to node index 2
       ];
@@ -437,11 +437,11 @@
       // Given a node index, give me the row that contains the node up to the node.
       // We can do this statelessly with indexOf, but this is much faster.
       let currRowIndex = 0;
-      let nodeToRowMap = [[0,0]];
+      let nodeToRowMap = [];
       const getPartialRow = nodei => {
-        const [rowi, elti] = nodeToRowMap[nodei];
+        const [rowi, coli] = nodeToRowMap[nodei];
         const row = rows[rowi];
-        return row.slice(0, elti)
+        return row.slice(0, coli + 1); // tricky: slice does not include the last elt!
       }
 
       arr.every(add);
@@ -451,7 +451,7 @@
           // Positive numbers mean the target is a node
           if (d >= nodes.length) throw 'invalid parent node ' + d;
           currRow = [d];
-          currRowIndex = currRow.length;
+          currRowIndex = rows.length;
           rows.push(currRow);
         } else if(isNum(d) && d < 0) {
           // Negative numbers means the target is a row.
@@ -471,13 +471,13 @@
         return nodes.indexOf(node);
       });
 
-      // Build up each branch array by walking up to root from the tip
+      // Prepend partial rows until root.
       const branches = () => rows.map(row => {
-        let result = [...row];
-        while (isNum(row[0])){
-          row = getPartialRow(row[0]);
-          // Replace the node index with the partial parent row
-          result = [...row, ...result.slice(1)];
+        let result = [...row], partial = [...row], nodei;
+        while (isNum(result[0])) {
+          nodei = result.shift();
+          partial = getPartialRow(nodei);
+          result = [...partial, ...result];
         }
         return result;
       });

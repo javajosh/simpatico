@@ -54,7 +54,7 @@ const equals = (a, b) => {
 }
 
 const assertEquals = (expected, actual, msg='') =>
-  assert(equals(expected, actual), `expected is ${tryToStringify(expected)} but actual is ${tryToStringify(actual)}. ${msg}`)
+  assert(equals(expected, actual), `expected is \n${tryToStringify(expected)} but actual is \n${tryToStringify(actual)}. ${msg}`)
 
 // Can probably eliminate these, I rarely use them.
 const and = (a, b) => !!a && !!b
