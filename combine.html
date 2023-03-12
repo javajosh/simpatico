@@ -263,8 +263,16 @@
       ];
       const {nodes, rows, branches} = buildTree(ops2);
       assertEquals([o, a1, a2, a3, a4, a5, a6], nodes);
-      assertEquals([[o, a1, a2], [0, a3, a4, a6], [2, a5]], rows);
-      assertEquals([[o, a1, a2], [o, a3, a4, a6], [o, a1, a2, a5]], branches);
+      assertEquals([
+        [o, a1, a2],
+        [0, a3, a4, a6],
+        [2, a5]
+        ], rows);
+      assertEquals([
+        [o, a1, a2],
+        [o, a3, a4, a6],
+        [o, a1, a2, a5]
+        ], branches);
 
       // 3: Same as ops but with more interspersed integers
       const ops3 = [
@@ -311,18 +319,22 @@
       // In this case we're building up a simple type tree and instantiating some of the types (and asserting things)
       const ops = [
         {handlers: {assert: assertHandler}},
-        0, {type: 'foo'}, {handlers: {h1, h2}}, // the last elt in this row is node index 2
+        0, {type: 'foo'}, {handlers: {h1, h2}},    // the last elt in this row is node index 2
         0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // last elt in row is 5; note the split handlers, which is equiv.
-        -1,{type: 'baz'}, {handlers: {h3, h4}}, // last elt in row is 7
-        2, a(2), as({a: 2}), a(2), as({a:4}), // instance of foo, pointing to node index 2
-        5, a(5), as({a: 5}), // instance of bar, pointing to node index 2
-        7, a(8), a(1), b(10), as({a: 9, b: 10}), // instance of baz, pointing to node index 2
+        -1,{type: 'baz'}, {handlers: {h3, h4}},   // last elt in row is 7
+        2, a(2), as({a: 2}), a(2), as({a:4}),     // instance of foo, pointing to node index 2
+        5, a(5), as({a: 5}),                      // instance of bar, pointing to node index 5
+        7, a(8), a(1), b(10), as({a: 9, b: 10}),  // instance of baz, pointing to node index 7
       ];
       const {branches, allBranchesReachable, residues, summary, nodes} = buildTree(ops);
       allBranchesReachable();
-      console.log('branches', branches, 'residues', residues, 'nodes', nodes, 'summary', summary());
+      console.log('branches', branches, 'residues', residues, 'nodes', nodes, 'summary', summary);
 
       // todo: demonstrate type versioning; explore a way to avoid calculating node offsets for instance rows.
+      // a reasonable desire would be to target a type by row and create a new instance based on the current type length
+      // this messes up the general authoring, but if you limit yourself to only instantiating after the type rows, it can be done!
+      // We add special logic into the tree "add" method that does something special if a type row.
+      // This in turn requires a relatively fast residue computation.
 
       // For some reason now is the time to play with function de/serialization.
       {
@@ -431,6 +443,8 @@
     function buildTree(arr = [{}]) {
       const rows = [[]];
       const nodes = [];
+      const residues = [];
+      let summary = {};
       let currRow = rows[0];
 
       // Support cheap(er) creation of branch state from row state
@@ -460,8 +474,17 @@
           currRowIndex = -d;
         } else {
           nodeToRowMap.push([currRowIndex, currRow.length]);
+          // This is the main event!
           currRow.push(d);
           nodes.push(d);
+
+          // Update residue; update the summary
+          try {
+            residues[currRowIndex] = combine(residues[currRowIndex], d);
+            summary = residues.reduce(combine, {});
+          } catch (e) {
+
+          }
         }
         return true;
       }
@@ -496,21 +519,20 @@
         });
       });
 
+      // These are the stateless methods to compute residue and summary. Very compute intensive.
       // Map each branch to a residue by reducing the branch under combine
-      // This can be highly optimized by storing residue at the branch tips. Don't worry about it now.
-      const residues = (reduction=combine, start={}) => branches().map(branch => branch.reduce(reduction, start));
-
-      // Finally, we can combine all the residues into a summary, by default using combine for both reductions
-      const summary = (r1=combine, r2=combine, s1={}, s2={}) => residues(r1, s1).reduce(r2, s2);
+      // const residues = (reduction=combine, start={}) => branches().map(branch => branch.reduce(reduction, start));
+      // Combine all the residues into a summary, by default using combine for both reductions
+      // const summary = (r1=combine, r2=combine, s1={}, s2={}) => residues(r1, s1).reduce(r2, s2);
 
       return {
-        rows,
-        nodes,
         add,
         allBranchesReachable,
+        rows,
+        nodes,
+        residues,
         summary,
         branches: branches(),
-        residues: residues(),
         branchTips: branchTips(),
       };
     }
