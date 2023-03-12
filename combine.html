@@ -171,18 +171,29 @@
     import {assertEquals, mapObject} from './core.js';
 
     const DEBUG = false;
-    const isNum = d => typeof d === 'number';
-    const peek = (arr, def=null) => arr.length ? arr[arr.length - 1] : def;
+    const isNum = d => Number.isInteger(d);
+    const isStr = d => typeof d === 'string';
+    const isArray = d => Array.isArray(d);
+    const isObj = a => typeof a === 'object' && !isArray(a);
+    const isScalar = a => !isArray(a) && !isObj(a);
+    const peek = (arr, def=null) => {
+      if (!isArray(arr) || arr.length === 0) return def;
+      if (arr.length === 1) return arr[0];
+      return arr[arr.length - 1];
+    }
     const isCore = a =>    typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
     const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
     const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
-    const isObj = a =>     typeof a === 'object' && !Array.isArray(a);
-    const assertHandler = {handle: (core, msg) => {
+    const isInstance = a =>isCore(a) && a.hasOwnProperty('nodeId') && isNum(a);
+    const isType = a =>    isCore(a) && a.hasOwnProperty('type') && typeof a['type'] === 'string';
+
+    const assertHandler = { handle: (core, msg) => {
         Object.entries(msg).forEach(([key, msgValue]) => {
           if (key === 'handler' || key === 'parent') return; // skip the handler name itself
           if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
           else throw 'core is missing asserted property ' + key;
         });
+        return [{}]
       }};
 
     // Test basic assertions about combine
@@ -212,12 +223,12 @@
 
     // Create a (very contrived) core from handlers and run it through a list of operations
     {
-      const log = {handle: (a, b)        => {if (DEBUG) console.log(a, b)}};
+      const log = {handle: (...args)        => { if (DEBUG) console.log(args); return {}; } };
       const inc = {handle: ()            => [{a: 1}, {b: 2}]};
       const sum = {handle: (_  , {a, b}) => [{a: a + b}]};
       const mul = {handle: ({a}, {a: b}) => [{a: null}, {a: a * b}]}; // clear out the previous value with the null set
       // We can test handlers on their own, as simple pure functions:
-      assertEquals(undefined,           log.handle(1, 2));
+      assertEquals({},                log.handle(1, 2));
       assertEquals([{a: 1}, {b: 2}],    inc.handle());
       assertEquals([{a: 5}],            sum.handle({}, {a: 2, b: 3}));
       assertEquals([{a: null}, {a: 6}], mul.handle({a: 2}, {a: 3}));
@@ -272,7 +283,7 @@
         [o, a1, a2],
         [o, a3, a4, a6],
         [o, a1, a2, a5]
-        ], branches);
+        ], branches());
 
       // 3: Same as ops but with more interspersed integers
       const ops3 = [
@@ -296,7 +307,7 @@
       ];
       const {branches: branches3, allBranchesReachable, residues, summary} = buildTree(ops3);
       allBranchesReachable({handlers: {log, inc, sum, mul, assert: assertHandler}});
-      if (DEBUG) console.log('branches3', branches3, 'residues', residues, 'summary', summary);
+      if (DEBUG) console.log('branches3()', branches3(), 'residues', residues, 'summary', summary);
     }
 
     // (Re) building out an example of classic OOP types and instantiation with Simpatico
@@ -321,20 +332,24 @@
         {handlers: {assert: assertHandler}},
         0, {type: 'foo'}, {handlers: {h1, h2}},    // the last elt in this row is node index 2
         0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // last elt in row is 5; note the split handlers, which is equiv.
-        -1,{type: 'baz'}, {handlers: {h3, h4}},   // last elt in row is 7
-        2, a(2), as({a: 2}), a(2), as({a:4}),     // instance of foo, pointing to node index 2
+        0, {type: 'baz'}, {handlers: {h3, h4}},   // last elt in row is 7
+        2, a(2), as({a: 2}), a(2), as({type: 'foo', a:4}),     // instance of foo, pointing to node index 2
         5, a(5), as({a: 5}),                      // instance of bar, pointing to node index 5
         7, a(8), a(1), b(10), as({a: 9, b: 10}),  // instance of baz, pointing to node index 7
       ];
-      const {branches, allBranchesReachable, residues, summary, nodes} = buildTree(ops);
+      const {branches, allBranchesReachable, residues, summary, nodes, neu} = buildTree(ops);
       allBranchesReachable();
-      console.log('branches', branches, 'residues', residues, 'nodes', nodes, 'summary', summary);
+      console.log('branches()', branches(), 'residues', residues, 'nodes', nodes, 'summary', summary);
 
       // todo: demonstrate type versioning; explore a way to avoid calculating node offsets for instance rows.
       // a reasonable desire would be to target a type by row and create a new instance based on the current type length
       // this messes up the general authoring, but if you limit yourself to only instantiating after the type rows, it can be done!
       // We add special logic into the tree "add" method that does something special if a type row.
       // This in turn requires a relatively fast residue computation.
+
+      console.log(neu(-1), 'branches()', branches(), 'residues', residues, 'nodes', nodes);
+      console.log(neu(-2), 'branches()', branches(), 'residues', residues, 'nodes', nodes);
+      console.log(neu('foo'), 'branches()', branches(), 'residues', residues, 'nodes', nodes);
 
       // For some reason now is the time to play with function de/serialization.
       {
@@ -473,12 +488,19 @@
           currRow = rows[-d];
           currRowIndex = -d;
         } else {
+          // Special handling for neu messages - delegate to neu() and
+          if (isObj(d) && d.hasOwnProperty('neu')){
+            neu(d);
+            return true;
+          }
+          // Support for efficient branches()
           nodeToRowMap.push([currRowIndex, currRow.length]);
-          // This is the main event!
+
+          // The primary purpose, adding things to the current row and nodes.
           currRow.push(d);
           nodes.push(d);
 
-          // Update residue; update the summary
+          // Update caches for residue and summary.
           try {
             residues[currRowIndex] = combine(residues[currRowIndex], d);
             summary = residues.reduce(combine, {});
@@ -487,6 +509,36 @@
           }
         }
         return true;
+      }
+
+      // A more handy way to make instances than the raw add(node) interface.
+      // Given either a type name or type row, create a new instance row.
+      // Cores that only instantiates using this method have some nice properties.
+      // Note: 'neu' is German for 'new' which is a reserved word in JavaScript.
+      function neu(d){
+        let type, rowNum, residue, parentNodeId, newNodeId;
+        if (isNum(d)){
+          rowNum = -d;
+          residue = residues[rowNum];
+          if (!isType(residue) || isInstance(residue)) throw `row ${d} cannot be instantiated with neu()`;
+        } else if (isStr(d)){
+          type = d;
+          let found = null;
+          residues.every((r, i) => {
+            if (isType(r) && !isInstance(r) && r.type === type) { found = i; return false; }
+            return true;
+          });
+          if (!isNum(found)) throw `type ${d} not found`;
+          rowNum = found;
+        }
+        residue = residues[rowNum];
+        if (!isType(residue)) throw `row ${rowNum} is not a type and cannot be instantiated with neu()`;
+        type = residue.type;
+        parentNodeId = nodes.indexOf(peek(rows[rowNum]));
+        newNodeId = nodes.length;
+        add(parentNodeId);
+        add({nodeId: newNodeId, type, parentNodeId});
+        return rowNum;
       }
 
       const branchTips = () => rows.map(row => {
@@ -527,13 +579,14 @@
 
       return {
         add,
+        neu,
         allBranchesReachable,
         rows,
         nodes,
         residues,
         summary,
-        branches: branches(),
-        branchTips: branchTips(),
+        branches,
+        branchTips,
       };
     }
 
