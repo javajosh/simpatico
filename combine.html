@@ -330,26 +330,49 @@
       // In this case we're building up a simple type tree and instantiating some of the types (and asserting things)
       const ops = [
         {handlers: {assert: assertHandler}},
-        0, {type: 'foo'}, {handlers: {h1, h2}},    // the last elt in this row is node index 2
-        0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // last elt in row is 5; note the split handlers, which is equiv.
-        0, {type: 'baz'}, {handlers: {h3, h4}},   // last elt in row is 7
-        2, a(2), as({a: 2}), a(2), as({type: 'foo', a:4}),     // instance of foo, pointing to node index 2
-        5, a(5), as({a: 5}),                      // instance of bar, pointing to node index 5
-        7, a(8), a(1), b(10), as({a: 9, b: 10}),  // instance of baz, pointing to node index 7
+        0, {type: 'foo'}, {handlers: {h1, h2}}, // 2
+        0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // 5; note the split handlers
+        0, {type: 'baz'}, {handlers: {h3, h4}}, // 7
+        2, a(2), as({a: 2}), a(2), as({type: 'foo', a:4}),
+        5, a(5), as({type: 'bar', a:5}),
+        7, a(8), a(1), b(10), as({a: 9, b: 10, type:'baz'}),
       ];
-      const {branches, allBranchesReachable, residues, summary, nodes, neu} = buildTree(ops);
+      const {add, neu, residues, summary, nodes, allBranchesReachable} = buildTree(ops);
       allBranchesReachable();
-      console.log('branches()', branches(), 'residues', residues, 'nodes', nodes, 'summary', summary);
+      console.log('residues', residues, 'nodes', nodes, 'summary', summary);
 
       // todo: demonstrate type versioning; explore a way to avoid calculating node offsets for instance rows.
       // a reasonable desire would be to target a type by row and create a new instance based on the current type length
       // this messes up the general authoring, but if you limit yourself to only instantiating after the type rows, it can be done!
       // We add special logic into the tree "add" method that does something special if a type row.
       // This in turn requires a relatively fast residue computation.
+      assertEquals(7, residues.length);
+      assertEquals(1, neu(-1));
+      assertEquals(8, residues.length);
+      assertEquals('foo', peek(residues).type);
+      console.log(peek(residues));
 
-      console.log(neu(-1), 'branches()', branches(), 'residues', residues, 'nodes', nodes);
-      console.log(neu(-2), 'branches()', branches(), 'residues', residues, 'nodes', nodes);
-      console.log(neu('foo'), 'branches()', branches(), 'residues', residues, 'nodes', nodes);
+      assertEquals(2, neu(-2));
+      assertEquals(9, residues.length);
+      assertEquals('bar', peek(residues).type);
+
+      assertEquals(1, neu('foo'));
+      assertEquals(10, residues.length);
+      assertEquals('foo', peek(residues).type);
+      assertEquals(2, peek(residues).version);
+
+      // Demonstrate type-versioning. Modify the handler,
+      add(-1);
+      add({handlers:{h1:{handle: a => [{a:null},{a: a * a}]}}});
+      assertEquals(1, neu('foo'));
+      assertEquals(11, residues.length);
+      assertEquals('foo', peek(residues).type);
+      assertEquals(21, peek(residues).version);
+      assertEquals(10, peek(residues).rowId);
+      add(-10);
+      add({handler: 'h1', a: 2});
+      // assertEquals(4, peek(residues).a);
+
 
       // For some reason now is the time to play with function de/serialization.
       {
@@ -511,15 +534,18 @@
         return true;
       }
 
-      // A more handy way to make instances than the raw add(node) interface.
+
       // Given either a type name or type row, create a new instance row.
-      // Cores that only instantiates using this method have some nice properties.
-      // Note: 'neu' is German for 'new' which is a reserved word in JavaScript.
+      // A more handy way to make instances than the raw add(node) interface.
+      // Trees that only instantiate using this method have some nice properties.
+      // Note:  'new' is a reserved word in JavaScript so we use the German 'neu'.
       function neu(d){
         let type, rowNum, residue, parentNodeId, newNodeId;
+
         if (isNum(d)){
           rowNum = -d;
           residue = residues[rowNum];
+          // We can take out 'isInstance' for some interesting alternative type systems.
           if (!isType(residue) || isInstance(residue)) throw `row ${d} cannot be instantiated with neu()`;
         } else if (isStr(d)){
           type = d;
@@ -531,13 +557,19 @@
           if (!isNum(found)) throw `type ${d} not found`;
           rowNum = found;
         }
+
         residue = residues[rowNum];
         if (!isType(residue)) throw `row ${rowNum} is not a type and cannot be instantiated with neu()`;
         type = residue.type;
         parentNodeId = nodes.indexOf(peek(rows[rowNum]));
         newNodeId = nodes.length;
         add(parentNodeId);
-        add({nodeId: newNodeId, type, parentNodeId});
+        add({
+          nodeId: newNodeId,
+          rowId: rows.length - 1,
+          type,
+          version: parentNodeId
+        });
         return rowNum;
       }
 
