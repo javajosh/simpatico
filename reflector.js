@@ -255,13 +255,19 @@ function fileServerLogic() {
       let u = url;
       if (u.indexOf('?') > -1)   u = u.substr(0, u.indexOf('?'));
       if (u.endsWith('/'))       u += 'index.html';
-      if (u.indexOf('.') === -1) u += ".html"
+      if (u.indexOf('.') === -1) u += ".html";
       return u;
     }
 
-    // Check the cache for the file, if not present read off disk and add to cache. If present, use cache.
-    // todo: add gzip cache, too. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
-    // cache entries will look something like {raw: 'abc...', zlib: [0x34, 0xA5...], brotli: [0x12, 0xB0, ....]
+    // If they asked for a dotfile, just return an error. There's probably more like this that we can filter out.
+    if (urlToFileName(req.url).startsWith('/.')) {
+      respondWithError(combine(new Error(), {
+        code: 500,
+        log: 'attempt to access dotfile',
+        message: failWhale,
+      }));
+      return;
+    }
     const fileName = process.cwd() + urlToFileName(req.url);
     if (config.useCache && hasProp(cache, fileName)) {
       respondWithData(cache[fileName]);
