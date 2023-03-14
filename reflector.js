@@ -22,15 +22,18 @@ const config = processConfig();
 info(`reflector.js [${JSON.stringify(elide(config), null, 2)}]`);
 const bindStatus = bindToPorts();
 info( 'bound', bindStatus);
-const markdown = new showdown.Converter();
-markdown.setFlavor('github');
-markdown.setOption('backslashEscapesHTMLTags', true);
+
 // We are bound to port 443 (and probably 80) so we can drop privileges
 if (config.user) dropProcessPrivs(config.user);
 
-// Welcome message
+// Showdown is a useful but huge 156kb library for making html out of markdown.
+const markdown = new showdown.Converter();
+markdown.setFlavor('github');
+markdown.setOption('backslashEscapesHTMLTags', true);
+
+// We are booted! Print out welcome message.
 const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
-info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url]");
+info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url] (? => [normalized url)");
 info(`Initialization complete. Open ${url}`);
 
 function processConfig(envPrefix='REFL_') {
@@ -44,6 +47,7 @@ function processConfig(envPrefix='REFL_') {
     user: null,
     useCache: false,
     password: 's3cret',
+    logFileServerRequests: true,
     // isLocalHost: true, //added below
     // measured: {},      //added below
   };
@@ -219,12 +223,15 @@ function fileServerLogic() {
       res.end(data);
     }
 
-    const logRequest = () => {
+    const logRequest = req => {
+      const fileName = urlToFileName(req.url);
+      const normalized = (fileName !== req.url);
       console.log(
         new Date().toISOString(),
         req.socket.remoteAddress.replace(/^.*:/, ''),
         req.headers["user-agent"].substr(0, 20),
         req.url,
+        (normalized ? '=>' + fileName : ''),
       );
     }
 
@@ -238,28 +245,29 @@ function fileServerLogic() {
       return;
     }
 
-    // Normalize the url
-    if (req.url.endsWith('/')) {
-      // Treat directories (including root) as a request for index.html
-      req.url += 'index.html';
-    }
-    // Strip parameters to find the underlying file.
-    if (req.url.indexOf('?') > -1) {
-      req.url = req.url.substr(0, req.url.indexOf('?'));
-    }
-    if (req.url.indexOf('.') === -1) {
-      // Treat locations without an extension as html, allowing short urls like simpatico.io/wp
-      req.url += ".html"
+    if (config.logFileServerRequests) logRequest(req);
+
+    // To turn a url into a filename on this server we:
+    // Strip search parameters.
+    // Treat directories (ending in /) as a request for index.html in that directory
+    // Add .html to any url that doesn't have an extension, allowing short urls like simpatico.io/chat
+    function urlToFileName (url) {
+      let u = url;
+      if (u.indexOf('?') > -1)   u = u.substr(0, u.indexOf('?'));
+      if (u.endsWith('/'))       u += 'index.html';
+      if (u.indexOf('.') === -1) u += ".html"
+      return u;
     }
 
     // Check the cache for the file, if not present read off disk and add to cache. If present, use cache.
     // todo: add gzip cache, too. see https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
-    const fileName = process.cwd() + req.url;
+    // cache entries will look something like {raw: 'abc...', zlib: [0x34, 0xA5...], brotli: [0x12, 0xB0, ....]
+    const fileName = process.cwd() + urlToFileName(req.url);
     if (config.useCache && hasProp(cache, fileName)) {
       respondWithData(cache[fileName]);
     } else {
       fs.readFile(fileName, (err, data) => {
-        if (DEBUG) debug('cache miss for', fileName);
+        if (DEBUG && config.useCache) debug('cache miss for', fileName);
         if (err) { // assume all errors are a 404. pareto
           respondWithError(Object.assign(new Error(), {
             code: 404,
@@ -269,9 +277,10 @@ function fileServerLogic() {
           return;
         }
         if (fileName.endsWith('.md')){
-          if (DEBUG) debug('making markdown', fileName, data);
-          data = markdown.makeHtml(data + '');
-          data = header(fileName.replace(/^.*(\\|\/|\:)/, '')) + data + footer;
+          if (DEBUG) debug('building html for markdown file', fileName);
+          // Strip path and extension from filename and use that in the title.
+          const title = 'Simpatico: ' + fileName.replace(/^.*(\\|\/|\:)/, '').split('.')[0];
+          data = buildMarkdown(data, title);
         }
         if (config.useCache) {
           cache[fileName] = data;
@@ -321,15 +330,22 @@ function chatServerLogic(ws) {
   });
 }
 
+function buildMarkdown(data, title){
+  const header = (title='Simpatico') => `
+<!DOCTYPE html>
+<title>${title}</title>
+<link rel="stylesheet" href="style.css">
+`;
+  const footer = ``;
+  data = markdown.makeHtml(data + '');
+  data = header(title) + data + footer;
+  return data;
+}
+
 const failWhale = `
  ___        _  _       __      __ _           _
 | __| __ _ (_)| |      \\ \\    / /| |_   __ _ | | ___
 | _| / _\` || || |       \\ \\/\\/ / |   \\ / _\` || |/ -_)
 |_|  \\__/_||_||_|        \\_/\\_/  |_||_|\\__/_||_|\\___|
   `
-const header = (title='Simpatico') => `
-<!DOCTYPE html>
-<title>${title}</title>
-<link rel="stylesheet" href="style.css">
-`;
-const footer = ``;
+
