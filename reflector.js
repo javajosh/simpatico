@@ -136,10 +136,10 @@ function bindToPorts() {
 function dropProcessPrivs(user) {
   try{
     process.seteuid(user);
+    info('dropProcessPrivs succeeded', user)
   } catch(e) {
-    info('dropProcessPrivs', user, e);
+    warn('dropProcessPrivs failed', user, e);
   }
-
 }
 
 function httpRedirectServerLogic (req, res) {
@@ -231,10 +231,12 @@ function fileServerLogic() {
     const logRequest = req => {
       const fileName = urlToFileName(req.url);
       const normalized = (fileName !== req.url);
+      // For some reason node 18 and 19 on unbuntu 22 just refused optional chaining syntax.
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
       console.log(
         new Date().toISOString(),
-        req.socket?.remoteAddress?.replace(/^.*:/, ''),
-        req.headers["user-agent"]?.substr(0, 20),
+        req.socket.remoteAddress.replace(/^.*:/, ''),
+        req.headers["user-agent"].substr(0, 20),
         req.url,
         (normalized ? '=>' + fileName : ''),
       );
@@ -381,25 +383,25 @@ function buildMarkdown(markdownString, fileName=''){
   function htmlFooter() {
     return `<p>Copyright javajosh 2023</p>`;
   }
-}
 
-// // See https://github.com/showdownjs/prettify-extension/blob/master/src/showdown-prettify.js
-// function prettify(showdown) {
-//   showdown.extension('prettify', function () {
-//     return [{
-//       type:   'output',
-//       filter: function (source) {
-//         return source.replace(/(<pre[^>]*>)?[\n\s]?<code([^>]*)>/gi, function (match, pre, codeClass) {
-//           if (pre) {
-//             return '<pre class="prettyprint linenums"><code' + codeClass + '>';
-//           } else {
-//             return ' <code class="prettyprint">';
-//           }
-//         });
-//       }
-//     }];
-//   });
-// }
+  // See https://github.com/showdownjs/prettify-extension/blob/master/src/showdown-prettify.js
+  // function prettify(showdown) {
+  //   showdown.extension('prettify', function () {
+  //     return [{
+  //       type:   'output',
+  //       filter: function (source) {
+  //         return source.replace(/(<pre[^>]*>)?[\n\s]?<code([^>]*)>/gi, function (match, pre, codeClass) {
+  //           if (pre) {
+  //             return '<pre class="prettyprint linenums"><code' + codeClass + '>';
+  //           } else {
+  //             return ' <code class="prettyprint">';
+  //           }
+  //         });
+  //       }
+  //     }];
+  //   });
+  // }
+}
 
 const failWhale = `
  ___        _  _       __      __ _           _
