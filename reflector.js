@@ -32,6 +32,7 @@ const scriptPassThroughExtension = {
     return htmlDocument.replace(/<pre><code class="js.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
       // showdown tags html as js for some reason, so we use a heuristic to distinguish.
       const isActuallyHtml = code.trim().startsWith('&lt;');
+      const hasImports = code.trim().startsWith('import');
       // if its a script, unHtmlEscape
       if (!isActuallyHtml) code = code
         .replace(/&lt;/g, '<')
@@ -41,7 +42,10 @@ const scriptPassThroughExtension = {
         .replace(/&#39;/g, "'");
       return isActuallyHtml ? code : `
         <pre><code class="js language-js">${code}</code></pre>\n
-        <script type="module">${code}</script>
+        <script type="module">
+        ${hasImports ? '' : options.defaultImport}
+        ${code}
+        </script>
       `
     });
   }
@@ -56,6 +60,11 @@ const markdown = new showdown.Converter({
   tables: true,
   flavor: 'github',
   tasklists: true,
+  defaultImport: [
+    'import {assertEquals} from "/core.js";',
+    'import {assertHandler} from "/combine2.js";',
+    'import {combine} from "/combine2.js";',
+  ].join('\n'),
   extensions: ['scriptPassThroughExtension'],
 });
 

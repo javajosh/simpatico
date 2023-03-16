@@ -23,16 +23,27 @@ See [test harness](./combine2.html)
 # Combine Basics
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
-
-```js
-assertEquals(3, combine(1, 2));
+You use it in a webpage like this:
+```html
+<script type="module">
+  import {assertEquals, combine} from '/simpatico.js';
+  assertEquals(3, combine(1, 2));
+</script>
 ```
+To use it in node, you'd just omit the script tags (and set 'type=module' in `package.json`).
+You can also omit the import statement (it's set in reflector).
+```js
+  assertEquals(3, combine(1, 2));
+```
+Note that this code is *live* in the sense that the markdown processor generates a script tag in addition to pre/code tags.
+This script is executed on page load, and in this case you'd see an error in the console if the assert fails.
+Code that starts with a "less than" (<) symbol is *not* executed.
 
 Combine's action varies according to the types of its arguments.
-Here there is an object type, and combine behaves just like `Object.assign`:
+Here there is an object type, and combine behaves just like `Object.assign`. In this case, they both merge keys:
 
 ```js
-assertEquals({a:1, b:2},          combine({a:1},{b:2}));
+assertEquals({a:1, b:2}, combine({a:1},{b:2}));
 assertEquals({a:1, b:2}, Object.assign({},{a:1},{b:2}));
 ```
 
@@ -59,7 +70,7 @@ const core= {handlers: {inc}, a:10, b:20};
 const msg = {handler: 'inc'};
 
 // check the effect on residue
-assertEquals([{a:11},{b:22}], combine(core, msg));
+assertEquals({handlers: {inc}, a:11, b:22}, combine(core, msg));
 ```
 
 The handler above is very simple: it takes no arguments and gives a constant result.
@@ -73,7 +84,7 @@ const inc = {
   msg: {handler: 'inc'}
 };
 let core = {handlers: {inc}, a:10, b:20};
-assertEquals([{a:20},{b:40}], combine(core, inc.msg));
+assertEquals({handlers: {inc}, a:20, b:40}, combine(core, inc.msg));
 ```
 `res` stands for "residue".
 Also note that we've tucked in the example call into the handler definition.
@@ -82,7 +93,8 @@ The handler object is a great place to store static resources your function need
 ### Assertion handler
 Before moving on its useful to define an "assertion handler":
 ```js
-const assertHandler = { handle: (core, msg) => {
+const assertionHandler = {
+  handle: (core, msg) => {
     Object.entries(msg).forEach(([key, msgValue]) => {
       if (key === 'handler' || key === 'parent') return; // skip the handler name itself
       if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
@@ -90,19 +102,21 @@ const assertHandler = { handle: (core, msg) => {
     });
     return [{}];
   },
-  msg: {handler: 'assert', a: 1}
+  as: a => ({handle: 'assert', ...a})
 };
 ```
 With this handler we can add assert messages into the core, and the add will fail if the assert fails.
 In this implementation, we can assert the state of the residue:
 
 ```js
-const inc = {handle: (res, msg) => [{a: res.a},{b: res.b}]};
+const as = assertHandler.as;
+
+const inc = {handle: (res, msg) => [{a: res.a}, {b: res.b}]};
 const msg = {handler: 'inc'}
-let core = {handlers: {inc, assert: assertHandler}, a:10, b:20};
-core = combine(core, {handle: 'assert', a:10, b:20});
+let core = {handlers: {inc, assert: assertHandler}, a: 10, b: 20};
+core = combine(core, {handle: 'assert', a: 10, b: 20});
 core = combine(core, msg)
-core = combine(core, {handle: 'assert', a:20, b:40})
+core = combine(core, {handle: 'assert', a: 20, b: 40})
 ```
 We can simplify this code like this:
 ```js
@@ -117,6 +131,7 @@ const ops = [
   inc.msg,
   as({a:20,b:40}),
 ];
+let core = {};
 ops.every(op => core = combine(core, op));
 // If we get to this point, everything is good!
 ```
@@ -126,6 +141,7 @@ ops.every(op => core = combine(core, op));
 
 Handlers replace, so we can overwrite the old handler and call it with the same message:
 ```js
+const as = assertHandler.as;
 const inc1 = {handle: ()=>[{a:1},{b:2}] };
 const inc2 = {handle: ()=>[{a:-1},{b:-2}] }
 const msg = {handler: 'inc'}
@@ -145,8 +161,6 @@ ops.every(op => core = combine(core, op));
 This feature is key to enabling *type versioning* later.
 
 
-
-
 A core is an object with a property named 'handlers', of type object, with each key a short descriptive name and each value a handler.
 A handler is an object with a property named 'handle' of type function, that takes two args, computes the modifications required, and returns those modifications, without applying them, as an array of objects.
 The returned objects are `combine`d recursively, forming a *message cascade*
@@ -160,3 +174,5 @@ The degrees of freedom of this core can be said to be all of the arrays above.
 The computation that occurs is with the exploration of various paths through those values.
 Those paths are recorded independently as branches in an stree.
 It is a kind of generalization of the back button, such that you can move in and out of a nested data structure easily and smoothly, over time.
+
+The implementation in ES6 javascript focusing on object literals and pure functions is

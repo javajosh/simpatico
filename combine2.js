@@ -19,14 +19,17 @@ const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && 
 const isInstance = a =>isCore(a) && a.hasOwnProperty('nodeId') && isNum(a);
 const isType = a =>    isCore(a) && a.hasOwnProperty('type') && typeof a['type'] === 'string';
 
-const assertHandler = { handle: (core, msg) => {
-  Object.entries(msg).forEach(([key, msgValue]) => {
-    if (key === 'handler' || key === 'parent') return; // skip the handler name itself
-    if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
-    else throw 'core is missing asserted property ' + key;
-  });
-  return [{}];
-}};
+const assertHandler = {
+  handle: (core, msg) => {
+    Object.entries(msg).forEach(([key, msgValue]) => {
+      if (key === 'handler' || key === 'parent') return; // skip the handler name itself
+      if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
+      else throw 'core is missing asserted property ' + key;
+    });
+    return [{}];
+  },
+  as: a => ({handle: 'assert', ...a})
+};
 
 function combine(a, b) {
   // this convention implies b "acts on" a, in this case by 'zeroing a out' when b is null.

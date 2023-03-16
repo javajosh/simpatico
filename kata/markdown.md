@@ -53,7 +53,6 @@ A good reason to reconsider raw html, requiring the reader to view source.
 
 Testing javascript source:
 ```js
-import {combine} from '/combine.js';
 let result = combine({a:1}, {a:2});
 console.log('hi josh', 1<2);
 ```
@@ -93,7 +92,6 @@ viewBox="-1 -1 2 2"
 
 HTML source renders fine and author's fine.
 ```js
-  import {combine} from '/combine.js';
   let result = combine({a:1}, {a:2});
   console.log('hello from markdown', result);
 ```
@@ -103,4 +101,8 @@ Inline HTML renders fine, but authoring is poor (code completion sometimes works
 ## Idea
 
 One interesting idea is to modify showdown (with an extension) to generate an inline script tag in addition to the source render div.
-In this way our scripts will always execute.
+In this way our scripts will always execute. (I did this and the first example is [combine2.md](/combine2.md))
+
+## Thoughts on using markdown so far
+   - Highlight JS is large (~150KB minified) and does not support [line numbers](https://highlightjs.readthedocs.io/en/latest/line-numbers.html)
+   - The line numbers in browser errors no longer line up exactly like they do in raw HTML.
