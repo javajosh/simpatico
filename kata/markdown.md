@@ -48,21 +48,21 @@ The library is very large - Showdown.js is 156KB.
 It has no dependencies, but such a large codebase is bound to have issues, and the benefit of using it is, at first glance, not very high.
 IntelliJ's markdown editor definitely doesn't like me adding actual javascript or raw html.
 
-
-
 Two authoring issues with IntelliJ IDEA, one syntax highlighting issue, only fixed with a [huge dependency](https://highlightjs.readthedocs.io/en/latest/readme.html).
 A good reason to reconsider raw html, requiring the reader to view source.
 
 Testing javascript source:
 ```js
+import {combine} from '/combine.js';
 let result = combine({a:1}, {a:2});
+console.log('hi josh', 1<2);
 ```
 This is some html source:
-```html
+```xml
 <p>html <b>source</b></p>
 ```
 
-SVG renders correctly:
+SVG source render (and authors) correctly:
 ```svg
 <svg id="rotating-squares-animation" class="natural-units"
 width="200px" height="200px"
@@ -77,7 +77,7 @@ viewBox="-1 -1 2 2"
   </g>
 </svg>
 ```
-
+Inline svg renders correctly, but authoring is poor (no syntax highlighting, code completion, emmet, etc)
 <svg id="rotating-squares-animation" class="natural-units"
 width="200px" height="200px"
 viewBox="-1 -1 2 2"
@@ -91,17 +91,16 @@ viewBox="-1 -1 2 2"
   </g>
 </svg>
 
-
-```html
-<script id="combine-example" type="module">
+HTML source renders fine and author's fine.
+```js
   import {combine} from '/combine.js';
   let result = combine({a:1}, {a:2});
   console.log('hello from markdown', result);
-</script>
 ```
+Inline HTML renders fine, but authoring is poor (code completion sometimes works; syntax highlighting is inconsistent.)
 
-<script id="combine-example" type="module">
-  import {combine} from '/combine.js';
-  let result = combine({a:1}, {a:2});
-  console.log('hello from markdown', result);
-</script>
+
+## Idea
+
+One interesting idea is to modify showdown (with an extension) to generate an inline script tag in addition to the source render div.
+In this way our scripts will always execute.

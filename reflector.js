@@ -26,6 +26,28 @@ info( 'bound', bindStatus);
 // We are bound to port 443 (and probably 80) so we can drop privileges
 if (config.user) dropProcessPrivs(config.user);
 
+const scriptPassThroughExtension = {
+  type: 'output',
+  filter:  (htmlDocument, converter, options) => {
+    return htmlDocument.replace(/<pre><code class="js.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
+      // showdown tags html as js for some reason, so we use a heuristic to distinguish.
+      const isActuallyHtml = code.trim().startsWith('&lt;');
+      // if its a script, unHtmlEscape
+      if (!isActuallyHtml) code = code
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+      return isActuallyHtml ? code : `
+        <pre><code class="js language-js">${code}</code></pre>\n
+        <script type="module">${code}</script>
+      `
+    });
+  }
+};
+showdown.extension('scriptPassThroughExtension', scriptPassThroughExtension);
+
 // Showdown is a useful but huge 156kb library for making html out of markdown.
 // See https://showdownjs.com/docs/available-options/
 const markdown = new showdown.Converter({
@@ -34,6 +56,7 @@ const markdown = new showdown.Converter({
   tables: true,
   flavor: 'github',
   tasklists: true,
+  extensions: ['scriptPassThroughExtension'],
 });
 
 // We are booted! Print out welcome message.
@@ -383,24 +406,6 @@ function buildMarkdown(markdownString, fileName=''){
   function htmlFooter() {
     return `<p>Copyright javajosh 2023</p>`;
   }
-
-  // See https://github.com/showdownjs/prettify-extension/blob/master/src/showdown-prettify.js
-  // function prettify(showdown) {
-  //   showdown.extension('prettify', function () {
-  //     return [{
-  //       type:   'output',
-  //       filter: function (source) {
-  //         return source.replace(/(<pre[^>]*>)?[\n\s]?<code([^>]*)>/gi, function (match, pre, codeClass) {
-  //           if (pre) {
-  //             return '<pre class="prettyprint linenums"><code' + codeClass + '>';
-  //           } else {
-  //             return ' <code class="prettyprint">';
-  //           }
-  //         });
-  //       }
-  //     }];
-  //   });
-  // }
 }
 
 const failWhale = `
