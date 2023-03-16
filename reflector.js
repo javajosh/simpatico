@@ -27,9 +27,13 @@ info( 'bound', bindStatus);
 if (config.user) dropProcessPrivs(config.user);
 
 // Showdown is a useful but huge 156kb library for making html out of markdown.
-const markdown = new showdown.Converter();
-markdown.setFlavor('github');
-markdown.setOption('backslashEscapesHTMLTags', true);
+// See https://showdownjs.com/docs/available-options/
+const markdown = new showdown.Converter({
+  backslashEscapesHTMLTags: true,
+  simpleLineBreaks: false,
+  tables: true,
+  flavor: 'github',
+});
 
 // We are booted! Print out welcome message.
 const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
@@ -228,8 +232,8 @@ function fileServerLogic() {
       const normalized = (fileName !== req.url);
       console.log(
         new Date().toISOString(),
-        req.socket.remoteAddress.replace(/^.*:/, ''),
-        req.headers["user-agent"].substr(0, 20),
+        req.socket?.remoteAddress?.replace(/^.*:/, ''),
+        req.headers["user-agent"]?.substr(0, 20),
         req.url,
         (normalized ? '=>' + fileName : ''),
       );
@@ -285,8 +289,7 @@ function fileServerLogic() {
         if (fileName.endsWith('.md')){
           if (DEBUG) debug('building html for markdown file', fileName);
           // Strip path and extension from filename and use that in the title.
-          const title = 'Simpatico: ' + fileName.replace(/^.*(\\|\/|\:)/, '').split('.')[0];
-          data = buildMarkdown(data, title);
+          data = buildMarkdown(data.toString(), fileName);
         }
         if (config.useCache) {
           cache[fileName] = data;
@@ -336,17 +339,72 @@ function chatServerLogic(ws) {
   });
 }
 
-function buildMarkdown(data, title){
-  const header = (title='Simpatico') => `
-<!DOCTYPE html>
-<title>${title}</title>
-<link rel="stylesheet" href="style.css">
-`;
-  const footer = ``;
-  data = markdown.makeHtml(data + '');
-  data = header(title) + data + footer;
-  return data;
+// Build markdown, support custom header tags in the markdown
+// Add a useful default header if no header tags are in the target.
+function buildMarkdown(markdownString, fileName=''){
+  if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`
+
+  const markdownLines = markdownString.split('\n');
+
+  let headerLineCount = 0;
+  markdownLines.every(line => {
+    if (line.startsWith('<')) {
+      headerLineCount++;
+      return true;
+    }
+    return false;
+  });
+
+  // If there are no header lines, use the default header
+  let headerLines, bodyLines;
+  if (headerLineCount === 0){
+    bodyLines = markdownLines;
+    headerLines = defaultHtmlHeader().split('\n');
+  } else {
+    headerLines = markdownLines.slice(0, headerLineCount);
+    bodyLines = markdownLines.slice(headerLineCount + 1);
+  }
+
+  // Call showdown to translate markdown into html
+  const htmlBody = markdown.makeHtml(bodyLines.join('\n'));
+  // Put it all together
+  const htmlString = [headerLines.join('\n'), htmlBody, htmlFooter() ].join('\n');
+  let DEBUG = false;
+  if (DEBUG) console.log('lengths\n', headerLines.length, bodyLines.length, 'headerLines\n', headerLines, 'bodyLines\n', bodyLines);
+  if (DEBUG) debug('buildMarkdown() complete\n', {fileName, markdownString, htmlString});
+  return htmlString;
+
+  function defaultHtmlHeader() {
+    const bareFileName = fileName.replace(/^.*(4`1\\|\/|\:)/, '').split('.')[0];
+    const title = 'Simpatico: ' + bareFileName;
+    return `<!DOCTYPE html>
+      <title>${title}</title>
+      <link rel="stylesheet" href="style.css">
+     `;
+  }
+
+  function htmlFooter() {
+    return `<p>Copyright javajosh 2023</p>`;
+  }
 }
+
+// // See https://github.com/showdownjs/prettify-extension/blob/master/src/showdown-prettify.js
+// function prettify(showdown) {
+//   showdown.extension('prettify', function () {
+//     return [{
+//       type:   'output',
+//       filter: function (source) {
+//         return source.replace(/(<pre[^>]*>)?[\n\s]?<code([^>]*)>/gi, function (match, pre, codeClass) {
+//           if (pre) {
+//             return '<pre class="prettyprint linenums"><code' + codeClass + '>';
+//           } else {
+//             return ' <code class="prettyprint">';
+//           }
+//         });
+//       }
+//     }];
+//   });
+// }
 
 const failWhale = `
  ___        _  _       __      __ _           _
