@@ -36,7 +36,7 @@ assertEquals({a:1, b:2},          combine({a:1},{b:2}));
 assertEquals({a:1, b:2}, Object.assign({},{a:1},{b:2}));
 ```
 
-Unlike `Object.assign`, `combine()` is recursive:
+ `Object.assign` is shallow, `combine()` is deep:
 ```js
 assertEquals({a: {b : 2}},          combine({a: {b : 1}}, {a: {b : 1}}));
 assertEquals({a: {b : 1}}, Object.assign({},{a: {b : 1}}, {a: {b : 1}}));
@@ -47,27 +47,37 @@ assertEquals({a: {b : 1}}, Object.assign({},{a: {b : 1}}, {a: {b : 1}}));
 `combine()` supports *handlers*, which provides structured function invocation:
 
 ```js
+// the handle function is just an ordinary pure function
 const inc = {handle: ()=>[{a:1},{b:2}] };
-let core = {handlers: {inc}, a:10, b:20};
+assertEquals([{a:1},{b:2}], inc.handle());
+
+// the core is the handlers plus some state, called residue
+// in this case the residue is initialized to {a:10, b:20}
+const core= {handlers: {inc}, a:10, b:20};
+
+// call the handler with a message
 const msg = {handler: 'inc'};
-assertEquals([{a:1},{b:2}], inc.handle()); // the handle function is just an ordinary pure function
+
+// check the effect on residue
 assertEquals([{a:11},{b:22}], combine(core, msg));
 ```
 
-This is a handler invocation with no arguments and a constant result.
-It's a dual counter, where a is incremented by 1, and b by 2.
-We initialize both a and b to show there is interaction between the result of `inc` and current core state.
+The handler above is very simple: it takes no arguments and gives a constant result.
+It's a dual counter, where `a` is incremented by 1, and `b` by 2.
+We initialize both `a` and `b` to show there is interaction between the result of `inc` and current core state.
 
 Handlers take two arguments, the target and the message, in the first and second position respectively:
 ```js
 const inc = {
-  handle: (res, msg) => [{a:res.a},{b:res.b}],
+  handle: (res, msg) => [{a: res.a},{b: res.b}],
   msg: {handler: 'inc'}
 };
 let core = {handlers: {inc}, a:10, b:20};
 assertEquals([{a:20},{b:40}], combine(core, inc.msg));
 ```
 `res` stands for "residue".
+Also note that we've tucked in the example call into the handler definition.
+The handler object is a great place to store static resources your function needs and that a caller may need to access.
 
 ### Assertion handler
 Before moving on its useful to define an "assertion handler":
@@ -79,10 +89,38 @@ const assertHandler = { handle: (core, msg) => {
       else throw 'core is missing asserted property ' + key;
     });
     return [{}];
-  }};
+  },
+  msg: {handler: 'assert', a: 1}
+};
+```
+With this handler we can add assert messages into the core, and the add will fail if the assert fails.
+In this implementation, we can assert the state of the residue:
+
+```js
+const inc = {handle: (res, msg) => [{a: res.a},{b: res.b}]};
+const msg = {handler: 'inc'}
+let core = {handlers: {inc, assert: assertHandler}, a:10, b:20};
+core = combine(core, {handle: 'assert', a:10, b:20});
+core = combine(core, msg)
+core = combine(core, {handle: 'assert', a:20, b:40})
+```
+We can simplify this code like this:
+```js
+const inc = {handle: (res, msg) => [{a: res.a},{b: res.b}], msg: {handler: 'inc'}};
+const as = a => ({handle: 'assert', ...a});
+
+const ops = [
+  {handlers: {inc}},
+  {handlers: {assert: assertHandler}},
+  {a:10, b:20},
+  as({a:10, b:20}),
+  inc.msg,
+  as({a:20,b:40}),
+];
+ops.every(op => core = combine(core, op));
+// If we get to this point, everything is good!
 ```
 
-We can use this
 
 ### Handlers replace each other
 
@@ -91,14 +129,20 @@ Handlers replace, so we can overwrite the old handler and call it with the same 
 const inc1 = {handle: ()=>[{a:1},{b:2}] };
 const inc2 = {handle: ()=>[{a:-1},{b:-2}] }
 const msg = {handler: 'inc'}
+
 let core = {handlers: {inc: inc1}, a:10, b:20};
-assertEquals([{a:1},{b:2}], inc1.handle());
-assertEquals([{a:-1},{b:-2}], inc2.handle());
-assertEquals([{a:11},{b:22}], combine(core, msg));
-core.handlers.inc = inc2;
-assertEquals([{a:10},{b:20}], combine(core, msg));
+const ops = [
+  as({a:10, b:20}),
+  msg,
+  as({a:11, b:22}),
+  {handlers: {inc: inc2}},
+  as({a:11, b:22}),
+  msg,
+  as({a:10, b:20}),
+];
+ops.every(op => core = combine(core, op));
 ```
-This feature is key to enabling *type versioning later.
+This feature is key to enabling *type versioning* later.
 
 
 
