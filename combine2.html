@@ -22,21 +22,7 @@
   <h1>SimpatiCode: combine() and buildTree()</h1>
   <p>javajosh <i>(c) 2023</i></p>
   <div class="makeItStop"></div>
-  <p>
-    <code>combine(a, b)</code> combines two object arguments <code>b</code> with <code>a</code> and returns the object result.
-    You can invoke functions, by targeting special parts of an object called <i>handlers</i>.
-    Handlers are specialized functions that return objects that recursively integrate with the original target in a "message cascade".
-    The intuition is of something like splashing in the water, with the water itself splashing up, and splashing again, until it the water is still again.
-  </p>
-  <p>
-    Collision and combination.
-    An application is a list of values then connected together in useful ways by paths.
-    The paths describe, in general, an stree who's various branches have been usefully combined into a cohesive interface.
-    The degrees of freedom of this core can be said to be all of the arrays above.
-    The computation that occurs is with the exploration of various paths through those values.
-    Those paths are recorded independently as branches in an stree.
-    It is a kind of generalization of the back button, such that you can move in and out of a nested data structure easily and smoothly, over time.
-  </p>
+  <p>See <a href="./combine2.md">design notes</a></p>
 </div>
 
 <script type="module">
@@ -59,11 +45,12 @@
   testCombineDataLanguage();
   testBasicHandlerExecution();
   testAssertionHandler();
-  testTree();
+  testHandlerRedefinition();
   testTreeInternals();
+  testTreeAssertions();
   testTreeHandlers();
   testNeuTypeVersioning();
-  testObjectSerialization();
+  // testOpsSerialization();
 
   // Exercise basic UDL (universal data language) semantics, specifically omitting handlers.
   function testCombineDataLanguage() {
@@ -104,6 +91,32 @@
   }
 
   function testAssertionHandler(){
+    // We use these handlers to form a "core" and treat input as a monotonic sequence of object additions.
+    let core = {handlers: {log, inc, sum, mul, assert: assertHandler}};
+
+    // A simple case: all handlers are available all the time and can be called in any order.
+    const ops = [
+      {handler: 'log'},
+      {handler: 'inc'},
+      {handler: 'assert', a: 1, b: 2},
+      {handler: 'inc'},
+      {handler: 'assert', a: 2, b: 4},
+      {a: null},
+      {handler: 'assert', a: 0},
+      {handler: 'sum', a: 1, b: 2},
+      {handler: 'assert', a: 3},
+      {a: null},
+      {a: 2},
+      {a: 2},
+      {handler: 'assert', a: 4},
+      {handler: 'mul', a: 10},
+      {handler: 'assert', a: 40},
+      {handler: 'log'},
+    ];
+    ops.every(op => core = combine(core, op));
+  }
+
+  function testHandlerRedefinition(){
     // We use these handlers to form a "core" and treat input as a monotonic sequence of object additions.
     let core = {handlers: {log, inc, sum, mul, assert: assertHandler}};
 
@@ -252,9 +265,9 @@
     add({handler: 'h1', a: 2});
     // assertEquals(4, peek(residues).a);
   }
+
   // For some reason now is the time to play with function de/serialization.
-  function testObjectSerialization(){
-    if (true) return;
+  function testOpsSerialization(){
     const serializeHandler = a => {
       a.handle = a.handle.toString();
       return a;
