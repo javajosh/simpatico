@@ -348,13 +348,7 @@ function buildMarkdown(markdownString, fileName=''){
   const markdownLines = markdownString.split('\n');
 
   let headerLineCount = 0;
-  markdownLines.every(line => {
-    if (line.startsWith('<')) {
-      headerLineCount++;
-      return true;
-    }
-    return false;
-  });
+  markdownLines.every(line => (line.startsWith('<') ? ++headerLineCount : false));
 
   // If there are no header lines, use the default header
   let headerLines, bodyLines;
