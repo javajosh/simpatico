@@ -33,6 +33,7 @@ const markdown = new showdown.Converter({
   simpleLineBreaks: false,
   tables: true,
   flavor: 'github',
+  tasklists: true,
 });
 
 // We are booted! Print out welcome message.
