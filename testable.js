@@ -9,9 +9,9 @@
   const biolerplate = (fill='white', src='testable.js') => `
   <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='white' />
-  </svg>"/>
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+        <rect width='1' height='1' fill='white' />
+    </svg>"/>
   <meta id="refresh" http-equiv="refresh" content="2">
   <script src="testable.js" type="module"></script>
   <!-- End testable.js boilerplate  -->
