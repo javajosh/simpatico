@@ -61,8 +61,7 @@ const markdown = new showdown.Converter({
   tasklists: true,
   defaultImport: [
     'import {assertEquals} from "/core.js";',
-    'import {assertHandler} from "/combine2.js";',
-    'import {combine} from "/combine2.js";',
+    'import {combine, stree, assertHandler} from "/combine2.js";',
   ].join('\n'),
   extensions: ['scriptPassThroughExtension'],
 });
