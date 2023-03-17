@@ -40,13 +40,12 @@ const scriptPassThroughExtension = {
         .replace(/&amp;/g, '&')
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'");
-      return isActuallyHtml ? code : `
-        <pre><code class="js language-js">${code}</code></pre>\n
-        <script type="module">
-        ${hasImports ? '' : options.defaultImport}
-        ${code}
-        </script>
-      `
+      return isActuallyHtml ? code : `<pre><code class="js language-js">${code}</code></pre>\n
+<script type="module">
+${hasImports ? '' : options.defaultImport}
+${code}
+</script>
+`
     });
   }
 };

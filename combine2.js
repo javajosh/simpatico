@@ -1,6 +1,6 @@
 // A much simpler combine not for production use - just playing with some ideas.
 
-import {assertEquals, mapObject} from './core.js';
+import {assertEquals} from './core.js';
 
 const DEBUG = false;
 const isNum = d => Number.isInteger(d);
@@ -21,12 +21,12 @@ const isType = a =>    isCore(a) && a.hasOwnProperty('type') && typeof a['type']
 
 const assertHandler = {
   handle: (core, msg) => {
-    Object.entries(msg).forEach(([key, msgValue]) => {
-      if (key === 'handler' || key === 'parent') return; // skip the handler name itself
-      if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
-      else throw 'core is missing asserted property ' + key;
+    Object.entries(msg).forEach(([msgKey, msgValue]) => {
+      if (msgKey === 'handler') return; // skip the handler name itself
+      if (core.hasOwnProperty(msgKey)) assertEquals(msgValue, core[msgKey]);
+      else throw 'core is missing asserted property ' + msgKey;
     });
-    return [{}];
+    return [{}]; // just return a noop
   },
   as: a => ({handle: 'assert', ...a})
 };

@@ -104,7 +104,22 @@ const assertionHandler = {
   },
   as: a => ({handle: 'assert', ...a})
 };
+
+// Throws when the assertion is wrong.
+let throws = false;
+try{combine(
+  {a:1, handlers: {assert: assertHandler}},
+  {a:2, handler: 'assert'},
+);} catch (e) {throws = true;}
+assertEquals(true, throws);
+
+//Does not throw when the assertion is right
+combine(
+  {a:1, handlers: {assert: assertHandler}},
+  {a:1, handler: 'assert'},
+);
 ```
+
 With this handler we can add assert messages into the core, and the add will fail if the assert fails.
 In this implementation, we can assert the state of the residue:
 
@@ -133,8 +148,9 @@ const ops = [
 ];
 let core = {};
 ops.every(op => core = combine(core, op));
-// If we get to this point, everything is good!
+// If we reach here without throwing, everything is good!
 ```
+
 
 
 ### Handlers replace each other
@@ -158,14 +174,50 @@ const ops = [
 ];
 ops.every(op => core = combine(core, op));
 ```
-This feature is key to enabling *type versioning* later.
+This feature is key to enabling *type versioning*.
 
+### Handlers call each other
 
+Functions replace, so we can overwrite the old handler and call it with the same message:
+```js
+const as = assertHandler.as;
+const h1 = {handle: ()=>[{handler:'h2'},{a:1}], msg: {handler: 'h1'} };
+const h2 = {handle: ()=>[{b:1}], msg: {handler: 'h2'} };
+
+let core = {handlers:{h1,h2}, a:0, b:0};
+
+const ops = [
+  as({a:0, b:0}),
+  h1.msg,
+  as({a:1, b:2}),
+];
+
+ops.every(op => core = combine(core, op));
+```
+I anticipate that this will be a very unusual use case, to modify a handler during the core's lifetime.
+However, I think it will be very common that users will have different versions of a core, meaning different versions of the same handler.
+And they will have active instances of these versions active simultaneously.
+This effect is very difficult to achieve with class OOP techniques, but comes naturally here.
+
+### Definition of "Core"
 A core is an object with a property named 'handlers', of type object, with each key a short descriptive name and each value a handler.
 A handler is an object with a property named 'handle' of type function, that takes two args, computes the modifications required, and returns those modifications, without applying them, as an array of objects.
 The returned objects are `combine`d recursively, forming a *message cascade*
 The intuition is of something like splashing in the water, with the water itself splashing up, and splashing again, until it the water is still again.
 
+## What we have
+At this point we have a data structure that
+1. can reach an effectively arbitrary JavaScript object shape.
+1. We can select how we get there, going either one value at a time or several, grouped in objects.
+1. We can add data objects directly by adding regular objects.
+1. We can add data objects indirectly with handler invocation by adding handler targeted objects.
+
+These features of `combine()` alone make it a very potent data modeling tool.
+
+Modeling program state as a monotonically increasing list of input, all of which are objects, gives us a great benefit:
+We can imagine branching our program state in a very natural way.
+This method of branching turns out to be both simpler and more expressive than either inheritance relationships or instantiation.
+This will be dealt with in the `stree` section.
 
 ## STree
 An application is a list of values then connected together in useful ways by paths.
