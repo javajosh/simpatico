@@ -11,7 +11,7 @@
 import hljs from '/kata/highlight.min.js';
 import javascript from '/kata/highlight.javascript.min.js';
 hljs.registerLanguage('javascript', javascript);
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', e => {
   document.querySelectorAll('pre code').forEach((elt) => {
     hljs.highlightElement(elt);
   });
@@ -207,10 +207,10 @@ The intuition is of something like splashing in the water, with the water itself
 
 ## What we have
 At this point we have a data structure that
-1. can reach an effectively arbitrary JavaScript object shape.
-1. We can select how we get there, going either one value at a time or several, grouped in objects.
-1. We can add data objects directly by adding regular objects.
-1. We can add data objects indirectly with handler invocation by adding handler targeted objects.
+   1. can reach an effectively arbitrary JavaScript object shape.
+   1. We can select how we get there, going either one value at a time or several, grouped in objects.
+   1. We can add data objects directly by adding regular objects.
+   1. We can add data objects indirectly with handler invocation by adding handler targeted objects.
 
 These features of `combine()` alone make it a very potent data modeling tool.
 
@@ -218,6 +218,13 @@ Modeling program state as a monotonically increasing list of input, all of which
 We can imagine branching our program state in a very natural way.
 This method of branching turns out to be both simpler and more expressive than either inheritance relationships or instantiation.
 This will be dealt with in the `stree` section.
+
+## *What we need*.
+   1. We need a way not just to zero but to remove items in combine.
+   1. Perhaps a special object, or some other convention.
+   1. Perhaps adapt the method of combine1 (although we lose our zeroes)
+   1. I also don't like the array merge (should be concat).
+   1. I also don't like number sum by default. It should be configurable.
 
 ## STree
 The `stree` (s is for "summary" or "simpatico") is an n-arry tree that associates a reduction with every node.
@@ -261,4 +268,86 @@ function testTreeInternals() {
 
 }
 testTreeInternals()
+```
+Test assertions in the tree.
+```js
+function testTreeAssertions() {
+  let DEBUG = true;
+  const log = {
+    handle: (...args) => {
+      if (DEBUG) console.log(args);
+      return [{}];
+    }
+  };
+  const inc = {handle: ()            => [{a: 1}, {b: 2}]};
+  const sum = {handle: (_, {a, b})   => [{a: a + b}]};
+  const mul = {handle: ({a}, {a: b}) => [{a: null}, {a: a * b}]};
+
+  // 3: Same as ops but with more interspersed integers
+  const ops3 = [
+    {handler: 'log'},
+    {handler: 'inc'},
+    {handler: 'assert', a: 1, b: 2},
+    {handler: 'inc'},
+    {handler: 'assert', a: 2, b: 4},
+    2,
+    {a: null},
+    {handler: 'assert', a: 0},
+    {handler: 'sum', a: 1, b: 2},
+    {handler: 'assert', a: 3},
+    {a: null},
+    {a: 3},
+    {a: 2},
+    {handler: 'assert', a: 5},
+    {handler: 'mul', a: 10},
+    {handler: 'assert', a: 50},
+    {handler: 'log'},
+  ];
+  const {branches: branches3, allBranchesReachable, residues, summary} = stree(ops3);
+  allBranchesReachable({handlers: {log, inc, sum, mul, assert: assertHandler}});
+  if (DEBUG) console.log('branches3()', branches3(), 'residues', residues, 'summary', summary);
+}
+testTreeAssertions();
+```
+
+## Simpatico OOP
+Building out an example of classic OOP types and instantiation with Simpatico.
+Rows are simply designated a type with a label.
+We introduce some conventions that constrain the structure of the tree.
+The first rows are types, consisting only of handlers.
+The latter rows are instances, consisting only of messages.
+
+```js
+function testTreeHandlers() {
+  const h1 = {handle: (b, a) => [{a: null}, {a: a * 1}], msg: {handler: 'h1', a: 2}};
+  const h2 = {handle: (b, a) => [{a: null}, {a: a * 2}], msg: {handler: 'h2', a: 2}};
+  const h3 = {handle: (b, a) => [{a: null}, {a: a * 3}], msg: {handler: 'h3', a: 2}};
+  const h4 = {handle: (b, a) => [{a: null}, {a: a * 4}], msg: {handler: 'h4', a: 2}};
+
+  // helper functions to build the ops (and a few tests to exercise/explain the intended use as authoring tools
+  const h = a => [0, h1, h2, h3, h4][a].msg;
+  const a = a => ({a});
+  const b = b => ({b});
+  const as = a => ({handler: 'assert', ...a});
+  assertEquals({handler: 'h1', a: 2}, h(1));
+  assertEquals({handler: 'h3', a: 2}, h(3));
+  assertEquals({handler: 'h4', a: 2}, h(4));
+  assertEquals({a: 2}, a(2));
+  assertEquals({handler: 'assert', a: 7}, as({a: 7}));
+
+  // In this case we're building up a simple type tree and instantiating some of the types (and asserting things)
+  const ops = [
+    {handlers: {assert: assertHandler}},
+    0, {type: 'foo'}, {handlers: {h1, h2}}, // 2
+    0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // 5; note the split handlers
+    0, {type: 'baz'}, {handlers: {h3, h4}}, // 7
+    2, a(1), as({a: 1}), a(2), as({type: 'foo', a: 3}), a(5), as({a: 8}),
+    5, a(3), as({type: 'bar', a: 3}), // h(3).msg, as({a:9}),
+    7, a(4), as({type: 'baz', a: 4}),
+  ];
+  const {add, neu, residues, summary, nodes, allBranchesReachable} = stree(ops);
+  allBranchesReachable({});
+  console.log('residues', residues, 'nodes', nodes, 'summary', summary);
+}
+testTreeHandlers();
 ```

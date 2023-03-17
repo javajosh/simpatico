@@ -45,7 +45,7 @@ const scriptPassThroughExtension = {
 ${hasImports ? '' : options.defaultImport}
 ${code}
 </script>
-`
+` // this string makes the code look ugly but the generated code looks better.
     });
   }
 };
