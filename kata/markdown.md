@@ -1,23 +1,24 @@
 <!DOCTYPE html>
+<head>
 <title>Welcome to Markdown!</title>
 <link rel="stylesheet" href="/style.css">
 <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-<rect width='1' height='1' fill='purple' />
-</svg>"/>
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+    <rect width='1' height='1' fill='purple' />
+  </svg>"
+/>
 <link rel="stylesheet" href="./highlight.github-dark.css">
-
 <script type="module">
-import hljs from './highlight.min.js';
-//  and it's easy to individually load additional languages
-import javascript from './highlight.javascript.min.js';
-hljs.registerLanguage('javascript', javascript);
-document.addEventListener('DOMContentLoaded', (event) => {
-  document.querySelectorAll('pre code').forEach((el) => {
-    hljs.highlightElement(el);
+  import hljs from '/kata/highlight.min.js';
+  import javascript from '/kata/highlight.javascript.min.js';
+  hljs.registerLanguage('javascript', javascript);
+  document.addEventListener('DOMContentLoaded', (event) => {
+    document.querySelectorAll('pre code').forEach((el) => {
+      hljs.highlightElement(el);
+    });
   });
-});
 </script>
+</head>
 
 ## This file is a test
 
@@ -106,3 +107,4 @@ In this way our scripts will always execute. (I did this and the first example i
 ## Thoughts on using markdown so far
    - Highlight JS is large (~150KB minified) and does not support [line numbers](https://highlightjs.readthedocs.io/en/latest/line-numbers.html)
    - The line numbers in browser errors no longer line up exactly like they do in raw HTML.
+   - Instead of splitting the head off using `^<` I split by checking for `</head>` and taking all lines above.

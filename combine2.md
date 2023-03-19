@@ -1,26 +1,28 @@
 <!DOCTYPE html>
-<title>Welcome to Markdown!</title>
-<link rel="stylesheet" href="/style.css">
-<link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-<rect width='1' height='1' fill='DodgerBlue' />
-</svg>"/>
-<link rel="stylesheet" href="/kata/highlight.github-dark.css">
-
-<script type="module">
-import hljs from '/kata/highlight.min.js';
-import javascript from '/kata/highlight.javascript.min.js';
-hljs.registerLanguage('javascript', javascript);
-document.addEventListener('DOMContentLoaded', e => {
-  document.querySelectorAll('pre code').forEach((elt) => {
-    hljs.highlightElement(elt);
-  });
-});
-</script>
+<head>
+  <title>Welcome to Markdown!</title>
+  <link rel="stylesheet" href="/style.css">
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='DodgerBlue' />
+    </svg>"
+  />
+  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <script type="module">
+  import hljs from '/kata/highlight.min.js';
+  import javascript from '/kata/highlight.javascript.min.js';
+    hljs.registerLanguage('javascript', javascript);
+    document.addEventListener('DOMContentLoaded', e => {
+      document.querySelectorAll('pre code').forEach((elt) => {
+        hljs.highlightElement(elt);
+      });
+    });
+  </script>
+</head>
 
 See [test harness](./combine2.html)
 
-# Combine Basics
+# combine(a,b)
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
 You use it in a webpage like this:
@@ -30,15 +32,22 @@ You use it in a webpage like this:
   assertEquals(3, combine(1, 2));
 </script>
 ```
-To use it in node, you'd just omit the script tags (and set 'type=module' in `package.json`).
-You can also omit the import statement (it's set in reflector).
+To use the library in node, omit the script tags and set `"type": "module"` in `package.json`.
+I have not yet published to npm, but for now a
+```bash
+  wget https://raw.githubusercontent.com/javajosh/simpatico/master/core.js`
+  wget https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js`
+````
+
+Within markdown served by the [reflector](/reflector.md) you can omit this particular import statement.
+(If you don't include your own imports, default imports will apply)
 ```js
   assertEquals(3, combine(1, 2));
 ```
-Note that this code is *live* in the sense that the markdown processor generates a script tag in addition to pre/code tags.
-This script is executed on page load, and in this case you'd see an error in the console if the assert fails.
-Code that starts with a "less than" (<) symbol is *not* executed.
+Note that this code executes in the client browser context.
+If this particular fails, there will be output in the console (accessed via the dev tools, which in most browsers is F12).
 
+## Combining data objects together
 Combine's action varies according to the types of its arguments.
 Here there is an object type, and combine behaves just like `Object.assign`. In this case, they both merge keys:
 
@@ -53,16 +62,19 @@ assertEquals({a: {b : 2}},          combine({a: {b : 1}}, {a: {b : 1}}));
 assertEquals({a: {b : 1}}, Object.assign({},{a: {b : 1}}, {a: {b : 1}}));
 ```
 
-## Handlers
+## Combining messages with handlers.
 
-`combine()` supports *handlers*, which provides structured function invocation:
+`combine()` supports *handlers*, which provides structured function invocation.
+Handlers are objects with a handle property, which should be a function that takes two arguments, core and msg.
+The core is the target, or destination, of the message.
+The result is an array of objects that describe how the core should change.
 
 ```js
-// the handle function is just an ordinary pure function
-const inc = {handle: ()=>[{a:1},{b:2}] };
-assertEquals([{a:1},{b:2}], inc.handle());
+// This handler returns an array of 2 objects:
+const inc = {handle: (core, msg) => [ {a:1}, {b:2} ] };
+assertEquals([ {a:1}, {b:2} ], inc.handle());
 
-// the core is the handlers plus some state, called residue
+// the core is a handlers object, plus some state, called residue
 // in this case the residue is initialized to {a:10, b:20}
 const core= {handlers: {inc}, a:10, b:20};
 
@@ -76,6 +88,11 @@ assertEquals({handlers: {inc}, a:11, b:22}, combine(core, msg));
 The handler above is very simple: it takes no arguments and gives a constant result.
 It's a dual counter, where `a` is incremented by 1, and `b` by 2.
 We initialize both `a` and `b` to show there is interaction between the result of `inc` and current core state.
+
+Design alternative: We may also choose factor out state into another object:
+```js
+const core = {handlers: {}, residue:{a:10, b:20}};
+```
 
 Handlers take two arguments, the target and the message, in the first and second position respectively:
 ```js
@@ -253,7 +270,7 @@ function testTreeInternals() {
   ];
   let s = stree(ops2);
   // Let's pull out some stuff and look at it - none of this has to do with combine()
-  const {nodes, rows, branches, branchTips} = s;
+  const {nodes, rows, branches} = s;
   assertEquals([o, a1, a2, a3, a4, a5, a6], nodes);
   assertEquals([
     [o, a1, a2],
@@ -273,18 +290,14 @@ Test assertions in the tree.
 ```js
 function testTreeAssertions() {
   let DEBUG = true;
-  const log = {
-    handle: (...args) => {
-      if (DEBUG) console.log(args);
-      return [{}];
-    }
-  };
+  const log = logHandler;
   const inc = {handle: ()            => [{a: 1}, {b: 2}]};
   const sum = {handle: (_, {a, b})   => [{a: a + b}]};
   const mul = {handle: ({a}, {a: b}) => [{a: null}, {a: a * b}]};
 
   // 3: Same as ops but with more interspersed integers
   const ops3 = [
+    // {handlers: {log, inc, sum, mul, assert: assertHandler}},
     {handler: 'log'},
     {handler: 'inc'},
     {handler: 'assert', a: 1, b: 2},
@@ -317,33 +330,37 @@ We introduce some conventions that constrain the structure of the tree.
 The first rows are types, consisting only of handlers.
 The latter rows are instances, consisting only of messages.
 
-```js
+```ada
 function testTreeHandlers() {
-  const h1 = {handle: (b, a) => [{a: null}, {a: a * 1}], msg: {handler: 'h1', a: 2}};
-  const h2 = {handle: (b, a) => [{a: null}, {a: a * 2}], msg: {handler: 'h2', a: 2}};
-  const h3 = {handle: (b, a) => [{a: null}, {a: a * 3}], msg: {handler: 'h3', a: 2}};
-  const h4 = {handle: (b, a) => [{a: null}, {a: a * 4}], msg: {handler: 'h4', a: 2}};
+  const h1 = {handle: ({a}, {a: b}) => [ {a: b * b}], msg: {handler: 'h1', a: 2}};
+  // const h2 = {handle: (b, a) => [{a: null}, {a: a * 2}], msg: {handler: 'h2', a: 2}};
+  // const h3 = {handle: (b, a) => [{a: null}, {a: a * 3}], msg: {handler: 'h3', a: 2}};
+  // const h4 = {handle: (b, a) => [{a: null}, {a: a * 4}], msg: {handler: 'h4', a: 2}};
 
   // helper functions to build the ops (and a few tests to exercise/explain the intended use as authoring tools
-  const h = a => [0, h1, h2, h3, h4][a].msg;
-  const a = a => ({a});
-  const b = b => ({b});
+  // const h = a => [0, h1, h2, h3, h4][a].msg;
+  const c = c => ({c});
+  // const b = b => ({b});
   const as = a => ({handler: 'assert', ...a});
-  assertEquals({handler: 'h1', a: 2}, h(1));
-  assertEquals({handler: 'h3', a: 2}, h(3));
-  assertEquals({handler: 'h4', a: 2}, h(4));
-  assertEquals({a: 2}, a(2));
-  assertEquals({handler: 'assert', a: 7}, as({a: 7}));
+  // assertEquals({handler: 'h1', a: 2}, h(1));
+  // assertEquals({handler: 'h3', a: 2}, h(3));
+  // assertEquals({handler: 'h4', a: 2}, h(4));
+  // assertEquals({a: 2}, a(2));
+  // assertEquals({handler: 'assert', a: 7}, as({a: 7}));
 
   // In this case we're building up a simple type tree and instantiating some of the types (and asserting things)
+  // const ops = [
+  //   {handlers: {assert: assertHandler}},
+  //   0, {type: 'foo'}, {handlers: {h1, h2}}, // 2
+  //   0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // 5; note the split handlers
+  //   0, {type: 'baz'}, {handlers: {h3, h4}}, // 7
+  //   2, a(1), as({a: 1}), a(2), as({type: 'foo', a: 3}), a(5), as({a: 8}),
+  //   5, a(3), as({type: 'bar', a: 3}), // h(3).msg, as({a:9}),
+  //   7, a(4), as({type: 'baz', a: 4}),
+  // ];
+
   const ops = [
-    {handlers: {assert: assertHandler}},
-    0, {type: 'foo'}, {handlers: {h1, h2}}, // 2
-    0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // 5; note the split handlers
-    0, {type: 'baz'}, {handlers: {h3, h4}}, // 7
-    2, a(1), as({a: 1}), a(2), as({type: 'foo', a: 3}), a(5), as({a: 8}),
-    5, a(3), as({type: 'bar', a: 3}), // h(3).msg, as({a:9}),
-    7, a(4), as({type: 'baz', a: 4}),
+    {handlers: h1}, h1.msg,
   ];
   const {add, neu, residues, summary, nodes, allBranchesReachable} = stree(ops);
   allBranchesReachable({});
@@ -351,3 +368,5 @@ function testTreeHandlers() {
 }
 testTreeHandlers();
 ```
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/k3WkJq478To" title="YouTube video player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; web-share"></iframe>

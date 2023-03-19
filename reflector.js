@@ -61,7 +61,7 @@ const markdown = new showdown.Converter({
   tasklists: true,
   defaultImport: [
     'import {assertEquals} from "/core.js";',
-    'import {combine, stree, assertHandler} from "/combine2.js";',
+    'import {combine, stree, assertHandler, logHandler} from "/combine2.js";',
   ].join('\n'),
   extensions: ['scriptPassThroughExtension'],
 });
@@ -375,12 +375,17 @@ function chatServerLogic(ws) {
 // Build markdown, support custom header tags in the markdown
 // Add a useful default header if no header tags are in the target.
 function buildMarkdown(markdownString, fileName=''){
-  if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`
+  if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
 
+  // Everything above and including the first line that contains </head> is not processed.
+  let headerLineCount = -1;
   const markdownLines = markdownString.split('\n');
-
-  let headerLineCount = 0;
-  markdownLines.every(line => (line.startsWith('<') ? ++headerLineCount : false));
+  for (let i = 0; i < markdownLines.length; i++) {
+    if (markdownLines[i].includes('</head>')) {
+      headerLineCount = i + 1;
+      break;
+    }
+  }
 
   // If there are no header lines, use the default header
   let headerLines, bodyLines;
