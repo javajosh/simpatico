@@ -31,6 +31,13 @@ const assertHandler = {
   as: a => ({handle: 'assert', ...a})
 };
 
+const logHandler = {
+  handle: (...args) => {
+    if (DEBUG) console.log(args);
+    return [{}];
+  }
+};
+
 function combine(a, b) {
   // this convention implies b "acts on" a, in this case by 'zeroing a out' when b is null.
   // we can't zero out a boolean without introducing null, so we toggle it instead.
@@ -111,41 +118,50 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
   arr.every(add);
 
   function add(d) {
-    if (isNum(d) && d >= 0 ){
+
+    const updateResidues = false;
+
+    if (isObj(d) && d.hasOwnProperty('neu')){
+      // Special handling for neu messages - delegate to neu() and
+      neu(d);
+    } else if (isNum(d) && d >= 0 ){
       // Positive numbers mean the target is a node
+      // Add a new row with the first elt integer d pointing to parent node.
       if (d >= nodes.length) throw 'invalid parent node ' + d;
       currRow = [d];
       currRowIndex = rows.length;
       rows.push(currRow);
     } else if(isNum(d) && d < 0) {
       // Negative numbers means the target is a row.
+      // Modify currRowIndex to -d and update currRow, too.
       if (-d >= rows.length) throw 'invalid row ' + d;
       currRow = rows[-d];
       currRowIndex = -d;
     } else {
-      // Special handling for neu messages - delegate to neu() and
-      if (isObj(d) && d.hasOwnProperty('neu')){
-        neu(d);
-        return true;
-      }
-      // Support for efficient branches()
+      // Non-number means we're adding a value, or measurement. Often, it's an object.
+      // nodeToRowMap stays in lockstep with nodes, making it easy to find a node within the row structure.
       nodeToRowMap.push([currRowIndex, currRow.length]);
-
-      // The primary purpose, adding things to the current row and nodes.
+      if (updateResidues) updateResidueAndSummary(d);
       currRow.push(d);
       nodes.push(d);
-
-      // Update caches for residue and summary.
-      try {
-        residues[currRowIndex] = rowReducer(residues[currRowIndex], d);
-        summary = residues.reduce(summaryReducer, {});
-      } catch (e) {
-
-      }
     }
     return true;
   }
-
+  function updateResidueAndSummary(d){
+    // Update caches for residue and summary.
+    // This also serves as validation - messages are validated against previous residue!
+    // Since messages modify residue, combine is what rich hickey termed a "transducer" -
+    // a reducer that changes during the reduction.
+    const core = residues[currRowIndex];
+    try {
+      residues[currRowIndex] = rowReducer(core, d);
+      summary = residues.reduce(summaryReducer, {});
+    } catch (e) {
+      const msg = `cannot combine op ${JSON.stringify(d)} with core ${core}`
+      e = Object.assign(e, {msg});
+      throw e;
+    }
+  }
 
   // Given either a type name or type row, create a new instance row.
   // A more handy way to make instances than the raw add(node) interface.
@@ -209,8 +225,8 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
         state = combine(state, op);
         return true;
       } catch (e) {
-        console.error(`cannot combine op ${JSON.stringify(op)} op i ${opi} at branch i ${branchi} and core ${JSON.stringify(core)}`);
-        debugger;
+        const msg = `cannot combine op ${JSON.stringify(op)} op i ${opi} at branch i ${branchi} and core ${JSON.stringify(core)}`
+        e = Object.assign(e, {msg});
         throw e;
       }
     });
@@ -235,4 +251,4 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
   };
 }
 
-export {combine, stree, assertHandler}
+export {combine, stree, assertHandler, logHandler}
