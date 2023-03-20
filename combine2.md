@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-  <title>Welcome to Markdown!</title>
+  <title>Simpatico: combine()</title>
   <link rel="stylesheet" href="/style.css">
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
@@ -23,7 +23,7 @@
 See [test harness](./combine2.html)
 
 ==========================================================================
-# Combine
+# Simpatico: combine()
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
 You use it in a webpage like this:
@@ -183,7 +183,7 @@ The object structure is primary - the rest of it is just window dressing.
 
 
 
-We can simplify this code like this - although frankly I'm on the fence about whether this syntax is better than plain objects!
+Here is a somewhat redundant example that I may remove:
 ```js
 const as = assertHandler;
 const dbl = {
@@ -200,7 +200,6 @@ const ops = [
   ...etc
 ];
 combine(ops);
-// If we reach here without throwing, everything is good!
 ```
 
 
@@ -218,8 +217,8 @@ const ops = [
   as.install(), {handlers: {inc: inc1}},
   {a:10, b:20}, as.call({a:10, b:20}),
   msg,          as.call({a:11, b:22}), // The message increased residue
-  {handlers: {inc: inc2}}, as.call({a:11, b:22}),
-  msg,          as.call({a:10, b:20}), // The same message decreased residue because the handler is replaced.
+  {handlers: {inc: inc2}},             // Replace inc1 with inc2 answering to the 'inc' msg
+  msg,          as.call({a:10, b:20}), // The message decreased residue
   msg,          as.call({a:9, b:18}),
   ...etc
 ];
@@ -234,19 +233,19 @@ Functions replace, so we can overwrite the old handler and call it with the same
 ```js
 const as = assertHandler;
 const h1 = {
-  handle: ()=>[{handler:'h2'},{a:1}],
-  call: ()=> ({handler: 'h1'}),
+  handle: ()=> [{handler: 'h2'},{a:1}],
+  call:   ()=> ({handler: 'h1'}),
 };
 const h2 = {
-  handle: ()=>[{b:1}],
-  call: ()=> ({handler: 'h2'}),
+  handle: ()=> [{b:1}],
+  call:   ()=> ({handler: 'h2'}),
 };
 
 const ops = [
   as.install(),
   {handlers:{h1, h2}},
   {a:0, b:0}, as.call({a:0, b:0}),
-  h1.call(),  as.call({a:1, b:1}),
+  h1.call(),  as.call({a:1, b:1}), // The only way that b increments is if h2 is called; hence h2 been called indirectly.
   h1.call(),  as.call({a:2, b:2}),
   ...etc
 ];
