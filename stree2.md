@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-  <title>Welcome to Markdown!</title>
+  <title>Simpatico: stree()</title>
   <link rel="stylesheet" href="/style.css">
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
@@ -20,10 +20,10 @@
   </script>
 </head>
 
-  - See [combine1 test harness](./combine.html)
-  - See [combine2 test harness](./combine2.md)
+  - See [home](/index.html)
+  - See [combine2](./combine2.md)
 
-# STree
+# Simpatico: stree()
 The `stree` (s is for "summary" or "simpatico") is an n-arry tree that associates a reduction with every node.
 The reduction is over the list of nodes in order from root, which you can find easily from any node by walking up the parent.
 The major interface is a (growing) list of branches, represented simply by the nodes with no children.
@@ -148,5 +148,3 @@ function testTreeHandlers() {
 }
 testTreeHandlers();
 ```
-
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/k3WkJq478To" title="YouTube video player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; web-share"></iframe>
