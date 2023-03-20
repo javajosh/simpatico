@@ -1,6 +1,6 @@
 // A much simpler combine not for production use - just playing with some ideas.
 
-import {assertEquals} from './core.js';
+import {assertEquals, tryToStringify} from './core.js';
 
 const DEBUG = false;
 const isNum = d => Number.isInteger(d);
@@ -20,21 +20,26 @@ const isInstance = a =>isCore(a) && a.hasOwnProperty('nodeId') && isNum(a);
 const isType = a =>    isCore(a) && a.hasOwnProperty('type') && typeof a['type'] === 'string';
 
 const assertHandler = {
+  name: 'assert',
+  install: function(){return {handlers: {assert: this}}},
+  call: a => ({handler: 'assert', ...a}),
   handle: (core, msg) => {
-    Object.entries(msg).forEach(([msgKey, msgValue]) => {
-      if (msgKey === 'handler') return; // skip the handler name itself
-      if (core.hasOwnProperty(msgKey)) assertEquals(msgValue, core[msgKey]);
-      else throw 'core is missing asserted property ' + msgKey;
+    Object.entries(msg).forEach(([key, msgValue]) => {
+      if (key === 'handler' || key === 'parent') return; // skip the handler name itself
+      if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
+      else throw new Error(`core ${tryToStringify(core)} is missing asserted property ` + key);
     });
-    return [{}]; // just return a noop
+    return [{}];
   },
-  as: a => ({handle: 'assert', ...a})
 };
 
 const logHandler = {
-  handle: (...args) => {
-    if (DEBUG) console.log(args);
-    return [{}];
+  name: 'log',
+  install: function(){return {handlers: {assert: this}, debug: true}},
+  call: a => ({handler: 'log', ...a}),
+  handle: (core, msg) => {
+    if (core.debug)
+      console.log('logHandler', 'core', core, 'msg', msg);
   }
 };
 
@@ -67,7 +72,12 @@ function combine(a, b) {
   // If both args are plain objects, combine every shared key, and add the non-shared keys, too.
   if (isObj(a) && isObj(b)) {
     if (isCore(a) && isMsg(b)){
-      if (!isHandler(a.handlers[b.handler])) throw `Unable to find valid handler ${b.handler} in core ${a}`;
+      if (!isHandler(a.handlers[b.handler])) {
+        let e = new Error(`Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`);
+        // const msg = `Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`;
+        // e = Object.assign(e,{msg})
+        throw e;
+      }
       let result = a.handlers[b.handler].handle(a, b);
       if (!Array.isArray(result)) result = [result];
       result.every(obj => a = combine(a, obj));
@@ -93,7 +103,7 @@ function combine(a, b) {
   if (typeof a === 'function' && typeof b === 'function') return b;
   if (typeof a === 'number'   && typeof b === 'number'  ) return a + b;
 
-  throw `unable to combine ${a} and ${b} types ${typeof a} ${typeof b}`
+  throw new Error(`unable to combine ${tryToStringify(a)} and ${tryToStringify(b)} types ${typeof a} ${typeof b}`);
 }
 
 // Take an array with sprinkled integers and turn it into a tree of related elements
@@ -251,4 +261,14 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
   };
 }
 
-export {combine, stree, assertHandler, logHandler}
+function combineAll(...args) {
+  if (args.length === 2) {
+    return combine(args[0], args[1]);
+  } else if (args.length === 1 && Array.isArray(args[0])) {
+    return args[0].reduce(combine, {});
+  } else {
+    return args.reduce(combine, {});
+  }
+}
+
+export {combineAll as combine, stree, assertHandler, logHandler}

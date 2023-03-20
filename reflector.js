@@ -59,10 +59,7 @@ const markdown = new showdown.Converter({
   tables: true,
   flavor: 'github',
   tasklists: true,
-  defaultImport: [
-    'import {assertEquals} from "/core.js";',
-    'import {combine, stree, assertHandler, logHandler} from "/combine2.js";',
-  ].join('\n'),
+  defaultImport: markdownDefaultImports(),
   extensions: ['scriptPassThroughExtension'],
 });
 
@@ -370,6 +367,13 @@ function chatServerLogic(ws) {
       }
     });
   });
+}
+function markdownDefaultImports() {
+  return [
+    'import {assertEquals, assertThrows} from "/core.js";',
+    'import {combine, stree, assertHandler, logHandler} from "/combine2.js";',
+    'let etc = [];'
+  ].join('\n');
 }
 
 // Build markdown, support custom header tags in the markdown

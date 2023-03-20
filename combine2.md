@@ -22,34 +22,48 @@
 
 See [test harness](./combine2.html)
 
-# combine(a,b)
+==========================================================================
+# Combine
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
 You use it in a webpage like this:
 ```html
 <script type="module">
-  import {assertEquals, combine} from '/simpatico.js';
+  import {assertEquals} from '/core.js';
+  import {combine} from '/combine2.js';
   assertEquals(3, combine(1, 2));
 </script>
 ```
 To use the library in node, omit the script tags and set `"type": "module"` in `package.json`.
-I have not yet published to npm, but for now a
+Simpatico is not yet published to npm, but for now a simple `wget` will work:
 ```bash
   wget https://raw.githubusercontent.com/javajosh/simpatico/master/core.js`
   wget https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js`
 ````
 
-Within markdown served by the [reflector](/reflector.md) you can omit this particular import statement.
-(If you don't include your own imports, default imports will apply)
+Within markdown code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
+(If you don't include your own imports, default imports will apply):
 ```js
   assertEquals(3, combine(1, 2));
 ```
-Note that this code executes in the client browser context.
-If this particular fails, there will be output in the console (accessed via the dev tools, which in most browsers is F12).
+This code has executed in your browser context.
+It executed after your page finished loading.
+There may be output in the console (accessed via the dev tools, which in most browsers is `F12`).
+In fact, every code snippet on this page executed already!
 
-## Combining data objects together
+==========================================================================
+# Combining data objects together
 Combine's action varies according to the types of its arguments.
-Here there is an object type, and combine behaves just like `Object.assign`. In this case, they both merge keys:
+Numbers add. Most other scalars "replace":
+```js
+  assertEquals('bar', combine('foo', 'bar'));
+  assertEquals(false, combine(true, false));
+  let a = () => {}, b = () => {};
+  assertEquals(b, combine(a, b));
+```
+
+For objects, combine mostly behaves just like `Object.assign`.
+They both merge keys:
 
 ```js
 assertEquals({a:1, b:2}, combine({a:1},{b:2}));
@@ -62,12 +76,26 @@ assertEquals({a: {b : 2}},          combine({a: {b : 1}}, {a: {b : 1}}));
 assertEquals({a: {b : 1}}, Object.assign({},{a: {b : 1}}, {a: {b : 1}}));
 ```
 
-## Combining messages with handlers.
+==========================================================================
+# Combining with Handlers
 
-`combine()` supports *handlers*, which provides structured function invocation.
+`combine()` supports *handlers*. A handler looks like this:
+
+```js
+// This handler ignores its arguments and returns an array of 2 objects:
+const inc = {handle: (core, msg) => [ {a:1}, {b:2} ] };
+assertEquals([ {a:1}, {b:2} ], inc.handle());
+```
+
+Handlers are how you program cores in Simpatico.
 Handlers are objects with a handle property, which should be a function that takes two arguments, core and msg.
 The core is the target, or destination, of the message.
 The result is an array of objects that describe how the core should change.
+
+==========================================================================
+## handle : (core, msg) => [ ]
+Handlers take two arguments, the target and the message, in the first and second position respectively.
+Also, we add a 'msg' entry that describes a typical message for this handler:
 
 ```js
 // This handler returns an array of 2 objects:
@@ -82,35 +110,38 @@ const core= {handlers: {inc}, a:10, b:20};
 const msg = {handler: 'inc'};
 
 // check the effect on residue
+assertEquals({handlers: {inc}, a:11, b:22}, combine(core, msg), 'shows a side-effect on residue.');
+assertEquals({handlers: {inc}, a:10, b:20}, core, 'core is untouched');
 assertEquals({handlers: {inc}, a:11, b:22}, combine(core, msg));
+assertEquals({handlers: {inc}, a:12, b:24}, combine(core, msg, msg), 'increments compound');
+assertEquals({handlers: {inc}, a:13, b:26}, combine(core, msg, msg, msg));
+
 ```
 
-The handler above is very simple: it takes no arguments and gives a constant result.
+The handler above takes no arguments and gives a constant result.
+We leave the `(core, msg)` named arguments for consistency, even though we're not using them.
 It's a dual counter, where `a` is incremented by 1, and `b` by 2.
 We initialize both `a` and `b` to show there is interaction between the result of `inc` and current core state.
 
-Design alternative: We may also choose factor out state into another object:
+### Use explicit residue?
+Some prototypes used this structure to keep residue separate from handlers.
+I've avoided doing it this way, but I'm not sure why.
+It *is* annoying to separate them!
 ```js
-const core = {handlers: {}, residue:{a:10, b:20}};
-```
+const core = {handlers: {}, residue:{a:1, b:2}};
 
-Handlers take two arguments, the target and the message, in the first and second position respectively:
-```js
-const inc = {
-  handle: (res, msg) => [{a: res.a},{b: res.b}],
-  msg: {handler: 'inc'}
-};
-let core = {handlers: {inc}, a:10, b:20};
-assertEquals({handlers: {inc}, a:20, b:40}, combine(core, inc.msg));
 ```
-`res` stands for "residue".
-Also note that we've tucked in the example call into the handler definition.
-The handler object is a great place to store static resources your function needs and that a caller may need to access.
-
-### Assertion handler
+==========================================================================
+## Assertion handler
 Before moving on its useful to define an "assertion handler":
 ```js
-const assertionHandler = {
+import {assertEquals, assertThrows} from "/core.js";
+import {combine, stree, logHandler} from "/combine2.js";
+
+const assertHandler = {
+  name: 'assert',
+  install: function(){return {handlers: {assert: this}}},
+  call: a => ({handler: 'assert', ...a}),
   handle: (core, msg) => {
     Object.entries(msg).forEach(([key, msgValue]) => {
       if (key === 'handler' || key === 'parent') return; // skip the handler name itself
@@ -119,104 +150,120 @@ const assertionHandler = {
     });
     return [{}];
   },
-  as: a => ({handle: 'assert', ...a})
 };
+const as = assertHandler;
 
 // Throws when the assertion is wrong.
-let throws = false;
-try{combine(
-  {a:1, handlers: {assert: assertHandler}},
-  {a:2, handler: 'assert'},
-);} catch (e) {throws = true;}
-assertEquals(true, throws);
+assertThrows(() => {
+  combine(
+    {a:1, handlers: {assert: as}},
+    {a:2, handler: 'assert'},
+  );
+});
 
 //Does not throw when the assertion is right
 combine(
-  {a:1, handlers: {assert: assertHandler}},
+  {a:1, handlers: {assert: as}},
   {a:1, handler: 'assert'},
 );
+
+// Here are the less brittle, shorter forms:
+assertThrows(() => combine(as.install(), {a:1}, as.call({a:2})));
+combine(as.install(), {a:1}, as.call({a:1}));
+
+
+// A nice call and response pattern:
+combine(as.install(),
+  {a:1},     as.call({a:1}),
+  {c:'foo'}, as.call({c:'foo'}),
+);
 ```
+I'm not super happy with the syntax, but let's move on.
+The object structure is primary - the rest of it is just window dressing.
 
-With this handler we can add assert messages into the core, and the add will fail if the assert fails.
-In this implementation, we can assert the state of the residue:
 
+
+We can simplify this code like this - although frankly I'm on the fence about whether this syntax is better than plain objects!
 ```js
-const as = assertHandler.as;
-
-const inc = {handle: (res, msg) => [{a: res.a}, {b: res.b}]};
-const msg = {handler: 'inc'}
-let core = {handlers: {inc, assert: assertHandler}, a: 10, b: 20};
-core = combine(core, {handle: 'assert', a: 10, b: 20});
-core = combine(core, msg)
-core = combine(core, {handle: 'assert', a: 20, b: 40})
-```
-We can simplify this code like this:
-```js
-const inc = {handle: (res, msg) => [{a: res.a},{b: res.b}], msg: {handler: 'inc'}};
-const as = a => ({handle: 'assert', ...a});
+const as = assertHandler;
+const dbl = {
+  call: () => ({handler: 'dbl'}),
+  install: function(){ return {handlers: {dbl: this}, a: 0, b:0 } },
+  handle: (core, msg) => [{a: core.a}, {b: core.b}],
+}
 
 const ops = [
-  {handlers: {inc}},
-  {handlers: {assert: assertHandler}},
-  {a:10, b:20},
-  as({a:10, b:20}),
-  inc.msg,
-  as({a:20,b:40}),
+  as.install(), dbl.install(),
+  {a:10, b:20}, as.call({a:10, b:20}),
+  dbl.call(), as.call({a:20,b:40}),
+  dbl.call(), as.call({a:40,b:80}),
+  ...etc
 ];
-let core = {};
-ops.every(op => core = combine(core, op));
+combine(ops);
 // If we reach here without throwing, everything is good!
 ```
 
 
-
-### Handlers replace each other
+==========================================================================
+## Handlers replace each other
 
 Handlers replace, so we can overwrite the old handler and call it with the same message:
 ```js
-const as = assertHandler.as;
+const as = assertHandler;
 const inc1 = {handle: ()=>[{a:1},{b:2}] };
 const inc2 = {handle: ()=>[{a:-1},{b:-2}] }
 const msg = {handler: 'inc'}
 
-let core = {handlers: {inc: inc1}, a:10, b:20};
 const ops = [
-  as({a:10, b:20}),
-  msg,
-  as({a:11, b:22}),
-  {handlers: {inc: inc2}},
-  as({a:11, b:22}),
-  msg,
-  as({a:10, b:20}),
+  as.install(), {handlers: {inc: inc1}},
+  {a:10, b:20}, as.call({a:10, b:20}),
+  msg,          as.call({a:11, b:22}), // The message increased residue
+  {handlers: {inc: inc2}}, as.call({a:11, b:22}),
+  msg,          as.call({a:10, b:20}), // The same message decreased residue because the handler is replaced.
+  msg,          as.call({a:9, b:18}),
+  ...etc
 ];
-ops.every(op => core = combine(core, op));
+combine(ops);
 ```
 This feature is key to enabling *type versioning*.
 
-### Handlers call each other
+==========================================================================
+## Handlers call each other
 
 Functions replace, so we can overwrite the old handler and call it with the same message:
 ```js
-const as = assertHandler.as;
-const h1 = {handle: ()=>[{handler:'h2'},{a:1}], msg: {handler: 'h1'} };
-const h2 = {handle: ()=>[{b:1}], msg: {handler: 'h2'} };
-
-let core = {handlers:{h1,h2}, a:0, b:0};
+const as = assertHandler;
+const h1 = {
+  handle: ()=>[{handler:'h2'},{a:1}],
+  call: ()=> ({handler: 'h1'}),
+};
+const h2 = {
+  handle: ()=>[{b:1}],
+  call: ()=> ({handler: 'h2'}),
+};
 
 const ops = [
-  as({a:0, b:0}),
-  h1.msg,
-  as({a:1, b:2}),
+  as.install(),
+  {handlers:{h1, h2}},
+  {a:0, b:0}, as.call({a:0, b:0}),
+  h1.call(),  as.call({a:1, b:1}),
+  h1.call(),  as.call({a:2, b:2}),
+  ...etc
 ];
-
-ops.every(op => core = combine(core, op));
+combine(ops);
 ```
-I anticipate that this will be a very unusual use case, to modify a handler during the core's lifetime.
+I anticipate that modify a handler during the core's lifetime is quite rare, and in fact we design carefully around such a case.
+In particular, make cores lifetime shorter, so we don't have to worry about it.
+Some cores must have a long life though, like that which defines our relationships.
+It makes sense to make that more freeform.
+
 However, I think it will be very common that users will have different versions of a core, meaning different versions of the same handler.
 And they will have active instances of these versions active simultaneously.
 This effect is very difficult to achieve with class OOP techniques, but comes naturally here.
 
-### Definition of "Core"
+
+==========================================================================
+# Definition of "Core"
 A core is an object with a property named 'handlers', of type object, with each key a short descriptive name and each value a handler.
 A handler is an object with a property named 'handle' of type function, that takes two args, computes the modifications required, and returns those modifications, without applying them, as an array of objects.
 The returned objects are `combine`d recursively, forming a *message cascade*
@@ -224,17 +271,12 @@ The intuition is of something like splashing in the water, with the water itself
 
 ## What we have
 At this point we have a data structure that
-   1. can reach an effectively arbitrary JavaScript object shape.
+   1. can reach an arbitrary JavaScript object shape
    1. We can select how we get there, going either one value at a time or several, grouped in objects.
-   1. We can add data objects directly by adding regular objects.
-   1. We can add data objects indirectly with handler invocation by adding handler targeted objects.
+   1. We can mutate by adding regular objects.
+   1. We can compute which data objects to add by reifying function invocation with handlers.
 
-These features of `combine()` alone make it a very potent data modeling tool.
-
-Modeling program state as a monotonically increasing list of input, all of which are objects, gives us a great benefit:
-We can imagine branching our program state in a very natural way.
-This method of branching turns out to be both simpler and more expressive than either inheritance relationships or instantiation.
-This will be dealt with in the `stree` section.
+These features of `combine()`, along with reusable handlers like assert and log, plus authoring guidelines,  make it a very potent data modeling tool.
 
 ## *What we need*.
    1. We need a way not just to zero but to remove items in combine.
@@ -243,130 +285,12 @@ This will be dealt with in the `stree` section.
    1. I also don't like the array merge (should be concat).
    1. I also don't like number sum by default. It should be configurable.
 
-## STree
-The `stree` (s is for "summary" or "simpatico") is an n-arry tree that associates a reduction with every node.
-The reduction is over the list of nodes in order from root, which you can find easily from any node by walking up the parent.
-The major interface is a (growing) list of branches, represented simply by the nodes with no children.
+==========================================================================
+# Next: stree
 
-And I do have an implementation written precisely in that way, but I'll be using another implementation.
-This one anticipates long runs of input targeted at a single row, so instead of wrapping each input in a new object, simply puts the input in the array.
-It also corresponds to the visualization.
+Modeling program state as a monotonically increasing list of input, all of which are objects, gives us a great benefit:
+We can imagine branching our program state in a very natural way.
+This method of branching turns out to be both simpler and more expressive than either inheritance relationships or instantiation.
+This will be dealt with in the `stree` section.
 
-Interestingly, the basics of this data-structure has little to do with combine.
-I feel that combine's utility (which I think is high) is multiplied by the stree.
-In part that's because it harnesses one of the computers great superpowers, the ability to perfectly copy complex structure effortlessly.
-If you have a simple, general, usefully constrained way to represent program state, it makes sense to apply an stree to that in particular.
-
-```js
-function testTreeInternals() {
-  // Lets experiment with adding integers to the operations list, forming a trie
-  const o = {};
-  const a1={a:1},a2={a:2},a3={a:3},a4={a:4},a5={a:5},a6={a:6};
-  const ops2 = [
-    o, a1, a2,
-    0, a3, a4,
-    2, a5,
-    -1, a6
-  ];
-  let s = stree(ops2);
-  // Let's pull out some stuff and look at it - none of this has to do with combine()
-  const {nodes, rows, branches} = s;
-  assertEquals([o, a1, a2, a3, a4, a5, a6], nodes);
-  assertEquals([
-    [o, a1, a2],
-    [0, a3, a4, a6],
-    [2, a5]
-  ], rows);
-  assertEquals([
-    [o, a1, a2],
-    [o, a3, a4, a6],
-    [o, a1, a2, a5]
-  ], branches());
-
-}
-testTreeInternals()
-```
-Test assertions in the tree.
-```js
-function testTreeAssertions() {
-  let DEBUG = true;
-  const log = logHandler;
-  const inc = {handle: ()            => [{a: 1}, {b: 2}]};
-  const sum = {handle: (_, {a, b})   => [{a: a + b}]};
-  const mul = {handle: ({a}, {a: b}) => [{a: null}, {a: a * b}]};
-
-  // 3: Same as ops but with more interspersed integers
-  const ops3 = [
-    // {handlers: {log, inc, sum, mul, assert: assertHandler}},
-    {handler: 'log'},
-    {handler: 'inc'},
-    {handler: 'assert', a: 1, b: 2},
-    {handler: 'inc'},
-    {handler: 'assert', a: 2, b: 4},
-    2,
-    {a: null},
-    {handler: 'assert', a: 0},
-    {handler: 'sum', a: 1, b: 2},
-    {handler: 'assert', a: 3},
-    {a: null},
-    {a: 3},
-    {a: 2},
-    {handler: 'assert', a: 5},
-    {handler: 'mul', a: 10},
-    {handler: 'assert', a: 50},
-    {handler: 'log'},
-  ];
-  const {branches: branches3, allBranchesReachable, residues, summary} = stree(ops3);
-  allBranchesReachable({handlers: {log, inc, sum, mul, assert: assertHandler}});
-  if (DEBUG) console.log('branches3()', branches3(), 'residues', residues, 'summary', summary);
-}
-testTreeAssertions();
-```
-
-## Simpatico OOP
-Building out an example of classic OOP types and instantiation with Simpatico.
-Rows are simply designated a type with a label.
-We introduce some conventions that constrain the structure of the tree.
-The first rows are types, consisting only of handlers.
-The latter rows are instances, consisting only of messages.
-
-```ada
-function testTreeHandlers() {
-  const h1 = {handle: ({a}, {a: b}) => [ {a: b * b}], msg: {handler: 'h1', a: 2}};
-  // const h2 = {handle: (b, a) => [{a: null}, {a: a * 2}], msg: {handler: 'h2', a: 2}};
-  // const h3 = {handle: (b, a) => [{a: null}, {a: a * 3}], msg: {handler: 'h3', a: 2}};
-  // const h4 = {handle: (b, a) => [{a: null}, {a: a * 4}], msg: {handler: 'h4', a: 2}};
-
-  // helper functions to build the ops (and a few tests to exercise/explain the intended use as authoring tools
-  // const h = a => [0, h1, h2, h3, h4][a].msg;
-  const c = c => ({c});
-  // const b = b => ({b});
-  const as = a => ({handler: 'assert', ...a});
-  // assertEquals({handler: 'h1', a: 2}, h(1));
-  // assertEquals({handler: 'h3', a: 2}, h(3));
-  // assertEquals({handler: 'h4', a: 2}, h(4));
-  // assertEquals({a: 2}, a(2));
-  // assertEquals({handler: 'assert', a: 7}, as({a: 7}));
-
-  // In this case we're building up a simple type tree and instantiating some of the types (and asserting things)
-  // const ops = [
-  //   {handlers: {assert: assertHandler}},
-  //   0, {type: 'foo'}, {handlers: {h1, h2}}, // 2
-  //   0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // 5; note the split handlers
-  //   0, {type: 'baz'}, {handlers: {h3, h4}}, // 7
-  //   2, a(1), as({a: 1}), a(2), as({type: 'foo', a: 3}), a(5), as({a: 8}),
-  //   5, a(3), as({type: 'bar', a: 3}), // h(3).msg, as({a:9}),
-  //   7, a(4), as({type: 'baz', a: 4}),
-  // ];
-
-  const ops = [
-    {handlers: h1}, h1.msg,
-  ];
-  const {add, neu, residues, summary, nodes, allBranchesReachable} = stree(ops);
-  allBranchesReachable({});
-  console.log('residues', residues, 'nodes', nodes, 'summary', summary);
-}
-testTreeHandlers();
-```
-
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/k3WkJq478To" title="YouTube video player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; web-share"></iframe>
+Continue with [stree2](./stree2.md).
