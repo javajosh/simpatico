@@ -24,7 +24,31 @@
   - See [combine2](./combine2.md)
 
 # Simpatico: stree()
-The `stree` (s is for "summary" or "simpatico") is an n-arry tree that associates a reduction with every node.
+The `stree` (s is for "summary" or "simpatico") allows you to express
+many related sequences with ease.
+If we associate each branch with a row then all we need is a way to make new rows.
+And once we have our rows, we need a way to select old ones.
+The convention I have selected is to reserve number typed input to do both tasks.
+
+  1. Negative integers select rows. Subsequent input is added here.
+  1. Positive integers select nodes. A new row is formed, parented to the node.
+
+```js
+const ops = [
+    'he',
+  0, 'y',
+  0, 're',
+  2, 'tic',
+  0, 'rmit',
+];
+const noop = ()=>{};
+const concat = (a,b) => a+b;
+const s = stree(ops, concat, concat); // make this work
+console.log(1, s);
+const strings = s.branches().map(arr => arr.reduce(concat,'')); //this already works
+assertEquals(['he', 'hey', 'here', 'heretic', 'hermit'], strings);
+```
+
 The reduction is over the list of nodes in order from root, which you can find easily from any node by walking up the parent.
 The major interface is a (growing) list of branches, represented simply by the nodes with no children.
 
@@ -67,7 +91,7 @@ function testTreeInternals() {
 testTreeInternals()
 ```
 Test assertions in the tree.
-```js
+```ada
 function testTreeAssertions() {
   let DEBUG = true;
   const log = logHandler;

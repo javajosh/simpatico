@@ -129,7 +129,7 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
 
   function add(d) {
 
-    const updateResidues = false;
+    const updateResidues = true;
 
     if (isObj(d) && d.hasOwnProperty('neu')){
       // Special handling for neu messages - delegate to neu() and
