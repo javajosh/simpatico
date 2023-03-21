@@ -368,13 +368,6 @@ function chatServerLogic(ws) {
     });
   });
 }
-function markdownDefaultImports() {
-  return [
-    'import {assertEquals, assertThrows} from "/core.js";',
-    'import {combine, stree, assertHandler, logHandler} from "/combine2.js";',
-    'let etc = [];'
-  ].join('\n');
-}
 
 // Build markdown, support custom header tags in the markdown
 // Add a useful default header if no header tags are in the target.
@@ -422,6 +415,14 @@ function buildMarkdown(markdownString, fileName=''){
   function htmlFooter() {
     return `<p>Copyright javajosh 2023</p>`;
   }
+}
+
+function markdownDefaultImports() {
+  return [
+    'import {assertEquals, assertThrows} from "/core.js";',
+    'import {combine, stree, assertHandler, logHandler} from "/combine2.js";',
+    'let etc = [];'
+  ].join('\n');
 }
 
 const failWhale = `
