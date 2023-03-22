@@ -3133,17 +3133,17 @@ showdown.subParser('completeHTMLDocument', function (text, options, globals) {
 
   text = globals.converter._dispatch('completeHTMLDocument.before', text, options, globals);
 
-  var doctype = 'html',
+  var DOCTYPE = 'html',
       doctypeParsed = '<!DOCTYPE HTML>\n',
       title = '',
       charset = '<meta charset="utf-8">\n',
       lang = '',
       metadata = '';
 
-  if (typeof globals.metadata.parsed.doctype !== 'undefined') {
-    doctypeParsed = '<!DOCTYPE ' +  globals.metadata.parsed.doctype + '>\n';
-    doctype = globals.metadata.parsed.doctype.toString().toLowerCase();
-    if (doctype === 'html' || doctype === 'html5') {
+  if (typeof globals.metadata.parsed.DOCTYPE !== 'undefined') {
+    doctypeParsed = '<!DOCTYPE ' +  globals.metadata.parsed.DOCTYPE + '>\n';
+    DOCTYPE = globals.metadata.parsed.DOCTYPE.toString().toLowerCase();
+    if (DOCTYPE === 'html' || DOCTYPE === 'html5') {
       charset = '<meta charset="utf-8">';
     }
   }
@@ -3151,7 +3151,7 @@ showdown.subParser('completeHTMLDocument', function (text, options, globals) {
   for (var meta in globals.metadata.parsed) {
     if (globals.metadata.parsed.hasOwnProperty(meta)) {
       switch (meta.toLowerCase()) {
-        case 'doctype':
+        case 'DOCTYPE':
           break;
 
         case 'title':
@@ -3159,7 +3159,7 @@ showdown.subParser('completeHTMLDocument', function (text, options, globals) {
           break;
 
         case 'charset':
-          if (doctype === 'html' || doctype === 'html5') {
+          if (DOCTYPE === 'html' || DOCTYPE === 'html5') {
             charset = '<meta charset="' + globals.metadata.parsed.charset + '">\n';
           } else {
             charset = '<meta name="charset" content="' + globals.metadata.parsed.charset + '">\n';
