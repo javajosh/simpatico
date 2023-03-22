@@ -16,7 +16,7 @@ const peek = (arr, def=null) => {
 const isCore = a =>    typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
 const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
 const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
-const isInstance = a =>isCore(a) && a.hasOwnProperty('nodeId') && isNum(a);
+const isInstance = a =>isCore(a) && a.hasOwnProperty('nodeId') && isNum(a.nodeId);
 const isType = a =>    isCore(a) && a.hasOwnProperty('type') && typeof a['type'] === 'string';
 
 const assertHandler = {

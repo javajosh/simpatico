@@ -34,6 +34,8 @@ You use it in a webpage like this:
   assertEquals(3, combine(1, 2));
 </script>
 ```
+Note: this code doesn't execute in the page context because it is HTML and not JavaScript
+
 To use the library in node, omit the script tags and set `"type": "module"` in `package.json`.
 Simpatico is not yet published to npm, but for now a simple `wget` will work:
 ```bash
@@ -283,6 +285,11 @@ These features of `combine()`, along with reusable handlers like assert and log,
    1. Perhaps adapt the method of combine1 (although we lose our zeroes)
    1. I also don't like the array merge (should be concat).
    1. I also don't like number sum by default. It should be configurable.
+
+Some good examples of cores:
+   1. Reify objects, one value/key per row/core, with assign combine.
+   1. Tic tac toe game.
+   1. Chess game core to handle things like [png chess notation](http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2)
 
 ==========================================================================
 # Next: stree
