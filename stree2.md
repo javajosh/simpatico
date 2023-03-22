@@ -43,10 +43,16 @@ const ops = [
 ];
 const noop = ()=>{};
 const concat = (a,b) => a+b;
-const s = stree(ops, concat, concat); // make this work
-console.log(1, s);
+
+let s = stree(ops, noop, '' , noop, '');
 const strings = s.branches().map(arr => arr.reduce(concat,'')); //this already works
+console.log(234, s.branches())
 assertEquals(['he', 'hey', 'here', 'heretic', 'hermit'], strings);
+
+s = stree(ops, concat, '', concat, ''); // make this work
+assertEquals(['he', 'hey', 'here', 'heretic', 'hermit'], s.residues);
+console.log(1, s);
+
 ```
 
 The reduction is over the list of nodes in order from root, which you can find easily from any node by walking up the parent.
