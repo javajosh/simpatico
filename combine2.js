@@ -107,11 +107,15 @@ function combine(a, b) {
 }
 
 // Take an array with sprinkled integers and turn it into a tree of related elements
-function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
+function stree(
+  arr = [{}],
+  rowReducer=combine,         rowResidue={},
+  summaryReducer=combine, summaryResidue={}
+) {
   const rows = [[]];
   const nodes = [];
-  const residues = [];
-  let summary = {};
+  const residues = [rowResidue];
+  let summary = summaryResidue;
   let currRow = rows[0];
 
   // Support cheap(er) creation of branch state from row state
@@ -137,10 +141,13 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
     } else if (isNum(d) && d >= 0 ){
       // Positive numbers mean the target is a node
       // Add a new row with the first elt integer d pointing to parent node.
+      // Add the residue of the parent node as the residue of this (empty) row
       if (d >= nodes.length) throw 'invalid parent node ' + d;
+      // add a new row
       currRow = [d];
       currRowIndex = rows.length;
       rows.push(currRow);
+      residues.push(d);
     } else if(isNum(d) && d < 0) {
       // Negative numbers means the target is a row.
       // Modify currRowIndex to -d and update currRow, too.
@@ -148,12 +155,13 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
       currRow = rows[-d];
       currRowIndex = -d;
     } else {
-      // Non-number means we're adding a value, or measurement. Often, it's an object.
+      // Non-number means we're adding a value. Often, it's an object.
       // nodeToRowMap stays in lockstep with nodes, making it easy to find a node within the row structure.
       nodeToRowMap.push([currRowIndex, currRow.length]);
       if (updateResidues) updateResidueAndSummary(d);
       currRow.push(d);
       nodes.push(d);
+      residues.push(d);
     }
     return true;
   }
@@ -165,7 +173,7 @@ function stree(arr = [{}], rowReducer=combine, summaryReducer=combine) {
     const core = residues[currRowIndex];
     try {
       residues[currRowIndex] = rowReducer(core, d);
-      summary = residues.reduce(summaryReducer, {});
+      summary = residues.reduce(summaryReducer, summaryResidue);
     } catch (e) {
       const msg = `cannot combine op ${JSON.stringify(d)} with core ${core}`
       e = Object.assign(e, {msg});
