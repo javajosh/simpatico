@@ -20,19 +20,39 @@
 </script>
 </head>
 
-## This file is a test
+# Markdown
+HTML will always be the primary authoring tool.
+However, it is difficult to write about code in HTML.
 
-This file is a test of the `reflector.js` markdown capabilities:
-- [x] Custom headers take effect (check favicon)
-- [x] Code samples easy to author
-- [x] Code samples render without syntax highlighting
-- [x] Code samples render with syntax highlighting, esp for html, js, css, bash
-- [x] Raw html (esp inline svg) rendering correctly
-- [ ] Raw html (esp inline svg) authoring
-- [x] Raw javascript executing
-- [ ] Raw javascript authoring
+To that end I've added basic markdown support to the reflector:
 
-# Markdown: Motivation
+  - [x] Custom headers per markdown file
+  - [x] Code samples easy to author
+  - [x] Code samples execute
+  - [x] Code samples render with syntax highlighting, esp for html, js, css, bash
+  - [x] Raw html (esp inline svg) rendering correctly
+  - [ ] Raw html (esp inline svg) authoring
+
+## Showdown Library
+Showdown is a seldom updated, single file 156kb javascript library that converts markdown strings into html strings.
+I've imported it manually, and modified slightly, and executes only server-side.
+I've had to learn a little bit about this library to write an extension that executes javascript code samples.
+Note that this library is *only* included on the server side, and it's output is cached until the underlying markdown changes. (Efficient file-watching courtesy of [Chokidar](), a part of the excellent Brunch front-end build system).
+Most of the learning curve of the library is selecting options.
+The most common thing to change are the default imports inserted as a convenience before code samples.
+
+
+## Highlight JS Library
+[Highlightjs](https://highlightjs.org/) is a (relatively) small 140kb javascript and css library that syntax highlights source code found in the DOM.
+It runs on the client side.
+It's much smaller and simpler than [prettier](https://github.com/googlearchive/code-prettify) (now archived).
+
+Find styles with the [highlightjs demo](https://highlightjs.org/static/demo/).
+Then statically download the assets you want.
+
+```bash
+curl -O
+```
 
 ## Why not HTML?
 

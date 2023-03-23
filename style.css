@@ -23,6 +23,7 @@
     --width-card-medium: 460px;
     --width-card-wide: 800px;
     --width-content: 1080px;
+    --body-margin: 50px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,7 +53,7 @@ body {
     color: var(--color-text);
     font-family: var(--font-family);
     line-height: var(--line-height);
-    margin: 0;
+    margin: var(--body-margin);
     overflow-x: hidden;
     padding: 0;
 }
@@ -66,11 +67,13 @@ main {
 }
 
 hr {
-    background-color: var(--color-bg-secondary);
-    border: none;
-    height: 1px;
-    margin: 4rem 0;
-    width: 100%;
+  background-color: var(--color-bg-secondary);
+  border: none;
+  border-top: 3px double #333;
+  color: #333;
+  overflow: visible;
+  text-align: center;
+  height: 1px;
 }
 
 section {
@@ -191,7 +194,6 @@ nav ul li ul li a {
 }
 
 /* Typography */
-code,
 samp {
     background-color: var(--color-accent);
     border-radius: var(--border-radius);

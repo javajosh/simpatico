@@ -7,7 +7,7 @@
       <rect width='1' height='1' fill='DodgerBlue' />
     </svg>"
   />
-  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <link rel="stylesheet" href="/kata/hljs.github.css">
   <script type="module">
   import hljs from '/kata/highlight.min.js';
   import javascript from '/kata/highlight.javascript.min.js';
@@ -18,11 +18,14 @@
       });
     });
   </script>
+  <style>
+     body
+  </style>
 </head>
 
 See [test harness](./combine2.html)
 
-==========================================================================
+_________________________________________________________
 # Simpatico: combine()
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
@@ -53,7 +56,7 @@ It executed after your page finished loading.
 There may be output in the console (accessed via the dev tools, which in most browsers is `F12`).
 In fact, every code snippet on this page executed already!
 
-==========================================================================
+_________________________________________________________
 # Combining data objects together
 Combine's action varies according to the types of its arguments.
 Numbers add. Most other scalars "replace":
@@ -78,7 +81,7 @@ assertEquals({a: {b : 2}},          combine({a: {b : 1}}, {a: {b : 1}}));
 assertEquals({a: {b : 1}}, Object.assign({},{a: {b : 1}}, {a: {b : 1}}));
 ```
 
-==========================================================================
+_________________________________________________________
 # Combining with Handlers
 
 `combine()` supports *handlers*. A handler looks like this:
@@ -94,7 +97,7 @@ Handlers are objects with a handle property, which should be a function that tak
 The core is the target, or destination, of the message.
 The result is an array of objects that describe how the core should change.
 
-==========================================================================
+_________________________________________________________
 ## handle : (core, msg) => [ ]
 Handlers take two arguments, the target and the message, in the first and second position respectively.
 Also, we add a 'msg' entry that describes a typical message for this handler:
@@ -133,7 +136,7 @@ It *is* annoying to separate them!
 const core = {handlers: {}, residue:{a:1, b:2}};
 
 ```
-==========================================================================
+_________________________________________________________
 ## Assertion handler
 Before moving on its useful to define an "assertion handler":
 ```js
@@ -205,7 +208,7 @@ combine(ops);
 ```
 
 
-==========================================================================
+_________________________________________________________
 ## Handlers replace each other
 
 Handlers replace, so we can overwrite the old handler and call it with the same message:
@@ -228,7 +231,7 @@ combine(ops);
 ```
 This feature is key to enabling *type versioning*.
 
-==========================================================================
+_________________________________________________________
 ## Handlers call each other
 
 Functions replace, so we can overwrite the old handler and call it with the same message:
@@ -263,7 +266,7 @@ And they will have active instances of these versions active simultaneously.
 This effect is very difficult to achieve with class OOP techniques, but comes naturally here.
 
 
-==========================================================================
+_________________________________________________________
 # Definition of "Core"
 A core is an object with a property named 'handlers', of type object, with each key a short descriptive name and each value a handler.
 A handler is an object with a property named 'handle' of type function, that takes two args, computes the modifications required, and returns those modifications, without applying them, as an array of objects.
@@ -291,7 +294,7 @@ Some good examples of cores:
    1. Tic tac toe game.
    1. Chess game core to handle things like [png chess notation](http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2)
 
-==========================================================================
+_________________________________________________________
 # Next: stree
 
 Modeling program state as a monotonically increasing list of input, all of which are objects, gives us a great benefit:
