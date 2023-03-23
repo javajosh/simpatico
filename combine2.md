@@ -7,7 +7,7 @@
       <rect width='1' height='1' fill='DodgerBlue' />
     </svg>"
   />
-  <link rel="stylesheet" href="/kata/hljs.github.css">
+  <link rel="stylesheet" href="/kata/highlight.github.css">
   <script type="module">
   import hljs from '/kata/highlight.min.js';
   import javascript from '/kata/highlight.javascript.min.js';
@@ -23,10 +23,17 @@
   </style>
 </head>
 
-See [test harness](./combine2.html)
+
 
 _________________________________________________________
 # Simpatico: combine()
+2023
+
+See:
+[home](/),
+[combine](./combine2.html),
+[stree](./stree2.md),
+[markdown](/kata/markdown.md)
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
 You use it in a webpage like this:
@@ -42,10 +49,9 @@ Note: this code doesn't execute in the page context because it is HTML and not J
 To use the library in node, omit the script tags and set `"type": "module"` in `package.json`.
 Simpatico is not yet published to npm, but for now a simple `wget` will work:
 ```bash
-  wget https://raw.githubusercontent.com/javajosh/simpatico/master/core.js`
-  wget https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js`
-````
-
+  $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/core.js
+  $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js
+```
 Within markdown code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
 (If you don't include your own imports, default imports will apply):
 ```js

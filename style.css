@@ -231,23 +231,26 @@ ul li {
 }
 
 p {
-    margin: 0.75rem 0;
+    margin: 0.5rem 0;
     padding: 0;
     width: 100%;
 }
 
 pre {
-    margin: 1rem 0;
-    max-width: var(--width-card-wide);
-    padding: 1rem 0;
+    margin: 0rem 0;
+    /*max-width: var(--width-card-wide);*/
+    padding: 0rem 0;
+
 }
 
 pre code,
 pre samp {
     display: block;
-    max-width: var(--width-card-wide);
+    /*max-width: var(--width-card-wide);*/
     padding: 0.5rem 2rem;
     white-space: pre-wrap;
+    overflow: auto;
+  min-width: 800px;
 }
 
 small {
