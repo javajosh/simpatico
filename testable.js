@@ -19,6 +19,11 @@
 */
 
 let fail = false;
+const colors = {
+  success: 'DodgerBlue',
+  failure: 'red',
+  neutral: 'white',
+}
 const isIframe = window.parent !== null;
 const favicon = document.getElementById('favicon');
 if (!favicon) throw 'testable.js requires a #favicon element in the document';
@@ -28,16 +33,21 @@ const svgIcon = fill => `data:image/svg+xml,
       <rect width='1' height='1' fill='${fill}' />
   </svg>`;
 
-// If the document loads, the tests passed.
+const makeItStopButton = () => `
+  <button onclick="window.stop()">Stop 2s Refresh</button>
+  (click button or use the spacebar. to restart reload page.)
+`;
+
+// Add a stop refresh button to any elt with class makeItStop.
+// Add a convenient way to stop refresh, press space or s.
+// If the document loaded without failure, the tests passed!
 window.addEventListener('load', () => {
-  // After the whole dom loads, add a "stop refresh" button inside all "makeItStop" elements.
-  const makeItStopButton = () => `<button onclick="window.stop()">Stop 2s Refresh</button> (click button or use the spacebar. to restart reload page.)`;
   const makeItStopParents = Array.from(document.getElementsByClassName("makeItStop"));
   makeItStopParents.forEach(parent => parent.innerHTML = makeItStopButton())
 
   // If the entire page loads without triggering a fail, the tests succeeded!
   if (!fail){
-    favicon.href = svgIcon('green');
+    favicon.href = svgIcon(colors.success);
     console.log('Tests succeeded!');
     if (isIframe) {
       window.parent.dispatchEvent(new CustomEvent('test-success'));
@@ -48,18 +58,20 @@ window.addEventListener('load', () => {
 // If an exception was thrown on load, the tests did not pass
 window.addEventListener('error', () => {
   fail = true;
-  favicon.href = svgIcon('red');
-  document.body.style.backgroundColor = 'red';
+  favicon.href = svgIcon(colors.failure);
+  document.body.classList.add('error-background');
 
   if (isIframe) {
     window.parent.dispatchEvent(new CustomEvent('test-failure'));
   }
 })
 
-// Add a convenient way to stop refresh, press space or s.
+// Add a convenient way to stop refresh, press space.
 window.addEventListener('keyup', ({key}) => {
   if (key === ' ') {
     window.stop();
     console.log('Refresh stopped!');
+    favicon.href = svgIcon(colors.neutral);
+    document.body.classList.remove('error-background');
   }
 })
