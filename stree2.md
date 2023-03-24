@@ -1,24 +1,34 @@
 <!DOCTYPE html>
 <head>
   <title>Simpatico: stree()</title>
-  <link rel="stylesheet" href="/style.css">
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='DodgerBlue' />
+        <rect width='1' height='1' fill='white' />
     </svg>"
-  />
-  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
-  <script type="module">
-  import hljs from '/kata/highlight.min.js';
-  import javascript from '/kata/highlight.javascript.min.js';
+  >
+  <link rel="stylesheet" href="/style.css">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+  <script class="testable" src="testable.js" type="module"></script>
+  <script class="hljs" type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    const d=document, elts = a => d.querySelectorAll(a);
     hljs.registerLanguage('javascript', javascript);
-    document.addEventListener('DOMContentLoaded', e => {
-      document.querySelectorAll('pre code').forEach((elt) => {
-        hljs.highlightElement(elt);
-      });
-    });
+    d.addEventListener('DOMContentLoaded', () =>
+      elts('pre code').forEach(block =>
+        hljs.highlightElement(block)));
   </script>
 </head>
+_________________________________________________________
+# Simpatico: stree()
+2023
+
+See:
+[home](/),
+[combine2](./combine2.md),
+[stree](./stree),
+[markdown](/kata/markdown.md),
+[audience](/audience.md)
 
   - See [home](/index.html)
   - See [combine2](./combine2.md)
@@ -96,6 +106,7 @@ function testTreeInternals() {
 }
 testTreeInternals()
 ```
+Note: the following code has been intentionally disabled for now.
 Test assertions in the tree.
 ```ada
 function testTreeAssertions() {
