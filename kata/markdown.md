@@ -12,7 +12,7 @@
   import hljs from '/kata/highlight.min.js';
   import javascript from '/kata/highlight.javascript.min.js';
   hljs.registerLanguage('javascript', javascript);
-  document.addEventListener('DOMContentLoaded', (event) => {
+  document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('pre code').forEach((el) => {
       hljs.highlightElement(el);
     });
@@ -20,6 +20,7 @@
 </script>
 </head>
 
+[![Aperiodic tile with one tile](/img/aperiodic-tiling-one-shape.png =450x300)](https://arxiv.org/abs/2303.10798)
 # Markdown
 HTML will always be the primary authoring tool.
 However, it is difficult to write about code in HTML.

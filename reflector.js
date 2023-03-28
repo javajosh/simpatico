@@ -55,10 +55,14 @@ showdown.extension('scriptPassThroughExtension', scriptPassThroughExtension);
 // See https://showdownjs.com/docs/available-options/
 const markdown = new showdown.Converter({
   backslashEscapesHTMLTags: true,
+  parseImgDimensions: true,
+  strikethrough: true,
   simpleLineBreaks: false,
   tables: true,
   flavor: 'github',
   tasklists: true,
+  ghMentions: true,
+  ghMentionsLink : 'https://twitter.com/{u}/profile',
   defaultImport: markdownDefaultImports(),
   extensions: ['scriptPassThroughExtension'],
 });
@@ -409,7 +413,7 @@ function buildMarkdown(markdownString, fileName=''){
   return htmlString;
 
   function defaultHtmlHeader() {
-    const bareFileName = fileName.replace(/^.*(4`1\\|\/|\:)/, '').split('.')[0];
+    const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
     const title = 'Simpatico: ' + bareFileName;
     return `<!DOCTYPE html>
       <title>${title}</title>
