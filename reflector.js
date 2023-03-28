@@ -174,7 +174,12 @@ function httpRedirectServerLogic (req, res) {
   // See https://eff-certbot.readthedocs.io/en/stable/using.html#webroot
   if (req.url.startsWith('/.well-known/acme-challenge')){
     res.writeHead(200);
-    res.end(fs.readFileSync(req.url));
+    try{
+      res.end(fs.readFileSync(req.url));
+    } catch (e) {
+      console.error('bad acme challenge request', e);
+    }
+
     return;
   }
   // Everything else, redirect permanently to https
