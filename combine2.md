@@ -1,15 +1,16 @@
-\<!DOCTYPE html>
-\<head>
-  \<title>Simpatico: combine()</title>
-  \<link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+<!-- 
+<!DOCTYPE html>
+<head>
+  <title>Simpatico: combine()</title>
+  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
         <rect width='1' height='1' fill='white' />
     </svg>"
   >
-  \<link rel="stylesheet" href="/style.css">
-  \<link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
-  \<script class="testable" src="testable.js" type="module"></script>
-  \<script class="hljs" type="module">
+  <link rel="stylesheet" href="/style.css">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+  <script class="testable" src="testable.js" type="module"></script>
+  <script class="hljs" type="module">
     import hljs from '/kata/highlight.min.js';
     import javascript from '/kata/highlight.javascript.min.js';
     const d=document, elts = a => d.querySelectorAll(a);
@@ -18,7 +19,8 @@
       elts('pre code').forEach(block =>
         hljs.highlightElement(block)));
   </script>
-\</head>
+</head>
+-->
 _________________________________________________________
 # Simpatico: combine()
 2023
