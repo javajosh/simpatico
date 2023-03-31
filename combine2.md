@@ -1,5 +1,5 @@
-`<!DOCTYPE html>
-<head>
+\<!DOCTYPE html>
+\<head>
   <title>Simpatico: combine()</title>
   <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
