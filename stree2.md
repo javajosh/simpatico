@@ -1,3 +1,4 @@
+<!--
 <!DOCTYPE html>
 <head>
   <title>Simpatico: stree()</title>
@@ -19,6 +20,7 @@
         hljs.highlightElement(block)));
   </script>
 </head>
+-->
 _________________________________________________________
 # Simpatico: stree()
 2023
