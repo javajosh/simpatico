@@ -135,6 +135,58 @@ assertEquals(`{
 ```
 This function is ready to be integrated with the [reflector](/reflector.md).
 
+```js
+let markdownString = `<!--
+<!DOCTYPE html>
+<head>
+  <title>Simpatico: combine()</title>
+  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+        <rect width='1' height='1' fill='white' />
+    </svg>"
+  >
+  <link rel="stylesheet" href="/style.css">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+  <script class="testable" src="testable.js" type="module"></script>
+  <script class="hljs" type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    const d=document, elts = a => d.querySelectorAll(a);
+    hljs.registerLanguage('javascript', javascript);
+    d.addEventListener('DOMContentLoaded', () =>
+      elts('pre code').forEach(block =>
+        hljs.highlightElement(block)));
+  </script>
+</head>
+-->`;
+
+// extract everything within the first <!-- --> comment
+const regex = /<!--\s*([\s\S]*?)\s*-->/;
+const match = regex.exec(markdownString);
+const html = match[1];
+assertEquals(`<!DOCTYPE html>`, html.trim().split('\n')[0]);
+assertEquals(`<!DOCTYPE html>`, removeWrapper(markdownString).trim().split('\n')[0]);
+
+if (markdownString.startsWith('<!--'))
+    markdownString = removeWrapper(markdownString);
+const regex = new RegExp(`${open}\\s*([\\s\\S]*?)\\s*${close}`);
+
+const headerString = markdownString.match(/^<!--.*-->\s*<html.*>/) ? removeWrapper(markdownString.match(/^<!--.*-->\s*<html.*>/)[0]) : 'defaultHtmlHeader()';
+console.log(markdownString.match(/^<!--.*-->\s*<html.*>/));
+
+function removeWrapper(text, open="<!--", close="-->") {
+  // Regular expression to strip HTML comments
+  // See: https://regex101.com/r/SvRZth/1
+  const regex = new RegExp(`${open}\\s*([\\s\\S]*?)\\s*${close}`);
+  const match = regex.exec(text);
+  const html = match[1];
+  return html;
+}
+
+
+
+```
+
 ### Roads not travelled
 Note that the reflector might do the extraction more conveniently but it would require instantiation of the DOM. I'm not interested in either making the reflector more complex by adding a server-side-DOM, nor am I interested in parsing meta tags directly as strings (although it probably wouldn't be too terrible especially given the pretty strong conventions around authoring meta tags).
 
