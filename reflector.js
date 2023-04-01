@@ -263,7 +263,6 @@ function fileServerLogic() {
       );
       res.end(data);
     }
-
     const logRequest = req => {
       const fileName = urlToFileName(req.url);
       const normalized = (fileName !== req.url);
@@ -316,6 +315,7 @@ function fileServerLogic() {
       respondWithData(cache[fileName]);
     } else {
       fs.readFile(fileName, (err, data) => {
+        // Handle errors, maybe bail
         if (DEBUG && config.useCache) debug('cache miss for', fileName);
         if (err) { // assume all errors are a 404. pareto
           respondWithError(Object.assign(new Error(), {
@@ -330,6 +330,8 @@ function fileServerLogic() {
           // Strip path and extension from filename and use that in the title.
           data = buildMarkdown(data.toString(), fileName);
         }
+
+        // Update the cache
         if (config.useCache) {
           cache[fileName] = data;
         }
@@ -338,6 +340,7 @@ function fileServerLogic() {
     }
   }
 }
+
 
 function chatServerLogic(ws) {
   // Compute the connection ID,
@@ -384,11 +387,11 @@ function buildMarkdown(markdownString, fileName=''){
   if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
 
   // Everything above and including the first line that contains </head> is not processed.
-  let headerLineCount = -1;
+  let headerLineCount = 0;
   const markdownLines = markdownString.split('\n');
   for (let i = 0; i < markdownLines.length; i++) {
     if (markdownLines[i].includes('</head>')) {
-      headerLineCount = i + 1;
+      headerLineCount = i;
       break;
     }
   }
@@ -400,7 +403,7 @@ function buildMarkdown(markdownString, fileName=''){
     headerLines = defaultHtmlHeader().split('\n');
   } else {
     headerLines = markdownLines.slice(0, headerLineCount);
-    bodyLines = markdownLines.slice(headerLineCount + 1);
+    bodyLines = markdownLines.slice(headerLineCount);
   }
 
   // Call showdown to translate markdown into html
@@ -422,17 +425,17 @@ function buildMarkdown(markdownString, fileName=''){
   }
 
   function htmlFooter() {
-    return `<p>Copyright javajosh 2023</p>`;
+    return `<p>Copyright jbr 2023</p>`;
   }
 }
 
-function markdownDefaultImports() {
-  return [
-    'import {assertEquals, assertThrows} from "/core.js";',
-    'import {combine, stree, assertHandler, logHandler} from "/combine2.js";',
-    'let etc = [];'
-  ].join('\n');
-}
+// This is a function, not a string, so that it can be called above before it's defined.
+function markdownDefaultImports() {return `
+  import {assertEquals, assertThrows} from "/core.js";
+  import {combine, stree, assertHandler, logHandler} from "/combine2.js";
+  const etc = [];
+  //const elt = id => document.getElementById(id);
+`;}
 
 const failWhale = `
  ___        _  _       __      __ _           _
