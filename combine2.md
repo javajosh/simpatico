@@ -1,4 +1,3 @@
-<!-- 
 <!DOCTYPE html>
 <head>
   <title>Simpatico: combine()</title>
@@ -20,7 +19,7 @@
         hljs.highlightElement(block)));
   </script>
 </head>
--->
+
 _________________________________________________________
 # Simpatico: combine()
 2023
