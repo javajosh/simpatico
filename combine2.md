@@ -29,7 +29,7 @@ See:
 [home](/),
 [combine](./combine2.html),
 [stree](./stree2.md),
-[markdown](/kata/markdown.md),
+[markdown](/kata/literate-markdown.md),
 [audience](/audience.md)
 
 <!--div class="makeItStop">I find the auto-refresh to be too annoying to leave on by default.</div-->
@@ -51,7 +51,7 @@ Simpatico is not yet published to npm, but for now a simple `wget` will work:
   $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/core.js
   $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js
 ```
-Within [markdown](/kata/markdown.md) code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
+Within [markdown](/kata/literate-markdown.md) code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
 (If you don't include your own imports, default imports will apply):
 ```js
   assertEquals(3, combine(1, 2));
@@ -127,6 +127,11 @@ The handler above takes no arguments and gives a constant result.
 We leave the `(core, msg)` named arguments for consistency, even though we're not using them.
 It's a dual counter, where `a` is incremented by 1, and `b` by 2.
 We initialize both `a` and `b` to show there is interaction between the result of `inc` and current core state.
+
+### Similarity to apply()
+The handler signature is similar to `Function.prototype.apply()`.
+The first argument, the "`thisArg`" is the core, the context, the second argument, the args, is the message itself.
+See: [JavaScript Function specification](https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-function.prototype.apply)
 
 ### Use explicit residue?
 Some prototypes used this structure to keep residue separate from handlers.
@@ -284,7 +289,7 @@ These features of `combine()`, along with reusable handlers like assert and log,
 Some good examples of cores:
    1. Reify objects, one value/key per row/core, with assign combine.
    1. Tic tac toe game.
-   1. Chess game core to handle things like [png chess notation](http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2)
+   1. Chess game core to handle things like [pgn chess notation](http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2)
 
 _________________________________________________________
 # Next: stree

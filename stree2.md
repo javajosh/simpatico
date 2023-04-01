@@ -29,7 +29,7 @@ See:
 [home](/),
 [combine2](./combine2.md),
 [stree](./stree),
-[markdown](/kata/markdown.md),
+[markdown](/kata/literate-markdown.md),
 [audience](/audience.md)
 
   - See [home](/index.html)

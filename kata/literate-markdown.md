@@ -21,27 +21,27 @@
 </head>
 
 [![Aperiodic tile with one tile](/img/aperiodic-tiling-one-shape.png =450x300)](https://arxiv.org/abs/2303.10798)
-# Markdown
+# Simpatico: Literate Markdown
 HTML will always be the primary authoring tool.
-However, it is difficult to write about code in HTML.
+But it is difficult to write *about* code in HTML.
+One needs to HTML escape the code, which makes the code unreadable and unmaintainable.
+We need a way to write about code in a way that is readable and maintainable.
 
-To that end I've added basic markdown support to the reflector:
+To that end I've added basic markdown support to the [reflector](/reflector.js).
 
-  - [x] Custom headers per markdown file
-  - [x] Code samples easy to author
-  - [x] Code samples execute
-  - [x] Code samples render with syntax highlighting, esp for html, js, css, bash
-  - [x] Raw html (esp inline svg) rendering correctly
-  - [ ] Raw html (esp inline svg) authoring
+  - [x] Custom headers per markdown file (support for <head> in markdown)
+  - [x] js code samples execute
+  - [x] js code samples render with syntax highlighting, esp for html, js, css
+  - [ ] do the same for html, esp svg
+  - [ ] correctly render on github
 
-## Showdown Library
-Showdown is a seldom updated, single file 156kb javascript library that converts markdown strings into html strings.
+## Showdown.js Library
+[Showdown.js](https://showdownjs.com/) is a seldom updated, single file 156kb javascript library that converts markdown strings into html strings.
 I've imported it manually, and modified slightly, and executes only server-side.
-I've had to learn a little bit about this library to write an extension that executes javascript code samples.
+I've had to learn a bit about this library to write an extension that executes javascript code samples.
 Note that this library is *only* included on the server side, and it's output is cached until the underlying markdown changes. (Efficient file-watching courtesy of [Chokidar](), a part of the excellent Brunch front-end build system).
 Most of the learning curve of the library is selecting options.
 The most common thing to change are the default imports inserted as a convenience before code samples.
-
 
 ## Highlight JS Library
 [Highlightjs](https://highlightjs.org/) is a (relatively) small 140kb javascript and css library that syntax highlights source code found in the DOM.
@@ -120,12 +120,25 @@ HTML source renders fine and author's fine.
 Inline HTML renders fine, but authoring is poor (code completion sometimes works; syntax highlighting is inconsistent.)
 
 
-## Idea
+# Literate Markdown
+Literate Markdown is dialect of markdown that allows you to embed code snippets in your markdown that execute when the html is rendered.
+This is a great way to write documentation that is both human and machine-readable.
+The reflector uses this technique to serve up the documentation for simpatico.
 
-One interesting idea is to modify showdown (with an extension) to generate an inline script tag in addition to the source render div.
-In this way our scripts will always execute. (I did this and the first example is [combine2.md](/combine2.md))
+## How it works
+  1. On the server, in [reflector](/reflector.md) markdown is converted to html and javascript using a custom showdown extension.
+  2. The html is served to the client.
+  3. The client both displays and executes the javascript in the html.
+  4. The javascript is written in an `assert` style that throws exceptions when it fails.
+  5. Another library, [testable](/testable.js) catches these exceptions and displays them in the browser using background and favicon colors.
 
-## Thoughts on using markdown so far
-   - Highlight JS is large (~150KB minified) and does not support [line numbers](https://highlightjs.readthedocs.io/en/latest/line-numbers.html)
-   - The line numbers in browser errors no longer line up exactly like they do in raw HTML.
-   - Instead of splitting the head off using `^<` I split by checking for `</head>` and taking all lines above.
+Literate Markdown adds extra support for JavaScript code execution:
+  1. custom head
+  2. add default imports to executed code snippets (which can be overridden by your own imports)
+  3. add syntax highlighting to displayed code snippets with [highlight.js](https://highlightjs.readthedocs.io/en/latest/readme.html#basic-usage).
+
+## Concerns
+  - The highlight library is shipped to the client is large (~150KB minified) and does not support [line numbers](https://highlightjs.readthedocs.io/en/latest/line-numbers.html)
+  - The line numbers in browser errors no longer line up exactly like they do in raw HTML.
+  - The markdown processing requires another 150KB library (showdown.js) ton the server, plus non-trivial code in reflector.js.
+  - It is a great nutshell example of the siren allure of using markdown for everything - but that's 300KB of complexity for functionality you get for 0 with F12!

@@ -14,11 +14,11 @@
   <script src="../testable.js" type="module"></script>
   <!-- End testable.js boilerplate  -->
 
-  <title>markdown.js</title>
+  <title>Simpatico: markdown (client-side)</title>
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-<h1>markdown.js</h1>
+<h1>markdown (client-side)</h1>
 <p>javajosh <i>2023</i></p>
 <div class="makeItStop"></div>
 
@@ -26,7 +26,7 @@
 
 <p>
   This <a href="kata.md">kata</a> is about markdown.
-  This kata demonstrates using markdown in the browser.
+  This kata demonstrates converting markdown to html in the browser.
   I will be using <a href="https://github.com/showdownjs/showdown">showdown</a> as the markdown library.
   It has no dependencies, but I am unhappy with its enormous size and complexity (5k lines, 156KB unprocessed).
 </p>
@@ -35,7 +35,8 @@
   <a href="http://demo.showdownjs.com/">Showdown's interactive demo</a>.
 </p>
 <p>
-  Note that github conveniently renders markdown very capably, such that it's a PITA to replicate all of that functionality.
+  Note that github renders markdown very capably.
+  It's a chore to replicate all of that functionality.
   In particular we're missing syntax highlighting.
   And writing about code is THE big reason to support markdown: writing about code in raw HTML is a terrible experience!
   And people want to see code. And honestly, I want to write about code.
@@ -45,10 +46,7 @@
 <h3>Server-side Markdown</h3>
 
 <p>
-  In the end I decided to leverage the simple caching mechanism to transform markdown into html before caching.
-  The reflector now converts markdown to html and caches the result, and serves it with type text/html.
-  This works pretty well, but I'm not thrilled at the additional complexity or dependency.
-  Going to keep it around for now and see how it feels.
+  See the <a href="/reflector.md">Reflector docs</a>
 </p>
 
 <h3>Client-side Markdown</h3>
