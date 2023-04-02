@@ -199,6 +199,33 @@
 
   </script>
 
+  <h2>SVG animation</h2>
+  <p>See <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate">animate element.</a></p>
+
+  <svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+    <rect width="10" height="10">
+      <animate
+        attributeName="rx"
+        values="0;5;0"
+        dur="10s"
+        repeatCount="indefinite" />
+    </rect>
+  </svg>
+  <code><pre>
+    &lt;svg viewBox=&quot;0 0 10 10&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;
+    &lt;rect width=&quot;10&quot; height=&quot;10&quot;&gt;
+      &lt;animate
+        attributeName=&quot;rx&quot;
+        values=&quot;0;5;0&quot;
+        dur=&quot;10s&quot;
+        repeatCount=&quot;indefinite&quot; /&gt;
+    &lt;/rect&gt;
+    &lt;/svg&gt;
+  </pre></code>
+  <h3>History</h3>
+  <p>
+    When <a href="https://leonidasv.com/til-svg-specs-almost-got-raw-socket-support/">SVG almost got raw sockets?!</a>
+  </p>
   <h3>Discussion</h3>
   <p>
     I imagine there are some interesting possibilities storing application data directly in the DOM.

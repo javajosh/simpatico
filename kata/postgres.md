@@ -1,0 +1,2 @@
+  - https://neon.tech/blog/quicker-serverless-postgres
+  - https://www.dylanpaulus.com/posts/postgres-is-a-graph-database/

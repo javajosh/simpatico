@@ -25,6 +25,18 @@ function installNode() {
   nvm use 18
 }
 
+function installPython() {
+  # From https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server
+  sudo apt install -y python3 python3-pip
+  sudo apt install -y build-essential libssl-dev libffi-dev python3-dev
+  sudo apt install -y python3-venv
+  mkdir environments
+  cd environments
+  python3 -m venv my_env
+  # source my_env/bin/activate
+  #
+}
+
 function installSimpaticoService() {
   # ssh josh@simpatico.io
   # sudo su - simpatico
