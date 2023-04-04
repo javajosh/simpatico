@@ -52,16 +52,13 @@ const ops = [
   0, 'rmit',
 ];
 const noop = ()=>{};
-const concat = (a,b) => a+b;
+const concat = (a, b) => a + b;
+const push = (arr, elt) => {arr.push(elt); return arr};
 
-let s = stree(ops, noop, '' , noop, '');
-const strings = s.branches().map(arr => arr.reduce(concat,'')); //this already works
-console.log(234, s.branches())
-assertEquals(['he', 'hey', 'here', 'heretic', 'hermit'], strings);
-
-s = stree(ops, concat, '', concat, ''); // make this work
-assertEquals(['he', 'hey', 'here', 'heretic', 'hermit'], s.residues);
-console.log(1, s);
+let s = stree(ops, concat, '' , push, []);
+// const strings = s.branches().map(arr => arr.slice(0).reduce(concat,'')); //this already works
+console.log(s.residues, s.branches())
+assertEquals(['he', 'hey', 'here', 'heretic', 'hermit'], s.summary);
 
 ```
 
@@ -78,6 +75,7 @@ In part that's because it harnesses one of the computers great superpowers, the 
 If you have a simple, general, usefully constrained way to represent program state, it makes sense to apply an stree to that in particular.
 
 ```js
+// Do not execute this code yet
 function testTreeInternals() {
   // Lets experiment with adding integers to the operations list, forming a trie
   const o = {};
@@ -108,7 +106,8 @@ testTreeInternals()
 ```
 Note: the following code has been intentionally disabled for now.
 Test assertions in the tree.
-```ada
+```js
+// Do not execute this code yet
 function testTreeAssertions() {
   let DEBUG = true;
   const log = logHandler;
@@ -151,7 +150,8 @@ We introduce some conventions that constrain the structure of the tree.
 The first rows are types, consisting only of handlers.
 The latter rows are instances, consisting only of messages.
 
-```ada
+```js
+// Do not execute this code yet
 function testTreeHandlers() {
   const h1 = {handle: ({a}, {a: b}) => [ {a: b * b}], msg: {handler: 'h1', a: 2}};
   // const h2 = {handle: (b, a) => [{a: null}, {a: a * 2}], msg: {handler: 'h2', a: 2}};

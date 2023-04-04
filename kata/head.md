@@ -44,7 +44,9 @@
 </head>-->
 
 [blog](./index.md) | [home](/)
+
 # Preface: making a blog post
+
 A blog post is an ordinary resource, but it is intended to have high [proximity coherence](https://en.wikipedia.org/wiki/Proximity_coherence).
 
 ## System of record
@@ -57,9 +59,9 @@ If we end up picking JSON as the SoR then we can reverse the script below to gen
 Compute a slug at runtime from DOM `meta` tags:
 ```js
 const extractMetaData = (name, defaultContent='') => {
-    const found = document.querySelector(`meta[name="${name}"]`);
-    if (found) return found.getAttribute('content');
-    return defaultContent;
+  const found = document.querySelector(`meta[name="${name}"]`);
+  if (found) return found.getAttribute('content');
+  return defaultContent;
 }
 const extractTitle = () => document.getElementsByTagName('title')[0].innerText;
 
@@ -109,11 +111,11 @@ We can extract the slug from the `head` of the document using a regular expressi
 
 ```js
 function extractFirstJSON(text) {
-    // Regular expression to match object literals
-    // See: https://regex101.com/r/fI3zK9/1
-    const regex = /{[^{}]*}/;
-    const match = regex.exec(text);
-    return match[0];
+  // Regular expression to match object literals
+  // See: https://regex101.com/r/fI3zK9/1
+  const regex = /{[^{}]*}/;
+  const match = regex.exec(text);
+  return match[0];
 }
 
 // head innertext will serve as a standin for the entire source of the file.
@@ -164,15 +166,11 @@ let markdownString = `<!--
 const regex = /<!--\s*([\s\S]*?)\s*-->/;
 const match = regex.exec(markdownString);
 const html = match[1];
+
 assertEquals(`<!DOCTYPE html>`, html.trim().split('\n')[0]);
 assertEquals(`<!DOCTYPE html>`, removeWrapper(markdownString).trim().split('\n')[0]);
 
-if (markdownString.startsWith('<!--'))
-    markdownString = removeWrapper(markdownString);
-const regex = new RegExp(`${open}\\s*([\\s\\S]*?)\\s*${close}`);
-
-const headerString = markdownString.match(/^<!--.*-->\s*<html.*>/) ? removeWrapper(markdownString.match(/^<!--.*-->\s*<html.*>/)[0]) : 'defaultHtmlHeader()';
-console.log(markdownString.match(/^<!--.*-->\s*<html.*>/));
+if (markdownString.startsWith('<!--')) markdownString = removeWrapper(markdownString);
 
 function removeWrapper(text, open="<!--", close="-->") {
   // Regular expression to strip HTML comments
@@ -182,16 +180,10 @@ function removeWrapper(text, open="<!--", close="-->") {
   const html = match[1];
   return html;
 }
-
-
-
 ```
 
 ### Roads not travelled
 Note that the reflector might do the extraction more conveniently but it would require instantiation of the DOM. I'm not interested in either making the reflector more complex by adding a server-side-DOM, nor am I interested in parsing meta tags directly as strings (although it probably wouldn't be too terrible especially given the pretty strong conventions around authoring meta tags).
-
-
-
 
 # ChatGPT and the Golden Age of Scams
 ChatGPT generates apparently unique and coherent text.
@@ -208,4 +200,3 @@ ChatGPT is Saul Goodman - hardworking, clever, and (potentially) a bit of a scum
 This will be an industry, I think, both red team and blue team, for some time.
 Sadly it will sound the death-knell, probably, of simple web-sites like this one.
 (Although this is a good reason to do speaking engagements, and to write books, to attest to the reality of the author of these words. A twitch stream is another path to this proof.)
-
