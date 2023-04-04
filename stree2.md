@@ -44,6 +44,11 @@ The convention I have selected is to reserve number typed input to do both tasks
   1. Positive integers select nodes. A new row is formed, parented to the node.
 
 ```js
+import {assertEquals, assertThrows} from "/core.js";
+import {combine, assertHandler, logHandler} from "/combine2.js";
+import {stree} from '/stree2.js';
+const etc = [];
+
 const ops = [
     'he',
   0, 'y',

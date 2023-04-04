@@ -1,8 +1,8 @@
-import {now, as, identity}  from './core.js';
+import {now, as}  from './core.js';
 import {combine} from './combine.js';
 
 
-export default (startValue= {}, reducer = combine) => {
+export default (startValue = {}, reducer = combine) => {
   const ROOT = {
     id: 0,
     time: now(),

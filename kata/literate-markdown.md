@@ -45,9 +45,13 @@ To that end I've added basic markdown support to the [reflector](/reflector.js).
 *This is a test italic*
 **This is a test bold**
 ===================hr===================
+```
 
+Showdown supports handy img width and height syntax.
+Github markdown does not (which is surprising).
+To get images that work on github, either crop the image or use html.
+```md
 ![alt text](img url =widthxheight)
-
 
 ```
 
