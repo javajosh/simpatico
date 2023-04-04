@@ -20,8 +20,10 @@
 </script>
 </head>-->
 
-[![Aperiodic tile with one tile](./img/aperiodic-tiling-one-shape.png)](https://arxiv.org/abs/2303.10798)
 # Simpatico: Literate Markdown
+
+[![Aperiodic tile with one tile](/img/aperiodic-tiling-one-shape.png)](https://arxiv.org/abs/2303.10798)
+
 HTML will always be the primary authoring tool.
 But it is difficult to write *about* code in HTML.
 One needs to HTML escape the code, which makes the code unreadable and unmaintainable.
@@ -138,6 +140,8 @@ Note that this library is *only* included on the server side, and it's output is
 Most of the learning curve of the library is selecting options.
 The most common thing to change are the default imports inserted as a convenience before code samples.
 
+An alternative to showdown is [marked](https://marked.js.org/), which is a 10kb javascript library that converts markdown strings into html strings. Or even [markdown-it](https://markdown-it.github.io/), which is a 20kb javascript library that converts markdown strings into html strings. Both of these are probably better options.
+
 ## Highlight JS Library
 [Highlightjs](https://highlightjs.org/) is a (relatively) small 140kb javascript and css library that syntax highlights source code found in the DOM.
 It runs on the client side.
@@ -198,5 +202,3 @@ Literate Markdown adds extra support for JavaScript code execution:
 ## Footnotes
 
 Not supported by showdown.js, but supported by [markdown-it](https://markdown-it.github.io/).
-
-```md
