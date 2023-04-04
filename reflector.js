@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
-import makeMarkdownConverter from './markdown.js';
+import {buildHtmlFromLiterateMarkdown} from './markdown.js';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
@@ -16,7 +16,6 @@ const DEBUG = false;
 const sensitive = {password: '******', jdbc: '******'};
 const elide = (obj, hide=sensitive) => DEBUG ? obj : combine(obj, hide);
 const connections = [];
-const markdown = makeMarkdownConverter();
 
 // Boot up
 const config = processConfig();
@@ -289,7 +288,7 @@ function fileServerLogic() {
         if (fileName.endsWith('.md')){
           if (DEBUG) debug('building html for markdown file', fileName);
           // Strip path and extension from filename and use that in the title.
-          data = buildMarkdown(data.toString(), fileName);
+          data = buildHtmlFromLiterateMarkdown(data.toString(), fileName);
         }
 
         // Update the cache
@@ -301,7 +300,6 @@ function fileServerLogic() {
     }
   }
 }
-
 
 function chatServerLogic(ws) {
   // Compute the connection ID,
@@ -341,55 +339,6 @@ function chatServerLogic(ws) {
     });
   });
 }
-
-// Build markdown, support custom header tags in the markdown
-// Add a useful default header if no header tags are in the target.
-function buildMarkdown(markdownString, fileName=''){
-  if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
-
-  // Everything above and including the first line that contains </head> is not processed.
-  let headerLineCount = 0;
-  const markdownLines = markdownString.split('\n');
-  for (let i = 0; i < markdownLines.length; i++) {
-    if (markdownLines[i].includes('</head>')) {
-      headerLineCount = i;
-      break;
-    }
-  }
-
-  // If there are no header lines, use the default header
-  let headerLines, bodyLines;
-  if (headerLineCount === 0){
-    bodyLines = markdownLines;
-    headerLines = defaultHtmlHeader().split('\n');
-  } else {
-    headerLines = markdownLines.slice(0, headerLineCount);
-    bodyLines = markdownLines.slice(headerLineCount);
-  }
-
-  // Call showdown to translate markdown into html
-  const htmlBody = markdown.makeHtml(bodyLines.join('\n'));
-  // Put it all together
-  const htmlString = [headerLines.join('\n'), htmlBody, htmlFooter() ].join('\n');
-  let DEBUG = false;
-  if (DEBUG) console.log('lengths\n', headerLines.length, bodyLines.length, 'headerLines\n', headerLines, 'bodyLines\n', bodyLines);
-  if (DEBUG) debug('buildMarkdown() complete\n', {fileName, markdownString, htmlString});
-  return htmlString;
-
-  function defaultHtmlHeader() {
-    const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
-    const title = 'Simpatico: ' + bareFileName;
-    return `<!DOCTYPE html>
-      <title>${title}</title>
-      <link rel="stylesheet" href="style.css">
-     `;
-  }
-
-  function htmlFooter() {
-    return `<p>Copyright jbr 2023</p>`;
-  }
-}
-
 
 const failWhale = `
  ___        _  _       __      __ _           _

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <head>
 <title>Welcome to Markdown!</title>
 <link rel="stylesheet" href="/style.css">
@@ -18,9 +18,9 @@
     });
   });
 </script>
-</head>
+</head>-->
 
-[![Aperiodic tile with one tile](/img/aperiodic-tiling-one-shape.png =450x300)](https://arxiv.org/abs/2303.10798)
+[![Aperiodic tile with one tile](./img/aperiodic-tiling-one-shape.png?raw=true =450x300)](https://arxiv.org/abs/2303.10798)
 # Simpatico: Literate Markdown
 HTML will always be the primary authoring tool.
 But it is difficult to write *about* code in HTML.
@@ -32,45 +32,103 @@ To that end I've added basic markdown support to the [reflector](/reflector.js).
   - [x] Custom headers per markdown file (support for <head> in markdown)
   - [x] js code samples execute
   - [x] js code samples render with syntax highlighting, esp for html, js, css
-  - [ ] do the same for html, esp svg
-  - [ ] correctly render on github
+  - [x] do the same for html, esp svg
+  - [x] correctly render on github
+
+## Markdown test
+```md
+# This is a test header
+## This is a test subheader
+~~This is a test strikethrough~~
+*This is a test italic*
+**This is a test bold**
+===================hr===================
+
+![alt text](img url =widthxheight)
+
+
+```
 
 ## HTML test
 
 Executed:
-
 ```html
-<div id="test-div">This is a test div1</div>
+<div id="test-div">
+  <p>This is a test div1</p>
+</div>
 ```
 
 Not executed:
 
 ```html
-<!-- Opening with a comment prevents it from executing -->
+<!-- Opening with an html comment prevents the snippet from executing -->
 <div id="test-div2">This is a test div2</div>
 ```
 
 ## CSS test
-Executed (turn the test div above bold and italic)
+CSS rules applied to `test-div` above:
 
 ```css
 #test-div {
   font-family: sans-serif;
   font-weight: bold;
   font-style: italic;
+  border: 1px solid black;
+  margin: 50px;
 }
 ```
 
-Not applied (starts with a comment):
+CSS rules not applied to `test-div` because the snippet starts with a comment:
 
 ```css
-/* do not apply */
+/* Starting with a css comment prevents the snippet from executing */
 #test-div {
   font-family: serif;
   font-weight: normal;
   font-style: normal;
 }
 ```
+
+## Javascript executes and renders with syntax highlighting:
+```js
+let result = combine({a:1}, {a:2});
+console.log('hi josh 1', 1 < 2);
+```
+
+Javascript doesn't execute when you start with a comment:
+```js
+// does not execute
+throw 'this should not execute';
+```
+
+## SVG renders with syntax highlighting:
+SVG source render (and authors) correctly:
+
+```html
+<svg id="rotating-squares-animation"
+class="natural-units example-block"
+width="200px" height="200px"
+viewBox="-1 -1 2 2"
+style="background-color: #eee;"
+>
+  <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
+  <g transform="scale(1,-1)">
+    <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
+    <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
+    <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
+    <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Scale and (re)flip text</text></g>
+  </g>
+</svg>
+```
+
+```css
+.example-block {
+  border: 1px solid black;
+  margin: 50px;
+}
+```
+
+# Libraries
 
 ## Showdown.js Library
 [Showdown.js](https://showdownjs.com/) is a seldom updated, single file 156kb javascript library that converts markdown strings into html strings.
@@ -110,51 +168,8 @@ IntelliJ's markdown editor definitely doesn't like me adding actual javascript o
 Two authoring issues with IntelliJ IDEA, one syntax highlighting issue, only fixed with a [huge dependency](https://highlightjs.readthedocs.io/en/latest/readme.html).
 A good reason to reconsider raw html, requiring the reader to view source.
 
-Testing javascript source:
-```js
-let result = combine({a:1}, {a:2});
-console.log('hi josh', 1<2);
-```
-This is some html source:
-```xml
-<p>html <b>source</b></p>
-```
 
-SVG source render (and authors) correctly:
-```svg
-<svg id="rotating-squares-animation" class="natural-units"
-width="200px" height="200px"
-viewBox="-1 -1 2 2"
->
-  <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
-  <g transform="scale(1,-1)">
-    <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
-    <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
-    <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
-    <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Scale and (re)flip text</text></g>
-  </g>
-</svg>
-```
-Inline svg renders correctly, but authoring is poor (no syntax highlighting, code completion, emmet, etc)
-<svg id="rotating-squares-animation" class="natural-units"
-width="200px" height="200px"
-viewBox="-1 -1 2 2"
->
-  <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
-  <g transform="scale(1,-1)">
-    <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
-    <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
-    <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
-    <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Scale and (re)flip text</text></g>
-  </g>
-</svg>
 
-HTML source renders fine and author's fine.
-```js
-  let result = combine({a:1}, {a:2});
-  console.log('hello from markdown', result);
-```
-Inline HTML renders fine, but authoring is poor (code completion sometimes works; syntax highlighting is inconsistent.)
 
 
 # Literate Markdown

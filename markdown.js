@@ -85,8 +85,56 @@ const makeMarkdownConverter = (options={}) => {
       },
       options)
   );
-  if (DEBUG) console.log(result);
+  if (DEBUG) console.log('markdown.js: makeMarkdownConverter', result);
   return result;
+}
+// Instantiate a singleton markdown converter that lives as long as the module/app.
+let markdown = makeMarkdownConverter();
+
+/**
+ *  Build an HTML document from a literate markdown string.
+ *  A literate markdown string can contain header fields, wrapped in html comments so they render on github.
+ *  This whole thing is brittle and needs to be redone properly.
+ *
+ * @param markdownString
+ * @param fileName  used to generate a default title if the markdownString doesn't have one.
+ * @returns {string}
+ */
+function buildHtmlFromLiterateMarkdown(markdownString, fileName=''){
+  if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
+  markdown = makeMarkdownConverter();
+  const firstCut = markdownString.split('</head>-->');
+  let header = firstCut[0];
+  let body = '';
+  const hasHeader = header.length > 0;
+  if (hasHeader){
+    header = header.replace('<!--', '') + '</head>';
+    body = firstCut[1];
+  } else {
+    header = defaultHtmlHeader(fileName);
+    body = markdownString;
+  }
+
+  if (DEBUG) console.log('markdown.js: buildHtmlFromLiterateMarkdown', header, 'body', body);
+  return header + markdown.makeHtml(body) + htmlFooter();
+}
+
+/**
+ * Build a default header for markdown files that don't have one.
+ * @param fileName
+ * @returns {string}
+ */
+function defaultHtmlHeader(fileName) {
+  const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
+  const title = 'Simpatico: ' + bareFileName;
+  return `<!DOCTYPE html>
+      <title>${title}</title>
+      <link rel="stylesheet" href="style.css">
+     `;
+}
+
+function htmlFooter(author='jbr', year='2023') {
+  return `<p>Copyright ${author} ${year}</p>`;
 }
 
 function unescapeHtml(string){
@@ -97,4 +145,13 @@ function unescapeHtml(string){
     .replace(/&#39;/g, "'");
 }
 
-export default makeMarkdownConverter
+function removeWrapper(text, open="<!--", close="-->") {
+  // Regular expression to strip HTML comments
+  // See: https://regex101.com/r/SvRZth/1
+  const regex = new RegExp(`${open}\\s*([\\s\\S]*?)\\s*${close}`);
+  const match = regex.exec(text);
+  const html = match[1];
+  return html;
+}
+
+export {buildHtmlFromLiterateMarkdown};
