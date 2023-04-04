@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <head>
   <title>Simpatico: reflector.js</title>
   <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
@@ -19,7 +19,7 @@
       elts('pre code').forEach(block =>
         hljs.highlightElement(block)));
   </script>
-</head>
+</head>-->
 
 # Reflector
 See: [home](/index.html)

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <head>
   <meta name="author" content="jbr">
   <meta name="description" content="ChatGPT and generative adversarial networks are the new frontier of scams">
@@ -41,7 +41,7 @@
   ]
 }
   </script>
-</head>
+</head>-->
 
 [blog](./index.md) | [home](/)
 # Preface: making a blog post

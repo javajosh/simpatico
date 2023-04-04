@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <head>
 <title>Simpatico Kata: Proximity Coherence</title>
 <link rel="stylesheet" href="/style.css">
@@ -18,7 +18,7 @@
     });
   });
 </script>
-</head>
+</head>-->
 
 # Simpatico Kata: Proximity Coherence
 "Proximity coherence" is a quality of a site that many web technologies are attempting to satisfy.

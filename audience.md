@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <head>
   <title>Simpatico: audience</title>
   <link rel="stylesheet" href="/style.css">
@@ -7,7 +7,7 @@
       <rect width='1' height='1' fill='DodgerBlue' />
     </svg>"
   />
-</head>
+</head>-->
 _________________________________________________________
 # Simpatico: audience
 2023 jbr

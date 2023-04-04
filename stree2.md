@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <head>
   <title>Simpatico: stree()</title>
   <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
@@ -18,7 +18,7 @@
       elts('pre code').forEach(block =>
         hljs.highlightElement(block)));
   </script>
-</head>
+</head>-->
 _________________________________________________________
 # Simpatico: stree()
 2023
