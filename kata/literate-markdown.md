@@ -20,7 +20,7 @@
 </script>
 </head>-->
 
-[![Aperiodic tile with one tile](./img/aperiodic-tiling-one-shape.png?raw=true =450x300)](https://arxiv.org/abs/2303.10798)
+[![Aperiodic tile with one tile](./img/aperiodic-tiling-one-shape.png)](https://arxiv.org/abs/2303.10798)
 # Simpatico: Literate Markdown
 HTML will always be the primary authoring tool.
 But it is difficult to write *about* code in HTML.
@@ -194,3 +194,9 @@ Literate Markdown adds extra support for JavaScript code execution:
   - The line numbers in browser errors no longer line up exactly like they do in raw HTML.
   - The markdown processing requires another 150KB library (showdown.js) ton the server, plus non-trivial code in reflector.js.
   - It is a great nutshell example of the siren allure of using markdown for everything - but that's 300KB of complexity for functionality you get for 0 with F12!
+
+## Footnotes
+
+Not supported by showdown.js, but supported by [markdown-it](https://markdown-it.github.io/).
+
+```md
