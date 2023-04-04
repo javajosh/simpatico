@@ -33,3 +33,9 @@ From the [podman website](https://podman.io/)
   > Containers can either be run as root or in rootless mode. Simply put: alias docker=podman.
 
 [OCI](https://opencontainers.org/) stands for "Open Containers Initiative", which is a rabbit hole.
+
+## Errata
+This [lovely article](https://computer.rip/2023-03-24-docker.html) (and in a style I quite like) jb speaks convincingly of the end of docker, and the difficulty presented by The Registry. And I realized that these are all options for "clean starting points" and how ironic that the battle for zero could be so fierce. (and "The Battle For Zero" is a killer blog post title). It seems like there is space for a paid-for Docker registry; at the very least, we could get in the habit of fully specifying the registry of our dependencies. In this way, the internet, DNS _ ICANN and BGP reassert their Zero-ness. And it's hard for a company to do business if you invent a protocol. Unless you provide a service that popularizes the protocol, and hides the service cost, until it becomes popular, and you monetize in the most obvious possible way.
+
+Private registries: https://www.slant.co/topics/2436/~best-docker-image-private-registries
+

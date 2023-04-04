@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
-import showdown from './showdown.js';
+import makeMarkdownConverter from './markdown.js';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
@@ -16,6 +16,7 @@ const DEBUG = false;
 const sensitive = {password: '******', jdbc: '******'};
 const elide = (obj, hide=sensitive) => DEBUG ? obj : combine(obj, hide);
 const connections = [];
+const markdown = makeMarkdownConverter();
 
 // Boot up
 const config = processConfig();
@@ -26,46 +27,6 @@ info( 'bound', bindStatus);
 // We are bound to port 443 (and probably 80) so we can drop privileges
 if (config.user) dropProcessPrivs(config.user);
 
-const scriptPassThroughExtension = {
-  type: 'output',
-  filter:  (htmlDocument, converter, options) => {
-    return htmlDocument.replace(/<pre><code class="js.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
-      // showdown tags html as js for some reason, so we use a heuristic to distinguish.
-      const isActuallyHtml = code.trim().startsWith('&lt;');
-      const hasImports = code.trim().startsWith('import');
-      // if its a script, unHtmlEscape
-      if (!isActuallyHtml) code = code
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'");
-      return isActuallyHtml ? code : `<pre><code class="js language-js">${code}</code></pre>\n
-<script type="module">
-${hasImports ? '' : options.defaultImport}
-${code}
-</script>
-` // this string makes the code look ugly but the generated code looks better.
-    });
-  }
-};
-showdown.extension('scriptPassThroughExtension', scriptPassThroughExtension);
-
-// Showdown is a useful but huge 156kb library for making html out of markdown.
-// See https://showdownjs.com/docs/available-options/
-const markdown = new showdown.Converter({
-  backslashEscapesHTMLTags: true,
-  parseImgDimensions: true,
-  strikethrough: true,
-  simpleLineBreaks: false,
-  tables: true,
-  flavor: 'github',
-  tasklists: true,
-  ghMentions: true,
-  ghMentionsLink : 'https://twitter.com/{u}/profile',
-  defaultImport: markdownDefaultImports(),
-  extensions: ['scriptPassThroughExtension'],
-});
 
 // We are booted! Print out welcome message.
 const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
@@ -429,13 +390,6 @@ function buildMarkdown(markdownString, fileName=''){
   }
 }
 
-// This is a function, not a string, so that it can be called above before it's defined.
-function markdownDefaultImports() {return `
-  import {assertEquals, assertThrows} from "/core.js";
-  import {combine, stree, assertHandler, logHandler} from "/combine2.js";
-  const etc = [];
-  //const elt = id => document.getElementById(id);
-`;}
 
 const failWhale = `
  ___        _  _       __      __ _           _

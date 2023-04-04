@@ -35,6 +35,43 @@ To that end I've added basic markdown support to the [reflector](/reflector.js).
   - [ ] do the same for html, esp svg
   - [ ] correctly render on github
 
+## HTML test
+
+Executed:
+
+```html
+<div id="test-div">This is a test div1</div>
+```
+
+Not executed:
+
+```html
+<!-- Opening with a comment prevents it from executing -->
+<div id="test-div2">This is a test div2</div>
+```
+
+## CSS test
+Executed (turn the test div above bold and italic)
+
+```css
+#test-div {
+  font-family: sans-serif;
+  font-weight: bold;
+  font-style: italic;
+}
+```
+
+Not applied (starts with a comment):
+
+```css
+/* do not apply */
+#test-div {
+  font-family: serif;
+  font-weight: normal;
+  font-style: normal;
+}
+```
+
 ## Showdown.js Library
 [Showdown.js](https://showdownjs.com/) is a seldom updated, single file 156kb javascript library that converts markdown strings into html strings.
 I've imported it manually, and modified slightly, and executes only server-side.
