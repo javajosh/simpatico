@@ -1,6 +1,6 @@
 <!-- <!DOCTYPE html>
 <head>
-  <title>Simpatico: stree()</title>
+  <title>Simpatico: stree2()</title>
   <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
         <rect width='1' height='1' fill='white' />
@@ -20,14 +20,14 @@
   </script>
 </head>-->
 _________________________________________________________
-# Simpatico: stree()
+# Simpatico: stree2()
 2023
 
 See:
 [home](/),
 [combine2](./combine2.md),
 [stree](./stree),
-[markdown](/kata/literate-markdown.md),
+[markdown](/kata/lit.md),
 [audience](/audience.md)
 
   - See [home](/index.html)
@@ -58,7 +58,7 @@ const ops = [
 ];
 const noop = ()=>{};
 const concat = (a, b) => a + b;
-const push = (arr, elt) => {arr.push(elt); return arr};
+const push = (arr, elt) => [...arr, elt];
 
 let s = stree(ops, concat, '' , push, []);
 // const strings = s.branches().map(arr => arr.slice(0).reduce(concat,'')); //this already works
