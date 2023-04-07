@@ -41,96 +41,55 @@ function stree(
   arr.every(add);
 
   function add(d) {
+    const targetingNode = isNum(d) && d >= 0;
+    const targetingRow = isNum(d) && d < 0;
 
-    const updateResidues = true;
-
-    if (isObj(d) && d.hasOwnProperty('neu')){
-      // Special handling for neu messages - delegate to neu() and
-      neu(d);
-    } else if (isNum(d) && d >= 0 ){
-      // Positive numbers mean the target is a node
-      // Add a new row with the first elt integer d pointing to parent node.
-      // Add the residue of the parent node as the residue of this (empty) row
+    if (targetingNode){
       if (d >= nodes.length) throw 'invalid parent node ' + d;
       // add a new row
-      currRow = [d];
-      residues.push(residues[currRowIndex]);
       currRowIndex = rows.length;
+      currRow = [d];
       rows.push(currRow);
-    } else if(isNum(d) && d < 0) {
-      // Negative numbers means the target is a row.
-      // Modify currRowIndex to -d and update currRow, too.
+      // create a residue for the new row
+      residues.push(residueForNode(d));
+    } else if(targetingRow) {
       if (-d >= rows.length) throw 'invalid row ' + d;
+      // update row and row index
       currRow = rows[-d];
       currRowIndex = -d;
     } else {
-      // Non-number means we're adding a value. Often, it's an object.
-      // nodeToRowMap stays in lockstep with nodes, making it easy to find a node within the row structure.
+      // d is data, so add it to nodes[], currRow[] and other data-structures.
       nodeToRowMap.push([currRowIndex, currRow.length]);
-      if (updateResidues) updateResidueAndSummary(d);
       currRow.push(d);
       nodes.push(d);
-      // residues.push(d);
+      updateResidueAndSummary(d);
     }
     return true;
   }
 
+  /**
+ *   Update caches for residue and summary.
+     This also serves as validation - messages are validated against previous residue!
+     Since messages modify residue, combine is what rich hickey termed a "transducer" -
+     a reducer that changes during the reduction.
+
+   * @param d
+   */
   function updateResidueAndSummary(d){
-    if (d=== '') return;
-    // Update caches for residue and summary.
-    // This also serves as validation - messages are validated against previous residue!
-    // Since messages modify residue, combine is what rich hickey termed a "transducer" -
-    // a reducer that changes during the reduction.
-    const core = residues[currRowIndex];
+    const prevResidue = residues[currRowIndex];
+    let newResidue;
     try {
-      const newCore = rowReducer(core, d);
-      residues[currRowIndex] = newCore;
-      console.log('d', d, '\n', 'before:', core, '\n', 'after', newCore);
-      // summary = residues.reduce(summaryReducer, summaryResidue);
+      newResidue = rowReducer(prevResidue, d);
     } catch (e) {
       const msg = `cannot combine op ${JSON.stringify(d)} with core ${core}`
       e = Object.assign(e, {msg});
       throw e;
     }
+    residues[currRowIndex] = newResidue;
+    summary = residues.reduce(summaryReducer, summaryResidue);
+    console.log('stree2.hs:updateResidueAndSummary()', 'd', d, '\n', 'prevResidue:', prevResidue, '\n', 'newResidue', newResidue, '\n', 'summary', summary, '\n', 'residues', residues);
   }
 
-  // Given either a type name or type row, create a new instance row.
-  // A more handy way to make instances than the raw add(node) interface.
-  // Trees that only instantiate using this method have some nice properties.
-  // Note:  'new' is a reserved word in JavaScript so we use the German 'neu'.
-  function neu(d){
-    let type, rowNum, residue, parentNodeId, newNodeId;
-
-    if (isNum(d)){
-      rowNum = -d;
-      residue = residues[rowNum];
-      // We can take out 'isInstance' for some interesting alternative type systems.
-      if (!isType(residue) || isInstance(residue)) throw `row ${d} cannot be instantiated with neu()`;
-    } else if (isStr(d)){
-      type = d;
-      let found = null;
-      residues.every((r, i) => {
-        if (isType(r) && !isInstance(r) && r.type === type) { found = i; return false; }
-        return true;
-      });
-      if (!isNum(found)) throw `type ${d} not found`;
-      rowNum = found;
-    }
-
-    residue = residues[rowNum];
-    if (!isType(residue)) throw `row ${rowNum} is not a type and cannot be instantiated with neu()`;
-    type = residue.type;
-    parentNodeId = nodes.indexOf(peek(rows[rowNum]));
-    newNodeId = nodes.length;
-    add(parentNodeId);
-    add({
-      nodeId: newNodeId,
-      rowId: rows.length - 1,
-      type,
-      version: parentNodeId
-    });
-    return rowNum;
-  }
 
   const branchTips = () => rows.map(row => {
     let node = peek(row);
@@ -138,15 +97,21 @@ function stree(
   });
 
   // Prepend partial rows until root.
-  const branches = () => rows.map(row => {
+  function rowToBranch(row) {
     let result = [...row], partial = [...row], nodei;
     while (isNum(result[0])) {
       nodei = result.shift();
       partial = getPartialRow(nodei);
-      result = [...partial, ...result];
+      result = [...partial, ...result]; // this is incredibly wasteful compared to the linked node approach
     }
     return result;
-  });
+  }
+
+  function residueForNode(nodei) {
+    return rowToBranch(getPartialRow(nodei)).reduce(rowReducer, rowResidue);
+  }
+
+  const branches = () => rows.map(rowToBranch);
 
   // Return true if the given core can reach all points on all branches of this tree.
   const allBranchesReachable = core => branches().every((branch, branchi) => {
@@ -171,8 +136,8 @@ function stree(
 
   return {
     add,
-    neu,
     allBranchesReachable,
+    residueForNode,
     rows,
     nodes,
     residues,
