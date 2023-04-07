@@ -185,6 +185,16 @@ function fileServerLogic() {
     'Cross-Origin-Embedder-Policy': 'require-corp',
   });
 
+  // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src
+  const getContentSecurityPolicyHeaders = () => ({
+    'Content-Security-Policy': [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src  'self' 'unsafe-inline'",
+      "img-src 'self' data:"
+    ].join(';')
+  });
+
   const getContentTypeHeader = (filename, defaultMimeType='text') => {
     const ext = path.extname(filename).slice(1);
     const type = mime[ext] ? mime[ext] : defaultMimeType;
@@ -219,6 +229,7 @@ function fileServerLogic() {
           getContentTypeHeader(req.url),
           getCacheHeaders(req.url),
           getCrossOriginHeaders(),
+          getContentSecurityPolicyHeaders(),
         )
       );
       res.end(data);
