@@ -1,6 +1,6 @@
 import {tryToStringify, hasProp} from '../core.js';
 import {validate} from '../friendly.js'
-import stree from '../stree.js';
+import {stree} from '../stree.js';
 
 
 // Let's build a little countdown latch
