@@ -52,6 +52,23 @@ const equals = (a, b) => {
   if (aType === 'function') return (a.toString() === b.toString()); else
   return scalarEquals(a, b);
 }
+const clone = (value) => {
+  if (typeof value === 'object') {
+    if (Array.isArray(value)) {
+      return value.map(clone);
+    } else if (value === null) {
+      return null;
+    } else {
+      const result = {};
+      Object.keys(value).forEach(key => {
+        result[key] = clone(value[key]);
+      });
+      return result;
+    }
+  } else {
+    return value;
+  }
+}
 
 const assertEquals = (expected, actual, msg='') =>
   assert(equals(expected, actual), `expected is \n${tryToStringify(expected)} but actual is \n${tryToStringify(actual)}. ${msg}`)
@@ -300,7 +317,7 @@ export {
   now, log, debug, info, error,
   assert, assertEquals, assertThrows,
   hasProp, getProp, propType, mapObject,
-  equals,
+  equals, clone,
   arrMin, arrMax, peek, push, copy,
   and, or, sub, add, identity, curryLeft, curryRight, curry, compose,
   RNG, shuffle,
