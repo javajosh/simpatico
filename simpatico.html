@@ -20,6 +20,7 @@
   <title>Simpatico.io</title>
   <script type="module">
     import {svg} from './simpatico.js';
+    // emits the global "tick" event, used in the samples below.
     svg.clock();
   </script>
 </head>
@@ -40,9 +41,9 @@ This button stops the meta#refresh.content="2" second refresh that helps make a 
     The browser is coming into contact with each line as you write it.
   </p>
 
-  <p class="sidenote">Sadly the nature of markup languages means there is always a dangling closing bit that means adding things is going to involve more than concatenation</p>
-
-  <p>It allows us to do what people so rarely do these days, which is have fun with <span id="s0">the browser medium</span>.</p>
+  <p>
+    It allows us to do what people so rarely do these days, which is have fun with <span id="s0">the browser medium</span>.
+  </p>
 
   <!--  The use of modules allows me to isolate scripts on the page from each other-->
   <!--  and code in a more natural way. It does make REPL (dev tools) interaction a little harder, however.-->
@@ -103,7 +104,14 @@ This button stops the meta#refresh.content="2" second refresh that helps make a 
     </g>
   </svg>
 
-  <p class="sidenote">The value of normalized units is considerable. Consider that as we enter digits of a number after the decimal, we are always becoming more precise, and not invalidating the previous numbers. Our number system encourages us to to stop just short of any goal, and then move toward it cautiously. When you add numbers in front of the decimal, each number changes the meanings of the ones before. This is in part why numbers are right aligned, because your digits "push" the other digits to the left. The present is constantly modifying the past, and by a factor of 10! Horrible! I don't think it's odd to wonder what the bounds are on your life and work - what does 1.0 mean for you?</p>
+  <p class="sidenote">
+    The value of normalized units is considerable.
+    Consider that as we enter digits of a number after the decimal, we are always becoming more precise, and not invalidating the previous numbers.
+    Our number system encourages us to to stop just short of any goal, and then move toward it cautiously.
+    When you add numbers in front of the decimal, each number changes the meanings of the ones before.
+    This is in part why numbers are right aligned, because your digits "push" the other digits to the left.
+    The present is constantly modifying the past, and by a factor of 10! Horrible!
+  </p>
 
   <script type="module">
     // Now that we're oriented, lets move the green circle around.
@@ -111,40 +119,30 @@ This button stops the meta#refresh.content="2" second refresh that helps make a 
     const svg = document.querySelector("svg#s1")
     const g = document.querySelector("g#s2-transform");
 
-    // Write every (obj entry key value) into (svg attr key value)
-    const combine = (elt, obj) => {
-      if (elt.tagName === "circle") Object.assign(obj, {cx:obj.x, cy:obj.y}); // Support (x,y) -> (cx, cy) for circles
-      for (const [key, value] of Object.entries(obj)){
-        elt.setAttribute(key,  value.toString());
-      }
-    }
-
-    // Animate green circle motion using js state in 'pos'.
-    let pos = {x: 0, y: 0};
-    const translate = ({x, y}) => `translate(${x},${y})`;
-    const write = ({x, y}, g=g) => combine(g, {transform: translate({x, y})});
-
-    const circularMotion = (t, a, b, c, d) => ({
-      x: a * Math.cos(b * t + c) + d,
-      y: a * Math.sin(b * t + c) + d,
-    });
-
     const state = {
-      pos,
       running: true,
       started: Date.now(),
       timeOut: 4000, //negative to cancel
     };
+
     svg.addEventListener('click', () => {
       running = !running
     });
 
-    window.addEventListener('tick', e => {
+    window.addEventListener('tick', (_) => {
+      const ends = state.timeOut > 0;
       const t = Date.now();
-      if (state.running && (t < (state.started + state.timeOut) || state.timeOut < 0)) {
-        state.pos = circularMotion(t, 1, .001, 0, 0);
-        write(state.pos, g);
+      const timedOut = ends && t > (state.started + state.timeOut);
+
+      if (state.running && !timedOut) {
+        const {x,y} = circularMotion(t, 1, .001, 0, 0);
+        g.setAttribute('transform',`translate(${x},${y})`)
       }
+    });
+
+    const circularMotion = (t, a, b, c, d) => ({
+      x: a * Math.cos(b * t + c) + d,
+      y: a * Math.sin(b * t + c) + d,
     });
 
   </script>
