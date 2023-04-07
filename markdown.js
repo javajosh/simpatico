@@ -6,7 +6,7 @@ let DEBUG = true;
 const markdownDefaultImports= `
   import {assertEquals, assertThrows} from "/core.js";
   import {combine, assertHandler, logHandler} from "/combine2.js";
-  import {stree} from "/stree.js";
+  import {stree} from "/stree2.js";
   const etc = [];
   //const elt = id => document.getElementById(id);
 `;

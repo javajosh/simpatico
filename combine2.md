@@ -144,10 +144,6 @@ _________________________________________________________
 ## Assertion handler
 Before moving on its useful to define an "assertion handler":
 ```js
-  import {assertEquals, assertThrows} from "/core.js";
-  import {combine, logHandler} from "/combine2.js";
-  import {stree} from "/stree2.js";
-
   const assertHandler = {
     name: 'assert',
     install: function(){return {handlers: {assert: this}}},
