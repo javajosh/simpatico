@@ -5,7 +5,8 @@ let DEBUG = true;
 // This is a function, not a string, so that it can be called above before it's defined.
 const markdownDefaultImports= `
   import {assertEquals, assertThrows} from "/core.js";
-  import {combine, stree, assertHandler, logHandler} from "/combine2.js";
+  import {combine, assertHandler, logHandler} from "/combine2.js";
+  import {stree} from "/stree.js";
   const etc = [];
   //const elt = id => document.getElementById(id);
 `;
@@ -15,6 +16,7 @@ const scriptPassThroughExtension = {
   filter:  (htmlDocument, converter, options) => {
     return htmlDocument.replace(/<pre><code class="js.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
       const displayString = `<pre><code class="js language-js">${code}</code></pre>`;
+      code = code.trim();
       code = unescapeHtml(code);
       const doNotExecute = code.startsWith('//');
       const hasImports = code.startsWith('import');
