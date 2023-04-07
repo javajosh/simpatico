@@ -1,6 +1,6 @@
 <!--<!DOCTYPE html>
 <head>
-  <title>Simpatico: combine()</title>
+  <title>Simpatico: combine2()</title>
   <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
         <rect width='1' height='1' fill='white' />
@@ -8,6 +8,7 @@
   >
   <link rel="stylesheet" href="/style.css">
   <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+<meta id="refresh" http-equiv="refresh" content="2">
   <script class="testable" src="testable.js" type="module"></script>
   <script class="hljs" type="module">
     import hljs from '/kata/highlight.min.js';
@@ -21,17 +22,17 @@
 </head>-->
 
 _________________________________________________________
-# Simpatico: combine()
+# Simpatico: combine2()
 2023
 
 See:
 [home](/),
 [combine](./combine2.html),
 [stree](./stree2.md),
-[markdown](/kata/literate-markdown.md),
+[markdown](/kata/lit.md),
 [audience](/audience.md)
 
-<!--div class="makeItStop">I find the auto-refresh to be too annoying to leave on by default.</div-->
+<div class="makeItStop">I find the auto-refresh to be too annoying to leave on by default.</div>
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
 You use it in a webpage like this:
@@ -50,7 +51,7 @@ Simpatico is not yet published to npm, but for now a simple `wget` will work:
   $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/core.js
   $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js
 ```
-Within [markdown](/kata/literate-markdown.md) code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
+Within [markdown](/kata/lit.md) code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
 (If you don't include your own imports, default imports will apply):
 ```js
   assertEquals(3, combine(1, 2));
@@ -144,7 +145,8 @@ _________________________________________________________
 Before moving on its useful to define an "assertion handler":
 ```js
   import {assertEquals, assertThrows} from "/core.js";
-  import {combine, stree, logHandler} from "/combine2.js";
+  import {combine, logHandler} from "/combine2.js";
+  import {stree} from "/stree2.js";
 
   const assertHandler = {
     name: 'assert',

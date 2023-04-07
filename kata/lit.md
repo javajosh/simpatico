@@ -21,6 +21,7 @@
 </head>-->
 
 # Simpatico: Literate Markdown
+See also [markdown.js](./markdown.js), [reflector](/reflector.js)
 
 [![Aperiodic tile with one tile](/img/aperiodic-tiling-one-shape.png)](https://arxiv.org/abs/2303.10798)
 
@@ -105,6 +106,21 @@ Javascript doesn't execute when you start with a comment:
 ```js
 // does not execute
 throw 'this should not execute';
+```
+
+## Javascript skips default imports if there are custom imports
+In this test we have a custom import that conflicts with the default imports.
+That itself should fail.
+Then we also
+```js
+import {stree} from '/stree.js'
+// ^ The import statement above is a signal to litmd to turn off default imports.  ^
+
+// Call a function that should not exist, should throw an exception.
+// If no exception is thrown, that's a failure.
+let fail = false;
+try{assertEquals(1,1); fail = true;} catch (ignored){}
+if (fail) throw 'assertEquals should not be defined, but it is. Check that markdown.js defaultImports is turning off when the code snippet starts with an import statement';
 ```
 
 ## SVG renders with syntax highlighting:
