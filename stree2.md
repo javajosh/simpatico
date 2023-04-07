@@ -44,10 +44,8 @@ The convention I have selected is to reserve number typed input to do both tasks
   1. Positive integers select nodes. A new row is formed, parented to the node.
 
 ```js
-import {assertEquals, assertThrows} from "/core.js";
-import {combine, assertHandler, logHandler} from "/combine2.js";
+import {assertEquals} from "/core.js";
 import {stree} from '/stree2.js';
-const etc = [];
 
 const ops = [
     'he',
@@ -56,14 +54,18 @@ const ops = [
   2, 'tic',
   0, 'rmit',
 ];
-const noop = ()=>{};
+
 const concat = (a, b) => a + b;
 const push = (arr, elt) => [...arr, elt];
 
 let s = stree(ops, concat, '' , push, []);
-// const strings = s.branches().map(arr => arr.slice(0).reduce(concat,'')); //this already works
-console.log(s.residues, s.branches())
-assertEquals(['he', 'hey', 'here', 'heretic', 'hermit'], s.summary);
+const expected = ['he', 'hey', 'here', 'heretic', 'hermit'];
+assertEquals(expected, s.summary);
+assertEquals(expected, s.residues);
+
+// compute the same answer a different way
+const strings = s.branches().map(arr => arr.slice(0).reduce(concat,''));
+assertEquals(expected, strings);
 
 ```
 
@@ -80,7 +82,6 @@ In part that's because it harnesses one of the computers great superpowers, the 
 If you have a simple, general, usefully constrained way to represent program state, it makes sense to apply an stree to that in particular.
 
 ```js
-// Do not execute this code yet
 function testTreeInternals() {
   // Lets experiment with adding integers to the operations list, forming a trie
   const o = {};
@@ -91,9 +92,10 @@ function testTreeInternals() {
     2, a5,
     -1, a6
   ];
-  let s = stree(ops2);
-  // Let's pull out some stuff and look at it - none of this has to do with combine()
-  const {nodes, rows, branches} = s;
+  // we only care about structure, not reductions, so set a noop
+  function noop (){};
+  const {nodes, rows, branches}  = stree(ops2, noop, '', noop, '');
+
   assertEquals([o, a1, a2, a3, a4, a5, a6], nodes);
   assertEquals([
     [o, a1, a2],
@@ -105,24 +107,24 @@ function testTreeInternals() {
     [o, a3, a4, a6],
     [o, a1, a2, a5]
   ], branches());
-
 }
-testTreeInternals()
+testTreeInternals();
 ```
-Note: the following code has been intentionally disabled for now.
-Test assertions in the tree.
+
+
+
 ```js
-// Do not execute this code yet
+// skip for now
 function testTreeAssertions() {
   let DEBUG = true;
+
   const log = logHandler;
   const inc = {handle: ()            => [{a: 1}, {b: 2}]};
   const sum = {handle: (_, {a, b})   => [{a: a + b}]};
   const mul = {handle: ({a}, {a: b}) => [{a: null}, {a: a * b}]};
 
-  // 3: Same as ops but with more interspersed integers
   const ops3 = [
-    // {handlers: {log, inc, sum, mul, assert: assertHandler}},
+    {handlers: {log, inc, sum, mul, assert: assertHandler}},
     {handler: 'log'},
     {handler: 'inc'},
     {handler: 'assert', a: 1, b: 2},
@@ -141,9 +143,9 @@ function testTreeAssertions() {
     {handler: 'assert', a: 50},
     {handler: 'log'},
   ];
-  const {branches: branches3, allBranchesReachable, residues, summary} = stree(ops3);
-  allBranchesReachable({handlers: {log, inc, sum, mul, assert: assertHandler}});
-  if (DEBUG) console.log('branches3()', branches3(), 'residues', residues, 'summary', summary);
+  const {branches, residues, summary} = stree(ops3);
+
+  if (DEBUG) console.log('branches', branches(), 'residues', residues, 'summary', summary);
 }
 testTreeAssertions();
 ```

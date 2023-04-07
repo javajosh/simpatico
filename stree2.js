@@ -1,3 +1,5 @@
+import {combine} from './combine2.js'
+
 const DEBUG = false;
 const isNum = d => Number.isInteger(d);
 const isStr = d => typeof d === 'string';
@@ -87,7 +89,7 @@ function stree(
     }
     residues[currRowIndex] = newResidue;
     summary = residues.reduce(summaryReducer, summaryResidue);
-    console.log('stree2.hs:updateResidueAndSummary()', 'd', d, '\n', 'prevResidue:', prevResidue, '\n', 'newResidue', newResidue, '\n', 'summary', summary, '\n', 'residues', residues);
+    if (DEBUG) console.log('stree2.hs:updateResidueAndSummary()', 'd', d, '\n', 'prevResidue:', prevResidue, '\n', 'newResidue', newResidue, '\n', 'summary', summary, '\n', 'residues', residues);
   }
 
 
@@ -102,7 +104,7 @@ function stree(
     while (isNum(result[0])) {
       nodei = result.shift();
       partial = getPartialRow(nodei);
-      result = [...partial, ...result]; // this is incredibly wasteful compared to the linked node approach
+      result = [...partial, ...result]; // this is very wasteful compared to the linked node approach
     }
     return result;
   }
