@@ -110,8 +110,7 @@ testTreeInternals();
 __________________________________________________
 ## STree and Combine
 
-Let's just make sure that assertions and logging handlers work within the stree.
-
+Let's just make sure that assertions and logging handlers work within the stree:
 ```js
 function testTreeAssertions() {
   let DEBUG = true;
@@ -131,13 +130,15 @@ function testTreeAssertions() {
     {handler: 'dec'}, as({a: 10}),
     {handler: 'dec'}, as({a: 9}),
     {handler: 'mul', factor: 5}, as({a: 45}),
-    log('okay, lets backtack and start from an earlier node. no numbers, so it\'s easy to count'),
-    3,
+    log('okay, lets backtack and start from an earlier node.'),
+    4, log(),         as({a: 10}),
+    {handler: 'mul', factor: 2}, as({a: 20}),
+    {handler: 'inc'}, as({a: 21}),
+    10, log(),        as({a: 9}),
+    {handler: 'mul', factor: 20}, as({a: 180}),
   ]
   const s = stree(ops);
-  const {nodes, rows, branches} = s;
-  console.log(s);
-
+  window.s = s;
 }
 testTreeAssertions();
 ```

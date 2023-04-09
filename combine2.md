@@ -230,20 +230,12 @@ const logHandlerDemo = {
   }
 };
 
-// For testing purposes we install a proxy function that just checks if its called.
-// A nice technique that requires no mocking library.
-let printed = false;
-const printProxy = (...a) => {
-    printed = true;
-    console.log(...a);
-}
-
 // These handlers were imported by default by the markdown processor
 const as = assertHandler.call;
 const log = logHandlerDemo.call;
 const ops = [
   assertHandler.install(),
-  logHandlerDemo.install(printProxy),
+  logHandlerDemo.install(),
   as({debug: true, lastOutput: ''}),
   {a:10, b:20},   log('prints the core'), as({lastOutput: 'prints the core'}),
   {debug: false}, log('does not print'),  as({lastOutput: 'prints the core'}),

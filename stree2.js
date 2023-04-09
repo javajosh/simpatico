@@ -1,4 +1,4 @@
-import {combine} from './combine2.js'
+import {combine, combineReducer} from './combine2.js'
 
 const DEBUG = false;
 const isNum = d => Number.isInteger(d);
@@ -24,7 +24,7 @@ const peek = (arr) => {
  */
 function stree(
   ops = [{}],
-  rowReducer = combine,
+  rowReducer = combineReducer,
   rowResidue = {},
 ) {
   const rows = [[]];
@@ -54,7 +54,9 @@ function stree(
       currRowIndex = rows.length;
       currRow = [d];
       rows.push(currRow);
-      residues.push(residueForNode(d));
+      const branch = branchForNode(d);
+      const residue = branch.reduce(rowReducer, rowResidue);
+      residues.push(residue);
     } else if (targetIsRow) { // and we're gonna to point currRow to new row, and wait for the next add() call.
       if (-d >= rows.length) throw 'invalid row ' + d;
       currRow = rows[-d];
@@ -110,8 +112,8 @@ function stree(
     return result;
   }
 
-  function residueForNode(nodei) {
-    return rowToBranch(getPartialRow(nodei)).reduce(rowReducer, rowResidue);
+  function branchForNode(nodei) {
+    return rowToBranch(getPartialRow(nodei));
   }
 
   const branches = () => rows.map(rowToBranch);
@@ -134,7 +136,7 @@ function stree(
   return {
     add,
     allBranchesReachable,
-    residueForNode,
+    branchForNode,
     rows,
     nodes,
     residues,

@@ -128,4 +128,8 @@ function combineAll(...args) {
   }
 }
 
-export {combineAll as combine, assertHandler, logHandler}
+export {
+  combineAll as combine,
+  combine as combineReducer,
+  assertHandler, logHandler
+}
