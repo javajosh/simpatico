@@ -35,11 +35,23 @@ const assertHandler = {
 
 const logHandler = {
   name: 'log',
-  install: function(){return {handlers: {assert: this}, debug: true}},
-  call: a => ({handler: 'log', ...a}),
-  handle: (core, msg) => {
-    if (core.debug)
-      console.log('logHandler', 'core', core, 'msg', msg);
+  install: function(output=console.log){
+    this.output = output;
+    return {
+      handlers: {log: this},
+      debug   : true, // residue that can turn off logging
+      lastOutput: '', // the last thing logged
+    }},
+  call: a => {
+    if (typeof a === 'string') a = {msg: a};
+    return {handler: 'log', ...a};
+  },
+  handle: function (core, msg) {
+    if (core.debug){
+      this.output('logHandler', {msg, core});
+      if (msg && msg.hasOwnProperty('msg'))
+        return {lastOutput: msg.msg}
+    }
   }
 };
 

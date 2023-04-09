@@ -144,7 +144,7 @@ _________________________________________________________
 ## Assertion handler
 Before moving on its useful to define an "assertion handler":
 ```js
-  const assertHandler = {
+  const assertHandlerDemo = {
     name: 'assert',
     install: function(){return {handlers: {assert: this}}},
     call: a => ({handler: 'assert', ...a}),
@@ -157,17 +157,17 @@ Before moving on its useful to define an "assertion handler":
       return [{}];
     },
   };
-  const as = assertHandler.call;
+  const as = assertHandlerDemo.call;
 
   //1. The long-winded way to use the assert handler:
   assertThrows(() => {
     combine(
-      {a:1, handlers: {assert: assertHandler}},
+      {a:1, handlers: {assert: assertHandlerDemo}},
       {a:2, handler: 'assert'},
     );
   });
   combine(
-    {a:1, handlers: {assert: assertHandler}},
+    {a:1, handlers: {assert: assertHandlerDemo}},
     {a:1, handler: 'assert'},
   );
 
@@ -202,6 +202,56 @@ Here is a somewhat redundant example that I may remove in the future (although i
     ...etc
   ];
   combine(ops);
+```
+_________________________________________________________
+## Log Handler
+This is a handler that logs
+```js
+
+const logHandlerDemo = {
+  name: 'log',
+  install: function(output=console.log){
+    this.output = output;
+    return {
+      handlers: {log: this},
+      debug   : true, // residue that can turn off logging
+      lastOutput: '', // the last thing logged
+    }},
+  call: a => {
+      if (typeof a === 'string') a = {msg: a};
+      return {handler: 'log', ...a};
+  },
+  handle: function (core, msg) {
+    if (core.debug){
+      this.output('logHandler', {msg, core});
+      if (msg && msg.hasOwnProperty('msg'))
+        return {lastOutput: msg.msg}
+    }
+  }
+};
+
+// For testing purposes we install a proxy function that just checks if its called.
+// A nice technique that requires no mocking library.
+let printed = false;
+const printProxy = (...a) => {
+    printed = true;
+    console.log(...a);
+}
+
+// These handlers were imported by default by the markdown processor
+const as = assertHandler.call;
+const log = logHandlerDemo.call;
+const ops = [
+  assertHandler.install(),
+  logHandlerDemo.install(printProxy),
+  as({debug: true, lastOutput: ''}),
+  {a:10, b:20},   log('prints the core'), as({lastOutput: 'prints the core'}),
+  {debug: false}, log('does not print'),  as({lastOutput: 'prints the core'}),
+  {debug: true},  log('prints again'),    as({lastOutput: 'prints again'}),
+  ...etc
+];
+combine(ops);
+
 ```
 _________________________________________________________
 ## Handlers replace each other
@@ -250,6 +300,8 @@ Functions replace, so we can overwrite the old handler and call it with the same
   ];
   combine(ops);
 ```
+
+## Core and handler lifetime
 I anticipate that modify a handler during the core's lifetime is quite rare, and in fact we design carefully around such a case.
 In particular, make cores lifetime shorter, so we don't have to worry about it.
 Some cores must have a long life though, like that which defines our relationships.
