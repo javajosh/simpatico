@@ -1,6 +1,6 @@
 import showdown from './showdown.js';
 
-let DEBUG = true;
+let DEBUG = false;
 
 // This is a function, not a string, so that it can be called above before it's defined.
 const markdownDefaultImports= `
