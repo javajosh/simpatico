@@ -174,6 +174,44 @@
   // You must not have spaces between key, colon and value. I'd like to relax this, but am not a regexpert.
   // This also means that you can't have a value with a leading space, which is possibly annoying
   c.assertThrows(() => c.parseObjectLiteralString(`{http :80, https:443}`))
+
+  // Lets test the function detecting regex.
+  const functionString = "async function greet(name) {\n  console.log(`Hello, ${name}!`);\n}";
+  const arrowFunctionString = "(async (x, y) => x + y)";
+  const notFunctionString = "const message = 'Hello, world!'";
+  c.assert(c.regex.functions.test(functionString));
+  c.assert(c.regex.functions.test(arrowFunctionString));
+  c.assert(!c.regex.functions.test(notFunctionString));
+  const o1 = {
+    a: 1,
+    b: {
+      c: function() {
+        console.log('hello');
+      },
+      d: {
+        e: function() {
+          console.log('world');
+        }
+      },
+      f: (a,b) => {console.log('arrows')}
+    },
+    g: 'hello',
+    h: 'world() && foo',
+  };
+  const strObj = c.stringifyFunctions(o1);
+  c.assertEquals({
+    "a": 1,
+    "b": {
+      "c": "function() {\n        console.log('hello');\n      }",
+      "d": {
+        "e": "function() {\n          console.log('world');\n        }"
+      },
+      "f": "(a,b) => {console.log('arrows')}"
+    },
+    "g": "hello",
+    "h": "world() && foo"
+  }, strObj)
+
 </script>
 </body>
 </html>

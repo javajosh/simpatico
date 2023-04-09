@@ -297,6 +297,7 @@ const regex ={
   ipAddress: /\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\b/, // regexr.com/38odc
   svgOptimize: /(\d*\.\d{3})\d*/, // regexr.com/2ri1h really like the simplicity
   url: /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/, //regexr.com/2rj36 too permisive but its okay
+  functions: /^(\s*(async\s+)?function\s+\w*\s*\([\w\s,]*\)\s*{)|(\s*async\s*\([\w\s,]*\)\s*=>)/,
 }
 
 // For limits, see: https://stackoverflow.com/questions/2989284/what-is-the-max-size-of-localstorage-values
@@ -311,6 +312,55 @@ const safeSetItem = (key, value, ls=window.localStorage) => {
   return false;
 }
 
+/**
+ * Stringifies any functions in an object, recursively.
+ *
+ * @param obj
+ * @returns {string|{}|*}
+ */
+function stringifyFunctions(obj) {
+  if (typeof obj === 'function') {
+    return obj.toString();
+  } else if (typeof obj === 'object' && obj !== null) {
+    return Object.keys(obj).reduce((acc, key) => {
+      acc[key] = stringifyFunctions(obj[key]);
+      return acc;
+    }, {});
+  } else {
+    return obj;
+  }
+}
+
+/**
+ * Parses a stringified function back into a function
+ *
+ * @param obj
+ * @param lengthLimit A simple security measure to prevent extremely long functions from being used. These functions should be short.
+ * @returns {string|{}|*} Usually it will be the object itself with strings replaced with functions. If the string is not a function, it will be returned as a string.
+ */
+function parseFunctions(obj, lengthLimit = 1000){
+  if (typeof obj === 'string' && regex.functions.test(obj)) {
+    if (obj.length > lengthLimit) {
+      throw new Error(`Function string is too long: ${obj.length} > ${lengthLimit}`);
+    }
+    try {
+      // Try to parse the string as a function
+      const fn = new Function(`${obj}`)();
+      if (typeof fn === 'function') {
+        return fn;
+      }
+    } catch (e) {
+      // If there's an error, just return the string
+    }
+  } else if (typeof obj === 'object' && obj !== null) {
+    return Object.keys(obj).reduce((acc, key) => {
+      acc[key] = parseFunctions(obj[key]);
+      return acc;
+    }, {});
+  }
+  return obj;
+}
+
 
 export {
   is, as, getType, size, cast, TYPES,
@@ -322,4 +372,5 @@ export {
   and, or, sub, add, identity, curryLeft, curryRight, curry, compose,
   RNG, shuffle,
   tryToStringify, parseObjectLiteralString, regex,
+  parseFunctions, stringifyFunctions,
 }
