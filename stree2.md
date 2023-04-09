@@ -21,7 +21,7 @@
 </head>-->
 _________________________________________________________
 # Simpatico: stree2()
-2023
+jbr 2023
 
 See:
 [home](/),
@@ -29,9 +29,6 @@ See:
 [stree](./stree),
 [markdown](/kata/lit.md),
 [audience](/audience.md)
-
-  - See [home](/index.html)
-  - See [combine2](./combine2.md)
 
 # Simpatico: stree()
 The `stree` (s is for "summary" or "simpatico") allows you to express
@@ -60,7 +57,6 @@ const push = (arr, elt) => [...arr, elt];
 
 let s = stree(ops, concat, '' , push, []);
 const expected = ['he', 'hey', 'here', 'heretic', 'hermit'];
-assertEquals(expected, s.summary);
 assertEquals(expected, s.residues);
 
 // compute the same answer a different way
@@ -111,41 +107,37 @@ function testTreeInternals() {
 testTreeInternals();
 ```
 
+__________________________________________________
+## STree and Combine
 
+Let's just make sure that assertions and logging handlers work within the stree.
 
 ```js
-// skip for now
 function testTreeAssertions() {
   let DEBUG = true;
 
-  const log = logHandler;
-  const inc = {handle: ()            => [{a: 1}, {b: 2}]};
-  const sum = {handle: (_, {a, b})   => [{a: a + b}]};
-  const mul = {handle: ({a}, {a: b}) => [{a: null}, {a: a * b}]};
+  const inc = {handle: () => [{a: 1}]};
+  const dec = {handle: () => [{a: -1}]};
+  const mul = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}]};
 
-  const ops3 = [
-    {handlers: {log, inc, sum, mul, assert: assertHandler}},
-    {handler: 'log'},
-    {handler: 'inc'},
-    {handler: 'assert', a: 1, b: 2},
-    {handler: 'inc'},
-    {handler: 'assert', a: 2, b: 4},
-    2,
-    {a: null},
-    {handler: 'assert', a: 0},
-    {handler: 'sum', a: 1, b: 2},
-    {handler: 'assert', a: 3},
-    {a: null},
-    {a: 3},
-    {a: 2},
-    {handler: 'assert', a: 5},
-    {handler: 'mul', a: 10},
-    {handler: 'assert', a: 50},
-    {handler: 'log'},
-  ];
-  const {branches, residues, summary} = stree(ops3);
+  const as = assertHandler.call;
+  const log = logHandler.call;
+  const ops = [
+    assertHandler.install(),
+    logHandler.install(), as({debug: true, lastOutput: ''}),
+    {handlers:{inc, dec, mul}},
+    {a: 10},          as({a: 10}),
+    {handler: 'inc'}, as({a: 11}),
+    {handler: 'dec'}, as({a: 10}),
+    {handler: 'dec'}, as({a: 9}),
+    {handler: 'mul', factor: 5}, as({a: 45}),
+    log('okay, lets backtack and start from an earlier node. no numbers, so it\'s easy to count'),
+    3,
+  ]
+  const s = stree(ops);
+  const {nodes, rows, branches} = s;
+  console.log(s);
 
-  if (DEBUG) console.log('branches', branches(), 'residues', residues, 'summary', summary);
 }
 testTreeAssertions();
 ```
