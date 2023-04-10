@@ -43,7 +43,17 @@ function stree(
     return row.slice(0, coli + 1); // tricky: slice does not include the last elt!
   }
 
-  ops.every(add);
+  //Add each op, and rethrow any errors including the index of the op
+  ops.forEach((op, opi) => {
+    try {
+      add(op);
+    } catch (e) {
+      const msg = `cannot add op ${JSON.stringify(op)} op i ${opi}`;
+      e = Object.assign(e, {msg});
+      throw e;
+    }
+  });
+
 
   function add(d) {
     const targetIsNode = isNum(d) && d >= 0;

@@ -110,32 +110,35 @@ testTreeInternals();
 __________________________________________________
 ## STree and Combine
 
-Let's just make sure that assertions and logging handlers work within the stree:
+Let's just make sure that assertions and logging handlers work within the stree.
+Note that this example is not a good use of the stree, but it's a good test.
 ```js
 function testTreeAssertions() {
   let DEBUG = true;
 
-  const inc = {handle: () => [{a: 1}]};
-  const dec = {handle: () => [{a: -1}]};
-  const mul = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}]};
+  const incHandler = {handle: () => [{a: 1}], call:()=>({handler: 'inc'})};
+  const decHandler = {handle: () => [{a: -1}], call:()=>({handler: 'dec'})};
+  const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}], call: a => ({handler: 'mul', factor: a})};
 
-  const as = assertHandler.call;
-  const log = logHandler.call;
+  // These are convenience methods for authoring; we're still just adding objects together.
+  const as = assertHandler.call, log = logHandler.call;
+  const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
   const ops = [
     assertHandler.install(),
     logHandler.install(), as({debug: true, lastOutput: ''}),
-    {handlers:{inc, dec, mul}},
-    {a: 10},          as({a: 10}),
-    {handler: 'inc'}, as({a: 11}),
-    {handler: 'dec'}, as({a: 10}),
-    {handler: 'dec'}, as({a: 9}),
-    {handler: 'mul', factor: 5}, as({a: 45}),
+    {handlers:{inc: incHandler, dec: decHandler, mul: mulHandler}},
+    {a: 10},as({a: 10}),
+    inc(),  as({a: 11}),
+    dec(),  as({a: 10}),
+    dec(),  as({a: 9}),
+    mul(5), as({a: 45}),
     log('okay, lets backtack and start from an earlier node.'),
-    4, log(),         as({a: 10}),
-    {handler: 'mul', factor: 2}, as({a: 20}),
-    {handler: 'inc'}, as({a: 21}),
-    10, log(),        as({a: 9}),
-    {handler: 'mul', factor: 20}, as({a: 180}),
+    5,      as({a: 10}),
+    mul(2), as({a: 20}),
+    inc(),  as({a: 21}),
+    log('now lets backtrack to node 10 and '),
+    10,     as({a: 9}),
+    mul(20),as({a: 180}),
   ]
   const s = stree(ops);
   window.s = s;
