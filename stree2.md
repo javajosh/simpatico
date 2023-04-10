@@ -12,10 +12,10 @@
   <script class="hljs" type="module">
     import hljs from '/kata/highlight.min.js';
     import javascript from '/kata/highlight.javascript.min.js';
-    const d=document, elts = a => d.querySelectorAll(a);
+    const d=document;
     hljs.registerLanguage('javascript', javascript);
     d.addEventListener('DOMContentLoaded', () =>
-      elts('pre code').forEach(block =>
+      d.querySelectorAll('pre code').forEach(block =>
         hljs.highlightElement(block)));
   </script>
 </head>-->
@@ -38,7 +38,7 @@ And once we have our rows, we need a way to select old ones.
 The convention I have selected is to reserve number typed input to do both tasks.
 
   1. Negative integers select rows. Subsequent input is added here.
-  1. Positive integers select nodes. A new row is formed, parented to the node.
+  1. Positive integers select nodes. A new row is formed, parented to the numbered node.
 
 ```js
 // import {assertEquals} from "/core.js";
@@ -68,7 +68,7 @@ assertEquals(expected, strings);
 The reduction is over the list of nodes in order from root, which you can find easily from any node by walking up the parent.
 The major interface is a (growing) list of branches, represented simply by the nodes with no children.
 
-And I do have an implementation written precisely in that way, but I'll be using another implementation.
+While I do have an implementation written precisely in that way, but I'll be using another implementation.
 This one anticipates long runs of input targeted at a single row, so instead of wrapping each input in a new object, simply puts the input in the array.
 It also corresponds to the visualization.
 
@@ -283,41 +283,27 @@ The first rows are types, consisting only of handlers.
 The latter rows are instances, consisting only of messages.
 
 ```js
-/// Do not execute this code yet
+const DEBUG = false;
 function testTreeHandlers() {
-  const h1 = {handle: ({a}, {a: b}) => [ {a: b * b}], msg: {handler: 'h1', a: 2}};
-  // const h2 = {handle: (b, a) => [{a: null}, {a: a * 2}], msg: {handler: 'h2', a: 2}};
-  // const h3 = {handle: (b, a) => [{a: null}, {a: a * 3}], msg: {handler: 'h3', a: 2}};
-  // const h4 = {handle: (b, a) => [{a: null}, {a: a * 4}], msg: {handler: 'h4', a: 2}};
+  const h1 = {handle: (core, msg) => [{a:1}], call: {handler: 'h1'}};
+  const h2 = {handle: (core, msg) => [{a:2}], call: {handler: 'h2'}};
+  const [a, b] = [h1.call, h2.call];
 
-  // helper functions to build the ops (and a few tests to exercise/explain the intended use as authoring tools
-  // const h = a => [0, h1, h2, h3, h4][a].msg;
-  const c = c => ({c});
-  // const b = b => ({b});
-  const as = a => ({handler: 'assert', ...a});
-  // assertEquals({handler: 'h1', a: 2}, h(1));
-  // assertEquals({handler: 'h3', a: 2}, h(3));
-  // assertEquals({handler: 'h4', a: 2}, h(4));
-  // assertEquals({a: 2}, a(2));
-  // assertEquals({handler: 'assert', a: 7}, as({a: 7}));
-
-  // In this case we're building up a simple type tree and instantiating some of the types (and asserting things)
-  // const ops = [
-  //   {handlers: {assert: assertHandler}},
-  //   0, {type: 'foo'}, {handlers: {h1, h2}}, // 2
-  //   0, {type: 'bar'}, {handlers: {h3}}, {handlers: {h4}}, // 5; note the split handlers
-  //   0, {type: 'baz'}, {handlers: {h3, h4}}, // 7
-  //   2, a(1), as({a: 1}), a(2), as({type: 'foo', a: 3}), a(5), as({a: 8}),
-  //   5, a(3), as({type: 'bar', a: 3}), // h(3).msg, as({a:9}),
-  //   7, a(4), as({type: 'baz', a: 4}),
-  // ];
-
+  const as = assertHandler.call, log = logHandler.call;
   const ops = [
-    {handlers: h1}, h1.msg,
+    assertHandler.install(),
+    logHandler.install(),
+    {handlers: {h1, h2}, debug: DEBUG},
+    {a:0}, log('this is node 4'), as({a:0}), a, b, as({a:3}),
+    3, log('row 1 parent 3'), as({a:0}), b, b, as({a:4}),
+    3, log('row 2 parent 3'), as({a:0}), b, b, a, b, b, a, a, as({a:11}),
+    11, log('row 3 parent 11'), as({a: 2}), a, a, as({a:4}),
   ];
-  const {add, neu, residues, summary, nodes, allBranchesReachable} = stree(ops);
-  allBranchesReachable({});
-  console.log('residues', residues, 'nodes', nodes, 'summary', summary);
+  let s = stree(ops);
+
+  const moreOps = [{debug: true}, a, a, b, b, log('hello from other ops, still row 3')];
+  s.addAll(moreOps);
+  window.s = s;
 }
 testTreeHandlers();
 ```
