@@ -38,6 +38,7 @@ To that end I've added basic litmd support to the [reflector](/reflector.js).
   - [x] do the same for html, esp svg
   - [x] correctly render on github
 
+______________________________________________________________
 ## Markdown test
 ```md
 # This is a test header
@@ -55,24 +56,18 @@ To get images that work on github, either crop the image or use html.
 ![alt text](img url =widthxheight)
 
 ```
+______________________________________________________________
+## Inline code tests
 
-## HTML test
-
-Executed:
+### HTML snippets render
 ```html
 <div id="test-div">
   <p>This is a test div1</p>
 </div>
 ```
 
-Not executed:
 
-```html
-<!-- Opening with an html comment prevents the snippet from executing -->
-<div id="test-div2">This is a test div2</div>
-```
-
-## CSS test
+### CSS snippets render
 CSS rules applied to `test-div` above:
 
 ```css
@@ -85,34 +80,70 @@ CSS rules applied to `test-div` above:
 }
 ```
 
-CSS rules not applied to `test-div` because the snippet starts with a comment:
+## Javascript 'renders':
+```js
+console.log('hello world');
+```
+
+______________________________________________________________
+## Code doesn't execute when you start with a special comment:
+
+Code doesn't execute when they start with special textual signals:
+1. html  `<!---`
+2. css   `/***`
+3. js    `///`
+
+### HTML doesn't execute:
+
+```html
+<!--- Opening with an html comment prevents the snippet from executing -->
+<div id="test-div2">This is a test div2</div>
+```
+Make sure it didn't execute:
+```js
+if (document.getElementById('test-div2') !== null) throw 'test-div2 should not exist';
+```
+
+### CSS doesn't execute:
 
 ```css
-/* Starting with a css comment prevents the snippet from executing */
-#test-div {
+/*** Doesn't execute */
+#test-div2 {
   font-family: serif;
   font-weight: normal;
   font-style: normal;
 }
 ```
-
-## Javascript executes and renders with syntax highlighting:
+Make sure it didn't execute:
 ```js
-let result = combine({a:1}, {a:2});
-console.log('hi josh 1', 1 < 2);
+// Check the CSS DOM for the existence of a rule that should not exist
+function findCSSRule(predicate, document, defaultResult=null){
+  const styleSheets = document.styleSheets;
+  for (let i = 0; i < styleSheets.length; i++) {
+    let rules = styleSheets[i].cssRules;
+    for (let j = 0; j < rules.length; j++) {
+      if (predicate(rules[j])) {
+        return(rules[j]);
+      }
+    }
+  }
+  return defaultResult;
+}
+const predicate = (rule) => rule.selectorText === '#test-div2';
+assertEquals(null, findCSSRule(predicate, window.document),'css rule #test-div2 should not exist');
 ```
 
-Javascript doesn't execute when you start with a special comment:
+### JavaScript doesn't execute:
 ```js
 /// does not execute
-throw 'this should not execute';
+window.hello = 1;
+```
+Make sure it doesn't execute:
+```js
+assertEquals(undefined, window.hello, 'window.hello should not exist');
 ```
 
-Other formats similarly don't execute with special textual signals:
-    1. html  `<!---`
-    2. css   `/*---`
-    3. js    `///`
-
+______________________________________________________________
 ## JavaScript default imports
 In this test we have a custom import that conflicts with the default imports.
 That itself should fail.
@@ -143,6 +174,7 @@ import('stree').then((module) => {
 });
 ```
 
+______________________________________________________________
 ## SVG renders with syntax highlighting:
 SVG source render (and authors) correctly:
 
@@ -170,6 +202,7 @@ style="background-color: #eee;"
 }
 ```
 
+______________________________________________________________
 # Libraries
 
 ## Showdown.js Library
@@ -194,6 +227,9 @@ Then statically download the assets you want.
 curl -O
 ```
 
+______________________________________________________________
+# Discussion
+
 ## Why not HTML?
 
 Writing about program source code is annoying in raw HTML.
@@ -213,16 +249,13 @@ Two authoring issues with IntelliJ IDEA, one syntax highlighting issue, only fix
 A good reason to reconsider raw html, requiring the reader to view source.
 
 
-
-
-
 # Literate Markdown
-Literate Markdown is dialect of litmd that allows you to embed code snippets in your litmd that execute when the html is rendered.
+Literate Markdown is dialect of markdown that allows you to embed code snippets in your markdown that execute when the html is rendered.
 This is a great way to write documentation that is both human and machine-readable.
 The reflector uses this technique to serve up the documentation for simpatico.
 
 ## How it works
-  1. On the server, in [reflector](/reflector.md) litmd is converted to html and javascript using a custom showdown extension.
+  1. On the server, in [reflector](/reflector.md) litmd is converted to html and javascript.
   2. The html is served to the client.
   3. The client both displays and executes the javascript in the html.
   4. The javascript is written in an `assert` style that throws exceptions when it fails.
@@ -236,9 +269,9 @@ Literate Markdown adds extra support for JavaScript code execution:
 ## Concerns
   - The highlight library is shipped to the client is large (~150KB minified) and does not support [line numbers](https://highlightjs.readthedocs.io/en/latest/line-numbers.html)
   - The line numbers in browser errors no longer line up exactly like they do in raw HTML.
-  - The litmd processing requires another 150KB library (showdown.js) ton the server, plus non-trivial code in reflector.js.
-  - It is a great nutshell example of the siren allure of using litmd for everything - but that's 300KB of complexity for functionality you get for 0 with F12!
+  - The markdown processing requires another 150KB library (showdown.js) ton the server, plus non-trivial code in reflector.js.
+  - It is a great nutshell example of the siren allure of using markdown/litmd for everything - but that's 300KB of complexity for functionality you get for 0 with F12!
 
 ## Footnotes
 
-Not supported by showdown.js, but supported by [litmd-it](https://litmd-it.github.io/).
+Footnotes are not supported by showdown.js, but supported by [markdown-it](https://markdown-it.github.io/).
