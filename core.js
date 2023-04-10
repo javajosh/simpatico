@@ -6,12 +6,19 @@ const info = console.info.bind(console)
 
 const error = msg => {throw new Error(msg)}
 const assert = (truthy, msg) => !!truthy ? true : error(msg)
-const assertThrows = fn => {
-  assert(typeof fn === 'function', `assertThrows must take a function argument instead got ${getType(fn)}`);
-  let throws = false, result;
-  try { result = fn() } catch (e) { throws = true }
+const assertThrows = async fn => {
+  assert(typeof fn === 'function',
+    `assertThrows must take a function argument instead got ${getType(fn)}`);
+  let throws = false;
+  let result;
+  try {
+    result = await fn(); // in case fn is an async function
+  } catch (e) {
+    throws = true;
+  }
   assert(throws, `Expected fn to throw, but it didn't and returned [${tryToStringify(result)}]`);
 };
+
 
 const tryToStringify = a => {
   if (typeof a !== 'object') return a;
@@ -285,7 +292,7 @@ const shuffle = arr => {
 const parseObjectLiteralString = arg => {
   as.str(arg);
   // Quote anything that isn't quoted
-  // Currently no space is allowed between quotes - !
+  // Please note that this implementation assumes that there are no colons, commas, or curly braces within the unquoted values.
   const quoted = arg.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:(['"])?([a-zA-Z0-9\\.\/]+)(['"])?/g, '"$2":"$5"');
   return JSON.parse(quoted);
 }
@@ -337,7 +344,8 @@ function stringifyFunctions(obj, fakeResult = '') {
 }
 
 /**
- * Parses a stringified function back into a function
+ * Parses a stringified function back into a function - this is generally dangerous,
+ * equivalent to "eval()".
  *
  * @param obj
  * @param lengthLimit A simple security measure to prevent extremely long functions from being used. These functions should be short.
