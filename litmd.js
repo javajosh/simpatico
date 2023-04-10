@@ -2,13 +2,17 @@ import showdown from './showdown.js';
 
 let DEBUG = false;
 
-// This is a function, not a string, so that it can be called above before it's defined.
+// Signal to the litmd converter that we don't want to execute the code.
+// by starting the code block with one of these strings.
+const dontExecuteScript = '///';
+const dontExecuteHtml = '<!---';
+const dontExecuteCss = '/***';
+
 const markdownDefaultImports= `
   import {assertEquals, assertThrows} from "/core.js";
   import {combine, assertHandler, logHandler} from "/combine2.js";
   import {stree} from "/stree2.js";
-  const etc = [];
-  //const elt = id => document.getElementById(id);
+  const etc = []; // stupid, yes. but funny, [...etc]
 `;
 
 const scriptPassThroughExtension = {
@@ -18,16 +22,15 @@ const scriptPassThroughExtension = {
       const displayString = `<pre><code class="js language-js">${code}</code></pre>`;
       code = code.trim();
       code = unescapeHtml(code);
-      const doNotExecute = code.startsWith('//');
-      const hasImports = code.startsWith('import');
+      const doNotExecute = code.startsWith(dontExecuteScript);
       const executeString = `
         <script type="module">
-          ${hasImports ? '' : options.defaultImport}
+          ${options.defaultImport}
           ${code}
         </script>
-        `;
+      `;
       const output =  displayString + (doNotExecute ? '' : '\n' + executeString);
-      if (DEBUG) console.log('markdown.js: scriptPassThroughExtension', output);
+      if (DEBUG) console.log('litmd.js: scriptPassThroughExtension', output);
       return output;
     });
   }
@@ -40,10 +43,10 @@ const htmlPassThroughExtension = {
       // showdown tags html as js for some reason, so we use a heuristic to distinguish.
       const displayString = `<pre><code class="html language-html">${code}</code></pre>`;
       const executeString = unescapeHtml(code);
-      const doNotExecute = executeString.startsWith('<!--');
+      const doNotExecute = executeString.startsWith(dontExecuteHtml);
       const output =  displayString + (doNotExecute ? '' : '\n' + executeString);
 
-      if (DEBUG) console.log('markdown.js: htmlPassThroughExtension', output);
+      if (DEBUG) console.log('litmd.js: htmlPassThroughExtension', output);
       return output;
     })
   }
@@ -56,17 +59,17 @@ const cssPassThroughExtension = {
       // showdown tags html as js for some reason, so we use a heuristic to distinguish.
       const displayString = `<pre><code class="css language-css">${code}</code></pre>`;
       code = unescapeHtml(code);
-      const doNotExecute = code.startsWith('/*');
+      const doNotExecute = code.startsWith(dontExecuteCss);
       const executeString = `<style>${code}</style>`;
       const output =  displayString + (doNotExecute ? '' : '\n' + executeString);
 
-      if (DEBUG) console.log('markdown.js: cssPassThroughExtension', output);
+      if (DEBUG) console.log('litmd.js: cssPassThroughExtension', output);
       return output;
     })
   }
 };
 
-const makeMarkdownConverter = (options={}) => {
+function makeMarkdownConverter (options={}) {
   showdown.extension('scriptPassThroughExtension', scriptPassThroughExtension);
   showdown.extension('htmlPassThroughExtension', htmlPassThroughExtension);
   showdown.extension('cssPassThroughExtension', cssPassThroughExtension);
@@ -87,15 +90,15 @@ const makeMarkdownConverter = (options={}) => {
       },
       options)
   );
-  if (DEBUG) console.log('markdown.js: makeMarkdownConverter', result);
+  if (DEBUG) console.log('litmd.js: makeMarkdownConverter', result);
   return result;
 }
-// Instantiate a singleton markdown converter that lives as long as the module/app.
-let markdown = makeMarkdownConverter();
+// Instantiate a singleton litmd converter that lives as long as the module/app.
+const litmd = makeMarkdownConverter();
 
 /**
- *  Build an HTML document from a literate markdown string.
- *  A literate markdown string can contain header fields, wrapped in html comments so they render on github.
+ *  Build an HTML document from a literate litmd string.
+ *  A literate litmd string can contain header fields, wrapped in html comments so they render on github.
  *  This whole thing is brittle and needs to be redone properly.
  *
  * @param markdownString
@@ -104,7 +107,6 @@ let markdown = makeMarkdownConverter();
  */
 function buildHtmlFromLiterateMarkdown(markdownString, fileName=''){
   if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
-  markdown = makeMarkdownConverter();
   const firstCut = markdownString.split('</head>-->');
   let header = firstCut[0];
   let body = '';
@@ -117,12 +119,12 @@ function buildHtmlFromLiterateMarkdown(markdownString, fileName=''){
     body = markdownString;
   }
 
-  if (DEBUG) console.log('markdown.js: buildHtmlFromLiterateMarkdown', header, 'body', body);
-  return header + markdown.makeHtml(body) + htmlFooter();
+  if (DEBUG) console.log('litmd.js: buildHtmlFromLiterateMarkdown', 'header', header, 'body', body);
+  return header + litmd.makeHtml(body) + htmlFooter();
 }
 
 /**
- * Build a default header for markdown files that don't have one.
+ * Build a default header for litmd files that don't have one.
  * @param fileName
  * @returns {string}
  */

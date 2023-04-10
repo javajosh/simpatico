@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
-import {buildHtmlFromLiterateMarkdown} from './markdown.js';
+import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';

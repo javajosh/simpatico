@@ -29,7 +29,7 @@ See:
 [home](/),
 [combine](./combine2.html),
 [stree](./stree2.md),
-[markdown](/kata/lit.md),
+[litmd](/lit.md),
 [audience](/audience.md)
 
 <div class="makeItStop">I find the auto-refresh to be too annoying to leave on by default.</div>
@@ -51,7 +51,7 @@ Simpatico is not yet published to npm, but for now a simple `wget` will work:
   $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/core.js
   $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js
 ```
-Within [markdown](/kata/lit.md) code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
+Within [litmd](/lit.md) code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
 (If you don't include your own imports, default imports will apply):
 ```js
   assertEquals(3, combine(1, 2));
@@ -230,7 +230,7 @@ const logHandlerDemo = {
   }
 };
 
-// These handlers were imported by default by the markdown processor
+// These handlers were imported by default by the litmd processor
 const as = assertHandler.call;
 const log = logHandlerDemo.call;
 const ops = [
