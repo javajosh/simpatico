@@ -301,7 +301,7 @@ function testTreeHandlers() {
   ];
   let s = stree(ops);
 
-  const moreOps = [{debug: true}, a, a, b, b, log('hello from other ops, still row 3')];
+  const moreOps = [{debug: true}, a, a, b, b, log('hello from moreOps, still row 3')];
   s.addAll(moreOps);
   window.s = s;
 }
