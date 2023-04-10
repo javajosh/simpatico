@@ -31,16 +31,31 @@ This is perfect for rapid prototyping and exploration, especially when you don't
 
 Cons: If you change the 'standard' you have to go through your old work and update all other front-matter to be consistent.
 Resources are no longer "whole" -- you've factored out front-matter which is no longer visible to the author.
-This leads to the false impression of what the scope of the resource really is, and a reluctance of the author to modify the front-matter.
-(This is the same phenomena responsible for enterprise software gridlock and lack of agency)
+This leads to the false impression of what the scope of the resource really is, and a reluctance of the author to modify the front-matter. It's "out-of-control DRY" (where DRY means "don't repeat yourself").
+(When unchecked this enterprise software gridlock and lack of agency)
 
-How are resources constructed?
-I can't be a bit confusing because of how flow-of-control moves.
+
+## A novel way: do it in the client with dynamic code.
+We pick a very simple, very late-executing method of coherence:
+  1. Pick a special resource name, say `site.js`.
+  1. Every directory has 0 or 1 of these files.
+  1. The DOM reads every `site.js` up to root in reverse order, skipping missing files.
+  1. The DOM executes the script(s)
+
+The simplest case is just one `site.js` at root which is executed by all resources.
+This setup is mirrored by `style.css`.
+Site.js is mostly going to consist of HTML template strings.
+Head has already loaded, but it can be modified.
+This solution very quickly segues into traditional templating.
+
+Here is a possible design:
 ```html
+<!-- not executed -->
 <head></head>            <- reflector.genHead({article.slug}) <- headTemplate
 <nav></nav>              <- reflector.genNav({blogSummary}) <- navTemplate
 <article></article>      <- article.html -> chakadar -> reflector.extractSlug(articleString) && reflector.blogSummary
 ```
+
 Here is a simple implementation:
 ```js
 const head = slug => `${slug}`;
@@ -55,6 +70,7 @@ const slug = {
   title: 'Simpatico - What\'s new?',
   tags: ['release', 'reflector'],
 };
+
 const fileContentCache = {
   'file1': {content:'', slug:{}},
   'file2': {content:'', slug:{}},
@@ -65,7 +81,6 @@ const fileContentCache = {
 const extractSlugFromContent = (content, contentType='md') => {
   const regex = /\{[^{}]*\}/; // Regular expression to match object literals
   const match = str.match(regex);
-
 };
 const isArticleInBlog = (filePath, blogPath) => filePath.dirName() === blogPath.dirName();
 const fileName = 'simpatico-whats-new.md';
@@ -75,25 +90,13 @@ const fileName = 'simpatico-whats-new.md';
 const result = [head(slug), nav(blogArticleSlugCache), article(fileName)].join('\n');
 console.log(result)
 ```
+
 Article changes invalidate both the fileCache entry and 2 blogCache entries (one for the file, and one for the blog to which it is associated).
 The missing resource triggers a recompute.
 For a missing blog resource, we reconstruct the whole thing.
 
 Head and nav resource references should be root-relative.
 Article references can be resource relative.
-
-## A novel way: do it in the client with dynamic code.
-We pick a very simple, very late-executing method of coherence:
-  1. Pick a special resource name, say `site.js`.
-  1. Every directory has 0 or 1 of these files.
-  1. The DOM reads every `site.js` up to root in reverse order, skipping missing files.
-  1. The DOM executes the script(s)
-
-The simplest case is just one `site.js` at root which is executed by all resources.
-This setup is mirrored by `style.css`.
-Site.js is mostly going to consist of HTML template strings.
-Head has already loaded, but it can be modified.
-This solution very quickly segues into traditional templating.
 
 Consistency has 3 basic parts: look, behavior, and content.
 Shared sub-resources can easily achieve consistency of look (css) and behavior (js).
