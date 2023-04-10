@@ -4,15 +4,10 @@ import {assertEquals, tryToStringify} from './core.js';
 
 const DEBUG = false;
 const isNum = d => Number.isInteger(d);
-const isStr = d => typeof d === 'string';
 const isArray = d => Array.isArray(d);
 const isObj = a => typeof a === 'object' && !isArray(a);
 const isScalar = a => !isArray(a) && !isObj(a);
-const peek = (arr, def=null) => {
-  if (!isArray(arr) || arr.length === 0) return def;
-  if (arr.length === 1) return arr[0];
-  return arr[arr.length - 1];
-}
+
 const isCore = a =>    typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
 const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
 const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
@@ -48,8 +43,9 @@ const logHandler = {
   },
   handle: function (core, msg) {
     if (core.debug){
-      this.output('logHandler', {msg, core});
-      if (msg && msg.hasOwnProperty('msg'))
+      let out = (msg && msg.hasOwnProperty('msg')) ? msg.msg : undefined;
+      this.output('logHandler:', out, {msg, core});
+      if (out)
         return {lastOutput: msg.msg}
     }
   }
@@ -72,7 +68,7 @@ function combine(a, b) {
 
   // If both args are arrays, combine every element - concatenation is also a reasonable rule
   if (Array.isArray(a) && Array.isArray(b)) {
-    return a.map((ai, i) => combine(ai, b[i]));
+    return a.concat(b);
   }
 
   // if the target is an array, push the argument onto the array
