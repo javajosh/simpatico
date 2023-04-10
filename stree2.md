@@ -27,7 +27,7 @@ See:
 [home](/),
 [combine2](./combine2.md),
 [stree](./stree),
-[markdown](/kata/lit.md),
+[litmd](/lit.md),
 [audience](/audience.md)
 
 # Simpatico: stree()
@@ -41,8 +41,8 @@ The convention I have selected is to reserve number typed input to do both tasks
   1. Positive integers select nodes. A new row is formed, parented to the node.
 
 ```js
-import {assertEquals} from "/core.js";
-import {stree} from '/stree2.js';
+// import {assertEquals} from "/core.js";
+// import {stree} from '/stree2.js';
 
 const ops = [
     'he',
@@ -110,40 +110,169 @@ testTreeInternals();
 __________________________________________________
 ## STree and Combine
 
-Let's just make sure that assertions and logging handlers work within the stree.
-Note that this example is not a good use of the stree, but it's a good test.
+Let's  make sure that combine works within the stree, using some simple, synthetic handlers.
+
 ```js
-function testTreeAssertions() {
-  let DEBUG = true;
+const incHandler = {handle: () => [{a: 1}], call:()=>({handler: 'inc'})};
+const decHandler = {handle: () => [{a: -1}], call:()=>({handler: 'dec'})};
+const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}], call: a => ({handler: 'mul', factor: a})};
 
-  const incHandler = {handle: () => [{a: 1}], call:()=>({handler: 'inc'})};
-  const decHandler = {handle: () => [{a: -1}], call:()=>({handler: 'dec'})};
-  const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}], call: a => ({handler: 'mul', factor: a})};
+// These are convenience methods for authoring; we're still just adding objects together.
+const as = assertHandler.call, log = logHandler.call;
+const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
+const ops = [
+  assertHandler.install(),
+  logHandler.install(), as({debug: true, lastOutput: ''}),
+  {handlers:{inc: incHandler, dec: decHandler, mul: mulHandler}},
+  {a: 10},as({a: 10}),
+  inc(),  as({a: 11}),
+  dec(),  as({a: 10}),
+  dec(),  as({a: 9}),
+  mul(5), as({a: 45}),
+  log('okay, lets backtack and start from an earlier node.'),
+  5,      as({a: 10}),
+  mul(2), as({a: 20}),
+  inc(),  as({a: 21}),
+  log('now lets backtrack to node 10 and '),
+  10,     as({a: 9}),
+  mul(20),as({a: 180}),
+]
+window.s = stree(ops);
+```
 
-  // These are convenience methods for authoring; we're still just adding objects together.
-  const as = assertHandler.call, log = logHandler.call;
-  const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
-  const ops = [
-    assertHandler.install(),
-    logHandler.install(), as({debug: true, lastOutput: ''}),
-    {handlers:{inc: incHandler, dec: decHandler, mul: mulHandler}},
-    {a: 10},as({a: 10}),
-    inc(),  as({a: 11}),
-    dec(),  as({a: 10}),
-    dec(),  as({a: 9}),
-    mul(5), as({a: 45}),
-    log('okay, lets backtack and start from an earlier node.'),
-    5,      as({a: 10}),
-    mul(2), as({a: 20}),
-    inc(),  as({a: 21}),
-    log('now lets backtrack to node 10 and '),
-    10,     as({a: 9}),
-    mul(20),as({a: 180}),
-  ]
-  const s = stree(ops);
-  window.s = s;
-}
-testTreeAssertions();
+## Canonical ops
+
+At the end of the day all the elements in this array are either objects or integers.
+This example is equivalent to the previous one, but now we show the JSON representation of the ops.
+```js
+import {stringifyFunctions} from '/core.js';
+const ops = [...etc];
+const ops2 = stringifyFunctions(ops, "[long function string]");
+```
+ops2 looks like this:
+```json
+[
+    {
+        "handlers": {
+            "assert": {
+                "name": "assert",
+                "install": "function(){return {handlers: {assert: this}}}",
+                "call": "a => ({handler: 'assert', ...a})",
+                "handle": "[long function string]"
+            }
+        }
+    },
+    {
+        "handlers": {
+            "log": {
+                "name": "log",
+                "install": "[long function string]",
+                "call": "[long function string]",
+                "handle": "[long function string]"
+            }
+        },
+        "debug": true,
+        "lastOutput": ""
+    },
+    {
+        "handler": "assert",
+        "debug": true,
+        "lastOutput": ""
+    },
+    {
+        "handlers": {
+            "inc": {
+                "handle": "() => [{a: 1}]",
+                "call": "()=>({handler: 'inc'})"
+            },
+            "dec": {
+                "handle": "() => [{a: -1}]",
+                "call": "()=>({handler: 'dec'})"
+            },
+            "mul": {
+                "handle": "(core, msg) => [{a : null},{a: msg.factor * core.a}]",
+                "call": "a => ({handler: 'mul', factor: a})"
+            }
+        }
+    },
+    {
+        "a": 10
+    },
+    {
+        "handler": "assert",
+        "a": 10
+    },
+    {
+        "handler": "inc"
+    },
+    {
+        "handler": "assert",
+        "a": 11
+    },
+    {
+        "handler": "dec"
+    },
+    {
+        "handler": "assert",
+        "a": 10
+    },
+    {
+        "handler": "dec"
+    },
+    {
+        "handler": "assert",
+        "a": 9
+    },
+    {
+        "handler": "mul",
+        "factor": 5
+    },
+    {
+        "handler": "assert",
+        "a": 45
+    },
+    {
+        "handler": "log",
+        "msg": "okay, lets backtack and start from an earlier node."
+    },
+    5,
+    {
+        "handler": "assert",
+        "a": 10
+    },
+    {
+        "handler": "mul",
+        "factor": 2
+    },
+    {
+        "handler": "assert",
+        "a": 20
+    },
+    {
+        "handler": "inc"
+    },
+    {
+        "handler": "assert",
+        "a": 21
+    },
+    {
+        "handler": "log",
+        "msg": "now lets backtrack to node 10 and "
+    },
+    10,
+    {
+        "handler": "assert",
+        "a": 9
+    },
+    {
+        "handler": "mul",
+        "factor": 20
+    },
+    {
+        "handler": "assert",
+        "a": 180
+    }
+]
 ```
 
 # Simpatico OOP
@@ -154,7 +283,7 @@ The first rows are types, consisting only of handlers.
 The latter rows are instances, consisting only of messages.
 
 ```js
-// Do not execute this code yet
+/// Do not execute this code yet
 function testTreeHandlers() {
   const h1 = {handle: ({a}, {a: b}) => [ {a: b * b}], msg: {handler: 'h1', a: 2}};
   // const h2 = {handle: (b, a) => [{a: null}, {a: a * 2}], msg: {handler: 'h2', a: 2}};
