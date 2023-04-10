@@ -314,14 +314,19 @@ const safeSetItem = (key, value, ls=window.localStorage) => {
 
 /**
  * Stringifies any functions in an object, recursively.
+ * This is mutating.
  *
- * @param obj
+ * @param obj The object or array to stringify. All functions will be replaced with their stringified versions.
+ * @param fakeResult Useful for producing readable output
  * @returns {string|{}|*}
  */
-function stringifyFunctions(obj) {
+function stringifyFunctions(obj, fakeResult = '') {
+  if (fakeResult) return fakeResult;
   if (typeof obj === 'function') {
     return obj.toString();
-  } else if (typeof obj === 'object' && obj !== null) {
+  } else if (Array.isArray(obj)) {
+    return obj.map(elt => stringifyFunctions(elt))
+  } if (typeof obj === 'object' && obj !== null) {
     return Object.keys(obj).reduce((acc, key) => {
       acc[key] = stringifyFunctions(obj[key]);
       return acc;
