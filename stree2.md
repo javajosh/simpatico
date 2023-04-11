@@ -30,7 +30,6 @@ See:
 [litmd](/lit.md),
 [audience](/audience.md)
 
-# Simpatico: stree()
 The `stree` (s is for "summary" or "simpatico") allows you to express
 many related sequences with ease.
 If we associate each branch with a row then all we need is a way to make new rows.
@@ -275,6 +274,7 @@ ops2 looks like this:
 ]
 ```
 
+__________________________________________________
 # Simpatico OOP
 Building out an example of classic OOP types and instantiation with Simpatico.
 Rows are simply designated a type with a label.

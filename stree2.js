@@ -1,6 +1,8 @@
 import {combine, combineReducer} from './combine2.js'
 
 const DEBUG = false;
+// Utilities I could take from core but I want to keep this file standalone.
+// Note that the combine imports above are only used for default parms and can be easily removed.
 const isNum = d => Number.isInteger(d);
 const peek = (arr) => {
   if (arr.length === 1) return arr[0];
