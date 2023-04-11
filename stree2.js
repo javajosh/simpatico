@@ -153,6 +153,7 @@ function stree(
     rows,
     nodes,
     residues,
+    currRowIndex,
     branches,
     branchTips,
   };

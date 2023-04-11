@@ -284,26 +284,30 @@ The latter rows are instances, consisting only of messages.
 
 ```js
 const DEBUG = false;
-function testTreeHandlers() {
-  const h1 = {handle: (core, msg) => [{a:1}], call: {handler: 'h1'}};
-  const h2 = {handle: (core, msg) => [{a:2}], call: {handler: 'h2'}};
-  const [a, b] = [h1.call, h2.call];
 
-  const as = assertHandler.call, log = logHandler.call;
-  const ops = [
-    assertHandler.install(),
-    logHandler.install(),
-    {handlers: {h1, h2}, debug: DEBUG},
-    {a:0}, log('this is node 4'), as({a:0}), a, b, as({a:3}),
-    3, log('row 1 parent 3'), as({a:0}), b, b, as({a:4}),
-    3, log('row 2 parent 3'), as({a:0}), b, b, a, b, b, a, a, as({a:11}),
-    11, log('row 3 parent 11'), as({a: 2}), a, a, as({a:4}),
-  ];
-  let s = stree(ops);
+const h1 = {handle: (core, msg) => [{a:1}], call: {handler: 'h1'}};
+const h2 = {handle: (core, msg) => [{a:2}], call: {handler: 'h2'}};
+const [a, b] = [h1.call, h2.call];
 
-  const moreOps = [{debug: true}, a, a, b, b, log('hello from moreOps, still row 3')];
-  s.addAll(moreOps);
-  window.s = s;
-}
-testTreeHandlers();
+const as = assertHandler.call, log = logHandler.call;
+const ops = [
+  assertHandler.install(),
+  logHandler.install(),
+  {handlers: {h1, h2}, debug: DEBUG},
+  {a:0}, log('this is node 4'), as({a:0}), a, b,                  as({a:3}),
+  3 , log('row 1 parent 3'),    as({a:0}), b, b,                  as({a:4}),
+  3 , log('row 2 parent 3'),    as({a:0}), b, b, a, b, b, a, a,   as({a:11}),
+  11, log('row 3 parent 11'),   as({a:2}), a, a,                  as({a:4}),
+];
+const s = stree(ops);
+
+// We can keep adding to the stree
+const moreOps = [{debug: true}, a, a, b, b, log('hello from moreOps, still row 3')];
+s.addAll(moreOps);
+s.add({a: null});
+s.add(as({a:0}));
+assertEquals(3, s.currRowIndex);
+
+window.s = s;
+
 ```
