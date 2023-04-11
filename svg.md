@@ -137,10 +137,13 @@ import {svg, shuffle, now, log} from '/simpatico.js';
 const greenSquare = svg.elt("green-square");
 const yellowSquare = svg.elt("yellow-square");
 const someText = svg.elt("some-text");
-const throttle = 5;
 
+// Configuration
+const throttle = 50;
+const clock = svg.clock(throttle);
+window.clock = clock;
 // The steady-state is driven by a global singleton requestAnimationFrame pump-based  clock
-window.addEventListener(svg.clock(throttle).clockId, e => {
+window.addEventListener(clock.clockId, e => {
   animate(e.detail.t);
 });
 
@@ -154,6 +157,46 @@ function animate(t) {
   svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t % 3600/10});
   svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: shuffle(letters).join('')});
 }
+```
+
+To test that something is changing, we use the `MutationObserver` DOM API to check for changes.
+If I don't see any after a second, something is wrong.
+```js
+const rotatingSquaresAnimation = document.getElementById('rotating-squares-animation');
+
+// Configure the observer to listen for child list and attribute changes in the element and its descendants
+const INSPECT = false;
+const observeDuration = 1000;
+const config = {
+  attributes: true,
+  childList: true,
+  subtree: true,
+};
+
+const observer = new MutationObserver(handleMutations);
+observer.observe(rotatingSquaresAnimation, config);
+let mutationCount = 0;
+
+// Observe the DOM for observeDuration ms, then disconnect.
+setTimeout(()=>{
+    if (mutationCount == 0)
+        throw new Error(`animation target #rotating-squares-animation did not mutate within ${observeDuration} ms`);
+    observer.disconnect(rotatingSquaresAnimation);
+}, observeDuration)
+
+// Function to handle DOM mutations
+function handleMutations(mutations) {
+  mutations.forEach((mutation) => {
+    if (mutation.type === 'childList') {
+      mutationCount += 1;
+      if (INSPECT) console.log('A child node has been added or removed:', mutation);
+    } else if (mutation.type === 'attributes') {
+      mutationCount += 1;
+      if (INSPECT) console.log(`Attribute '${mutation.attributeName}' changed on element:`, mutation.target);
+    }
+  });
+}
+
 ```
 
 Let's make an analog clock that keeps proper time.
