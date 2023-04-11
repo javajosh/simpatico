@@ -63,55 +63,6 @@ See:
 Exercising the simpatico `svg` library, especially `svg.clock()` and `svg.scatter()`.
 Also exercising basic `svg` markup and authoring.
 
-# Links
-A good list of tools here: https://github.com/sw-yx/spark-joy/blob/master/README.md.
-(Associated [HN thread](https://news.ycombinator.com/item?id=35235952)).
-
-Useful looking background tools include [Hero patterns](https://heropatterns.com/) and [SVG Backgrounds](https://www.svgbackgrounds.com/). Here is another cool [Penrose Tile Generator.](https://misc.0o0o.org/penrose/) (Veritasium has a [good video about Penrose tiles](https://www.youtube.com/watch?v=48sCx-wBs34)).
-
-Natural Units
--------------
-
-Scalable Vector Graphics, or SVG, is an important component of Simpatico. The browser also offers Canvas and WebGL, and of course DOM manipulation, as other ways to draw. We pick SVG and drive toward a state where _drawing_ is done statically, and program state is characterized by a list of vectors interpreted to move these shapes. One particularly interesting application is drawing an [stree](/stree) visualization, and then animating it under various conditions.
-
-Building up to that, we build up a few techniques
-
-First, an inline svg that uses a classical schoolroom coordinate system: the unit circle, (0,0) in the center, y up. Those new to programming graphics may be surprised that the standard way to program puts the origin at the top left with y increasing downward. This is a very good coordinate system if you want to always render text, starting from the upper left, and making a newline. This is how we write letters, school papers, and books, fiction and non-fiction. But _math_ is usually taught on this particular coordinate system.
-
-1.  The old system optimized for english text on highly resource constrained computers. Modern systems are vastly more powerful, allowing us to _start_ from a more general primitive.
-2.  Our primary target for graphics will be an inline svg in an html resource.
-3.  SVG has several good features we want such as:
-  1.  Object persistence. You can author a shape, or a group of shapes, and then move them around later.
-  2.  Arbitrary control over coordinate system - which we use to recover school math intuition
-
-```html
-<svg class="natural-units"
-     width="200px" height="200px"
-     viewBox="-1 -1 2 2"
->
-  <desc>A static svg unit circle</desc>
-  <g transform="scale(1,-1)">
-    <g transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
-    <g transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
-    <g transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
-    <g transform="translate(0,0)scale(.01,-.01)"><text>Scale and reflip text</text></g>
-  </g>
-</svg>
-```
-
-___________________________________________
-# SVG animation with scatter(elt, obj)
-
-
-The basic idea is to scatter objects into svg elements.
-
-First you author an svg image inline, as above. This time you add ids to the pieces you want to animate (and I use a simple naming convention to make names easier). Each of these ids will become a named variable in your code. As the author, you usually want to add a characteristic list of elements and 'meaningful' attribute values. In our case, _transform_ is very important!
-
-```js
-///
-import {svg} from '/simpatico.js';
-svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
-```
 
 __________________________________________
 # Rotating squares animation
@@ -339,20 +290,55 @@ _______________________________
 _______________________________
 # Discussion
 
-I imagine there are some interesting possibilities storing application data directly in the DOM.
-Clearly persistence between tab sessions an issue (right?).
-(It becomes really easy to store a lot of data in DOM with scatter and gather).
+# Links
+A good list of tools here: https://github.com/sw-yx/spark-joy/blob/master/README.md.
+(Associated [HN thread](https://news.ycombinator.com/item?id=35235952)).
 
-I'm unsure of the performance implications of having lots of RAF pumps.
-This also pushes at the boundary of my knowledge of javascript modules and their lifespans/state.
+Useful looking background tools include [Hero patterns](https://heropatterns.com/) and [SVG Backgrounds](https://www.svgbackgrounds.com/). Here is another cool [Penrose Tile Generator.](https://misc.0o0o.org/penrose/) (Veritasium has a [good video about Penrose tiles](https://www.youtube.com/watch?v=48sCx-wBs34)).
 
-If we were to commit to some representation of state in the DOM, as D3 does, then we can specify a full application loop with:
+Natural Units
+-------------
 
-    until quit:
-      gather
-      map
-      scatter
+Scalable Vector Graphics, or SVG, is an important component of Simpatico. The browser also offers Canvas and WebGL, and of course DOM manipulation, as other ways to draw. We pick SVG and drive toward a state where _drawing_ is done statically, and program state is characterized by a list of vectors interpreted to move these shapes. One particularly interesting application is drawing an [stree](/stree) visualization, and then animating it under various conditions.
 
-This is the essence of what I call the "boardgame" representation of state: transforms over the position of a finite set of pieces over a meaningful space (board). This immediately shows a classic time/space tradeoff since we might want a small number of persistent objects which we use for everything. However it may be convenient to pretend like those objects were always present.
+Building up to that, we build up a few techniques
+
+First, an inline svg that uses a classical schoolroom coordinate system: the unit circle, (0,0) in the center, y up. Those new to programming graphics may be surprised that the standard way to program puts the origin at the top left with y increasing downward. This is a very good coordinate system if you want to always render text, starting from the upper left, and making a newline. This is how we write letters, school papers, and books, fiction and non-fiction. But _math_ is usually taught on this particular coordinate system.
+
+1.  The old system optimized for english text on highly resource constrained computers. Modern systems are vastly more powerful, allowing us to _start_ from a more general primitive.
+2.  Our primary target for graphics will be an inline svg in an html resource.
+3.  SVG has several good features we want such as:
+1.  Object persistence. You can author a shape, or a group of shapes, and then move them around later.
+2.  Arbitrary control over coordinate system - which we use to recover school math intuition
+
+```html
+<svg class="natural-units"
+     width="200px" height="200px"
+     viewBox="-1 -1 2 2"
+>
+  <desc>A static svg unit circle</desc>
+  <g transform="scale(1,-1)">
+    <g transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
+    <g transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
+    <g transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
+    <g transform="translate(0,0)scale(.01,-.01)"><text>Scale and reflip text</text></g>
+  </g>
+</svg>
+```
+
+___________________________________________
+# SVG animation with scatter(elt, obj)
+
+
+The basic idea is to scatter objects into svg elements.
+
+First you author an svg image inline, as above. This time you add ids to the pieces you want to animate (and I use a simple naming convention to make names easier). Each of these ids will become a named variable in your code. As the author, you usually want to add a characteristic list of elements and 'meaningful' attribute values. In our case, _transform_ is very important!
+
+```js
+///
+import {svg} from '/simpatico.js';
+svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
+```
+
 
 When [SVG almost got raw sockets?!](https://leonidasv.com/til-svg-specs-almost-got-raw-socket-support/)
