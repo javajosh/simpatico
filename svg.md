@@ -36,6 +36,7 @@
     svg {
       background-color: #66b7ff;
       max-width: 800px;
+      margin: 40px;
     }
     div {
       max-width: 800px;
@@ -58,6 +59,9 @@ See:
 [audience](/audience.md)
 
 <div class="makeItStop"></div>
+
+Exercising the simpatico `svg` library, especially `svg.clock()` and `svg.scatter()`.
+Also exercising basic `svg` markup and authoring.
 
 # Links
 A good list of tools here: https://github.com/sw-yx/spark-joy/blob/master/README.md.
@@ -95,8 +99,9 @@ First, an inline svg that uses a classical schoolroom coordinate system: the uni
 </svg>
 ```
 
-SVG animation with scatter(elt, obj)
-------------------------------------
+___________________________________________
+# SVG animation with scatter(elt, obj)
+
 
 The basic idea is to scatter objects into svg elements.
 
@@ -108,13 +113,10 @@ import {svg} from '/simpatico.js';
 svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
 ```
 
+__________________________________________
+# Rotating squares animation
 
-This example call to `scatter()` is typical, where you have 1) a reference to the DOM elt to be mutated, and 2) a nice object representation for mutating that elt. I wanted objects of the form "{attr: value}" combining (and decomposing) the transform attribute with the child shape. (This might even be considered a special type of svg elt, g>shape, or most generally g>path and the union of those attributes is what you scatter to).
-
-In this example we adopt the more conventional "unidirectional dataflow" from a low entropy source. That source is a custom "tick" event emitted by a handy global module. We use that one parameter, time, to produce a time-dependent object for each animation target.
-
-We first author a static starting point by hand:
-
+## Rotating squares SVG
 ```html
 <svg id="rotating-squares-animation" class="natural-units"
      width="200px" height="200px"
@@ -130,6 +132,7 @@ We first author a static starting point by hand:
 </svg>
 ```
 
+## Rotating squares js
 Then we bind to the elements in the sketch, and animate them:
 ```js
 import {svg, shuffle, now, log} from '/simpatico.js';
@@ -159,14 +162,17 @@ function animate(t) {
 }
 ```
 
+## Rotating squares animation test
+It's challenging to test something like animation automatically, but it can be done.
 To test that something is changing, we use the `MutationObserver` DOM API to check for changes.
-If I don't see any after a second, something is wrong.
+If I don't see any after a short time (~500ms), the test fails.
+TODO: factor this out into a testing module and reuse it for, say, the clock animation.
 ```js
 const rotatingSquaresAnimation = document.getElementById('rotating-squares-animation');
 
 // Configure the observer to listen for child list and attribute changes in the element and its descendants
 const INSPECT = false;
-const observeDuration = 1000;
+const observeDuration = 500;
 const config = {
   attributes: true,
   childList: true,
@@ -199,11 +205,13 @@ function handleMutations(mutations) {
 
 ```
 
+# Clock Animation
 Let's make an analog clock that keeps proper time.
 The first problem is to get the angles of the 3 hands, hours minutes and seconds.
 Timestamp is in milliseconds, so we need to convert to seconds, then to hours, minutes and seconds.
 We also need to convert to radians, and then to degrees.
 
+## Clock SVG
 ```html
 <svg id="clock" class="natural-units"
      width="200px" height="200px"
@@ -229,6 +237,7 @@ We also need to convert to radians, and then to degrees.
 </svg>
 ```
 
+## Clock js
 Then we bind to the elements in the sketch, and animate them:
 
 ```js
@@ -282,8 +291,8 @@ function clockAnglesInDegrees(timestamp) {
 }
 ```
 
-SVG animation
--------------
+_______________________________
+# Native SVG animation
 
 See [animate element.](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate)
 
@@ -301,17 +310,16 @@ See [animate element.](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/
   </rect>
 </svg>
 ```
+_______________________________
+# Different ways to use SVG in HTML
 
-Different ways to reference SVG
--------------------------------
-
-### Referencing an svg as an `img` tag:
+## Referencing an svg as an `img` tag:
 
 `   <img width="200px" src="/img/wizard.svg" alt="simpatico wizard" />   `
 
 ![simpatico wizard](/img/wizard.svg =200x200)
 
-### Referencing an svg with built-in styles and javascript as an image, from :
+## Referencing an svg with built-in styles and javascript as an image, from :
 
 `   <img width="200px" src="/img/draggable.svg" alt="minimal draggable object demo" />   `
 
@@ -320,19 +328,15 @@ This technique was originally described by [Peter Collingridge](https://www.pete
 
 ![minimal draggable object demo](/img/draggable.svg =200x200)
 
-### SVG Tools
-
+_______________________________
+# SVG Tools
 
 [Open source, in browser](https://svgedit.netlify.app/editor/index.html) (here is the [source](https://github.com/SVG-Edit/svgedit))
 
 [inkscape](https://inkscape.org/) is the grandaddy of them all. It's a GPL'd thick-client authoring tool. Check out the "output optimized svg" save options.
 
-
-### History
-
-When [SVG almost got raw sockets?!](https://leonidasv.com/til-svg-specs-almost-got-raw-socket-support/)
-
-### Discussion
+_______________________________
+# Discussion
 
 I imagine there are some interesting possibilities storing application data directly in the DOM.
 Clearly persistence between tab sessions an issue (right?).
@@ -349,3 +353,5 @@ If we were to commit to some representation of state in the DOM, as D3 does, the
       scatter
 
 This is the essence of what I call the "boardgame" representation of state: transforms over the position of a finite set of pieces over a meaningful space (board). This immediately shows a classic time/space tradeoff since we might want a small number of persistent objects which we use for everything. However it may be convenient to pretend like those objects were always present.
+
+When [SVG almost got raw sockets?!](https://leonidasv.com/til-svg-specs-almost-got-raw-socket-support/)
