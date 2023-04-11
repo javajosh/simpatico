@@ -247,6 +247,14 @@ const clock = (throttle = 1, ticking = true, polite = true, n = 0) => {
     clockId,
     start: () => {ticking = true; tick()},
     stop:  () => {ticking = false},
+    toggle: () => {
+      ticking = !ticking;
+      if (ticking) {
+        tick();
+        t = Date.now();
+      }
+      console.log('svg.js:clock().toggle()', 'clockId', clockId, 'ticking', ticking, 't', new Date(t).toLocaleTimeString(), 'n', n, 'ticksPerSecond', ticksPerSecond);
+    },
     reset: () => {n = 0},
     ticksPerSecond,
   }

@@ -168,6 +168,11 @@ Notice the pattern: bind to the target element, configure the observer, and run 
 The bulk of the code will almost always be in the support functions below.
 (Which cannot be arrow functions because they aren't hoisted like functions are.)
 
+sudo node reflector.js "{http:80, https:443, ws:8081, host:simpatico.io,
+ cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem,
+ key:/etc/letsencrypt/live/simpatico.io/privkey.pem, useCache:true
+}"
+
 # Clock Animation
 Let's make an analog clock that keeps proper time.
 The first problem is to get the angles of the 3 hands, hours minutes and seconds.
@@ -176,7 +181,7 @@ We also need to convert to radians, and then to degrees.
 
 ## Clock SVG
 ```html
-<svg id="clock" class="natural-units"
+<svg id="clock0" class="natural-units"
      width="200px" height="200px"
      viewBox="-1 -1 2 2">
   <desc>A clock with hands that keep proper time</desc>
@@ -188,13 +193,13 @@ We also need to convert to radians, and then to degrees.
       <g transform="translate(90,0)"><text>3</text></g>
       <g transform="translate(-90,0)"><text>9</text></g>
     </g>
-    <g id="hour-hand">
+    <g id="hour-hand0">
       <rect width=".1" height=".4" fill="#482" />
     </g>
-    <g id="minute-hand">
+    <g id="minute-hand0">
       <rect width=".05" height=".6" fill="#882" />
     </g>
-    <g id="second-hand">
+    <g id="second-hand0">
       <rect width=".01" height=".8" fill="#c82" />
     </g>
 </svg>
@@ -202,7 +207,7 @@ We also need to convert to radians, and then to degrees.
 
 ## Another clock SVG.
 ```html
-<svg id="clock2" width="200" height="200">
+<svg id="clock1" width="200" height="200">
   <linearGradient id="a" x1=".7495" x2="198.2495" y1="1.252" y2="197.752" gradientUnits="userSpaceOnUse">
     <stop offset="0" stop-color="#666"/>
     <stop offset="1" stop-color="#b2b2b2"/>
@@ -228,13 +233,13 @@ We also need to convert to radians, and then to degrees.
 
   /* a transform to fit the clock hands in with the clock face scene coordinates */
   <g transform="translate(100,100)scale(100,-100)">
-    <g id="hour-hand2">
+    <g id="hour-hand1">
       <rect width=".1" height=".4" fill="#482" />
     </g>
-    <g id="minute-hand2">
+    <g id="minute-hand1">
       <rect width=".05" height=".6" fill="#882" />
     </g>
-    <g id="second-hand2">
+    <g id="second-hand1">
       <rect width=".01" height=".8" fill="#c82" />
     </g>
   </g>
@@ -242,18 +247,41 @@ We also need to convert to radians, and then to degrees.
 ```
 
 ## Clock Animation script
-Then we bind to the elements in the sketch, and animate them:
+Then we bind to the elements in the sketch, and animate them.
+Note that the entirety of `clockAnglesInDegrees` is a pure function that could be used in any clock implementation.
+There is nothing about this function that is specific to the DOM or SVG.
 
 ```js
 import {svg} from '/simpatico.js';
 
-animateClock(5);
-animateClock(30, {hour:'hour-hand2', minute:'minute-hand2', second:'second-hand2'});
+//bind to the DOM svg clock elts
+const clock0 = svg.elt('clock0');
+const clock1 = svg.elt('clock1');
+
+// Animate the hands of each clock.
+// Note: we animate individual elements by id! They could be anywhere!
+// Throttle 5 is a smooth 30fps on my browser
+// Throttle 30 is pleasently chunky 5fps on my browser. Like a Rolex second-hand.
+const clockControl0 = animateClock(5, {hour:'hour-hand0', minute:'minute-hand0', second:'second-hand0'});
+const clockControl1 = animateClock(30, {hour:'hour-hand1', minute:'minute-hand1', second:'second-hand1'});
+
+// Control the clock mechanism
+// Bind clock input elements to the clock controls
+// In this case, just clock anywhere on the clock to toggle its runstate.
+clock0.addEventListener('click', (e) => clockControl0.toggle());
+clock1.addEventListener('click', (e) => clockControl1.toggle());
+
+// Export the clocks to window for developer (and user) console support
+// Try 'clockControl0.toggle()' in the console, or inspect the instances directly.
+window.clockControl0 = clockControl0;
+window.clockControl1 = clockControl1;
+
 
 /**
  * Animate the clock hands
+ *
  * @param {number} throttle - throttle the clock to this many milliseconds
- * @param {object} selectors - map of hand names to element ids
+ * @param {object} selectors - map of hand names to element ids like {hour, minute, second}
  * @param {boolean} INSPECT - if true, log the clock ticks
  */
 function animateClock(throttle=5, selectors={hour:'hour-hand', minute:'minute-hand', second:'second-hand'}, INSPECT=false) {
@@ -276,6 +304,7 @@ function animateClock(throttle=5, selectors={hour:'hour-hand', minute:'minute-ha
     svg.scatter(minuteHand, {rotate: minuteAngle});
     svg.scatter(secondHand, {rotate: secondAngle});
   }
+  return clock;
 }
 
 /**
