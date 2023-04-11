@@ -187,12 +187,56 @@ const xpath = (strExpr, doc=d) => doc.evaluate(strExpr, doc, null, XPathResult.A
 const $ = document.querySelectorAll.bind(document);
 const elt = id => document.getElementById(id);
 
-// Create a new requestAnimationFrame pump driven clock.
-// Throttle is an integer, will emit only every Nth tick() call.
+/**
+ *  A clock that ticks at the RAF rate, and dispatches a global 'tick' event with a timestamp.
+ *  The clock can be throttled, and can be polite by disabling ticks when the page is not visible.
+ *  The clock can be stopped and restarted and reset to zero.
+ *
+ * @param throttle
+ * @param ticking
+ * @param polite
+ * @param n
+ * @returns {{stop: stop, start: start, reset: reset, n: number}}
+ */
 const clock = (throttle = 1, ticking = true, polite = true, n = 0) => {
+  let prevDateNow = Date.now();
+  let actualNow = prevDateNow;
+  let ticksPerSecond = 30; // a guess
+  let numTicks = 0;
+
+  // if time hasn't changed, then we are counting ticks
+  // if time has changed, then we modify our estimate for ticksPerSecond
+  // the last interval ticks per second is calculated by dividing the time interval in seconds by the number of ticks
+  const getTime = () => {
+    const currDateNow = Date.now();
+    const dt = currDateNow - prevDateNow;
+    prevDateNow = currDateNow;
+    if (dt === 0) {
+      console.log('dt is zero!')
+      numTicks++;
+    } else if (dt > 0) {
+      console.log('dt', dt, currDateNow);
+      if (numTicks !== 0){
+        const newTicksPerSecond = dt * 1000 / numTicks;
+        // return the average of this and the previous measurement
+        ticksPerSecond = (ticksPerSecond + newTicksPerSecond)/2;
+      }
+      // reset our measurement
+      numTicks = 0;
+    } else if (dt < 0) {
+      throw 'time has reversed, and something has gone horribly wrong';
+    }
+    const correctionInSeconds = numTicks / ticksPerSecond;
+    actualNow = currDateNow + correctionInSeconds/1000;
+    //console.log('getTime()', 'dt', dt,'numTicks', numTicks,'correctionInSeconds', correctionInSeconds, 'currDateNow', currDateNow);
+    return actualNow;
+  }
+
+  // This is the heart of the clock. It is a recursive function that calls itself at the RAF rate.
   const tick = () => {
     if ((++n % throttle) === 0) {
-      const event = new CustomEvent('tick', {detail: {t: Date.now()}});
+      // This line is particularly important, since it defines the payload of the event.
+      const event = new CustomEvent('tick', {detail: {t:getTime()}});
       window.dispatchEvent(event);
     }
     if (ticking) window.requestAnimationFrame(tick);
@@ -207,6 +251,7 @@ const clock = (throttle = 1, ticking = true, polite = true, n = 0) => {
       ticking = visible;
     });
   }
+
   if (ticking){
     tick();
   }
