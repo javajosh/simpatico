@@ -51,9 +51,13 @@
 
 # Simpatico: SVG
 jbr 2023
+See:
+[home](/),
+[combine2](./combine2.md),
+[litmd](/lit.md),
+[audience](/audience.md)
 
 <div class="makeItStop"></div>
-
 
 # Links
 A good list of tools here: https://github.com/sw-yx/spark-joy/blob/master/README.md.
@@ -128,16 +132,17 @@ We first author a static starting point by hand:
 
 Then we bind to the elements in the sketch, and animate them:
 ```js
-///
 import {svg, shuffle, now, log} from '/simpatico.js';
 // Good practice to put all your DOM bindings at the top of the script
 const greenSquare = svg.elt("green-square");
 const yellowSquare = svg.elt("yellow-square");
 const someText = svg.elt("some-text");
+const throttle = 5;
 
 // The steady-state is driven by a global singleton requestAnimationFrame pump-based  clock
-svg.clock();
-window.addEventListener('tick', e => animate(e.detail.t));
+window.addEventListener(svg.clock(throttle).clockId, e => {
+  animate(e.detail.t);
+});
 
 // The fun part: transform your target by specifying an object.
 const {cos, sin} = Math;
@@ -191,14 +196,20 @@ const hourHand = svg.elt("hour-hand");
 const minuteHand = svg.elt("minute-hand");
 const secondHand = svg.elt("second-hand");
 
+const throttle = 30;
+const INSPECT = false; // set true to see how throttle affects the ticksPerSecond over time
+
 // The steady-state is driven by a global singleton requestAnimationFrame pump-based  clock
-svg.clock(30);
-window.addEventListener('tick', e => animate(e.detail.t));
+const clock = svg.clock(throttle);
+window.addEventListener(clock.clockId, (e) => {
+  if (INSPECT) console.log('svg.md', 'throttle', throttle, 'tick detail', e.detail);
+  animate(e.detail.t);
+});
 
 // The fun part: transform your target by specifying an object.
 function animate(t) {
   const {hourAngle, minuteAngle, secondAngle} = clockAnglesInDegrees(t);
-  // console.log({hourAngle, minuteAngle, secondAngle});
+  if (INSPECT) console.log({hourAngle, minuteAngle, secondAngle});
   svg.scatter(hourHand,   {rotate: hourAngle});
   svg.scatter(minuteHand, {rotate: minuteAngle});
   svg.scatter(secondHand, {rotate: secondAngle});
@@ -227,8 +238,6 @@ function clockAnglesInDegrees(timestamp) {
   };
 }
 ```
-
-
 
 SVG animation
 -------------
