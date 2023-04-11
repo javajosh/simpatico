@@ -142,7 +142,7 @@ const yellowSquare = svg.elt("yellow-square");
 const someText = svg.elt("some-text");
 
 // Configuration
-const throttle = 50;
+const throttle = 5;
 const clock = svg.clock(throttle);
 window.clock = clock;
 // The steady-state is driven by a global singleton requestAnimationFrame pump-based  clock
@@ -185,9 +185,10 @@ let mutationCount = 0;
 
 // Observe the DOM for observeDuration ms, then disconnect.
 setTimeout(()=>{
-    if (mutationCount == 0)
-        throw new Error(`animation target #rotating-squares-animation did not mutate within ${observeDuration} ms`);
-    observer.disconnect(rotatingSquaresAnimation);
+  if (mutationCount == 0){
+    throw new Error(`animation target #rotating-squares-animation did not mutate within ${observeDuration} ms`);
+  }
+  observer.disconnect();
 }, observeDuration)
 
 // Function to handle DOM mutations
