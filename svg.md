@@ -8,14 +8,13 @@
   <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='white' />
+      <rect width='1' height='1' fill='DodgerBlue' />
   </svg>"/>
-  <!--  <meta id="refresh" http-equiv="refresh" content="2">-->
   <script src="testable.js"></script>
   <!-- End testable.js boilerplate  -->
 
   <title>svg.js</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="/style.css">
   <link rel="stylesheet" href="/kata/highlight.github-dark.css">
   <script type="module">
     import hljs from '/kata/highlight.min.js';
@@ -27,27 +26,6 @@
       });
     });
   </script>
-  <style>
-    svg > text {
-      font-size: medium;
-      font-family: "sans-serif";
-      text-anchor: middle;
-    }
-    svg {
-      background-color: #66b7ff;
-      max-width: 800px;
-      margin: 40px;
-    }
-    div {
-      max-width: 800px;
-      margin: 40px;
-    }
-    body {
-      background-color: #9bc8cc;
-      background-attachment: fixed;
-      background-size: cover;
-    }
-  </style>
 </head>-->
 
 # Simpatico: SVG
@@ -61,6 +39,31 @@ See:
 
 Exercising the simpatico `svg` library, especially `svg.clock()` and `svg.scatter()`.
 Also exercising basic `svg` markup and authoring.
+
+Before we begin, lets make sure we can see svg output clearly:
+```css
+body {
+  background-color: #9bc8cc;
+}
+
+div {
+  max-width: 800px;
+  margin: 40px;
+}
+
+svg {
+  background-color: #fff;
+  max-width: 800px;
+  margin: 40px;
+}
+
+svg > text {
+  font-size: 1px;
+  font-family: "sans-serif";
+  text-anchor: middle;
+}
+
+```
 
 
 __________________________________________
@@ -77,7 +80,7 @@ __________________________________________
     <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
     <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
     <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
-    <g id="some-text"     transform="translate(0,0)scale(.01,-.01)"><text>Simpatico is pretty cool</text></g>
+    <g id="some-text"     transform="scale(.008,-.008)"><text>Simpatico is pretty cool</text></g>
   </g>
 </svg>
 ```
@@ -103,12 +106,14 @@ window.addEventListener(clock.clockId, e => {
 // The fun part: transform your target by specifying an object.
 const {cos, sin} = Math;
 const C = 1/10000;
+const p = 0;
 const letters = 'Simpatico is pretty cool'.split('');
 
 function animate(t) {
-  svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
-  svg.scatter(yellowSquare, {x:cos(-C*t), y:sin(-C*t), rotate: t % 3600/10});
-  svg.scatter(someText, {x:-.9, y: 0, scale: ".008,-.008", text: shuffle(letters).join('')});
+  const omega = t % 3600/10 + p;
+  svg.scatter(greenSquare, {x:cos(C* omega), y:sin(C*omega), rotate: omega});
+  svg.scatter(yellowSquare, {x:cos(-C*omega), y:sin(-C*omega), rotate: omega});
+  svg.scatter(someText, {scale: ".008,-.008", rotate: p - t % 7200/20, text: shuffle(letters).join('')});
 }
 ```
 
@@ -262,7 +267,7 @@ const clock1 = svg.elt('clock1');
 // Note: we animate individual elements by id! They could be anywhere!
 // Throttle 5 is a smooth 30fps on my browser
 // Throttle 30 is pleasently chunky 5fps on my browser. Like a Rolex second-hand.
-const clockControl0 = animateClock(5, {hour:'hour-hand0', minute:'minute-hand0', second:'second-hand0'});
+const clockControl0 = animateClock(5,  {hour:'hour-hand0', minute:'minute-hand0', second:'second-hand0'});
 const clockControl1 = animateClock(30, {hour:'hour-hand1', minute:'minute-hand1', second:'second-hand1'});
 
 // Control the clock mechanism
@@ -334,8 +339,76 @@ function clockAnglesInDegrees(timestamp) {
     secondAngle: -secondAngle.toFixed(2)
   };
 }
+
 ```
 
+# Animating events
+
+```html
+<svg id="animate-events-demo"
+  viewBox="0 0 10 10"
+  width="200px" height="200px"
+>
+  <rect width="1" height="1" rx=".2" />
+</svg>
+```
+This svg consumes several kinds of events: timer, mouse, and scroll.
+Once the canvas is filled, it will start over on the upper left.
+Each rectangle is a different color, and the color is totally random.
+
+```js
+import {svg} from '/simpatico.js';
+
+// Bind
+const animateEventsDemo = svg.elt('animate-events-demo');
+
+// Config
+const DEBUG = false;
+const W = 10, H = 10;
+const dx = 1, dy = 1;
+const clockDuration = 5000;
+let x = 0, y = 0;
+console.log('animateEventsDemo', {W, H, dx, dy, x, y});
+
+// Steady-state - listen for a bunch of different events
+animateEventsDemo.addEventListener('click', eventSink);
+animateEventsDemo.addEventListener('mousemove', eventSink);
+document.addEventListener('scroll', eventSink);
+window.addEventListener(svg.clock(10, clockDuration).clockId, eventSink);
+
+// Keep cloning the last child, asigning it a new position and color
+// the elements are never removed so this code is a memory leak
+function eventSink(e) {
+  const clone = cloneLast();
+  [x,y] = mod2D();
+  const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+  svg.scatter(clone, {x,y, fill: color});
+  if (DEBUG) console.log('animateEventsDemo eventSink', {x, y, dx, dy, fill: color}, e);
+}
+
+function mod2D() {
+  x = x + dx;
+  // if we hit the edge, start a new row
+  if (x > W-1) {
+    x = 0; y += dy;
+    // if we hit the bottom, start over at the top left
+    if (y > H-1) {
+      x = 0; y = 0;
+    }
+  }
+  if (DEBUG) console.log('mod2D', {x, y, dx, dy});
+  return [x, y];
+};
+
+// Clone the last element in the svg and add it to the svg
+function cloneLast() {
+  const last = animateEventsDemo.lastElementChild;
+  const clone = last.cloneNode(true);
+  animateEventsDemo.appendChild(clone);
+  return clone;
+}
+
+```
 _______________________________
 # Native SVG animation
 

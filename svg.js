@@ -82,11 +82,24 @@ const gather = (elt, obj) => {
   for (const key in obj){
     if (!elt.hasAttribute(key)) continue;
     const val = elt.getAttribute(key);
+
+    // try to cast into the type requested by the object
     const type = getType(obj[key]);
-    obj[key] = cast(type, val);
+    if (type === 'number')
+      obj[key] = parseLeadingNumber(val);
+    else
+      obj[key] = cast(type, val);
   }
   return obj;
 };
+
+function parseLeadingNumber(str) {
+  const match = str.match(/^\d+(\.\d+)?/);
+  if (match) {
+    return parseFloat(match[0]);
+  }
+  return str;
+}
 
 /**
  * Create an object representation from a string transform representation.
@@ -200,15 +213,19 @@ let lastClockId = 0;
  *  On my machine I manually tuned it to around 30tps with a throttle of 5 - but it natively goes to 160tps.
  *
  * @param throttle factor to throttle "native speed" requestAnimationFrame pump.
+ * @param timeOut
  * @param ticking true to start the clock ticking, false otherwise. (default true)
  * @param polite true to stop ticking on visibility change (default true)
  * @param n Not sure why you'd ever set this - it's the starting position of the counter used to compute throttle.
  * @returns {{stop: stop, start: start, reset: reset, n: number}}
  */
-const clock = (throttle = 1, ticking = true, polite = true, n = 0) => {
+const clock = (throttle = 1, timeOut = 0, ticking = true, polite = true, n = 0) => {
   const clockId = 'tick' + lastClockId++;
+
+  const start = Date.now();
   let ticksPerSecond = 30; // a guess
-  let t = Date.now();
+  let t = start;
+  const isTimedOut = (t2=Date.now(), t1=start) => (timeOut > 0) && (t2 > t1 + timeOut);
 
   // This is the heart of the clock. It is a recursive function that calls itself at the RAF rate.
   const tick = () => {
@@ -226,7 +243,7 @@ const clock = (throttle = 1, ticking = true, polite = true, n = 0) => {
       const event = new CustomEvent(clockId, {detail: {t, ticksPerSecond}});
       window.dispatchEvent(event);
     }
-    if (ticking) window.requestAnimationFrame(tick);
+    if (ticking && !isTimedOut(t)) window.requestAnimationFrame(tick);
   };
 
 
