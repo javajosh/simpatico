@@ -77,35 +77,41 @@ __________________________________________
 >
   <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
   <g transform="scale(1,-1)">
-    <g id="green-square"  transform="translate(0,0)"  ><rect width=".2" height=".2" fill="#482" /></g>
-    <g id="yellow-square" transform="translate(.1,.1)"><rect width=".2" height=".2" fill="#882" /></g>
+    <g id="green-square"  transform="translate(0,0)"  ><rect x=-0.1 y=-0.1 width=".2" height=".2" fill="#482" /></g>
+    <g id="yellow-square" transform="translate(0,0)">  <rect x=-0.2 y=-0.2 width=".4" height=".4" fill="#882" /></g>
     <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
     <g id="some-text"     transform="scale(.008,-.008)"><text>Simpatico is pretty cool</text></g>
   </g>
 </svg>
 ```
 
+```css
+rect {
+  opacity: .5
+}
+```
 ## Rotating squares js
 Then we bind to the elements in the sketch, and animate them:
 ```js
 import {svg, shuffle, now, log} from '/simpatico.js';
-// Good practice to put all your DOM bindings at the top of the script
+// Bind elements
 const greenSquare = svg.elt("green-square");
 const yellowSquare = svg.elt("yellow-square");
 const someText = svg.elt("some-text");
 
-// Configuration
-const throttle = 5;
+// Configure the clock
+const throttle = 2;
 const clock = svg.clock(throttle);
-window.clock = clock;
-// The steady-state is driven by a global singleton requestAnimationFrame pump-based  clock
+// window.clock = clock;
+
+// Steady state - global event requestAnimationFrame pump-based  clock
 window.addEventListener(clock.clockId, e => {
   animate(e.detail.t);
 });
 
 const DEBUG = false;
 const {cos, sin} = Math;
-const C = 1/10000;
+const C = 1e-3;
 const letters = 'Simpatico is cool!'.split('');
 
 /**
@@ -123,17 +129,18 @@ function animate(t) {
     "green-square":  t => ({
       x: cos( C * t),
       y: sin( C * t),
-      rotate: t % 3600
+      rotate: t/10 % 360,
     }),
     "yellow-square": t => ({
-      x: cos( C * t),
-      y: sin( C * t),
-      rotate: t % 3600/10
+      desc: 'big and yellow, clockwise',
+      x: cos( -C * t),
+      y: sin( -C * t),
+      rotate: t/10 % 360,
     }),
     "some-text":     t => ({
-      rotate: t % 3600/10,
-      scale: ".008,-.008",
       text: shuffle(letters).join(''),
+      scale: ".008,-.008",
+      rotate: t/10 % 360,
     })
   };
 
@@ -143,6 +150,91 @@ function animate(t) {
 }
 ```
 
+### Particle Container
+```html
+<svg id="particle-container" class="natural-units"
+     width="200px" height="200px"
+     viewBox="-2 -2 4 4"
+>
+  <rect x=-0.5 y=-0.5 width=1 height=1 ></rect>
+  <!-- Put particles here -->
+</svg>
+```
+
+```js
+import { svg, shuffle, now, log } from '/simpatico.js';
+
+// Bind
+const svgElement = svg.elt('particle-container');
+
+// Configure
+const DEBUG = false;
+const { cos, sin } = Math;
+const C = 1e-3;
+const numParticles = 1000;
+const throttle = 3;
+
+// Initialize particles
+const particles = Array.from({ length: numParticles }, (i) => {
+  const fill = '#' + Math.floor(Math.random() * 16777215).toString(16);
+  const elt = createCircleElement(fill);
+  const [x, y] = [2 * Math.random() - 1, 2 * Math.random() - 1];
+  return { x, y, elt, fill };
+});
+// Add them all to the DOM
+particles.forEach((particle, i) => {
+  svgElement.appendChild(particle.elt);
+});
+
+// Start the clock
+window.addEventListener(svg.clock(throttle).clockId, e => {
+  animate(e.detail.t);
+});
+
+// For artistic reasons, update one elt at a time.
+// For a smoother animation, update all at once.
+let n = 0;
+function animate(t) {
+  // const particle = particles[n++ % numParticles];
+  // updateParticle(particle);
+  particles.forEach(updateParticle);
+}
+
+function updateParticle(particle) {
+  const config = getParticleConfig(particle);
+  updateElementTransform(particle.elt, config);
+  particle.x = config.x;
+  particle.y = config.y;
+}
+
+function getParticleConfig(particle) {
+    // Particles non-interacting in a box
+  const { x, y } = particle;
+  const dir = Math.random() * 360 / (2 * Math.PI);
+  const mag = Math.random()/10;
+  return {
+    x: x + cos(dir) * mag,
+    y: y + sin(dir) * mag,
+  };
+}
+
+function createCircleElement(fill='DodgerBlue', r = 0.1) {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('r', r);
+  circle.setAttribute('fill', fill);
+  g.appendChild(circle);
+  return g;
+}
+
+// Update element transform
+function updateElementTransform(element, config) {
+  const { x=0, y=0, rotate=0, scale=1 } = config;
+  const transform = `translate(${x}, ${y}) rotate(${rotate}) scale(${scale})`;
+  element.setAttribute('transform', transform);
+}
+
+```
 ## Rotating squares animation test
 It's challenging to test something like animation automatically, but it can be done.
 To test that something is changing, we use the `MutationObserver` DOM API to check for changes.
@@ -367,8 +459,8 @@ function clockAnglesInDegrees(timestamp) {
 
 ```html
 <svg id="animate-events-demo"
-  viewBox="0 0 10 10"
-  width="200px" height="200px"
+  viewBox="0 0 40 10"
+  width="800px" height="200px"
 >
   <rect width="1" height="1" rx=".2" />
 </svg>
@@ -386,7 +478,7 @@ const animateEventsDemo = svg.elt('animate-events-demo');
 // Config
 const DEBUG = false;
 const clockDuration = 5000;
-const W = 10, H = 10;
+const W = 40, H = 10;
 const dx = 1, dy = 1;
 let x = 0, y = 0;
 console.log('animateEventsDemo config', {W, H, dx, dy, x, y, clockDuration, DEBUG});
