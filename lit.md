@@ -21,7 +21,7 @@
 </head>-->
 
 # Simpatico: Literate Markdown
-See also [litmd.js](litmd.js), [reflector](/reflector.js)
+See also [litmd online](https://simpatico.io/litmd.md), [reflector](/reflector.md)
 
 [![Aperiodic tile with one tile](/img/aperiodic-tiling-one-shape.png)](https://arxiv.org/abs/2303.10798)
 
@@ -36,8 +36,11 @@ To that end I've added basic litmd support to the [reflector](/reflector.js).
   - [x] js code samples execute
   - [x] js code samples render with syntax highlighting, esp for html, js, css
   - [x] do the same for html, esp svg
-  - [x] correctly render on github
+  - [x] header section doesn't render on github
 
+**WARNING**:
+This is a work in progress.
+Pages render but do not execute properly on Github.
 ______________________________________________________________
 ## Markdown test
 ```md

@@ -364,16 +364,16 @@ const animateEventsDemo = svg.elt('animate-events-demo');
 
 // Config
 const DEBUG = false;
+const clockDuration = 5000;
 const W = 10, H = 10;
 const dx = 1, dy = 1;
-const clockDuration = 5000;
 let x = 0, y = 0;
-console.log('animateEventsDemo', {W, H, dx, dy, x, y});
+console.log('animateEventsDemo config', {W, H, dx, dy, x, y, clockDuration, DEBUG});
 
-// Steady-state - listen for a bunch of different events
-animateEventsDemo.addEventListener('click', eventSink);
+// Steady-state - listen for a bunch of different events:
+animateEventsDemo.addEventListener('click',     eventSink);
 animateEventsDemo.addEventListener('mousemove', eventSink);
-document.addEventListener('scroll', eventSink);
+document.addEventListener('scroll',    eventSink);
 window.addEventListener(svg.clock(10, clockDuration).clockId, eventSink);
 
 // Keep cloning the last child, asigning it a new position and color
@@ -413,8 +413,6 @@ function cloneLast(scene=animateEventsDemo, childLimit=W*H) {
 }
 
 ```
-
-```
 _______________________________
 # Native SVG animation
 
@@ -437,11 +435,16 @@ See [animate element.](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/
 _______________________________
 # Different ways to use SVG in HTML
 
+See [A guy who makes great SVGs for technical illustration](https://en.wikipedia.org/wiki/User:Cmglee/Dynamic_SVG_for_Wikimedia_projects)
+
 ## Referencing an svg as an `img` tag:
 
 `   <img width="200px" src="/img/wizard.svg" alt="simpatico wizard" />   `
 
 ![simpatico wizard](/img/wizard.svg =200x200)
+Here is an aperiodic thing
+
+![aperiodic.svg](/kata/aperiodic.svg =200x200)
 
 ## Referencing an svg with built-in styles and javascript as an image, from :
 
