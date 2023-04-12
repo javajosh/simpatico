@@ -103,17 +103,43 @@ window.addEventListener(clock.clockId, e => {
   animate(e.detail.t);
 });
 
-// The fun part: transform your target by specifying an object.
+const DEBUG = false;
 const {cos, sin} = Math;
 const C = 1/10000;
-const p = 0;
-const letters = 'Simpatico is pretty cool'.split('');
+const letters = 'Simpatico is cool!'.split('');
 
+/**
+ * Animate the rotating squares.
+ * For each element, we update its transform attribute.
+ * Those attributes are themselves a function of t.
+ *
+ * @param {number} t - time in ms
+ */
 function animate(t) {
-  const omega = t % 3600/10 + p;
-  svg.scatter(greenSquare, {x:cos(C* omega), y:sin(C*omega), rotate: omega});
-  svg.scatter(yellowSquare, {x:cos(-C*omega), y:sin(-C*omega), rotate: omega});
-  svg.scatter(someText, {scale: ".008,-.008", rotate: p - t % 7200/20, text: shuffle(letters).join('')});
+  // Hopefully the javascript engine is smart enough to not actually redefine this on every invocation
+  // "Config" here in the physical sense, not the software sense.
+  // These functions define the physical configuration of the elements.
+  const config = {
+    "green-square":  t => ({
+      x: cos( C * t),
+      y: sin( C * t),
+      rotate: t % 3600
+    }),
+    "yellow-square": t => ({
+      x: cos( C * t),
+      y: sin( C * t),
+      rotate: t % 3600/10
+    }),
+    "some-text":     t => ({
+      rotate: t % 3600/10,
+      scale: ".008,-.008",
+      text: shuffle(letters).join(''),
+    })
+  };
+
+  svg.scatter(greenSquare,  config["green-square"](t));
+  svg.scatter(yellowSquare, config["yellow-square"](t));
+  svg.scatter(someText,     config["some-text"](t));
 }
 ```
 
@@ -172,11 +198,6 @@ Notice the pattern: bind to the target element, configure the observer, and run 
 (In this case we also have a limiter on the steady state.)
 The bulk of the code will almost always be in the support functions below.
 (Which cannot be arrow functions because they aren't hoisted like functions are.)
-
-sudo node reflector.js "{http:80, https:443, ws:8081, host:simpatico.io,
- cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem,
- key:/etc/letsencrypt/live/simpatico.io/privkey.pem, useCache:true
-}"
 
 # Clock Animation
 Let's make an analog clock that keeps proper time.
