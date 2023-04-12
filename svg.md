@@ -377,7 +377,7 @@ document.addEventListener('scroll', eventSink);
 window.addEventListener(svg.clock(10, clockDuration).clockId, eventSink);
 
 // Keep cloning the last child, asigning it a new position and color
-// the elements are never removed so this code is a memory leak
+// To avoid a memory leak we remove the oldest child when we hit the limit
 function eventSink(e) {
   const clone = cloneLast();
   [x,y] = mod2D();
@@ -401,12 +401,18 @@ function mod2D() {
 };
 
 // Clone the last element in the svg and add it to the svg
-function cloneLast() {
+// If we are over the child limit, remove the oldest child, forming a FIFO queue
+function cloneLast(scene=animateEventsDemo, childLimit=W*H) {
   const last = animateEventsDemo.lastElementChild;
   const clone = last.cloneNode(true);
-  animateEventsDemo.appendChild(clone);
+  if (scene.children.length > childLimit ) {
+    scene.removeChild(scene.firstElementChild);
+  }
+  scene.appendChild(clone);
   return clone;
 }
+
+```
 
 ```
 _______________________________
