@@ -69,3 +69,9 @@ From the laptop, ssh into the server. `ssh josh@simpatico.io`.
 Add the desktop public key to the server `vim ~/.ssh/authorized_keys`.
 At this point I can access `josh@simpatico.io` from the desktop.
 I can also revoke access on a per-device basis.
+
+## Links
+
+- [io_uring](https://kernel-recipes.org/en/2019/talks/faster-io-through-io_uring/) and [more](https://developers.redhat.com/articles/2023/04/12/why-you-should-use-iouring-network-io)
+
+
