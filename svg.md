@@ -64,8 +64,6 @@ svg > text {
 }
 
 ```
-
-
 __________________________________________
 # Rotating squares animation
 
@@ -86,7 +84,7 @@ __________________________________________
 ```
 
 ```css
-rect {
+#rotating-squares-animation > rect {
   opacity: .5
 }
 ```
@@ -150,13 +148,22 @@ function animate(t) {
 }
 ```
 
-### Particle Container
+## Particle Container
+
 ```html
 <svg id="particle-container" class="natural-units"
      width="200px" height="200px"
      viewBox="-2 -2 4 4"
 >
-  <rect x=-0.5 y=-0.5 width=1 height=1 ></rect>
+  <g id='box' transform="scale(1.15)">
+    <rect x=-1 y=-1
+          width=2
+          height=2
+          fill="none"
+          stroke="#777"
+          stroke-width=".09">
+    </rect>
+  </g>
   <!-- Put particles here -->
 </svg>
 ```
@@ -169,18 +176,63 @@ const svgElement = svg.elt('particle-container');
 
 // Configure
 const DEBUG = false;
-const { cos, sin } = Math;
+const { cos, sin, random, sqrt, floor } = Math;
 const C = 1e-3;
-const numParticles = 1000;
-const throttle = 3;
+const numParticles = 1e2; // 3 is okay, 4 is very slow
+const throttle = 2;
+const collisionThreshold = 1;
+const dataSetKey = '___d';
 
 // Initialize particles
-const particles = Array.from({ length: numParticles }, (i) => {
-  const fill = '#' + Math.floor(Math.random() * 16777215).toString(16);
-  const elt = createCircleElement(fill);
-  const [x, y] = [2 * Math.random() - 1, 2 * Math.random() - 1];
-  return { x, y, elt, fill };
-});
+const particles = Array.from({ length: numParticles }, particle);
+
+/**
+ * Create or update a particle.
+ * Create an association between DOM elt and particle data.
+ * May look into using a Dataset if we want to specify states within markup..
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+
+ * @param p
+ * @returns {{vx: number, vy: number, x: number, y: number, id: number, fill: string, elt: SVGGElement}}
+ */
+function particle(p){
+    let elt, particleData;
+
+    if (typeof p === 'number' || p === undefined) {
+      const [x, y] = [2 * random() - 1, 2 * random() - 1];
+      const [vx, vy] = [x/20, y/20];
+      const fill = '#' + floor(random() * 16777215).toString(16);
+      elt = createCircleElement(fill);
+      particleData = { id: p, x, y, vx, vy, fill, elt};
+    } else {
+      if (!p.hasOwnProperty('elt') || p.elt[dataSetKey] === undefined){
+          throw new Error('Particle data not found in DOM element');
+      }
+      elt = p.elt;
+      // Recover the data from the DOM elt
+      const prevParticleData = elt[dataSetKey];
+      let {x, y, vx, vy} = prevParticleData;
+
+      // Non-interacting regular motion in a box
+      if (x > 1 || x < -1) vx *= -1;
+      if (y > 1 || y < -1) vy *= -1;
+
+      // Add some randomness
+      const r = randomWalk(p);
+
+      // Return the result
+      particleData = {
+          ...prevParticleData,
+          x: x + vx + r.x,
+          y: y + vy + r.y,
+          vx: vx + r.vx,
+          vy: vy + r.vy,
+      };
+    }
+    // The DOM elt and data are bidirectionally linked.
+    elt[dataSetKey] = particleData;
+    return particleData;
+}
 // Add them all to the DOM
 particles.forEach((particle, i) => {
   svgElement.appendChild(particle.elt);
@@ -193,30 +245,41 @@ window.addEventListener(svg.clock(throttle).clockId, e => {
 
 // For artistic reasons, update one elt at a time.
 // For a smoother animation, update all at once.
-let n = 0;
 function animate(t) {
-  // const particle = particles[n++ % numParticles];
-  // updateParticle(particle);
-  particles.forEach(updateParticle);
+  particles.forEach(p => {
+    scatter(p.elt, particle(p));
+  });
 }
 
-function updateParticle(particle) {
-  const config = getParticleConfig(particle);
-  updateElementTransform(particle.elt, config);
-  particle.x = config.x;
-  particle.y = config.y;
+// Find any collisions. This is O(N^2), but N is small.
+function checkCollision(particle){
+  particles.forEach((other) => {
+    if (particle === other) return;
+
+    const dx = other.x - x;
+    const dy = other.y - y;
+    const dist = sqrt(dx * dx + dy * dy);
+
+    // If we're too close, swap velocities
+    if (dist <= collisionThreshold) {
+      [particle.vx, other.vx] = [other.vx, particle.vx];
+      [particle.vy, other.vy] = [other.vy, particle.vy];
+    }
+  })
 }
 
-function getParticleConfig(particle) {
-    // Particles non-interacting in a box
-  const { x, y } = particle;
-  const dir = Math.random() * 360 / (2 * Math.PI);
-  const mag = Math.random()/10;
+// random distance in a random direction
+function randomWalk({x, y, vx, vy}){
+  const dir = random() * 360;
+  const mag = random()/100;
   return {
-    x: x + cos(dir) * mag,
-    y: y + sin(dir) * mag,
+    x: cos(dir) * mag,
+    y: sin(dir) * mag,
+    vx: cos(dir) * mag,
+    vy: sin(dir) * mag,
   };
 }
+
 
 function createCircleElement(fill='DodgerBlue', r = 0.1) {
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -228,7 +291,7 @@ function createCircleElement(fill='DodgerBlue', r = 0.1) {
 }
 
 // Update element transform
-function updateElementTransform(element, config) {
+function scatter(element, config) {
   const { x=0, y=0, rotate=0, scale=1 } = config;
   const transform = `translate(${x}, ${y}) rotate(${rotate}) scale(${scale})`;
   element.setAttribute('transform', transform);
