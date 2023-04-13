@@ -8,3 +8,6 @@ localhost.crt
 localhost.csr
 localhost.key
 domains.ext
+
+/out
+/java/out
