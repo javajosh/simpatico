@@ -136,6 +136,17 @@ const predicate = (rule) => rule.selectorText === '#test-div2';
 assertEquals(null, findCSSRule(predicate, window.document),'css rule #test-div2 should not exist');
 ```
 
+An aside - what do you think of this more functional implementation of the above function:
+```js
+function findCSSRule(selectorText, document=document) {
+  return Array.from(document.styleSheets)
+    .flatMap(sheet => Array.from(sheet.cssRules))
+    .find((rule) => rule.selectorText === selectorText);
+}
+```
+(I think it looks pretty and sleek and clever.
+But the first one is easier to understand and debug.)
+
 ### JavaScript doesn't execute:
 ```js
 /// does not execute
@@ -275,6 +286,24 @@ Literate Markdown adds extra support for JavaScript code execution:
   - The markdown processing requires another 150KB library (showdown.js) ton the server, plus non-trivial code in reflector.js.
   - It is a great nutshell example of the siren allure of using markdown/litmd for everything - but that's 300KB of complexity for functionality you get for 0 with F12!
 
+## About Literate Programming
+Literate programming is a programming paradigm introduced by Donald Knuth in 1984. It emphasizes the importance of human-readable explanations alongside the source code. The goal is to treat software programs as works of literature that can be understood by both humans and machines. This approach enables developers to create more understandable, maintainable, and communicative code.
+
+Key concepts in literate programming include:
+
+  - Intermingling code and documentation: Code and explanatory text are interwoven, allowing developers to express their thoughts and reasoning behind the code.
+  - Rich formatting: Documentation often includes rich text formatting, diagrams, and mathematical notation to enhance understanding.
+  - Code weaving: Extracting code from the combined source, often in the form of compilable source code.
+  - Code tangling: Reconstructing the code into a more traditional structure, removing the explanatory text for execution or compilation.
+
+Several tools and platforms have been developed to facilitate literate programming:
+
+  - [CodePen](codepen.io): A social development environment that allows developers to create, share, and modify front-end code snippets (HTML, CSS, and JavaScript). It doesn't strictly follow literate programming principles but enables users to document their code using comments and various markup languages.
+
+  - [Jupyter Notebook](jupyter.org): An interactive web-based environment for creating and sharing documents that contain live code, equations, visualizations, and narrative text. Jupyter Notebooks are widely used in data science and scientific computing for literate programming, allowing users to weave code, data, and text together to create reproducible research and analyses.
+
+  - [Observable](observablehq.com): A platform for creating interactive, data-driven documents using JavaScript. Observable notebooks enable users to write and visualize code, explore data, and create rich, interactive web documents. This platform fully embraces the principles of literate programming, as it allows users to seamlessly intermingle code, data, and explanatory text. Created by @mbostock, creator of [D3](d3js.org).
+_________________________________________________
 ## Footnotes
 
 Footnotes are not supported by showdown.js, but supported by [markdown-it](https://markdown-it.github.io/).

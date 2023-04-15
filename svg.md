@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
-  <meta name="author" content="javajosh">
+  <meta name="author" content="jbr">
 
   <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
@@ -13,7 +13,7 @@
   <script src="testable.js"></script>
   <!-- End testable.js boilerplate  -->
 
-  <title>svg.js</title>
+  <title>Simpatico: SVG</title>
   <link rel="stylesheet" type="text/css" href="/style.css">
   <link rel="stylesheet" href="/kata/highlight.github-dark.css">
   <script type="module">
