@@ -32,6 +32,22 @@ It's a small, almost single file 450 line node program, written in modular, mode
     1. SSL server.
     1. And more.
 
+## Current work
+
+The following goals are currently underspecified and not met:
+    1. Do not melt under load,
+    1. serve minimal data, efficiently.
+
+The "fast & easy" things we can do are mimic well-known software in this area
+like [nginx](https://nginx.org/) or [caddy](https://github.com/caddyserver/caddy).
+The basic strategy is to "reduce what you serve" and "serve things efficiently".
+
+To reduce what we serve, we need to add aggressive client caching:
+  1. Add cache headers to cache sub-resources forever
+  1. Let clients update sub-resources by modifying the URL at runtime
+  1. Consider ways to detect and mitigate badly behaved clients.
+
+Additionally, we can make the resources smaller over the wire by using `gzip` (and perhaps `brotli`) to compress the response. Virtually all clients support this compression scheme, and it would also reduce memory pressure in the file cache, so we might want to just replace the plaintext cache with a compressed cache, and do not support non gzip clients.
 
 
 ## Authoring with IntelliJ IDEA
@@ -39,3 +55,5 @@ I use IntelliJ IDEA to author my code.
 Here is what I see when I open the reflector.js file:
 
 ![img.png](img.png)
+
+## Projects

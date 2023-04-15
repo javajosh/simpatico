@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
+import zlib from 'node:zlib';
 
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
@@ -198,7 +199,11 @@ function fileServerLogic() {
   const getContentTypeHeader = (filename, defaultMimeType='text') => {
     const ext = path.extname(filename).slice(1);
     const type = mime[ext] ? mime[ext] : defaultMimeType;
-    return {"content-type": type};
+    return {"Content-Type": type};
+  }
+
+  const getContentEncodingHeader = (defaultEncoding='gzip') => {
+    return config.useCache ? {"Content-Encoding": defaultEncoding} : {};
   }
 
   // For primary resources, use an etag
@@ -227,6 +232,7 @@ function fileServerLogic() {
         200,
         Object.assign(
           getContentTypeHeader(req.url),
+          getContentEncodingHeader(),
           getCacheHeaders(req.url),
           getCrossOriginHeaders(),
           getContentSecurityPolicyHeaders(),
@@ -304,6 +310,10 @@ function fileServerLogic() {
 
         // Update the cache
         if (config.useCache) {
+          zlib.gzip(data, (err, compressedData) => {
+            if (err) throw 'Unable to compress data ' + err;
+            cache[fileName] = compressedData;
+          });
           cache[fileName] = data;
         }
         respondWithData(data);
