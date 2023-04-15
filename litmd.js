@@ -29,7 +29,7 @@ const scriptPassThroughExtension = {
           ${code}
         </script>
       `;
-      const output =  displayString + (doNotExecute ? '' : '\n' + executeString);
+      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
       if (DEBUG) console.log('litmd.js: scriptPassThroughExtension', output);
       return output;
     });
@@ -44,7 +44,7 @@ const htmlPassThroughExtension = {
       const displayString = `<pre><code class="html language-html">${code}</code></pre>`;
       const executeString = unescapeHtml(code);
       const doNotExecute = executeString.startsWith(dontExecuteHtml);
-      const output =  displayString + (doNotExecute ? '' : '\n' + executeString);
+      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
 
       if (DEBUG) console.log('litmd.js: htmlPassThroughExtension', output);
       return output;
@@ -61,7 +61,7 @@ const cssPassThroughExtension = {
       code = unescapeHtml(code);
       const doNotExecute = code.startsWith(dontExecuteCss);
       const executeString = `<style>${code}</style>`;
-      const output =  displayString + (doNotExecute ? '' : '\n' + executeString);
+      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
 
       if (DEBUG) console.log('litmd.js: cssPassThroughExtension', output);
       return output;
