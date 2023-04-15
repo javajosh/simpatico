@@ -37,37 +37,11 @@ See:
 [audience](/audience.md)
 
 
-Exercising the simpatico `svg` library, especially `svg.clock()` and `svg.scatter()`.
-Also exercising basic `svg` markup and authoring.
 
-Before we begin, lets make sure we can see svg output clearly:
-```css
-body {
-  background-color: #9bc8cc;
-}
-
-div {
-  max-width: 800px;
-  margin: 40px;
-}
-
-svg {
-  background-color: #fff;
-  max-width: 800px;
-  margin: 40px;
-}
-
-svg > text {
-  font-size: 1px;
-  font-family: "sans-serif";
-  text-anchor: middle;
-}
-
-```
 __________________________________________
 # Rotating squares animation
 
-## Rotating squares SVG
+
 ```html
 <svg id="rotating-squares-animation" class="natural-units"
      width="200px" height="200px"
@@ -84,12 +58,11 @@ __________________________________________
 ```
 
 ```css
-#rotating-squares-animation > rect {
+#rotating-squares-animation  rect {
   opacity: .5
 }
 ```
-## Rotating squares js
-Then we bind to the elements in the sketch, and animate them:
+
 ```js
 import {svg, shuffle, now, log} from '/simpatico.js';
 // Bind elements
@@ -148,7 +121,7 @@ function animate(t) {
 }
 ```
 
-## Particle Container
+# Particle Container
 
 ```html
 <svg id="particle-container" class="natural-units"
@@ -179,12 +152,24 @@ const DEBUG = false;
 const { cos, sin, random, sqrt, floor } = Math;
 const C = 1e-3;
 const numParticles = 1e2; // 3 is okay, 4 is very slow
-const throttle = 2;
+const throttle = 5;
 const collisionThreshold = 1;
 const dataSetKey = '___d';
 
 // Initialize particles
 const particles = Array.from({ length: numParticles }, particle);
+
+
+// Add them all to the DOM
+particles.forEach((particle, i) => {
+  svgElement.appendChild(particle.elt);
+});
+
+// Start the clock
+window.addEventListener(svg.clock(throttle).clockId, e => {
+  animate(e.detail.t);
+});
+
 
 /**
  * Create or update a particle.
@@ -196,52 +181,43 @@ const particles = Array.from({ length: numParticles }, particle);
  * @returns {{vx: number, vy: number, x: number, y: number, id: number, fill: string, elt: SVGGElement}}
  */
 function particle(p){
-    let elt, particleData;
+  let elt, particleData;
 
-    if (typeof p === 'number' || p === undefined) {
-      const [x, y] = [2 * random() - 1, 2 * random() - 1];
-      const [vx, vy] = [x/20, y/20];
-      const fill = '#' + floor(random() * 16777215).toString(16);
-      elt = createCircleElement(fill);
-      particleData = { id: p, x, y, vx, vy, fill, elt};
-    } else {
-      if (!p.hasOwnProperty('elt') || p.elt[dataSetKey] === undefined){
-          throw new Error('Particle data not found in DOM element');
-      }
-      elt = p.elt;
-      // Recover the data from the DOM elt
-      const prevParticleData = elt[dataSetKey];
-      let {x, y, vx, vy} = prevParticleData;
-
-      // Non-interacting regular motion in a box
-      if (x > 1 || x < -1) vx *= -1;
-      if (y > 1 || y < -1) vy *= -1;
-
-      // Add some randomness
-      const r = randomWalk(p);
-
-      // Return the result
-      particleData = {
-          ...prevParticleData,
-          x: x + vx + r.x,
-          y: y + vy + r.y,
-          vx: vx + r.vx,
-          vy: vy + r.vy,
-      };
+  if (typeof p === 'number' || p === undefined) {
+    const [x, y] = [2 * random() - 1, 2 * random() - 1];
+    const [vx, vy] = [x/20, y/20];
+    const fill = '#' + floor(random() * 16777215).toString(16);
+    elt = createCircleElement(fill);
+    particleData = { id: p, x, y, vx, vy, fill, elt};
+  } else {
+    if (!p.hasOwnProperty('elt') || p.elt[dataSetKey] === undefined){
+      throw new Error('Particle data not found in DOM element');
     }
-    // The DOM elt and data are bidirectionally linked.
-    elt[dataSetKey] = particleData;
-    return particleData;
-}
-// Add them all to the DOM
-particles.forEach((particle, i) => {
-  svgElement.appendChild(particle.elt);
-});
+    elt = p.elt;
+    // Recover the data from the DOM elt
+    const prevParticleData = elt[dataSetKey];
+    let {x, y, vx, vy} = prevParticleData;
 
-// Start the clock
-window.addEventListener(svg.clock(throttle).clockId, e => {
-  animate(e.detail.t);
-});
+    // Non-interacting regular motion in a box
+    if (x > 1 || x < -1) vx *= -1;
+    if (y > 1 || y < -1) vy *= -1;
+
+    // It is surprisingly hard to add random motion without increasing velocity without bound.
+    // const r = randomWalk(p);
+
+    // Return the result
+    particleData = {
+      ...prevParticleData,
+      x: x + random() * vx,
+      y: y + random() * vy,
+      vx:  vx,
+      vy:  vy,
+    };
+  }
+  // The DOM elt and data are bidirectionally linked.
+  elt[dataSetKey] = particleData;
+  return particleData;
+}
 
 // For artistic reasons, update one elt at a time.
 // For a smoother animation, update all at once.
@@ -251,7 +227,25 @@ function animate(t) {
   });
 }
 
+// Update element transform
+function scatter(element, config) {
+  const { x=0, y=0, rotate=0, scale=1 } = config;
+  const transform = `translate(${x}, ${y}) rotate(${rotate}) scale(${scale})`;
+  element.setAttribute('transform', transform);
+}
+
+function createCircleElement(fill='DodgerBlue', r = 0.1) {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('r', r);
+  circle.setAttribute('fill', fill);
+  g.appendChild(circle);
+  return g;
+}
+
+
 // Find any collisions. This is O(N^2), but N is small.
+// Not used yet.
 function checkCollision(particle){
   particles.forEach((other) => {
     if (particle === other) return;
@@ -273,32 +267,19 @@ function randomWalk({x, y, vx, vy}){
   const dir = random() * 360;
   const mag = random()/100;
   return {
-    x: cos(dir) * mag,
-    y: sin(dir) * mag,
+    x:  cos(dir) * mag,
+    y:  sin(dir) * mag,
     vx: cos(dir) * mag,
     vy: sin(dir) * mag,
   };
 }
 
 
-function createCircleElement(fill='DodgerBlue', r = 0.1) {
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circle.setAttribute('r', r);
-  circle.setAttribute('fill', fill);
-  g.appendChild(circle);
-  return g;
-}
 
-// Update element transform
-function scatter(element, config) {
-  const { x=0, y=0, rotate=0, scale=1 } = config;
-  const transform = `translate(${x}, ${y}) rotate(${rotate}) scale(${scale})`;
-  element.setAttribute('transform', transform);
-}
+
 
 ```
-## Rotating squares animation test
+# Testing Animation Efficacy (nonvisual)
 It's challenging to test something like animation automatically, but it can be done.
 To test that something is changing, we use the `MutationObserver` DOM API to check for changes.
 If I don't see any after a short time (~500ms), the test fails.
@@ -360,7 +341,10 @@ The first problem is to get the angles of the 3 hands, hours minutes and seconds
 Timestamp is in milliseconds, so we need to convert to seconds, then to hours, minutes and seconds.
 We also need to convert to radians, and then to degrees.
 
-## Clock SVG
+_______________________________________________________
+## Clock 1
+This clock, and the next one, is animated from the same script below.
+The difference is that this clockface was done crudely, and `tick()` is not throttled.
 ```html
 <svg id="clock0" class="natural-units"
      width="200px" height="200px"
@@ -385,8 +369,8 @@ We also need to convert to radians, and then to degrees.
     </g>
 </svg>
 ```
-
-## Another clock SVG.
+_______________________________________________________
+## Clock 2
 ```html
 <svg id="clock1" width="200" height="200">
   <linearGradient id="a" x1=".7495" x2="198.2495" y1="1.252" y2="197.752" gradientUnits="userSpaceOnUse">
@@ -517,7 +501,7 @@ function clockAnglesInDegrees(timestamp) {
 }
 
 ```
-
+_______________________________________________________
 # Animating events
 
 ```html
@@ -631,17 +615,18 @@ This technique was originally described by [Peter Collingridge](https://www.pete
 
 ![minimal draggable object demo](/img/draggable.svg =200x200)
 
+
 _______________________________
-# SVG Tools
+# Discussion
+_______________________________
+## SVG Tools
 
 [Open source, in browser](https://svgedit.netlify.app/editor/index.html) (here is the [source](https://github.com/SVG-Edit/svgedit))
 
 [inkscape](https://inkscape.org/) is the grandaddy of them all. It's a GPL'd thick-client authoring tool. Check out the "output optimized svg" save options.
 
-_______________________________
-# Discussion
 
-# Links
+## Links
 A good list of tools here: https://github.com/sw-yx/spark-joy/blob/master/README.md.
 (Associated [HN thread](https://news.ycombinator.com/item?id=35235952)).
 
@@ -678,7 +663,7 @@ First, an inline svg that uses a classical schoolroom coordinate system: the uni
 ```
 
 ___________________________________________
-# SVG animation with scatter(elt, obj)
+## SVG animation with scatter(elt, obj)
 
 
 The basic idea is to scatter objects into svg elements.
