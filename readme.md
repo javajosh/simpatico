@@ -52,7 +52,9 @@ $ sudo apt -f install
 $ google-chrome --headless --disable-gpu http://127.0.0.1:8081/core.html
 ```
 
-Note that if ES6 modules supported `file:\\` urls, or if I concatenated the modules into a single js file, you would ONLY need a browser process to run the tests.
+Note that if ES6 modules supported `file://` urls, or if I concatenated the modules into a single js file, you would ONLY need a browser process to run the tests.
+
+If I was going to use a build, I would use [esbuild](https://esbuild.github.io/), which is a very fast, minimal build tool.
 
 ## SimpatiComponents
 
