@@ -44,17 +44,30 @@ Pages render but do not execute properly on Github.
 ______________________________________________________________
 ## Markdown test
 ```md
-# This is a test header
-## This is a test subheader
 ~~This is a test strikethrough~~
 *This is a test italic*
 **This is a test bold**
-===================hr===================
+______________________________________________________________
+| Item         | Price | # In stock |
+|--------------|:-----:|-----------:|
+| Juicy Apples |  1.99 |        739 |
+| Bananas      |  1.89 |          6 |
 ```
+## Markdown test
+
+~~This is a test strikethrough~~
+*This is a test italic*
+**This is a test bold**
+______________________________________________________________
+| Item         | Price | # In stock |
+|--------------|:-----:|-----------:|
+| Juicy Apples |  1.99 |        739 |
+| Bananas      |  1.89 |          6 |
 
 Showdown supports handy img width and height syntax.
 Github litmd does not (which is surprising).
 To get images that work on github, either crop the image or use html.
+
 ```md
 ![alt text](img url =widthxheight)
 
