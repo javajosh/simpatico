@@ -1,4 +1,4 @@
-import {combine, combineReducer} from './combine2.js'
+import { combineReducer} from './combine2.js'
 
 const DEBUG = false;
 // Utilities I could take from core but I want to keep this file standalone.
@@ -96,7 +96,8 @@ function stree(
   function computeNewResidue(d, prevResidue){
     let newResidue;
     try {
-      // all kinds of things can go wrong.
+      // This entire method is about only this line of code.
+      // But all kinds of things can go wrong here.
       newResidue = rowReducer(prevResidue, d);
     } catch (e) {
       const msg = `cannot combine op ${JSON.stringify(d)} with core ${prevResidue}`
@@ -138,7 +139,7 @@ function stree(
     let state = core; // reset the core before every branch
     return branch.every((op, opi) => {
       try {
-        state = combine(state, op);
+        state = rowReducer(state, op);
         return true;
       } catch (e) {
         const msg = `cannot combine op ${JSON.stringify(op)} op i ${opi} at branch i ${branchi} and core ${JSON.stringify(core)}`
