@@ -162,8 +162,14 @@ function fileServerLogic() {
   if (config.useCache) chokidar.watch('.', {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: false
-  }).on('change', path => {delete cache[path]})
-    .on('unlink', path => {delete cache[path]});
+  }).on('change', path => {
+    delete cache[path];
+    if (DEBUG) console.log(`cache invalidated "change" ${path}`);
+  })
+  .on('unlink', path => {
+    delete cache[path];
+    if (DEBUG) console.log(`cache invalidated "unlink" ${path}`);
+  });
 
   // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
   // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
@@ -199,11 +205,10 @@ function fileServerLogic() {
   const getContentTypeHeader = (filename, defaultMimeType='text') => {
     const ext = path.extname(filename).slice(1);
     const type = mime[ext] ? mime[ext] : defaultMimeType;
-    return {"Content-Type": type};
-  }
-
-  const getContentEncodingHeader = (defaultEncoding='gzip') => {
-    return config.useCache ? {"Content-Encoding": defaultEncoding} : {};
+    return {
+      "Content-Type": type,
+      "Content-Encoding": config.useCache ? "gzip" : "",
+    };
   }
 
   // For primary resources, use an etag
@@ -232,7 +237,6 @@ function fileServerLogic() {
         200,
         Object.assign(
           getContentTypeHeader(req.url),
-          getContentEncodingHeader(),
           getCacheHeaders(req.url),
           getCrossOriginHeaders(),
           getContentSecurityPolicyHeaders(),
@@ -291,6 +295,7 @@ function fileServerLogic() {
     if (config.useCache && hasProp(cache, fileName)) {
       respondWithData(cache[fileName]);
     } else {
+
       fs.readFile(fileName, (err, data) => {
         // Handle errors, maybe bail
         if (DEBUG && config.useCache) debug('cache miss for', fileName);
@@ -302,18 +307,19 @@ function fileServerLogic() {
           }));
           return;
         }
+
+        // Process literate markdown files
         if (fileName.endsWith('.md')){
           if (DEBUG) debug('building html for markdown file', fileName);
           // Strip path and extension from filename and use that in the title.
           data = buildHtmlFromLiterateMarkdown(data.toString(), fileName);
         }
 
-        // Update the cache
+        // Compress and cache the result
+        // We can use streams like https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
+        // But this will only happen once per process lifetime per resource
         if (config.useCache) {
-          zlib.gzip(data, (err, compressedData) => {
-            if (err) throw 'Unable to compress data ' + err;
-            cache[fileName] = compressedData;
-          });
+          data = zlib.gzipSync(data);
           cache[fileName] = data;
         }
         respondWithData(data);
