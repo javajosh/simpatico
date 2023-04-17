@@ -122,6 +122,7 @@ function animate(t) {
 ```
 
 # Particle Container
+This is a simpler, worse version of [d3 collision demo](https://observablehq.com/@d3/collision-detection/2)
 
 ```html
 <svg id="particle-container" class="natural-units"
@@ -371,6 +372,8 @@ The difference is that this clockface was done crudely, and `tick()` is not thro
 ```
 _______________________________________________________
 ## Clock 2
+This is a face taken from [wikipedia](https://upload.wikimedia.org/wikipedia/commons/0/02/Analogue_clock_face.svg).
+I then modified it in place - adding the hands.
 ```html
 <svg id="clock1" width="200" height="200">
   <linearGradient id="a" x1=".7495" x2="198.2495" y1="1.252" y2="197.752" gradientUnits="userSpaceOnUse">
@@ -597,18 +600,36 @@ _______________________________
 
 See [A guy who makes great SVGs for technical illustration](https://en.wikipedia.org/wiki/User:Cmglee/Dynamic_SVG_for_Wikimedia_projects)
 
-## Referencing an svg as an `img` tag:
+## Referencing an svg as a separate resource:
+These three ways:
 
-`   <img width="200px" src="/img/wizard.svg" alt="simpatico wizard" />   `
+```md
+<img id="wizard1" width="200px" src="/img/wizard.svg" alt="simpatico wizard" /> This is just html, supports all attributes, but no dom.
+![simpatico wizard](/img/wizard.svg =200x200) This is markdown with height and width, but no id and no dom.
+<object id="wizard2" data="/img/wizard.svg" width="100" height="100" type="image/svg+xml"></object> This is html, supports all attributes, and supports dom
+```
+<img id="wizard1" width="1px" src="/img/wizard.svg" alt="simpatico wizard" />
+<object id="wizard2" data="/img/wizard.svg" width="100" height="100" type="image/svg+xml"></object>
 
-![simpatico wizard](/img/wizard.svg =200x200)
+To get to the img svg DOM, you must use the `<object>` tag.
+The svg element is at `contentDocument.documentElement` property:
+```js
+import {svg} from '/simpatico.js';
+assertEquals(false, svg.elt('wizard1').hasOwnProperty('contentDocument'));
+const wizard = svg.elt('wizard2').contentDocument.documentElement;
+window.wizard = wizard;
+console.log('wizard', wizard);
+```
+
 Here is an aperiodic thing
 
+```md
+![aperiodic.svg](/kata/aperiodic.svg =200x200)
+```
 ![aperiodic.svg](/kata/aperiodic.svg =200x200)
 
-## Referencing an svg with built-in styles and javascript as an image, from :
+## Referencing an svg with built-in styles and javascript
 
-`   <img width="200px" src="/img/draggable.svg" alt="minimal draggable object demo" />   `
 
 To make the javascript work, you must right-click and "open image in new tab" where you can then interact (!) with it.
 This technique was originally described by [Peter Collingridge](https://www.petercollingridge.co.uk/tutorials/svg/interactive/dragging/)
@@ -678,3 +699,8 @@ svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
 
 
 When [SVG almost got raw sockets?!](https://leonidasv.com/til-svg-specs-almost-got-raw-socket-support/)
+
+https://martinheinz.github.io/physics-visual/
+https://gist.github.com/mbostock/3231298
+https://algs4.cs.princeton.edu/61event/CollisionSystem.java.html
+https://developer.ibm.com/tutorials/wa-build2dphysicsengine/
