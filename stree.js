@@ -26,13 +26,10 @@ const stree = (startValue = {}, reducer = combine) => {
   };
 
   const add = (value, newFocus=focus) => {
-    if (newFocus !== focus) {
-      setFocus(newFocus);
-    }
-    const parent = read();
+    // create the new message
+    const parent = (newFocus === focus) ? read() : setFocus(newFocus);
     const residue = reducer(parent.residue, value);
     const branch = (focus <= 0) ? parent.branch : -branches.length;
-
     const m = {
       id: ms.length,
       time: now(),
@@ -42,17 +39,22 @@ const stree = (startValue = {}, reducer = combine) => {
       value,
       residue,
     };
-    // TODO: check that no sibling ms have the same value.
+    // add a reference to the parent.
     parent.children.push(m);
 
-    if (branch === parent.branch){
+    // add a reference to branches
+    const existingBranch = branch === parent.branch;
+    if (existingBranch){
       branches[-branch] = m;
-    } else {
+      delete parent.residue; // save some memory
+    } else { // new branch
       focus = -branches.length;
       branches.push(m);
     }
 
+    // add a reference to messages
     ms.push(m);
+    // return the reference
     return m;
   }
 
