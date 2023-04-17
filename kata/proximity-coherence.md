@@ -24,6 +24,86 @@
 "Proximity coherence" is a quality of a site that many web technologies are attempting to satisfy.
 It is the quality of *consistency between resources*.
 
+We often want to make two html files look similar, but allow them to differ in some way.
+Most websites are like this: a repeated navigation (and hidden header) and unique content below.
+One parent and many children "blend" to form the output.
+
+Most of my career has been spent doing this blending at request time, on the server. It is done N times for N requests.
+An SSG moves this blending to build time, on the server. It is done 1 time for N requests.
+This is quite appealing!
+In my view, the less power your templating system has, the better.
+This is where I begin to differ with Hugo and Next.js (which btw I recommended only because it is the closest thing to a javascript SSG).
+
+
+Let parent.html and child.html be pages that need to be *blended*.
+We load the two strings from disk, call them parent and child.
+Parsing html into DOM is a very common need in node, so I would add a parsing library.
+Then I would write a function like this:
+
+```html
+<div id="foo">
+  <p>This is a section</p>
+  <p>It is a very nice section</p>
+  <div id="bar">
+    <p>This is a subsection</p>
+  </div>
+</div>
+```
+
+```js
+const foo = document.getElementById('foo');
+const obj = eltToObj(foo);
+console.log(window.title, 'foo', foo, 'obj', obj);
+
+function eltToObj(elt){
+  const obj = {
+    tagName: elt.tagName.toLowerCase(),
+    children: [],
+  };
+
+  // Recurse through children
+  for(var i = 0; i < elt.children.length; i++){
+    obj.children.push(eltToObj(elt.children[i]))
+  }
+
+  // add the values of all attributes, prepending @
+  for(var i = 0; i < elt.attributes.length; i++){
+    var attr = elt.attributes[i]
+    obj['@' + attr.name] = attr.value
+  }
+
+  return obj
+}
+```
+
+(I'd need to check that this properly deals with head tags but I think it would).
+
+Then I would load the strings from disk and combine the parent and child:
+
+const parent = htmlToJson(parentDiv, {})
+
+const child = htmlToJson(childDiv,{})
+
+const result = jsonToHtml(combine(parent,  child))
+
+Note that the order of parent and child on the last line is a critical design choice. You could go the other way, too.
+In this case, though, we pick the case where the child specializes the parent.
+This allows us to do very simple, implicit specialization, which is appropriate for head.
+"I, being the child, accept all parent's choices, but override these."
+(The other way is saying, "I, being the parent, will now modify the child to conform to parental standards.")
+Ultimately, the greatest power lies with the last to act on the response, and it is most natural to leave that with the child.
+
+For more complex cases, such as highly configurable navigation component, we can consider the parent as a library of functions that can be called by the child.
+You "call" a function by writing html in a particular shape, which we get to specify.
+Giving unique ids to all callable components seems reasonable.
+Making it easy to call them (for example by simply supplying a structured string argument)
+We pick a convention to allow use of combine()'s handler functions.
+
+At the end of the day, this means you'd write your parent.html to include common head tags, and also define html functions that children can call.
+A child calls an html function by targeting it by id and providing an argument, usually some JSON-like thing (I personally prefer object literal notation - fewer quotes).
+
+
+
 ## The simplest way: by hand.
 
 Pros: Copying and pasting really frees you to make local modifications without worry.
