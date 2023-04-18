@@ -103,25 +103,48 @@ const litmd = makeMarkdownConverter();
  *
  * @param markdownString
  * @param fileName  used to generate a default title if the markdownString doesn't have one.
+ * @param debug
  * @returns {string}
  */
-function buildHtmlFromLiterateMarkdown(markdownString, fileName=''){
+function buildHtmlFromLiterateMarkdown(markdownString, fileName='', debug=false){
   if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
-  const firstCut = markdownString.split('</head>-->');
-  let header = firstCut[0];
-  let body = '';
-  const hasHeader = header.length > 0;
-  if (hasHeader){
-    header = header.replace('<!--', '') + '</head>';
-    body = firstCut[1];
-  } else {
-    header = defaultHtmlHeader(fileName);
-    body = markdownString;
-  }
 
-  if (DEBUG) console.log('litmd.js: buildHtmlFromLiterateMarkdown', 'header', header, 'body', body);
-  return header + litmd.makeHtml(body) + htmlFooter();
+  const [head, body] = splitMarkdown(markdownString, defaultHtmlHeader(fileName));
+
+  if (debug) console.log('litmd.js: buildHtmlFromLiterateMarkdown',
+    'header======================\n', head,
+    'body======================\n', body,
+  );
+  return head + litmd.makeHtml(body) + htmlFooter();
 }
+
+/**
+ * Split the markdown into a header and a body.
+ * If the markdown contains a header, extract it and remove it from the markdown.
+ *
+ * @param markdown
+ * @param defaultHeader
+ * @returns {[undefined, *]|[string, *]}
+ */
+function splitMarkdown (markdown, defaultHeader) {
+  // Define the header pattern to look for
+  const headerPattern = /<!--(<!DOCTYPE>[\s\S]*?<head>[\s\S]*?<\/head>)-->/;
+
+  // Try to find the header in the input markdown
+  const headerMatch = markdown.match(headerPattern);
+  let header, body;
+
+  // If a header is found, extract it, and remove it from the markdown
+  if (headerMatch) {
+    header = headerMatch[1];
+    body = markdown.replace(headerPattern, '').trim();
+  } else {
+    // If no header is found, use the default header
+    header = defaultHeader;
+    body = markdown.trim();
+  }
+  return [header, body];
+};
 
 /**
  * Build a default header for litmd files that don't have one.

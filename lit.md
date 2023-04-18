@@ -229,6 +229,59 @@ style="background-color: #eee;"
 }
 ```
 
+# Algorithms
+
+## Splitting out the optional header
+
+```js
+
+/**
+ * Split the markdown into a header and a body.
+ * If the markdown contains a header, extract it and remove it from the markdown.
+ *
+ * @param markdown
+ * @param defaultHeader
+ * @returns {[undefined, *]|[string, *]}
+ */
+const splitMarkdown = (markdown, defaultHeader = '<!DOCTYPE>\n<head>...</head>') => {
+  // Define the header pattern to look for
+  const headerPattern = /<!--(<!DOCTYPE>[\s\S]*?<head>[\s\S]*?<\/head>)-->/;
+
+  // Try to find the header in the input markdown
+  const headerMatch = markdown.match(headerPattern);
+
+  // If a header is found, extract it, and remove it from the markdown
+  if (headerMatch) {
+    const header = headerMatch[1];
+    const body = markdown.replace(headerPattern, '').trim();
+    return [header, body];
+  } else {
+    // If no header is found, use the default header
+    const header = defaultHeader;
+    const body = markdown.trim();
+    return [header, body];
+  }
+};
+
+// Test with input containing a header
+const inputWithHeader = `
+<!--<!DOCTYPE>
+<head>
+  <title>Test</title>
+  <link rel="stylesheet" href="/litmd.css">
+</head>-->
+
+# Welcome
+This is the best thing ever!`;
+const [header1, body1] = processMarkdown(inputWithHeader);
+console.log(`Header: ${header1}\nBody: ${body1}`);
+
+// Test with input without a header
+const inputWithoutHeader = '# Welcome';
+const [header2, body2] = processMarkdown(inputWithoutHeader);
+console.log(`\nHeader: ${header2}\nBody: ${body2}`);
+```
+
 ______________________________________________________________
 # Libraries
 
