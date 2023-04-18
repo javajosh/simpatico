@@ -13,7 +13,7 @@ import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from
 import { combine, combineAllArgs } from './combine.js';
 
 // Our global state
-const DEBUG = false;
+let DEBUG = false;
 const sensitive = {password: '******', jdbc: '******'};
 const elide = (obj, hide=sensitive) => DEBUG ? obj : combine(obj, hide);
 const connections = [];
@@ -45,6 +45,7 @@ function processConfig(envPrefix='REFL_') {
     useCache: false,
     password: 's3cret',
     logFileServerRequests: true,
+    debug: false,
     // isLocalHost: true, //added below
     // measured: {},      //added below
   };
@@ -62,6 +63,9 @@ function processConfig(envPrefix='REFL_') {
   // The big difference with Object.assign in this case is that undefined on later objects is treated as a noop
   const config = combineAllArgs(baseConfig, envConfig, argConfig, measured);
   config.isLocalHost = (config.host === 'localhost');
+
+  // Mutate DEBUG to be consistent with conflig.debug
+  DEBUG = config.debug;
 
   if (DEBUG) debug('DEBUG',
     '\nbaseConfig', elide(baseConfig),
@@ -310,9 +314,9 @@ function fileServerLogic() {
 
         // Process literate markdown files
         if (fileName.endsWith('.md')){
-          if (DEBUG) debug('building html for markdown file', fileName);
           // Strip path and extension from filename and use that in the title.
-          data = buildHtmlFromLiterateMarkdown(data.toString(), fileName);
+          data = buildHtmlFromLiterateMarkdown(data.toString(), fileName, DEBUG);
+          if (DEBUG) debug('building html for markdown file', fileName, data);
         }
 
         // Compress and cache the result
