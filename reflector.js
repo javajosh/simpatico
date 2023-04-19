@@ -80,11 +80,11 @@ function bindToPorts() {
   let httpServer;
   let httpsServer; //this ref used to connect the wss server
   const result = {http: 0, https: 0, ws: 0};
-  // Create an HTTP server
-  // When localhost, http is the ONLY server;
-  // When not localhost, http just redirects to https
+
+  // Bind to legacy HTTP port
+  // Redirect all requests to HTTPS *except for letsencrypt*
   try {
-    const httpLogic = config.isLocalHost ? fileServerLogic() : httpRedirectServerLogic;
+    const httpLogic = httpRedirectServerLogic;
     const httpOptions = {
       keepAlive: 100,
       headersTimeout: 100
@@ -139,14 +139,20 @@ function dropProcessPrivs(user) {
 }
 
 function httpRedirectServerLogic (req, res) {
+  if (DEBUG) console.debug(`http request: ${req.url}`)
   // Let letsencrypt check my control of the domain.
   // See https://eff-certbot.readthedocs.io/en/stable/using.html#webroot
   if (req.url.startsWith('/.well-known/acme-challenge')){
     res.writeHead(200);
     try{
-      res.end(fs.readFileSync(req.url));
+      const fileName = process.cwd() + req.url;
+      const localSecret = fs.readFileSync(fileName);
+      res.end(localSecret);
     } catch (e) {
-      console.error('bad acme challenge request', e);
+      const err = 'bad acme challenge request';
+      console.error(err, e);
+      res.writeHead(404, err);
+      res.end();
     }
 
     return;
