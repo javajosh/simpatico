@@ -68,12 +68,23 @@ function updateSimpatico() {
   startSimpatico
 }
 
+# This chain of links yields the following functions
+#https://letsencrypt.org/
+#https://eff-certbot.readthedocs.io/en/stable/install.html
+#https://certbot.eff.org/instructions?ws=other&os=ubuntufocal&tab=standard
 function installCertbot() {
   # From https://certbot.eff.org/instructions?ws=other&os=ubuntufocal
   sudo snap install core; sudo snap refresh core
   sudo snap install --classic certbot
   cd ~/simpatico || exit
   sudo certbot certonly
+}
+
+function certbotRenewal(){
+  sudo certbot renew --dry-run
+  # check "cron"
+  # systemctl list-timers
+  # less /etc/systemd/system/snap.certbot.renew.timer
 }
 
 function addToHosts() {
