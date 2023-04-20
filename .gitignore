@@ -11,3 +11,7 @@ domains.ext
 
 /out
 /java/out
+# Used to test caching
+/temp.html
+# Reserved by certbot
+.well-known

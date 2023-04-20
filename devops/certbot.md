@@ -51,32 +51,18 @@ You can get more information out of the debug logs:
 sudo tail -f /var/log/letsencrypt/letsencrypt.log
 ```
 
-The problem seems to be my server.
-I thought I poked an http hole for just this purpose, but my tests
-show that an attempt to access that specific path using http doesn't work:
+The problem is that the reflector isn't properly serving this request:
 ```bash
 curl http://simpatico.local:8080/.well-known/acme-challenge/6P9kCesSMDHBUc2vtKl_8sFBCqFHwndEh8kFL-orNzk
 ```
 
-The first thing to do is make an automated script.
-This script should continuously try to access that file while I iterate on `reflector`.
-Using bash we write a script that loops until that curl request succeeds:
-```bash
-function testCertbot() {
-  while true; do
-    # check the response code. If 200 break the loop
-    if curl -s -o /dev/null -w "%{http_code}" http://simpatico.local:8080/.well-known/acme-challenge/6P9kCesSMDHBUc2vtKl_8sFBCqFHwndEh8kFL-orNzk | grep -q 200;    then
-      break
-    else
-      echo "waiting for success"
-      sleep 1
-    fi
-  done
-}
-```
+Once this was [fixed](https://github.com/javajosh/simpatico/commit/51df568074941913fbcf25f149ae0f7da5bd93b2) I ran `sudo certbot renew` to get a new cert. Very easy.
 
 ___________________________________________________
 ## Testing the timer
+Note: I wrote this section before discovering `certbot reconfigure`.
+However it may be useful in the future.
+
 I am somewhat familiar with `cron` but not at all with `systemd` timers.
 As with everything with `systemd`, I am somewhat wary.
 I sense engineering maximalism at play, and I feel the lure of a rich featureset.
@@ -95,9 +81,10 @@ Unit=snap.certbot.renew.service
 OnCalendar=*-*-* 05:02
 OnCalendar=*-*-* 16:53
 ```
+
+Finally the unit file for `snap.certbot.renew.service`:
+
 ```properties
-
-
 [Unit]
 # Auto-generated, DO NOT EDIT
 Description=Service for snap application certbot.renew
