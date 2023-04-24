@@ -1,3 +1,4 @@
+// import in 3 groups: platform, 3rd party, and local.
 import process from 'node:process';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -7,33 +8,40 @@ import zlib from 'node:zlib';
 
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
-import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
+import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
-// Our global state
-let DEBUG = false;
-const sensitive = {password: '******', jdbc: '******'};
-const elide = (obj, hide=sensitive) => DEBUG ? obj : combine(obj, hide);
-const connections = [];
+// Reflector global config
+let DEBUG = false; // This is mutated by processConfig
+const hiddenConfigFields = {password: '******', jdbc: '******'};
+const elide = (obj, hide=hiddenConfigFields) => DEBUG ? obj : combine(obj, hide);
 
-// Boot up
+// Reflector global dynamic state
+const connections = []; // used by the wss server
+let cache = {}; // used by the http/s fileserver
+initFileWatchingCacheInvalidator(cache);
+
+// Reflector boot up - config and bind
 const config = processConfig();
 info(`reflector.js [${JSON.stringify(elide(config), null, 2)}]`);
 const bindStatus = bindToPorts();
 info( 'bound', bindStatus);
 
 // We are bound to port 443 (and probably 80) so we can drop privileges
-if (config.user) dropProcessPrivs(config.user);
+if (config.runAsUser) dropProcessPrivs(config.runAsUser);
 
-
-// We are booted! Print out welcome message.
+// Reflector booted! Print out welcome message.
 const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
 info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url] (? => [normalized url)");
 info(`Initialization complete. Open ${url}`);
 
-function processConfig(envPrefix='REFL_') {
+
+// ================================================================
+// The remainder of the file are supporting functions for the above
+// ================================================================
+function processConfig(envPrefix='SIMP_') {
   //hardcoded defaults, usually best for new devs
   const baseConfig = {
     http: 8080,
@@ -41,11 +49,13 @@ function processConfig(envPrefix='REFL_') {
     host: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
-    user: null,
+    runAsUser: null,
     useCache: false,
+    useGzip: true,
     password: 's3cret',
     logFileServerRequests: true,
     debug: false,
+
     // isLocalHost: true, //added below
     // measured: {},      //added below
   };
@@ -62,12 +72,14 @@ function processConfig(envPrefix='REFL_') {
   }};
   // The big difference with Object.assign in this case is that undefined on later objects is treated as a noop
   const config = combineAllArgs(baseConfig, envConfig, argConfig, measured);
-  config.isLocalHost = (config.host === 'localhost');
+
+  // Either localhost or host ends in .local
+  config.isLocalHost = (config.host === 'localhost') || config.host.endsWith('.local');
 
   // Mutate DEBUG to be consistent with conflig.debug
   DEBUG = config.debug;
 
-  if (DEBUG) debug('DEBUG',
+  if (DEBUG) debug('DEBUG=true Here are all configs:',
     '\nbaseConfig', elide(baseConfig),
     '\nenvConfig', elide(envConfig),
     '\nmeasured', elide(measured),
@@ -100,7 +112,7 @@ function bindToPorts() {
   }
 
   // Try to create an HTTPS server if not localhost
-  if (!config.isLocalHost) {
+  if (config.https) {
     try {
       const cert = fs.readFileSync(config.cert);
       const key = fs.readFileSync(config.key);
@@ -164,23 +176,6 @@ function httpRedirectServerLogic (req, res) {
 }
 
 function fileServerLogic() {
-  // Make a file cache and watch for file changes to invalidate it.
-  let cache = {};
-  // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
-  // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
-  // fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
-  if (config.useCache) chokidar.watch('.', {
-    ignored: /(^|[\/\\])\../, // ignore dotfiles
-    persistent: false
-  }).on('change', path => {
-    delete cache[path];
-    if (DEBUG) console.log(`cache invalidated "change" ${path}`);
-  })
-  .on('unlink', path => {
-    delete cache[path];
-    if (DEBUG) console.log(`cache invalidated "unlink" ${path}`);
-  });
-
   // A simple file-extension/MIME-type map. Not great but it avoids a huge dependency.
   // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
   const mime = {
@@ -305,39 +300,53 @@ function fileServerLogic() {
     if (config.useCache && hasProp(cache, fileName)) {
       respondWithData(cache[fileName]);
     } else {
-
-      fs.readFile(fileName, (err, data) => {
-        // Handle errors, maybe bail
-        if (DEBUG && config.useCache) debug('cache miss for', fileName);
-        if (err) { // assume all errors are a 404. pareto
-          respondWithError(Object.assign(new Error(), {
-            code: 404,
-            log: 'resource not found',
-            message: 'Not found. \n' + failWhale,
-          }));
-          return;
-        }
-
-        // Process literate markdown files
-        if (fileName.endsWith('.md')){
-          // Strip path and extension from filename and use that in the title.
+      // We missed the cache, so initiate a read file.
+      if (DEBUG && config.useCache) debug('cache miss for', fileName);
+      let data = fs.readFileSync(fileName);
+      try{
+        // We are here and have data, so we can do some processing.
+        if (fileName.endsWith('.md'))
           data = buildHtmlFromLiterateMarkdown(data.toString(), fileName, DEBUG);
-          if (DEBUG) debug('building html for markdown file', fileName, data);
-        }
-
-        // Compress and cache the result
-        // We can use streams like https://nodejs.org/api/zlib.html#compressing-http-requests-and-responses
-        // But this will only happen once per process lifetime per resource
-        if (config.useCache) {
+        if (config.useGzip)
           data = zlib.gzipSync(data);
+        if (config.useCache) {
           cache[fileName] = data;
         }
-        respondWithData(data);
-      });
+      } catch (err) {
+        respondWithError(Object.assign(new Error(), {
+          code: 500,
+          log: 'error processing resource',
+          message: 'Error processing resource. \n' + failWhale,
+        }));
+        return;
+      }
+
+      // Last but not least, send the response.
+      respondWithData(data);
     }
   }
 }
 
+function initFileWatchingCacheInvalidator(cache, watchRecursive='.', debug=DEBUG) {
+  // Make a file cache and watch for file changes to invalidate it.
+  // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
+  // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
+  // fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
+  chokidar.watch(watchRecursive, {
+    ignored: /(^|[\/\\])\../, // ignore dotfiles
+    persistent: true,
+  }).on('change', fileName => {
+    const path = process.cwd() + '/' + fileName;
+    delete cache[path];
+    if (DEBUG) console.log(`cache invalidated "change" ${path}`);
+  })
+  .on('unlink', fileName => {
+    const path = process.cwd() + '/' + fileName;
+    delete cache[path];
+    if (DEBUG) console.log(`cache invalidated "unlink" ${path}`);
+  });
+
+}
 function chatServerLogic(ws) {
   // Compute the connection ID,
   const id = connections.length;
