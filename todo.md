@@ -2,7 +2,8 @@
 
 </head> -->
 # Simpatico: TODO
-  1. Fix markdown processing
+  1. Fix markdown processing and cache.
+   1. Fix Stree regression
   1. Write a test to make sure cache invalidation is working.
      A bash script that appends to a file and then wgets it.
      A good use of ChatGPT
