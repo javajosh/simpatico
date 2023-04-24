@@ -32,6 +32,80 @@ It's a small, almost single file 450 line node program, written in modular, mode
     1. SSL server.
     1. And more.
 
+## Cache design
+In memory, invalidated on file delete or write via chokidar. Turn debug mode on to see cache hits and misses. Data is processed (literate markdown and gzipping) before caching in an attempt to be efficient. For simplicity I gzip all the things even though it's not always necessary and actually is harmful, as with png or jpg images.
+
+Total unique resource size should not exceed 100MB to be on the safe side of my current server who's advertised memory size is 1.0GB but in reality I get 0.5GB usable (to up this would need to switch to Alpine). (it is a very good design constraint to be somewhat limited in size.)
+
+Sadly this command to check worst-case cache pressure in advance is rather slow and takes 1.5s even on a fast machine, otherwise it would be a good `git pre-commit hook`:
+
+```bash
+ find . -type f -not -path './.*' -exec du -b {} + | awk '{s+=$1} END {if (s > 100 * 1024 * 1024) print "Total addressable resource size exceeds
+100MB"; else print s}'
+```
+
+Testing the server.
+Enable a BTD loop of the server itself.
+Loop through a set of startup parameters.
+Interact with the file system, and check the server's response.
+A node program that uses fork to start the server, and then uses curl to interact with it.
+
+```js
+import {fork, exec} from 'child_process';
+import {get} from 'node:htttp';
+
+// Create a file if it doesn't exist
+// Append a unique string to the file
+import {writeFileSync, appendFileSync, existsSync} from 'node:fs';
+
+function runServer(testFile = 'temp.html') {
+  if (!existsSync(testFile)) {
+    writeFileSync(testFile, 'hello\n');
+  }
+
+  // Run the server for a second
+  const args = `"{
+    debug:true,
+    host:simpatico.local,
+    http:8080,
+    https:8443,
+    cert:localhost.crt,
+    key:localhost.key,
+
+    useCache:false
+  }"`;
+  const server = fork('./reflector.js', [args], {timeout: 1000});
+
+  // Warm the cache
+  const res1 = await curl('/temp.html');
+// Invalidate the cache
+  writeFileSync(testFile, 'hello\n');
+// Check the cache again
+  const res2 = await curl('/temp.html');
+// If the cache is working, the two responses should be different
+  const success = (res1 !== res2);
+
+// If !success resurrect the server
+  server.on('exit', () => {
+    if (!success) {
+      runServer(testFile);
+    } else {
+      console.log('Success!');
+    }
+  });
+}
+// Make this function async
+
+function curl(path) {
+  return new Promise((resolve, reject) => {
+    exec(`curl -s https://simpatico.local:8443${path}`, (error, stdout, stderr) => {
+      if (error) reject(error, stderr);
+      resolve(stdout);
+    });
+  });
+}
+```
+
 ## Current work
 
 The following goals are currently underspecified and not met:
