@@ -98,5 +98,10 @@ And then triggered off of [entr](https://github.com/eradman/entr) (And see this 
 Pandoc looks like a handy tool, as is entr, so I'm glad to make their acquaintance.
 But *for now* I think its sufficient to allow some markdown to seep into the project and take no action.
 
+# How to Convert HTML to markdown with Pandoc
 
-
+Convert html to markdown with pandoc:
+```bash
+  sudo apt update && sudo apt install pandoc
+  pandoc stree.html -o stree.md -f markdown+raw_html
+```
