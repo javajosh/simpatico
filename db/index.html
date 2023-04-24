@@ -48,6 +48,24 @@
   Basically: Chrome, Edge, Safari yes; Firefox and Android no.
 </p>
 <hr>
+<h2>Migrations</h2>
+<p>
+  It will be interesting to consider this in the context of <a href="https://docs.djangoproject.com/en/4.2/topics/migrations/">database migrations</a>
+  Flyway is a popular tool for this in the Java world, as is Liquibase.
+  It's useful to ask about them, and also the kinds of tools that support multiple databases.
+  They have a split view of durable process, where they think they can abstract away durability.
+  I think instead we should think of our applications as forks of a database.
+  Because it is only the machinery that endures that matters.
+  Machinery that does it's job, well and simply, and is easy to repair or replace.
+  Ultimately I think an Operating System will need to be something that runs on all our devices.
+  The irony is that the winner is the browser.
+  My goal is to win the battle for the browser.
+  Under the constraint of "no build frontends". (Which is itself wins a different competition)
+  This means only supporting so-called modern browsers, which update themselves.
+  Chrome/Edge, Firefox, Safari on tv/desktop/laptop/tablet/phone running linux/windows/mac/ios/android.
+  We make generally mainstream choices apart from eschewing a build
+  The emphasis on minimalism may also be different.
+</p>
 <!--<p>-->
 <!--  Note that you get sha sums on  <a href="https://sqlite.org/download.html">the sqlite download page</a> but this only applies to the zip.-->
 <!--  Also that hash is using 'sha3-256' which is an unsupported algorithm-->
