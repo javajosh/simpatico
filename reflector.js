@@ -13,6 +13,11 @@ import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from
 import { combine, combineAllArgs } from './combine.js';
 import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
+const log = (...args) => {
+  if (config.debug)
+    console.log('reflector.js:log', args);
+}
+
 // Reflector global config
 let DEBUG = false; // This is mutated by processConfig
 const hiddenConfigFields = {password: '******', jdbc: '******'};
@@ -33,10 +38,10 @@ info( 'bound', bindStatus);
 if (config.runAsUser) dropProcessPrivs(config.runAsUser);
 
 // Reflector booted! Print out welcome message.
-const url = config.isLocalHost ? `http://${config.host}:${config.http}` : `https://${config.host}:${config.https}`;
+const url = `https://${config.host}:${config.https}`;
 info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url] (? => [normalized url)");
 info(`Initialization complete. Open ${url}`);
-
+if (process.send) process.send(config);
 
 // ================================================================
 // The remainder of the file are supporting functions for the above
@@ -56,7 +61,6 @@ function processConfig(envPrefix='SIMP_') {
     logFileServerRequests: true,
     debug: false,
 
-    // isLocalHost: true, //added below
     // measured: {},      //added below
   };
   const envConfig = mapObject(baseConfig, ([key,_]) => ([key, process.env[`${envPrefix}${key.toUpperCase()}`]]));
@@ -68,13 +72,10 @@ function processConfig(envPrefix='SIMP_') {
     version: packageJson.version,
     args: process.argv,
     cwd: process.cwd(),
-    started: new Date().toUTCString(),
+      started: new Date().toUTCString(),
   }};
   // The big difference with Object.assign in this case is that undefined on later objects is treated as a noop
   const config = combineAllArgs(baseConfig, envConfig, argConfig, measured);
-
-  // Either localhost or host ends in .local
-  config.isLocalHost = (config.host === 'localhost') || config.host.endsWith('.local');
 
   // Mutate DEBUG to be consistent with conflig.debug
   DEBUG = config.debug;
@@ -127,13 +128,13 @@ function bindToPorts() {
     }
   }
   // Create a webSocket server, sharing http/s connectivity if not locally running.
-  const wssArg = config.isLocalHost ?
+  const wssArg = config.useTls ?
     {server: httpServer} :
     {server: httpsServer};
   try{
     const wss = new WebSocketServer(wssArg);
     wss.on('connection', chatServerLogic);
-    result.ws = config.isLocalHost ? config.http : config.https;
+    result.ws = config.useTls ? config.http : config.https;
   } catch (e) {
     console.error('abort: problem spinning up ws server', e);
     throw e;
@@ -254,7 +255,7 @@ function fileServerLogic() {
       const normalized = (fileName !== req.url);
       // For some reason node 18 and 19 on unbuntu 22 just refused optional chaining syntax.
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
-      console.log(
+      log(
         new Date().toISOString(),
         req.socket.remoteAddress.replace(/^.*:/, ''),
         req.headers["user-agent"].substr(0, 20),
@@ -301,14 +302,21 @@ function fileServerLogic() {
       respondWithData(cache[fileName]);
     } else {
       // We missed the cache, so initiate a read file.
-      if (DEBUG && config.useCache) debug('cache miss for', fileName);
-      let data = fs.readFileSync(fileName);
+      if (config.useCache) log('cache miss for', fileName);
+      let data = '';
       try{
-        // We are here and have data, so we can do some processing.
+        // Grab the data from disk
+        data = fs.readFileSync(fileName);
+
+        // 1. Convert literate markdown to html
         if (fileName.endsWith('.md'))
           data = buildHtmlFromLiterateMarkdown(data.toString(), fileName, DEBUG);
+
+        // 2. Gzip it
         if (config.useGzip)
           data = zlib.gzipSync(data);
+
+        // 3. Cache it
         if (config.useCache) {
           cache[fileName] = data;
         }
@@ -321,7 +329,7 @@ function fileServerLogic() {
         return;
       }
 
-      // Last but not least, send the response.
+      // 4. Respond with the processed data.
       respondWithData(data);
     }
   }
@@ -338,12 +346,12 @@ function initFileWatchingCacheInvalidator(cache, watchRecursive='.', debug=DEBUG
   }).on('change', fileName => {
     const path = process.cwd() + '/' + fileName;
     delete cache[path];
-    if (DEBUG) console.log(`cache invalidated "change" ${path}`);
+    log(`cache invalidated "change" ${path}`);
   })
   .on('unlink', fileName => {
     const path = process.cwd() + '/' + fileName;
     delete cache[path];
-    if (DEBUG) console.log(`cache invalidated "unlink" ${path}`);
+    log(`cache invalidated "unlink" ${path}`);
   });
 
 }
