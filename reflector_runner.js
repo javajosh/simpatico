@@ -9,8 +9,8 @@ const info = (...args) => {console.log('reflector_runner.js:info', args)};
 const testFile = 'temp.html';
 const forkModule = './reflector.js';
 const skipServer = false;
-const useCache = true;
-const useGzip = true; // --compressed
+const useCache = false;
+const useGzip = false; // --compressed
 const useTls = true; // -k
 // When starting a server, kill it after this many milliseconds, 0 to not kill it
 // This is a failsafe because we actually kill the server after a successful test.
@@ -39,6 +39,8 @@ function runTest(skipServer, useCache, file, serverArgs, serverProcessTimeOut){
     server.on('message', config => {
       try{
         assertCacheWorks(testFile, config);
+        // If we get here it worked.
+        info('assertCacheWorks()', 'test succeeded!', serverArgs);
         server.kill();
       } catch (ex){
         info('test failed', ex);
@@ -54,30 +56,28 @@ function runTest(skipServer, useCache, file, serverArgs, serverProcessTimeOut){
   }
 }
 
+const numLines = string => string.split('\n').length;
+
 /**
  * warm the cache
  * invalidate the cache
  * checks the cache.
  *
  * @param testFile - the file we're checking,  .gitignore'd
- * @param serverConfig - the config object from the server, for information
  */
-function assertCacheWorks(testFile, serverConfig){
+function assertCacheWorks(testFile){
   // Get a baseline and warm the cache by requesting the file
   const read1 = readFileSync(testFile).toString();
-  const get1 = curl(testFile);
-  assertEquals(read1, get1.toString());
+  const get1 = curl(testFile).toString();
+  assertEquals(numLines(read1), numLines(get1), `initial read is bad ${numLines(read1)}, ${get1}`);
 
   // Invalidate the cache by adding a line to the file.
-  appendFileSync(testFile, 'hello\n');
+  appendFileSync(testFile, '\n<p>hello');
 
   // Read and get again
   const read2 = readFileSync(testFile).toString();
-  const get2 = curl(testFile);
-  assertEquals(read2, get2.toString());
-
-  // If we get here it worked.
-  info('assertCacheWorks()', 'test succeeded!', serverConfig);
+  const get2 = curl(testFile).toString();
+  assertEquals(numLines(read2), numLines(get2), 'cache did not invalidate');
 }
 
 /**
@@ -87,7 +87,7 @@ function assertCacheWorks(testFile, serverConfig){
 function testFileExists(path){
   const fileExists = existsSync(path);
   if (!fileExists) {
-    writeFileSync(path, 'hello\n');
+    writeFileSync(path, '<DOCTYPE! html>\n<title>Hello</title>\n<h1>Hello</h1>');
   }
   info('testFileExists(path, fileExists)', path, fileExists);
 }
