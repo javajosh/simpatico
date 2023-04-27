@@ -5,6 +5,7 @@ import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import crypto from 'node:crypto';
 
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
@@ -19,7 +20,7 @@ const log = (...args) => {
 }
 
 // Reflector global config
-let DEBUG = false; // This is mutated by processConfig
+let DEBUG = true; // This is mutated by processConfig
 const hiddenConfigFields = {password: '******', jdbc: '******'};
 const elide = (obj, hide=hiddenConfigFields) => DEBUG ? obj : combine(obj, hide);
 
@@ -221,13 +222,20 @@ function fileServerLogic() {
   // For sub-resources, cache forever and rely on unique urls to update.
   // See https://httpwg.org/specs/rfc9110.html#field.accept-encoding
   // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
-  const getCacheHeaders = (filename) => {
+  // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+  const getCacheHeaders = (filename, fileData) => {
     const result = {};
-    const isPrimaryResource = filename.endsWith('html');
+    const isPrimaryResource = filename.endsWith('.html') || filename.endsWith('.md');
+
     if (isPrimaryResource){
-      //result["e-tag"] = "a hash of some kind";
+      // Tell the browser check for updates before using the cached version.
+      // It will get a 304 not modified if the etag matches.
+      result["ETag"] = crypto.createHash("sha256").update(fileData).digest("hex");
+      result["Cache-Control"] = "no-cache";
     } else {
-      // {"cache-control": "private, max-age=2592000"},
+      // The browser caches sub-resources forever
+      // We rely on cache-busting urls to update them.
+      result["Cache-Control"] = "public, max-age=31536000, immutable";
     }
     return result;
   }
@@ -243,12 +251,16 @@ function fileServerLogic() {
         200,
         Object.assign(
           getContentTypeHeader(req.url),
-          getCacheHeaders(req.url),
+          getCacheHeaders(urlToFileName(req.url), data),
           getCrossOriginHeaders(),
           getContentSecurityPolicyHeaders(),
         )
       );
       res.end(data);
+    }
+    const respondWith304 = () => {
+      res.writeHead(304);
+      res.end('you have the most recent version');
     }
     const logRequest = req => {
       const fileName = urlToFileName(req.url);
@@ -297,13 +309,17 @@ function fileServerLogic() {
       }));
       return;
     }
+
     const fileName = process.cwd() + urlToFileName(req.url);
+    let data = '';
+
     if (config.useCache && hasProp(cache, fileName)) {
-      respondWithData(cache[fileName]);
+      data = cache[fileName];
     } else {
       // We missed the cache, so initiate a read file.
-      if (config.useCache) log('cache miss for', fileName);
-      let data = '';
+      if (config.useCache)
+        log('cache miss for', fileName);
+
       try{
         // Grab the data from disk
         data = fs.readFileSync(fileName);
@@ -328,8 +344,14 @@ function fileServerLogic() {
         }));
         return;
       }
+    }
 
-      // 4. Respond with the processed data.
+    // The browser may already have the most recent version.
+    // TODO: store this hash in the cache somewhere.
+    const hash  = crypto.createHash("sha256").update(data).digest("hex");
+    if (req.headers['if-none-match'] === hash){
+      respondWith304();
+    } else {
       respondWithData(data);
     }
   }
