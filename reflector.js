@@ -399,5 +399,12 @@ const failWhale = `
 | __| __ _ (_)| |      \\ \\    / /| |_   __ _ | | ___
 | _| / _\` || || |       \\ \\/\\/ / |   \\ / _\` || |/ -_)
 |_|  \\__/_||_||_|        \\_/\\_/  |_||_|\\__/_||_|\\___|
-  `
+`;
 
+const html301=`<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>301 Moved</TITLE></HEAD><BODY>
+<H1>301 Moved</H1>
+The document has moved
+<A HREF="https://simpatico.io/">here</A>.
+</BODY></HTML>
+`;
