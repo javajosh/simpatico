@@ -16,7 +16,7 @@ import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
 const log = (...args) => {
   if (config.debug)
-    console.log('reflector.js:log', args);
+    console.log('reflector.js:log', ...args);
 }
 
 // Reflector global config
@@ -58,6 +58,7 @@ function processConfig(envPrefix='SIMP_') {
     runAsUser: null,
     useCache: false,
     useGzip: true,
+    useTls: false,
     password: 's3cret',
     logFileServerRequests: true,
     debug: false,
@@ -98,7 +99,7 @@ function bindToPorts() {
   // Bind to legacy HTTP port
   // Redirect all requests to HTTPS *except for letsencrypt*
   try {
-    const httpLogic = httpRedirectServerLogic;
+    const httpLogic = config.useTls ? fileServerLogic(): httpRedirectServerLogic;
     const httpOptions = {
       keepAlive: 100,
       headersTimeout: 100
@@ -113,8 +114,7 @@ function bindToPorts() {
     throw e;
   }
 
-  // Try to create an HTTPS server if not localhost
-  if (config.https) {
+  if (config.useTls) {
     try {
       const cert = fs.readFileSync(config.cert);
       const key = fs.readFileSync(config.key);
@@ -128,14 +128,12 @@ function bindToPorts() {
       throw e;
     }
   }
-  // Create a webSocket server, sharing http/s connectivity if not locally running.
-  const wssArg = config.useTls ?
-    {server: httpServer} :
-    {server: httpsServer};
+
+  // Create a webSocket server, sharing http/s connectivity
   try{
-    const wss = new WebSocketServer(wssArg);
+    const wss = new WebSocketServer({server: config.useTls ? httpsServer : httpServer});
     wss.on('connection', chatServerLogic);
-    result.ws = config.useTls ? config.http : config.https;
+    result.ws = config.useTls ? config.https : config.http;
   } catch (e) {
     console.error('abort: problem spinning up ws server', e);
     throw e;
@@ -391,23 +389,27 @@ function chatServerLogic(ws) {
 
   // Register a callback for messages sent from that connection.
   // Simplest case: broadcast every msg to all connections!
-  ws.on('message', message => {
+  ws.on('message', (message) => {
     // Ignore long messages
     if (message.length > 300) {
       ws.send('your message was too long');
       return;
     }
 
-    connections.forEach(conn => {
+    connections.forEach((conn, i) => {
+      // Don't echo to the sender.
+      if (conn === ws) return;
       try{
         // Connections can die without us knowing.
+        // Delete them from the list when they do and return.
         if (conn.readyState !== WebSocket.OPEN) {
-          // maybe delete the connection from the array?
+          log(`connection ${i} died`);
+          delete connections[i]
           return;
         }
         const msg = `${id} > ${message}`;
         conn.send(msg); // Q: can this ever block?
-        console.debug(`Broadcast message => ${msg}`);
+        log('chatServerLogic', 'id', id, 'message', message.length);
       } catch(e) {
         // Q: what all can go wrong here?
         console.error(e);
