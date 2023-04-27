@@ -5,18 +5,20 @@ import { assertEquals } from './core.js';
 
 const DEBUG = false;
 const log = (...args) => {if (DEBUG) console.log('reflector_runner.js:log', args)};
-const info = (...args) => {console.log('reflector_runner.js:info', args)};
+const info = (...args) => {console.info('reflector_runner.js:info', args)};
 const testFile = 'temp.html';
 const forkModule = './reflector.js';
 const skipServer = false;
 const useCache = true;
-const useGzip = true; // --compressed doesn't seem to help
-const useTls = true; // -k but how to install ca cert with curl?
+const useGzip = false; // --compressed doesn't seem to be supported sometimes.
+const useTls = true; // -k how to install ca cert with curl?
+
 // When starting a server, kill it after this many milliseconds, 0 to not kill it
 // This is a failsafe because we actually kill the server after a successful test.
 const serverProcessTimeOut = 0; // 0 for no timeout
 const rerunOnTestFailure = true; // < 0 for no restart
 const rerunDelay = 1000; // Throttle restarts. Reflector starts ~10Hz without this.
+
 function serverArgs (useCache, useTls, useGzip) {
   return `{
     useCache:${useCache},
@@ -78,7 +80,8 @@ function runTest(test, skipServer, count=0){
       info(test.name, 'test succeeded!', 'skipServer=false');
     } catch (ex){
       test.succes=false;
-      info('test failed, rerunning test #', count, ex, config);
+      info('test failed, rerunning test #',  count,
+        'rerunOnTestFailure, ex, config', rerunOnTestFailure, ex, config);
     } finally {
       server.kill();
     }
@@ -171,15 +174,15 @@ function serverIsRunning(serverArgString, serverProcessTimeOut=serverProcessTime
 function curl(path) {
   // --compressed not supported in my version of libcurl.
   const curlCommand = `curl -s -k https://simpatico.local:8443/${path}`;
-  let result = null;
+  let result;
   try {
     result = execSync(curlCommand);
   } catch (ex){
     log('curlCommand', curlCommand, 'ex', ex);
     result = ex;
   }
-  if(result !== null)
+  if(result !== null) {
     log('curl()', 'path', path, 'curlCommand', curlCommand, 'result.toString()', result.toString())
-
+  }
   return result;
 }
