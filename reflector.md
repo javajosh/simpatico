@@ -44,67 +44,24 @@ Sadly this command to check worst-case cache pressure in advance is rather slow 
 100MB"; else print s}'
 ```
 
-Testing the server.
-Enable a BTD loop of the server itself.
-Loop through a set of startup parameters.
+## Reflector Runner
+Testing the reflector, particularly the cache functionality, which was giving me trouble, it turned out because of mismatching keys between write and read.
+But I started writing a "wrapper script" that can start a server, send messages, check output, modify the file system, send more messages, check output...and then do it again with a different server instance, probably one started with different parameters.
+
+My first approach was to use bash but I abandoned that approach because it clearly needs a "real" programming language.
+Given the rest of the project is in javascript, and reflector is in node, for my next approach I picked node.
+So far in this project I've destressed asynchronous constructs, preferring the simplest static one-shot callback functions, and the node implementation started pushing against the limits of this approach.
+I rethought things and turned back the complexity.
+But my work on the runner, which has taken a few days, and has fixed the cache bug, still feels like a waste of time
+since I'm paying the price for a radical "NIH" approach.
+Mitigating factor is that this may become a good steelman argument for traditional approach to functional testing.
+I think the stree has a natural application to functional testing, and I can contrast that implementation with this one.
+
+Enable a BTD loop of the server invocation itself.
+Loop through a set of startup configurations.
 Interact with the file system, and check the server's response.
 A node program that uses fork to start the server, and then uses curl to interact with it.
 
-```js
-import {fork, exec} from 'child_process';
-import {get} from 'node:htttp';
-
-// Create a file if it doesn't exist
-// Append a unique string to the file
-import {writeFileSync, appendFileSync, existsSync} from 'node:fs';
-
-function runServer(testFile = 'temp.html') {
-  if (!existsSync(testFile)) {
-    writeFileSync(testFile, 'hello\n');
-  }
-
-  // Run the server for a second
-  const args = `"{
-    debug:true,
-    host:simpatico.local,
-    http:8080,
-    https:8443,
-    cert:localhost.crt,
-    key:localhost.key,
-
-    useCache:false
-  }"`;
-  const server = fork('./reflector.js', [args], {timeout: 1000});
-
-  // Warm the cache
-  const res1 = await curl('/temp.html');
-// Invalidate the cache
-  writeFileSync(testFile, 'hello\n');
-// Check the cache again
-  const res2 = await curl('/temp.html');
-// If the cache is working, the two responses should be different
-  const success = (res1 !== res2);
-
-// If !success resurrect the server
-  server.on('exit', () => {
-    if (!success) {
-      runServer(testFile);
-    } else {
-      console.log('Success!');
-    }
-  });
-}
-// Make this function async
-
-function curl(path) {
-  return new Promise((resolve, reject) => {
-    exec(`curl -s https://simpatico.local:8443${path}`, (error, stdout, stderr) => {
-      if (error) reject(error, stderr);
-      resolve(stdout);
-    });
-  });
-}
-```
 
 ## Current work
 
