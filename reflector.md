@@ -44,6 +44,110 @@ Sadly this command to check worst-case cache pressure in advance is rather slow 
 100MB"; else print s}'
 ```
 
+### Cache busting URLs
+Given an html string, write a function that finds all the links to sub-resources and replace them with cache-busting urls.
+```js
+// Note that we confuse showdown.js if we use "real" script tags, so we use made up ascript instead. It doesn't affect the code.
+
+const authoredFileName = 'index.html';
+const authoredFileContent = `
+<link rel="stylesheet" href="style1.css?###">
+<link rel="stylesheet" href='style2.css?###'>
+<link rel="stylesheet" href='style3.css'>
+<img src="image.png?###">
+<ascript src="script.js?###"></ascript>
+<ascript type="module">
+  import {foo} from './foo.js?###';
+</ascript>
+`;
+
+const expectedInterpolated = `
+<link rel="stylesheet" href="style1.css?1234">
+<link rel="stylesheet" href="style2.css?1234">
+<link rel="stylesheet" href='style3.css'>
+<img src="image.png?1234">
+<ascript src="script.js?1234"></ascript>
+<ascript type="module">
+  import {foo} from "./foo.js?1234";
+</ascript>
+
+`;
+
+const actualInterpolated = replaceSubResourceLinks(authoredFileContent, authoredFileName, '\?###');
+assertEquals(expectedInterpolated.trim(), actualInterpolated.trim())
+
+/**
+ * find all the links to sub-resources and replace them with cache-busting urls
+ * this is too ambiguous so we rely on the author to signal when to do this.
+ *
+ * @param maybeHTML
+ * @param fileName
+ * @returns {*}
+ */
+function replaceSubResourceLinks (maybeHTML, fileName){
+  const isHTML = fileName.endsWith('.html');
+  const isMD = fileName.endsWith('.md');
+  if (!isHTML && !isMD) return maybeHTML;
+
+  // See https://regex101.com/r/r0XQMV/1
+  const re = /(["`'])(.*?)\?\#\#\#\1(.*?)/g;
+
+  // exec updates the lastIndex of the re on each invocation.
+  // not how I would design it, but whatever.
+  let match;
+  while ((match = re.exec(maybeHTML)) !== null) {
+    // This is necessary to avoid infinite loops with zero-width matches
+    if (match.index === re.lastIndex) {
+      re.lastIndex++;
+    }
+
+    // The full url including placeholder path is the match itself
+    // group 2 contains just the sub-resource path.
+    if (match.length === 4) {
+      const url = match[0];
+      const resource = match[2];
+      const hash = r =>'123456789';
+      const newUrl = `"${resource}?${hash(resource)}"`;
+      maybeHTML = maybeHTML.replace(url, newUrl);
+    }
+  }
+  return maybeHTML;
+}
+
+// Another function that I didn't use but is useful to have around.
+function extractSubResourceUrls(html) {
+  const subResourceUrls = [];
+
+  // Match script and img src attributes
+  const srcRegex = /<(?:script|img)[^>]*\ssrc=["']([^"']+)["']/g;
+  let match;
+  while ((match = srcRegex.exec(html)) !== null) {
+    subResourceUrls.push(match[1]);
+  }
+
+  // Match link href attributes with rel="stylesheet"
+  const stylesheetRegex = /<link[^>]*\srel=["']stylesheet["'][^>]*\shref=["']([^"']+)["']/g;
+  while ((match = stylesheetRegex.exec(html)) !== null) {
+    subResourceUrls.push(match[1]);
+  }
+
+  // Match inline script imports
+  const importRegex = /import\s+['"]([^'"]+)['"]/g;
+  while ((match = importRegex.exec(html)) !== null) {
+    subResourceUrls.push(match[1]);
+  }
+
+  // Match inline CSS url imports
+  const cssUrlRegex = /url\(["']?([^"')]+)["']?\)/g;
+  while ((match = cssUrlRegex.exec(html)) !== null) {
+    subResourceUrls.push(match[1]);
+  }
+
+  return subResourceUrls;
+}
+
+```
+
 ## Reflector Runner
 Testing the reflector, particularly the cache functionality, which was giving me trouble, it turned out because of mismatching keys between write and read.
 But I started writing a "wrapper script" that can start a server, send messages, check output, modify the file system, send more messages, check output...and then do it again with a different server instance, probably one started with different parameters.

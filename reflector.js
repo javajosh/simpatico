@@ -238,6 +238,42 @@ function fileServerLogic() {
     return result;
   }
 
+  /**
+   * find all the links to sub-resources and replace them with cache-busting urls
+   * this is too ambiguous so we rely on the author to signal when to do this.
+   *
+   * @param maybeHTML
+   * @param fileName
+   * @returns {*}
+   */
+  function replaceSubResourceLinks (maybeHTML, fileName, getResourceHash = r => '1234'){
+    const isHTML = fileName.endsWith('.html');
+    const isMD = fileName.endsWith('.md');
+    if (!isHTML && !isMD) return maybeHTML;
+
+    // See https://regex101.com/r/r0XQMV/1
+    const re = /(["`'])(.*?)\?\#\#\#\1(.*?)/g;
+
+    // exec updates the lastIndex of the re on each invocation.
+    // not how I would design it, but whatever.
+    let match;
+    while ((match = re.exec(maybeHTML)) !== null) {
+      // This is necessary to avoid infinite loops with zero-width matches
+      if (match.index === re.lastIndex) {
+        re.lastIndex++;
+      }
+
+      // The full url including placeholder path is the match itself
+      // group 2 contains just the sub-resource path.
+      if (match.length === 4) {
+        const url = match[0];
+        const resource = match[2];
+        const newUrl = `"${resource}?${getResourceHash(resource)}"`;
+        maybeHTML = maybeHTML.replace(url, newUrl);
+      }
+    }
+    return maybeHTML;
+  }
   return (req, res) => {
     const respondWithError = (err) => {
       console.error(err.log);
@@ -249,7 +285,7 @@ function fileServerLogic() {
         200,
         Object.assign(
           getContentTypeHeader(req.url),
-          getCacheHeaders(urlToFileName(req.url), data),
+          // getCacheHeaders(urlToFileName(req.url), data),
           getCrossOriginHeaders(),
           getContentSecurityPolicyHeaders(),
         )
@@ -323,17 +359,19 @@ function fileServerLogic() {
         data = fs.readFileSync(fileName);
 
         // 1. Convert literate markdown to html
-        if (fileName.endsWith('.md'))
-          data = buildHtmlFromLiterateMarkdown(data.toString(), fileName, DEBUG);
+        data = buildHtmlFromLiterateMarkdown(data.toString(), fileName);
 
-        // 2. Gzip it
+        // 2. In html, replace sub-resource links with cache-busting urls
+        data = replaceSubResourceLinks(data.toString(), fileName);
+
+        // 3. Gzip it - we currently do this for everything, but we could be more selective.
         if (config.useGzip)
           data = zlib.gzipSync(data);
 
-        // 3. Cache it
-        if (config.useCache) {
+        // 4. Cache it
+        if (config.useCache)
           cache[fileName] = data;
-        }
+
       } catch (err) {
         respondWithError(Object.assign(new Error(), {
           code: 500,

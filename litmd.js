@@ -107,6 +107,7 @@ const litmd = makeMarkdownConverter();
  */
 function buildHtmlFromLiterateMarkdown(markdownString, fileName=''){
   if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
+  if (!fileName.endsWith('.md')) return markdownString;
   const firstCut = markdownString.split('</head>-->');
   let header = firstCut[0];
   let body = '';
