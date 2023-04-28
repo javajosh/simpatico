@@ -265,7 +265,7 @@ function fileServerLogic() {
       const normalized = (fileName !== req.url);
       // For some reason node 18 and 19 on unbuntu 22 just refused optional chaining syntax.
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
-      log(
+      console.log(
         new Date().toISOString(),
         req.socket.remoteAddress.replace(/^.*:/, ''),
         req.headers["user-agent"].substr(0, 20),
