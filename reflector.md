@@ -6,22 +6,20 @@
         <rect width='1' height='1' fill='DodgerBlue' />
     </svg>"
   >
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css?###">
 
-  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css?###">
 
   <script class="hljs" type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
+    import hljs from '/kata/highlight.min.js?###';
+    import javascript from '/kata/highlight.javascript.min.js?###';
     const d=document, elts = a => d.querySelectorAll(a);
     hljs.registerLanguage('javascript', javascript);
-    d.addEventListener('DOMContentLoaded', () =>
-      elts('pre code').forEach(block =>
-        hljs.highlightElement(block)));
+    d.addEventListener('DOMContentLoaded', () => elts('pre code').forEach(hljs.highlightElement));
   </script>
 </head>-->
 
-# Reflector
+# Reflector 1
 See: [home](/index.html)
 
 The [reflector](/reflector.js) is the server component of simpatico.
@@ -189,6 +187,6 @@ Additionally, we can make the resources smaller over the wire by using `gzip` (a
 I use IntelliJ IDEA to author my code.
 Here is what I see when I open the reflector.js file:
 
-![img.png](img.png)
+![img.png](img.png?###)
 
 ## Projects
