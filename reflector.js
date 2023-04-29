@@ -187,6 +187,9 @@ function fileServerLogic() {
     "wasm": "application/wasm",
     "pdf" : "application/pdf",
     "md"  : "text/html",
+    "png" : "image/x-png",
+    "jpg" : "image/jpeg",
+    "jpeg": "image/jpeg",
   }
   /**
    * Required for most browsers to use SharedArrayBuffer and load wasm.
@@ -210,9 +213,10 @@ function fileServerLogic() {
   const getContentTypeHeader = (filename, defaultMimeType='text') => {
     const ext = path.extname(filename).slice(1);
     const type = mime[ext] ? mime[ext] : defaultMimeType;
+    const useGzip = config.useGzip && !isCompressedImage(filename);
     return {
       "Content-Type": type,
-      "Content-Encoding": config.useCache ? "gzip" : "",
+      "Content-Encoding": (useGzip ? "gzip" : ""),
     };
   }
 
@@ -284,8 +288,8 @@ function fileServerLogic() {
       res.writeHead(
         200,
         Object.assign(
-          getContentTypeHeader(req.url),
-          // getCacheHeaders(urlToFileName(req.url), data),
+          getContentTypeHeader(urlToFileName(req.url)),
+          getCacheHeaders(urlToFileName(req.url), data),
           getCrossOriginHeaders(),
           getContentSecurityPolicyHeaders(),
         )
@@ -364,8 +368,8 @@ function fileServerLogic() {
         // 2. In html, replace sub-resource links with cache-busting urls
         data = replaceSubResourceLinks(data.toString(), fileName);
 
-        // 3. Gzip it - we currently do this for everything, but we could be more selective.
-        if (config.useGzip)
+        // 3. Gzip not already compressed resources.
+        if (config.useGzip && !isCompressedImage(fileName))
           data = zlib.gzipSync(data);
 
         // 4. Cache it
@@ -393,7 +397,15 @@ function fileServerLogic() {
   }
 }
 
-function initFileWatchingCacheInvalidator(cache, watchRecursive='.', debug=DEBUG) {
+function isCompressedImage(fileName) {
+  return (
+    fileName.endsWith('.png') ||
+    fileName.endsWith('.jpg') ||
+    fileName.endsWith('.jpeg') ||
+    fileName.endsWith('.gif')
+  );
+}
+  function initFileWatchingCacheInvalidator(cache, watchRecursive='.', debug=DEBUG) {
   // Make a file cache and watch for file changes to invalidate it.
   // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
   // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
