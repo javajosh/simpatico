@@ -303,7 +303,8 @@ However, I think it will be very common that users will have different versions 
 And they will have active instances of these versions active simultaneously.
 This effect is very difficult to achieve with class OOP techniques, but comes naturally here.
 
-
+# Generalizing combine()
+One can generalize the concept, for example you could use the combine concept to read from an object. The mental model is something like a measuring object coming in, with some internal structure picking out the parts to read, and then those values are replaced by the target values, and values that don't exist do nothing. A variation is to allow a user to provide a name or a phrase of what they want to learn, and then just "do your best" to pick things that seem related.
 _________________________________________________________
 # Definition of "Core"
 A core is an object with a property named 'handlers', of type object, with each key a short descriptive name and each value a handler.
