@@ -46,7 +46,8 @@ const stree = (startValue = {}, reducer = combine) => {
     const existingBranch = branch === parent.branch;
     if (existingBranch){
       branches[-branch] = m;
-      delete parent.residue; // save some memory
+      // keep the residues in small cases for convenience.
+      // delete parent.residue; // save some memory
     } else { // new branch
       focus = -branches.length;
       branches.push(m);
