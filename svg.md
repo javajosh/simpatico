@@ -36,11 +36,8 @@ See:
 [litmd](/lit.md),
 [audience](/audience.md)
 
-
-
 __________________________________________
 # Rotating squares animation
-
 
 ```html
 <svg id="rotating-squares-animation" class="natural-units"
@@ -49,6 +46,8 @@ __________________________________________
 >
   <desc>Two squares moving around the unit circle and rotating, too, plus constantly changing text.</desc>
   <g transform="scale(1,-1)">
+    <line class="x-axis-blue" stroke="blue" stroke-width=".001" x1=-1 y1=0 x2=1 y2=0 />
+    <line class="y-axis-red" stroke="red" stroke-width=".001" x1=0 y1=-1 x2=0 y2=1 />
     <g id="green-square"  transform="translate(0,0)"  ><rect x=-0.1 y=-0.1 width=".2" height=".2" fill="#482" /></g>
     <g id="yellow-square" transform="translate(0,0)">  <rect x=-0.2 y=-0.2 width=".4" height=".4" fill="#882" /></g>
     <g id="unit-circle"   transform="translate(0 ,0 )"><circle class='unit-circle' r="1" fill="none" stroke="red" stroke-width=".001 "/></g>
