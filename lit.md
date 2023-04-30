@@ -240,7 +240,7 @@ Note that this library is *only* included on the server side, and it's output is
 Most of the learning curve of the library is selecting options.
 The most common thing to change are the default imports inserted as a convenience before code samples.
 
-An alternative to showdown is [marked](https://marked.js.org/), which is a 10kb javascript library that converts litmd strings into html strings. Or even [litmd-it](https://litmd-it.github.io/), which is a 20kb javascript library that converts litmd strings into html strings. Both of these are probably better options.
+An alternative to showdown is [marked](https://marked.js.org/), which is a 10kb javascript library that converts markdown strings into html strings. Or even [markdown-it](https://markdown-it.github.io/), which is a 20kb javascript library that converts markdown strings into html strings. Both of these are probably better options.
 
 ## Highlight JS Library
 [Highlightjs](https://highlightjs.org/) is a (relatively) small 140kb javascript and css library that syntax highlights source code found in the DOM.
