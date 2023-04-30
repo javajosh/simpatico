@@ -101,13 +101,15 @@ const litmd = makeMarkdownConverter();
  *  A literate litmd string can contain header fields, wrapped in html comments so they render on github.
  *  This whole thing is brittle and needs to be redone properly.
  *
- * @param markdownString
+ * @param maybeMarkdownString
  * @param fileName  used to generate a default title if the markdownString doesn't have one.
  * @returns {string}
  */
-function buildHtmlFromLiterateMarkdown(markdownString, fileName=''){
-  if (typeof markdownString !== 'string') throw `arg must be of type string but was of type ${typeof markdownString} with value [${markdownString}]`;
-  if (!fileName.endsWith('.md')) return markdownString;
+function buildHtmlFromLiterateMarkdown(maybeMarkdownString, fileName=''){
+  if (typeof maybeMarkdownString === 'string' || !fileName.endsWith('.md'))
+    return maybeMarkdownString;
+  const markdownString = maybeMarkdownString.toString();
+
   const firstCut = markdownString.split('</head>-->');
   let header = firstCut[0];
   let body = '';

@@ -19,18 +19,77 @@
   </script>
 </head>-->
 
-# Reflector 1
+# Reflector
 See: [home](/index.html)
 
 The [reflector](/reflector.js) is the server component of simpatico.
 It's a small, almost single file 450 line node program, written in modular, modern style that serves as a:
-    1. Websocket server.
-    1. Static file server.
+  1. Static file server
+    1. file reads are cached and invalidated with a file watcher.
     1. [Literate Markdown] renderer.
-    1. SSL server.
-    1. And more.
+    1. tls
 
-## Cache design
+Installation and running is handled in the [readme](readme.md).
+
+## What does "Working" mean?
+On my local machine, a working reflector means:
+  1. The reflector starts without error (and I can set the noise level)
+  1. The home page loads, with sub-resources (cache warm up)
+  1. Images show up correctly. (content type and encoding)
+  1. Modifications to resources show up in the browser (btd loop, cache invalidation)
+  1. Modifications to subresources show up in the browser if url is tagged in the resource. (cache busting links)
+  1. All tests pass. (You can have other kinds of tests but they must be labelled as such)
+
+In production it is similar, but one can skip invalidation tests assuming the server is restarted on every push. (However once things get stable we will push more without restarting the server, and then invalidation will need to work in prod, too.)
+
+I would also like to assert that every reasonable combination of configuration options work, but frankly I would not assert that, yet.
+
+# Security and Privacy
+No third party anything.
+No CD
+
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+
+# Static file server
+The static file server's primary job is to get an html file to the browser.
+It should serve subresources as well.
+However, it turns out that we can do a bit more.
+
+  1. file gets read from disk then
+    1. [Literate Markdown](/lit.md) renderer.
+    1. gzipped based on mime-type/extension.
+    1. cached
+    1. invalidated with a file watcher.
+  1. sub-resource headers instruct the browser to cache forever
+    1. Q: is this a memory leak? How does the browser handle this?
+    1. sub-resources are updated by the containing resource via a unique link (see below)
+  1. resource response
+    1. headers tell browser to cache but check for updates with a 301 redirect
+    1. interpolated with current sub-resource links for cache busting
+
+## Design Notes
+### Resources vs. Sub-Resources
+Resources are html files, and sub-resources are the files that the html file requires to render as the author expects. (It is sometimes useful to further distinguish between textual and binary resources and sub-resources, and that's relevant for encoding the response, but it's irrelevant for the cache design.)
+
+The cornerstone of the cache design is letting the browser cache sub-resources forever. Resources we cache in the browser, but also check for updates, expecting a 301 most of the time. In this way we can update our immutable sub-resources by providing a new, unique sub-resource URL in an evergreen resource. This mechanism is well-known and called "cache busting".
+
+## Reflector file system cache vs browser cache
+The reflector uses a simple in-memory cache to reduce disk reads.
+Entries live in a simple object keyed by full file path.
+Entries are populated on demand.
+Entries are invalidated by a file watcher.
+
+The browser cache is used to reduce network traffic.
+Browser caching behavior is controlled by response headers.
+Browser caching behavior can also be controlled via new-fangled js APIs with which I am not familiar. (See [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache) and [Cache Storage API](https://developer.mozilla.org/en-US/docs/Web/API/CacheStorage) for more details about the *explicit* control of the browser cache.)
+
+```js
+let isCacheSupported = 'caches' in window;
+console.log(`isCacheSupported: ${isCacheSupported}`);
+```
+
+
+
 In memory, invalidated on file delete or write via chokidar. Turn debug mode on to see cache hits and misses. Data is processed (literate markdown and gzipping) before caching in an attempt to be efficient. For simplicity I gzip all the things even though it's not always necessary and actually is harmful, as with png or jpg images.
 
 Total unique resource size should not exceed 100MB to be on the safe side of my current server who's advertised memory size is 1.0GB but in reality I get 0.5GB usable (to up this would need to switch to Alpine). (it is a very good design constraint to be somewhat limited in size.)

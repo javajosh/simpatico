@@ -242,42 +242,7 @@ function fileServerLogic() {
     return result;
   }
 
-  /**
-   * find all the links to sub-resources and replace them with cache-busting urls
-   * this is too ambiguous so we rely on the author to signal when to do this.
-   *
-   * @param maybeHTML
-   * @param fileName
-   * @returns {*}
-   */
-  function replaceSubResourceLinks (maybeHTML, fileName, getResourceHash = r => '1234'){
-    const isHTML = fileName.endsWith('.html');
-    const isMD = fileName.endsWith('.md');
-    if (!isHTML && !isMD) return maybeHTML;
 
-    // See https://regex101.com/r/r0XQMV/1
-    const re = /(["`'])(.*?)\?\#\#\#\1(.*?)/g;
-
-    // exec updates the lastIndex of the re on each invocation.
-    // not how I would design it, but whatever.
-    let match;
-    while ((match = re.exec(maybeHTML)) !== null) {
-      // This is necessary to avoid infinite loops with zero-width matches
-      if (match.index === re.lastIndex) {
-        re.lastIndex++;
-      }
-
-      // The full url including placeholder path is the match itself
-      // group 2 contains just the sub-resource path.
-      if (match.length === 4) {
-        const url = match[0];
-        const resource = match[2];
-        const newUrl = `"${resource}?${getResourceHash(resource)}"`;
-        maybeHTML = maybeHTML.replace(url, newUrl);
-      }
-    }
-    return maybeHTML;
-  }
   return (req, res) => {
     const respondWithError = (err) => {
       console.error(err.log);
@@ -350,32 +315,19 @@ function fileServerLogic() {
 
     const fileName = process.cwd() + urlToFileName(req.url);
     let data = '';
-
+    let hash = '';
     if (config.useCache && hasProp(cache, fileName)) {
       data = cache[fileName];
+      hash = sha256(data);
     } else {
       // We missed the cache, so initiate a read file.
       if (config.useCache)
         log('cache miss for', fileName);
-
       try{
-        // Grab the data from disk
-        data = fs.readFileSync(fileName);
-
-        // 1. Convert literate markdown to html
-        data = buildHtmlFromLiterateMarkdown(data.toString(), fileName);
-
-        // 2. In html, replace sub-resource links with cache-busting urls
-        data = replaceSubResourceLinks(data.toString(), fileName);
-
-        // 3. Gzip not already compressed resources.
-        if (config.useGzip && !isCompressedImage(fileName))
-          data = zlib.gzipSync(data);
-
-        // 4. Cache it
-        if (config.useCache)
-          cache[fileName] = data;
-
+        // This function isn't inlined because its also called in the sub-resource
+        const fromDisk = readProcessCache(fileName);
+        data = fromDisk.data;
+        hash = fromDisk.hash;
       } catch (err) {
         respondWithError(Object.assign(new Error(), {
           code: 500,
@@ -388,7 +340,6 @@ function fileServerLogic() {
 
     // The browser may already have the most recent version.
     // TODO: store this hash in the cache somewhere.
-    const hash  = crypto.createHash("sha256").update(data).digest("hex");
     if (req.headers['if-none-match'] === hash){
       respondWith304();
     } else {
@@ -396,7 +347,70 @@ function fileServerLogic() {
     }
   }
 }
+function readProcessCache(fileName) {
+  // Grab the data from disk
+  let data = fs.readFileSync(fileName);
+  let hash = sha256(data);
 
+  // 1. Convert literate markdown to html
+  data = buildHtmlFromLiterateMarkdown(data, fileName);
+
+  // 2. In html, replace sub-resource links with cache-busting urls
+  data = replaceSubResourceLinks(data, fileName);
+
+  // 3. Gzip not already compressed resources.
+  if (config.useGzip && !isCompressedImage(fileName))
+    data = zlib.gzipSync(data);
+
+  // 4. Cache it
+  if (config.useCache)
+    cache[fileName] = data;
+
+  return {data, hash};
+}
+
+/**
+ * find all the links to sub-resources and replace them with cache-busting urls
+ * this is too ambiguous so we rely on the author to signal when to do this.
+ *
+ * @param maybeHTML
+ * @param fileName
+ * @returns {*}
+ */
+function replaceSubResourceLinks (maybeHTML, fileName){
+  const isHTML = fileName.endsWith('.html');
+  const isMD = fileName.endsWith('.md');
+  if (!isHTML && !isMD) return maybeHTML;
+  let html = maybeHTML.toString();
+
+  // See https://regex101.com/r/r0XQMV/1
+  const re = /(["`'])(.*?)\?\#\#\#\1(.*?)/g;
+
+  // exec updates the lastIndex of the re on each invocation.
+  // not how I would design it, but whatever.
+  let match;
+  while ((match = re.exec(html)) !== null) {
+    // This is necessary to avoid infinite loops with zero-width matches
+    if (match.index === re.lastIndex) {
+      re.lastIndex++;
+    }
+
+    // The full url including placeholder path is the match itself
+    // group 2 contains just the sub-resource path.
+    if (match.length === 4) {
+      const url = match[0];
+      const resource = match[2];
+      const subResourceHash = readProcessCache(resource);
+      const newUrl = `"${resource}?${subResourceHash}"`;
+      html = html.replace(url, newUrl);
+    }
+  }
+  return html;
+}
+
+function sha256(data){
+  return crypto.createHash("sha256").update(data).digest("hex");
+}
 function isCompressedImage(fileName) {
   return (
     fileName.endsWith('.png') ||
