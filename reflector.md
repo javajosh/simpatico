@@ -6,13 +6,13 @@
         <rect width='1' height='1' fill='DodgerBlue' />
     </svg>"
   >
-  <link rel="stylesheet" href="/style.css?###">
+  <link rel="stylesheet" href="/style.css">
 
-  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css?###">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
 
   <script class="hljs" type="module">
-    import hljs from '/kata/highlight.min.js?###';
-    import javascript from '/kata/highlight.javascript.min.js?###';
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
     const d=document, elts = a => d.querySelectorAll(a);
     hljs.registerLanguage('javascript', javascript);
     d.addEventListener('DOMContentLoaded', () => elts('pre code').forEach(hljs.highlightElement));
@@ -105,16 +105,17 @@ Sadly this command to check worst-case cache pressure in advance is rather slow 
 Given an html string, write a function that finds all the links to sub-resources and replace them with cache-busting urls.
 ```js
 // Note that we confuse showdown.js if we use "real" script tags, so we use made up ascript instead. It doesn't affect the code.
+// We also use a different pattern to avoid confusing the markdown renderer.
 
-const authoredFileName = 'index.html';
+const authoredFileName = 'index.html';st
 const authoredFileContent = `
-<link rel="stylesheet" href="style1.css?###">
-<link rel="stylesheet" href='style2.css?###'>
+<link rel="stylesheet" href="style1.css?@@@">
+<link rel="stylesheet" href='style2.css?@@@'>
 <link rel="stylesheet" href='style3.css'>
 <img src="image.png?###">
-<ascript src="script.js?###"></ascript>
+<ascript src="script.js?@@@"></ascript>
 <ascript type="module">
-  import {foo} from './foo.js?###';
+  import {foo} from './foo.js?@@@';
 </ascript>
 `;
 
@@ -130,7 +131,7 @@ const expectedInterpolated = `
 
 `;
 
-const actualInterpolated = replaceSubResourceLinks(authoredFileContent, authoredFileName, '\?###');
+const actualInterpolated = replaceSubResourceLinks(authoredFileContent, authoredFileName);
 assertEquals(expectedInterpolated.trim(), actualInterpolated.trim())
 
 /**

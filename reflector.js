@@ -328,12 +328,13 @@ function fileServerLogic() {
         const fromDisk = readProcessCache(fileName);
         data = fromDisk.data;
         hash = fromDisk.hash;
-      } catch (err) {
-        respondWithError(Object.assign(new Error(), {
+      } catch (fileProcessError) {
+        fileProcessError = Object.assign(new Error(), {
           code: 500,
           log: 'error processing resource',
           message: 'Error processing resource. \n' + failWhale,
-        }));
+        });
+        respondWithError(fileProcessError);
         return;
       }
     }
