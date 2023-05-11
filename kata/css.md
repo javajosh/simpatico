@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="keywords" content="Simpatico, physics">
   <meta name="author" content="jbr">
-  <title>Simpatico Kata: CSS</title>
+  <title>SimpatiCode: CSS</title>
 
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
