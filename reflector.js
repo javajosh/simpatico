@@ -449,10 +449,11 @@ function isCompressedImage(fileName) {
  * @param ws - the new websocket connection
  */
 function chatServerLogic(ws) {
-  // Compute the connection ID,
-  const id = connections.length;
+  // Register the connection, use the connection array index as the id.
+  const fromId = connections.length;
   connections.push(ws);
-  ws.on('message', msg => chatBroadcast(msg, id, ws));
+  // Register a strategy for handling incoming messages in the steady state.
+  ws.on('message', msg => chatBroadcast(msg, fromId, ws));
 }
 
 function chatBroadcast(message, fromId, ws){
