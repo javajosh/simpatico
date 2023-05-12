@@ -61,8 +61,8 @@ function processConfig(envPrefix='SIMP_') {
     useTls: false,
     password: 's3cret',
     logFileServerRequests: true,
+    superCacheEnabled: false,
     debug: false,
-
     // measured: {},      //added below
   };
   const envConfig = mapObject(baseConfig, ([key,_]) => ([key, process.env[`${envPrefix}${key.toUpperCase()}`]]));
@@ -237,15 +237,18 @@ function fileServerLogic() {
     } else {
       // The browser caches sub-resources forever
       // We rely on cache-busting urls to update them.
-      result["Cache-Control"] = "public, max-age=31536000, immutable";
+      if (config.superCacheEnabled) {
+        result["Cache-Control"] = "public, max-age=31536000, immutable";
+      } else {
+        result["Cache-Control"] = "no-cache";
+      }
     }
     return result;
   }
 
-
   return (req, res) => {
     const respondWithError = (err) => {
-      console.error(err.log);
+      console.error(err);
       res.writeHead(err.code);
       res.end(err.message);
     }
@@ -329,7 +332,7 @@ function fileServerLogic() {
         data = fromDisk.data;
         hash = fromDisk.hash;
       } catch (err) {
-        respondWithError(Object.assign(new Error(), {
+        respondWithError(Object.assign(err, {
           code: 500,
           log: 'error processing resource',
           message: 'Error processing resource. \n' + failWhale,
@@ -356,7 +359,7 @@ function readProcessCache(fileName) {
   data = buildHtmlFromLiterateMarkdown(data, fileName);
 
   // 2. In html, replace sub-resource links with cache-busting urls
-  data = replaceSubResourceLinks(data, fileName);
+  if (config.superCacheEnabled) data = replaceSubResourceLinks(data, fileName);
 
   // 3. Gzip not already compressed resources.
   if (config.useGzip && !isCompressedImage(fileName))

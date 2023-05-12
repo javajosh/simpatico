@@ -31,6 +31,31 @@ It's a small, almost single file 450 line node program, written in modular, mode
 
 Installation and running is handled in the [readme](readme.md).
 
+## Configuration options
+Here are the default config values from [reflector](/reflector.js):
+```js
+  const baseConfig = {
+    http: 8080,
+    https: 8443,
+    host: 'localhost',
+    cert: './fullchain.pem',
+    key: './privkey.pem',
+    runAsUser: null,
+    useCache: false,
+    useGzip: true,
+    useTls: false,
+    password: 's3cret',
+    logFileServerRequests: true,
+    superCacheEnabled: false,
+    debug: false,
+    // measured: {},      //added below
+  };
+```
+You can override these on the command line using js literal syntax (differs from JSON because of lack of quotes, which makes it easier to write on the command line):
+```bash
+"{useCache:true, useTls:true, debug:true, http:8080, https:8443, host:simpatico.local, cert:localhost.crt, key:localhost.key}"
+```
+
 ## What does "Working" mean?
 On my local machine, a working reflector means:
   1. The reflector starts without error (and I can set the noise level)
