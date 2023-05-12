@@ -1,3 +1,34 @@
+<!--<!DOCTYPE html>
+<head>
+  <title>Simpaticode: quad colors</title>
+  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+        <rect width='1' height='1' fill='white' />
+    </svg>"
+  >
+  <link rel="stylesheet" href="/style.css">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+  <meta id="refresh" http-equiv="refresh" content="-1">
+  <script class="testable" src="testable.js" type="module"></script>
+  <script class="hljs" type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    const d=document, elts = a => d.querySelectorAll(a);
+    hljs.registerLanguage('javascript', javascript);
+    d.addEventListener('DOMContentLoaded', () =>
+      elts('pre code').forEach(block =>
+        hljs.highlightElement(block)));
+  </script>
+</head>-->
+
+# Simpaticode: quad colors
+2023
+
+See:
+[home](/),
+[litmd](/lit.md),
+[audience](/audience.md),
+
 A small app that lets the user first create colors.
 We divide the screen by four and ask for 4 selections that coorespond, by convention to:
 1. Mental state
@@ -12,6 +43,8 @@ However, we know mathematically we could, if so constrained, divide any long lis
 But is it worth it?
 Oddly, i think it's a question that you can't answer without trying.
 If it is the work of an afternoon, it sounds rather pleasant and worth doing.
+
+![quadtree](quad.png =200x200)
 
 The body divided into four coorresponds with the limbs.
 It would make more sense to divide it into "system".
