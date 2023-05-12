@@ -38,7 +38,6 @@ Messages are broadcast to all connected clients.
 ## Messages
 
 ```html
-
 <button id="reset-button">Reset keypair</button>
 <ol id="display-chat">
   <li><label>Say something:<input type="text"></label></li>
@@ -62,6 +61,7 @@ Messages are broadcast to all connected clients.
 1. [ ] Combine messages in client using the stree
 
 
+## Chat client code
 ```js
   import * as wcb from './webcryptobox.js';
 
@@ -163,3 +163,36 @@ Messages are broadcast to all connected clients.
     addListItem(msg);
   }
 ```
+
+## Chat server code
+The first and simplest strategy for dealing with connections and messages is to register the connection and then round-robin transmit to all connected clients.
+This is sufficient as a basic exercise, but it's not what we want.
+Arbitrary people can say anything to anyone currently connected.
+This is fine when simpaticorp is in "stealth mode" and no-one knows this resource exists.
+The 300 character limit, and lack of images, also helps.
+
+But the goal has always been to provide a point-to-point, e2e encrypted chat.
+The approach is to generate a keypair on the client and then register the public key with the server.
+Subsequent messages will be something like a [jwt](https://github.com/auth0/node-jws) with some cleartext (like the "to" and from header) and some cyphertext (the message itself).
+(We might be tempted to skip "from" but eventually we'll need to support multiple public keys per connection.)
+
+  1. client: Generate (or retrieve) the keypair.
+  2. client: Connect to the server.
+  3. server: save connection
+  4. client: send the pubkey to the server
+  5. server: register pubkey with connection
+  6. (steady-state) send messages to other pubkeys.
+    optionally verify signature on the server.
+
+Steps 2-5 is a *registration protocol* and we can use [combine](/combine2) to model one, and then an [stree](/stree2) to model variations.
+
+### Public key distribution
+Simplicity is key, so to speak, and we use an out-of-band method for initial distribution.
+Keys can invite other keys, providing a one-time use URL, conveyed perhaps by text or qr code.
+In fact an important use case is one user using one device to invite another, effectively creating a private network of keys (useful for data synchronization, a la syncthing or browser-specific synchronization features, offering varying levels of user security)
+For inspiration on constructing the urls we look at the web crypto api, which provides functions to give the user a short form for a public key, which is perfect for this application. We leave it up to to user how to use their keys, but the defaults are secure: limited time one-time use keys.
+
+Note: general you can have a unique public key for each contact, or one key for all contacts, or something in between.
+
+A primary use case for simpatico chat is to enable the formation of new, privacy preserving intimate relationships with others. A kind of "ante room" or "porch" for your social life - where if you meet someone and have a good experience, you might want more...but you may not be sure to what extent. If you both have smartphones, instead of giving your number (which is quite intimate) or the difficulty of picking a channel and adding a user name - you can bring up simpatico, click a button that generates a new public key that is displayed as a qr code, which your new friend can photograph and they are also now on Simpatico, generated their own keypair, and they have a relationship key, your public key. From there you can chat or "escalate" the relationship to other channels like chat or instagram or whatever. It's a simple, convenient and secure way to form new relationships that is very low risk for both parties.
+

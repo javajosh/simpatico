@@ -453,10 +453,24 @@ function chatServerLogic(ws) {
   const fromId = connections.length;
   connections.push(ws);
   // Register a strategy for handling incoming messages in the steady state.
-  ws.on('message', msg => chatBroadcast(msg, fromId, ws));
+  ws.on('message', msg => chatBroadcastStrategy(msg, fromId, ws));
 }
 
-function chatBroadcast(message, fromId, ws){
+function chatSecureStrategy(message, fromId, ws) {
+  // Ignore long messages
+  if (message.length > 300) {
+    ws.send('your message was too long');
+    return;
+  }
+  // Each connection starts out life in a "raw" state, no public key associated.
+  // Once it registers a public key, it is considered "registered".
+  // Subsequent messages can be sent to and from the public keys.
+  // It is better to use a state machine, but this is simpler.
+  // Each message is a JWT or similar, signed by the private key.
+  // The reflector may or may not verify signatures - it's reasonable either way.
+}
+
+function chatBroadcastStrategy(message, fromId, ws){
   // Ignore long messages
   if (message.length > 300) {
     ws.send('your message was too long');
