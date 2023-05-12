@@ -440,49 +440,51 @@ function isCompressedImage(fileName) {
     delete cache[path];
     log(`cache invalidated "unlink" ${path}`);
   });
-
 }
+
+/**
+ * This is the main entry point for the chat server, triggered by a new connection.
+ * This method makes use of global 'connections'
+ *
+ * @param ws - the new websocket connection
+ */
 function chatServerLogic(ws) {
   // Compute the connection ID,
   const id = connections.length;
-
-  // Announce new ID to all connections from this, the root process.
-  connections.forEach(conn => {
-    conn.send(`0 > ${id}`);
-    console.debug(`Announce new connection message => ${id}`);
-  });
-  // Store the connection for later.
   connections.push(ws);
+  ws.on('message', msg => chatBroadcast(msg, id, ws));
+}
 
-  // Register a callback for messages sent from that connection.
-  // Simplest case: broadcast every msg to all connections!
-  ws.on('message', (message) => {
-    // Ignore long messages
-    if (message.length > 300) {
-      ws.send('your message was too long');
-      return;
-    }
-
-    connections.forEach((conn, i) => {
-      // Don't echo to the sender.
-      if (conn === ws) return;
-      try{
-        // Connections can die without us knowing.
-        // Delete them from the list when they do and return.
-        if (conn.readyState !== WebSocket.OPEN) {
-          log(`connection ${i} died`);
-          delete connections[i]
-          return;
-        }
-        const msg = `${id} > ${message}`;
-        conn.send(msg); // Q: can this ever block?
-        log('chatServerLogic', 'id', id, 'message', message.length);
-      } catch(e) {
-        // Q: what all can go wrong here?
-        console.error(e);
+function chatBroadcast(message, fromId, ws){
+  // Ignore long messages
+  if (message.length > 300) {
+    ws.send('your message was too long');
+    return;
+  }
+  // Broadcast to all connections
+  //  NB: using a for-loop instead of foreach makes the stack traces nicer.
+  for (let i = 0; i < connections.length; i++) {
+    let conn = connections[i];
+    // normally we skip the sender, but for testing we can echo back to the sender.
+    //if (conn === ws) return;
+    try{
+      // Delete dead connections
+      if (conn.readyState !== WebSocket.OPEN) {
+        log(`connection ${i} died`);
+        delete connections[i]
+        return;
       }
-    });
-  });
+      // Prepend the sender id to the message.
+      const msg = `${fromId} > ${message}`;
+      // Send and log
+      conn.send(msg);
+      log('chatServerLogic', 'fromId', fromId, 'message', message.length);
+
+    } catch(e) {
+      // Q: what all can go wrong here?
+      console.error(e);
+    }
+  }
 }
 
 const failWhale = `
