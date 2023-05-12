@@ -1,25 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
+<!--<!DOCTYPE html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
-  <meta name="author" content="javajosh">
+  <title>Simpaticode: acceptance</title>
+  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+        <rect width='1' height='1' fill='DodgerBlue' />
+    </svg>"
+  >
+  <link rel="stylesheet" href="/style.css?###">
 
-  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='white' />
-  </svg>"/>
-  <script src="testable.js" type="module"></script>
-  <!-- End testable.js boilerplate  -->
+</head>-->
 
-
-  <title>testing</title>
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-<h1>testing</h1>
-<p>javajosh <i>2023</i></p>
+# Simpaticode: acceptance
 
 <iframe id="homepage-frame"
         title="homepage"
@@ -31,43 +22,31 @@
         title="core"
         width="300"
         height="200"
-        src="/core">
-</iframe>
-<iframe id="combine-frame"
-        title="combine"
-        width="300"
-        height="200"
-        src="/combine">
+        src="/core.html">
 </iframe>
 <iframe id="combine2-frame"
         title="combine"
         width="300"
         height="200"
-        src="/combine2.md">
-</iframe>
-<iframe id="stree-frame"
-        title="stree"
-        width="300"
-        height="200"
-        src="/stree">
+        src="/combine2">
 </iframe>
 <iframe id="stree2-frame"
         title="stree"
         width="300"
         height="200"
-        src="/stree2.md">
+        src="/stree2">
 </iframe>
 <iframe id="crypto-frame"
         title="crypto"
         width="300"
         height="200"
-        src="/crypto">
+        src="/crypto.html">
 </iframe>
 <iframe id="friendly-frame"
         title="friendly"
         width="300"
         height="200"
-        src="/friendly">
+        src="/friendly.html">
 </iframe>
 <iframe id="svg-frame"
         title="svg"
@@ -82,27 +61,25 @@
         src="/chat">
 </iframe>
 
-<h2>iframe</h2>
-<p>
-  If your test suite is self-executing html pages, then just including them as an
-  <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a> and checking their color is enough.
-  This technique is mapping over html resources with a "fresh" browser to produce a tab state.
-</p>
-<p>
-  Possibly interesting: <a href="https://www.benmarshall.me/responsive-iframes/">iframes in responsive layouts</a>.
-</p>
+If your test suite is self-executing html pages, then including them as an
+<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a> and checking their color is enough.
+This technique is mapping over html resources with a "fresh" browser to produce a tab state.
 
-<h2>Curl</h2>
-<p>
-  Curl is very straightforward on mac and linux.
-  Curl in windows can run in wsl, but it can be difficult to hit a windows node process.
-  Curl native to windows must be <a href="https://curl.se/windows/">installed manually</a>.
-  Native win10 curl takes the url first and won't accept quotes.
-  (Although win10/chrome has some interesting options for "copy value as" like powershell, cmd or bash).
-</p>
+Possibly interesting: [iframes in responsive layous](https://www.benmarshall.me/responsive-iframes/)
 
-<p>Here is what you get if you "copy as curl" on Linux/Firefox</p>
-<code><pre>
+
+## curl
+Lower level issues (and some performance tests) are better done outside the browser using a tool like `curl`.
+
+  1. Curl is very straightforward on mac and linux.
+  1. Curl in windows can run in wsl, but it can be difficult to hit a windows node process.
+  1. Curl native to windows must be <a href="https://curl.se/windows/">installed manually</a>.
+  1. Native win10 curl takes the url first and won't accept quotes.
+  1. (Although win10/chrome has some interesting options for "copy value as" like powershell, cmd or bash).
+
+Here is what you get if you "copy as curl" on Linux/Firefox:
+
+```bash
   curl 'https://simpatico.io/' \
   -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/109.0' \
   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'\
@@ -117,33 +94,33 @@
   -H 'Sec-Fetch-User: ?1' \
   -H 'Pragma: no-cache' \
   -H 'Cache-Control: no-cache'
-</pre></code>
+```
 
-<p>
-  Manipulation of the request at this level is useful for testing code that rejects invalid requests.
-  For example, missing User-Agent headers.
-  Note that the <code>reflector</code> is insensitive to almost all of these headers.
-  (However, <code>node:http</code> <i>may</i> be sensitive to them.)
-</p>
+Manipulation of the request at this level is useful for testing code that rejects invalid requests.
+For example, missing User-Agent headers (this app is designed for human users only)
+Note that the `reflector` is insensitive to almost all of these headers.
+(However, `node:http` *may* be sensitive to them.)
 
-<code><pre>
+
+To test you can do this:
+```bash
   curl 'https://simpatico.io/' \
   -H 'User-Agent: Can be anything but blank' \
   -H 'Accept-Encoding: gzip, deflate, br' \
   -H 'X-The-Rest: are ignored
-</pre></code>
+```
 
-<code><pre>
+```bash
   curl 'https://simpatico.local:8443/' -H 'User-Agent: '
-</pre></code>
+```
 
-<h2>Fetch</h2>
-<p>
-  Browser dev tools network pane copy value as fetch.
-  This can be used in browser javascript, or in node javascript.
-  See html source:
-</p>
-<script type="module">
+## Fetch
+
+Browser dev tools network pane copy value as fetch.
+This can be used in browser javascript, or in node javascript.
+See html source:
+
+```js
   // This "fetch()" is equivalent to the curl above
   if (!window.location) await fetch("https://simpatico.io/", {
     "credentials": "omit",
@@ -162,10 +139,9 @@
     "method": "GET",
     "mode": "cors"
   });
-</script>
+```
 
-<script type="module">
-
+```js
   const svgIcon = fill => `data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
         <rect width='1' height='1' fill='${fill}' />
@@ -179,4 +155,4 @@
   window.addEventListener('test-success', () => {
     favicon.href = svgIcon('green');
   })
-</script>
+```

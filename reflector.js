@@ -302,7 +302,7 @@ function fileServerLogic() {
       let u = url;
       if (u.indexOf('?') > -1)   u = u.substr(0, u.indexOf('?'));
       if (u.endsWith('/'))       u += 'index.html';
-      if (u.indexOf('.') === -1) u += ".html";
+      if (u.indexOf('.') === -1) u += ".md";
       return u;
     }
 
