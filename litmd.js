@@ -19,7 +19,7 @@ const scriptPassThroughExtension = {
   type: 'output',
   filter:  (htmlDocument, converter, options) => {
     return htmlDocument.replace(/<pre><code class="js.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
-      const displayString = `<pre><code class="js language-js">${code}</code></pre>`;
+      const displayString = `<details><summary>js</summary><pre><code class="js language-js">${code}</code></pre></details>`;
       code = code.trim();
       code = unescapeHtml(code);
       const doNotExecute = code.startsWith(dontExecuteScript);
@@ -41,7 +41,7 @@ const htmlPassThroughExtension = {
   filter:  (htmlDocument, converter, options) => {
     return htmlDocument.replace(/<pre><code class="html.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
       // showdown tags html as js for some reason, so we use a heuristic to distinguish.
-      const displayString = `<pre><code class="html language-html">${code}</code></pre>`;
+      const displayString = `<details><summary>html</summary><pre><code class="html language-html">${code}</code></pre></details>`;
       const executeString = unescapeHtml(code);
       const doNotExecute = executeString.startsWith(dontExecuteHtml);
       const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
@@ -57,7 +57,7 @@ const cssPassThroughExtension = {
   filter:  (htmlDocument, converter, options) => {
     return htmlDocument.replace(/<pre><code class="css.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
       // showdown tags html as js for some reason, so we use a heuristic to distinguish.
-      const displayString = `<pre><code class="css language-css">${code}</code></pre>`;
+      const displayString = `<details><summary>css</summary><pre><code class="css language-css">${code}</code></pre></details>`;
       code = unescapeHtml(code);
       const doNotExecute = code.startsWith(dontExecuteCss);
       const executeString = `<style>${code}</style>`;
