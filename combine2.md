@@ -7,7 +7,7 @@
     </svg>"
   >
   <link rel="stylesheet" href="/style.css">
-  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github-dark.css">
 <meta id="refresh" http-equiv="refresh" content="2">
   <script class="testable" src="testable.js" type="module"></script>
   <script class="hljs" type="module">
@@ -18,16 +18,18 @@
     d.addEventListener('DOMContentLoaded', () =>
       elts('pre code').forEach(block =>
         hljs.highlightElement(block)));
+      // open all the details, too.
+      elts('details').forEach(d => d.open = true);
   </script>
 </head>-->
 
 _________________________________________________________
-# Simpatico: combine2()
+# Simpaticode: combine()
 2023
 
 See:
 [home](/),
-[combine](./combine2.html),
+[combine](./combine.html),
 [stree](./stree2.md),
 [litmd](/lit.md),
 [audience](/audience.md)

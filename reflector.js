@@ -484,7 +484,7 @@ function chatBroadcastStrategy(message, fromId, ws){
     //if (conn === ws) return;
     try{
       // Delete dead connections
-      if (conn.readyState !== WebSocket.OPEN) {
+      if (typeof conn === 'undefined' || conn.readyState !== WebSocket.OPEN) {
         log(`connection ${i} died`);
         delete connections[i]
         return;

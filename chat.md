@@ -32,30 +32,23 @@ See:
 
 This is a very tiny chat system.
 It demonstrates "low-level" web-sockets programming with modern javascript.
-It also demonstrates the use of [webcryptobox](https://github.com/jo/webcryptobox), a truly excellent minimalist library.
+It also demonstrates the use of [crypto](/crypto.md).
 Messages are broadcast to all connected clients.
 
-## Messages
+Note about UI: I've not yet implemented a UI for this. [hugging face](https://github.com/huggingface/chat-ui) released theirs recently, and it looks good. It's [svelte](https://svelte.dev/) (which I like) over [Mongo](https://www.mongodb.com/) (which I don't particularly like).
+We'll see.
+
+## Client
 
 ```html
-<button id="reset-button">Reset keypair</button>
+
 <ol id="display-chat">
-  <li><label>Say something:<input type="text"></label></li>
+  <li><button id="reset-button">Reset keypair</button></li>
+  <li><label><input type="text" placeholder="say something then hit enter"></label></li>
 </ol>
 ```
 
 ```css
-details {
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    padding: 0.5em 0.5em 0;
-}
-
-summary {
-    font-weight: bold;
-    margin: -0.5em -0.5em 0;
-    padding: 0.5em;
-}
 
 details[open] {
     padding: 0.5em;
@@ -65,27 +58,8 @@ details[open] summary {
     border-bottom: 1px solid #aaa;
     margin-bottom: 0.5em;
 }
-
 ```
 
-## Goals
-
-1. [x] Connect to websocket server
-1. [x] Generate public/private keypair if doesn't exist
-1. [x] Use old keypair if it does exist
-1. [ ] Send public key to server
-1. [ ] convert this file into markdown.
-1. [ ] Server associates the pubkey with the connection
-1. [ ] use stree to manage server connections?
-1. [ ] Modify server to accept targeted messages [from, to, msg]
-1. [ ] Either allow an array of "to" or use aliases
-1. [ ] Target a connected process with public key
-1. [ ] Encrypt messages in flight
-1. [ ] Encrypt messages at rest
-1. [ ] Combine messages in client using the stree
-
-
-## Chat client code
 ```js
   import * as wcb from './webcryptobox.js';
 
@@ -188,17 +162,19 @@ details[open] summary {
   }
 ```
 
-## Chat server code
+## Design
 The first and simplest strategy for dealing with connections and messages is to register the connection and then round-robin transmit to all connected clients.
-This is sufficient as a basic exercise, but it's not what we want.
-Arbitrary people can say anything to anyone currently connected.
+This is sufficient as a basic exercise, but it's not what we ultimately want.
+(Arbitrary people can say anything to anyone currently connected.
 This is fine when simpaticorp is in "stealth mode" and no-one knows this resource exists.
-The 300 character limit, and lack of images, also helps.
+The 300 character limit, and lack of images, also helps mitigate the risk of abuse.)
 
-But the goal has always been to provide a point-to-point, e2e encrypted chat.
+But the goal has always been to provide a *point-to-point, e2e encrypted chat*.
 The approach is to generate a keypair on the client and then register the public key with the server.
-Subsequent messages will be something like a [jwt](https://github.com/auth0/node-jws) with some cleartext (like the "to" and from header) and some cyphertext (the message itself).
+Subsequent messages will be something like a [jwt](https://github.com/auth0/node-jws): some cleartext (like the "to" and from header) and some cyphertext (the message itself) and some metadata.
 (We might be tempted to skip "from" but eventually we'll need to support multiple public keys per connection.)
+
+### Registration Protocol
 
   1. client: Generate (or retrieve) the keypair.
   2. client: Connect to the server.

@@ -1,46 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
+<!--<!DOCTYPE html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
-  <meta name="author" content="javajosh">
-
-  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='white' />
-  </svg>"/>
-  <meta id="refresh" http-equiv="refresh" content="2">
-  <script src="/testable.js" type="module"></script>
-  <!-- End testable.js boilerplate  -->
-
-  <title>crypto</title>
+  <title>Simpaticode: crypto</title>
+  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+        <rect width='1' height='1' fill='white' />
+    </svg>"
+  >
   <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-<h1>crypto</h1>
-<p>javajosh <i>2023</i></p>
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <meta id="refresh" http-equiv="refresh" content="-1">
+  <script class="testable" src="testable.js" type="module"></script>
+  <script class="hljs" type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    const d=document, elts = a => d.querySelectorAll(a);
+    hljs.registerLanguage('javascript', javascript);
+    d.addEventListener('DOMContentLoaded', () =>
+      elts('pre code').forEach(block =>
+        hljs.highlightElement(block)));
+  </script>
+</head>-->
+
+# Simpaticode: crypto
+2023
+
+See:
+[home](/),
+[litmd](/lit.md),
+[audience](/audience.md),
+[reflector](/reflector.md)
+[chat](/chat.md)
+
 <div class="makeItStop"></div>
 
-<h2>Encrypt/Decrypt</h2>
-<p>
-  Exercise cryptographic primitives.
-  In this case use the crypto library to generate a key, encrypt a thing, then decrypt.
-  Note that, at this point, we cannot save the generated keys for later use.
-  This is enough to save ciphertext and later decrypt it.
-  References:
-</p>
-<ol>
-  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey">MDN's generateKey() docs</a></li>
-  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/exportKey">MDN's exportKey() docs</a></li>
-  <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey">MDN's importKey() docs</a></li>
-  <li><a href="https://w3c.github.io/webcrypto/#dfn-SubtleCrypto-method-generateKey">See the w3c web crypto spec</a></li>
-  <li><a href="https://www.crypto101.io/">Crypto 101 is a good intro text to the field.</a></li>
-</ol>
+## Encrypt/Decrypt
+
+Exercise cryptographic primitives.
+In this case use the crypto library to generate a key, encrypt a thing, then decrypt.
+Note that, at this point, we cannot save the generated keys for later use.
+This is enough to save ciphertext and later decrypt it.
+References:
+
+  1. [MDN's generateKey() docs](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/generateKey)
+  1. [MDN's exportKey() docs](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/exportKey)
+  1. [MDN's importKey() docs](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey)
+  1. [See the w3c web crypto spec](https://w3c.github.io/webcrypto/#dfn-SubtleCrypto-method-generateKey)
+  1. [Crypto 101 is a good intro text to the field.](https://www.crypto101.io/)
 
 
-<script type="module">
-  import {assertEquals, log, assert} from './core.js';
+
+```js
+  import {log, assert} from './core.js';
   import {generateSymmetricKey, encrypt, pack, decrypt, unpack, equalBuffers} from './crypto.js';
 
   // encrypt message
@@ -80,16 +90,15 @@
   );
   log('decrypted message', final);
   assertEquals(final, msg);
-</script>
+```
 
-<h2>Export keys</h2>
-<p>
-  Export by picking a format and calling exportKey
-  Format support depends on the type of underlying key.
-  I believe that 'raw' is universally supported, however.
-</p>
+## Export Keys
+Export by picking a format and calling exportKey
+Format support depends on the type of underlying key.
+I believe that 'raw' is universally supported, however.
 
-<script type="module">
+
+```js
   import {generateSymmetricKey, importSymmetricKey, pack, encrypt, decrypt} from './crypto.js';
   import {log, mapObject, getProp} from './core.js';
 
@@ -110,15 +119,12 @@
     key2,
   );
   log(final);
+````
 
-</script>
+## Asymmetric keys
+Now lets make asymmetric keys and use them to sign things, and also to wrap things.
 
-<h2>Asymmetric keys</h2>
-<p>
-  Now lets make asymmetric keys and use them to sign things, and also to wrap things.
-</p>
-
-<script type="module">
+```js
   import {encode} from './crypto.js';
 
   const msg = 'hello world';
@@ -156,20 +162,16 @@
     encode(msg),
   );
   console.log('verified', verified);
+```
 
-</script>
+## Exporting a derived symmetric key
+It turns out what we needed was the <a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey">deriveKey</a> method.
+However, I found a really good library, <a href="https://github.com/jo/webcryptobox">webcryptobox</a>, written in an eerily similar style as the rest of simpatico.
+It is small, build-less, written with modern ES6 and quite legible.
 
-<h2>Exporting a derived symmetric key</h2>
-<p>
-  It turns out what we needed was the <a href="https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey">deriveKey</a> method.
-  However, I found a really good library, <a href="https://github.com/jo/webcryptobox">webcryptobox</a>, written in an eerily similar style as the rest of simpatico.
-  It is small, build-less, written with modern ES6 and quite legible.
-</p>
-
-<script type="module">
+```js
   // The excellent https://github.com/jo/webcryptobox
   import * as wcb from './webcryptobox.js';
-  import {assertEquals} from './core.js';
 
   const log = ('emit', 1) ? (await import('./core.js')).log : ()=>{};
 
@@ -195,14 +197,8 @@
   const decryptedText2 = wcb.encodeText(decryptedBox2);
 
   assertEquals(decryptedText, decryptedText2);
-
-</script>
-
-<h1>Discussion</h1>
-<p>
-  Why crypto?
-  Because you should encrypt all data at rest because of <a href="https://www.bleepingcomputer.com/news/security/google-finds-more-android-ios-zero-days-used-to-install-spyware/">exploits</a>.
-</p>
-
-</body>
-</html>
+```
+# Discussion
+Why crypto?
+Because you should encrypt all data at rest because of [exploits](https://www.bleepingcomputer.com/news/security/google-finds-more-android-ios-zero-days-used-to-install-spyware/).
+And because you should encrypt all data in transit because you shouldn't trust the service provider, either.

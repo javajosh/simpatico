@@ -1,13 +1,13 @@
 <!-- <!DOCTYPE html>
 <head>
-  <title>Simpatico: stree2()</title>
+  <title>Simpaticode: stree()</title>
   <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
         <rect width='1' height='1' fill='white' />
     </svg>"
   >
   <link rel="stylesheet" href="/style.css">
-  <link class="hljs" rel="stylesheet" href="/kata/highlight.github.css">
+  <link class="hljs" rel="stylesheet" href="/kata/highlight.github-dark.css">
   <script class="testable" src="testable.js" type="module"></script>
   <script class="hljs" type="module">
     import hljs from '/kata/highlight.min.js';
@@ -17,16 +17,17 @@
     d.addEventListener('DOMContentLoaded', () =>
       d.querySelectorAll('pre code').forEach(block =>
         hljs.highlightElement(block)));
+      // open all the details, too.
+      d.querySelectorAll('details').forEach(d => d.open = true);
   </script>
 </head>-->
 _________________________________________________________
-# Simpatico: stree2()
+# Simpaticode: stree()
 jbr 2023
 
 See:
 [home](/),
 [combine2](./combine2.md),
-[stree](./stree),
 [litmd](/lit.md),
 [audience](/audience.md)
 
