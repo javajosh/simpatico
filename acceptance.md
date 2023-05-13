@@ -40,7 +40,7 @@
         title="crypto"
         width="300"
         height="200"
-        src="/crypto.html">
+        src="/crypto.md">
 </iframe>
 <iframe id="friendly-frame"
         title="friendly"
