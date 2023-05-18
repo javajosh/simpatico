@@ -9,7 +9,7 @@ const dontExecuteHtml = '<!---';
 const dontExecuteCss = '/***';
 
 const markdownDefaultImports= `
-  import {assertEquals, assertThrows} from "/core.js";
+  import {assertEquals, assertThrows, is, as} from "/core.js";
   import {combine, assertHandler, logHandler} from "/combine2.js";
   import {stree} from "/stree2.js";
   const etc = []; // stupid, yes. but funny, [...etc]

@@ -21,7 +21,7 @@
 </head>-->
 
 # Simpatico: Literate Markdown
-See also [litmd online](https://simpatico.io/litmd.md), [reflector](/reflector.md)
+See also [litmd online](https://simpatico.io/litmd.md), [reflector](/reflector.md), [other literate programming tools](http://literateprogramming.com)
 
 [![Aperiodic tile with one tile](/img/aperiodic-tiling-one-shape.png)](https://arxiv.org/abs/2303.10798)
 
