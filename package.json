@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "chokidar": "^3.5.3",
+    "mermaid": "^10.1.0",
     "ws": "8.11.0"
   }
 }

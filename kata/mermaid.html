@@ -1,0 +1,41 @@
+<html>
+<head>
+  <title>Mermaid</title>
+</head>
+<body>
+<h1>Mermaid</h1>
+<p>See <a href="https://mermaid.js.org/intro/n00b-gettingStarted.html">Mermaid</a></p>
+<p>Cost: 18 requests, 160kb total. It also requires an <code>npm install</code></p>
+<p>the runtime cost can be mitigated if we do the processing in the reflector.</p>
+
+<p>Here is one mermaid diagram:</p>
+
+<pre class="mermaid">
+  graph RL
+  A[Client] --> B[Load Balancer]
+  B --> C[Server1]
+  B --> D[Server2]
+</pre>
+
+And here is another:
+<pre class="mermaid">
+  graph RL
+  A[Client] -->|tcp_123| B
+  B(Load Balancer)
+  B -->|tcp_456| C[Server1]
+  B -->|tcp_456| D[Server2]
+</pre>
+
+<p>Ordering:  The diagram is specified in order of access.
+But we render right-to-left "RL" to indicate the order in which we build things.
+The mental model is that things are coming in from the right and, at first, building up the foundational blocks, and then eventually reaches a steady state of no blocks and data only.</p>
+
+
+<script type="module">
+  // wget https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs
+  import mermaid from '/node_modules/mermaid/dist/mermaid.esm.min.mjs';
+  console.log('hello')
+  mermaid.initialize({ startOnLoad: true });
+</script>
+</body>
+</html>

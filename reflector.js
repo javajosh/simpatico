@@ -181,6 +181,7 @@ function fileServerLogic() {
   const mime = {
     "html": "text/html",
     "js"  : "application/javascript",
+    "mjs" : "application/javascript",
     "json": "application/json",
     "css" : "text/css",
     "svg" : "image/svg+xml",
