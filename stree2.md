@@ -118,24 +118,24 @@ const decHandler = {handle: () => [{a: -1}], call:()=>({handler: 'dec'})};
 const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}], call: a => ({handler: 'mul', factor: a})};
 
 // These are convenience methods for authoring; we're still just adding objects together.
-const as = assertHandler.call, log = logHandler.call;
+const has = assertHandler.call, log = logHandler.call;
 const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
 const ops = [
   assertHandler.install(),
-  logHandler.install(), as({debug: true, lastOutput: ''}),
+  logHandler.install(), has({debug: true, lastOutput: ''}),
   {handlers:{inc: incHandler, dec: decHandler, mul: mulHandler}},
-  {a: 10},as({a: 10}),
-  inc(),  as({a: 11}),
-  dec(),  as({a: 10}),
-  dec(),  as({a: 9}),
-  mul(5), as({a: 45}),
+  {a: 10},has({a: 10}),
+  inc(),  has({a: 11}),
+  dec(),  has({a: 10}),
+  dec(),  has({a: 9}),
+  mul(5), has({a: 45}),
   log('okay, lets backtack and start from an earlier node.'),
-  5,      as({a: 10}),
-  mul(2), as({a: 20}),
-  inc(),  as({a: 21}),
+  5,      has({a: 10}),
+  mul(2), has({a: 20}),
+  inc(),  has({a: 21}),
   log('now lets backtrack to node 10 and '),
-  10,     as({a: 9}),
-  mul(20),as({a: 180}),
+  10,     has({a: 9}),
+  mul(20),has({a: 180}),
 ]
 window.s = stree(ops);
 ```
@@ -290,15 +290,15 @@ const h1 = {handle: (core, msg) => [{a:1}], call: {handler: 'h1'}};
 const h2 = {handle: (core, msg) => [{a:2}], call: {handler: 'h2'}};
 const [a, b] = [h1.call, h2.call];
 
-const as = assertHandler.call, log = logHandler.call;
+const has = assertHandler.call, log = logHandler.call;
 const ops = [
   assertHandler.install(),
   logHandler.install(),
   {handlers: {h1, h2}, debug: DEBUG},
-  {a:0}, log('this is node 4'), as({a:0}), a, b,                  as({a:3}),
-  3 , log('row 1 parent 3'),    as({a:0}), b, b,                  as({a:4}),
-  3 , log('row 2 parent 3'),    as({a:0}), b, b, a, b, b, a, a,   as({a:11}),
-  11, log('row 3 parent 11'),   as({a:2}), a, a,                  as({a:4}),
+  {a:0}, log('this is node 4'), has({a:0}), a, b,                  has({a:3}),
+  3 , log('row 1 parent 3'),    has({a:0}), b, b,                  has({a:4}),
+  3 , log('row 2 parent 3'),    has({a:0}), b, b, a, b, b, a, a,   has({a:11}),
+  11, log('row 3 parent 11'),   has({a:2}), a, a,                  has({a:4}),
 ];
 const s = stree(ops);
 
@@ -306,7 +306,7 @@ const s = stree(ops);
 const moreOps = [{debug: true}, a, a, b, b, log('hello from moreOps, still row 3')];
 s.addAll(moreOps);
 s.add({a: null});
-s.add(as({a:0}));
+s.add(has({a:0}));
 assertEquals(3, s.currRowIndex);
 
 window.s = s;
