@@ -132,9 +132,7 @@ function headlessChromium {
   #     --disable-gpu \
   #    --remote-debugging-port=9222 \
   # Note that you must install the root ca from above in Chromium for ssl to work
-  chromium \
-    --headless \
-    https://simpatico.local:8443/
+  chromium --headless https://simpatico.local:8443/acceptance
 }
 
 function addSimpaticoUnitFile() {

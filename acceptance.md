@@ -142,17 +142,27 @@ See html source:
 ```
 
 ```js
+  const headless = /\bHeadlessChrome\//.test(navigator.userAgent);
+  let testCount = document.querySelectorAll("iframe").length;
+
   const svgIcon = fill => `data:image/svg+xml,
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
         <rect width='1' height='1' fill='${fill}' />
     </svg>`;
 
   // Here we interact with the iframes indirectly, by listening for events the iframes may emit.
-  window.addEventListener('test-failure', () => {
+// Communicate with the outside world if in headless chrome through the DOM.
+  window.addEventListener('test-failure', (e) => {
     favicon.href = svgIcon('red');
     document.body.style.backgroundColor = 'red';
+    if (headless){
+      document.body.innerText = JSON.stringify(e);
+    }
   })
   window.addEventListener('test-success', () => {
     favicon.href = svgIcon('green');
+    if (headless && (--testCount === 0)){
+      document.body.innerText = '';
+    }
   })
 ```
