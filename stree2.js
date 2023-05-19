@@ -44,7 +44,7 @@ function stree(
     const row = rows[rowi];
     return row.slice(0, coli + 1); // tricky: slice does not include the last elt!
   }
-
+  ops = Array.isArray(ops) ? ops : [ops];
   addAll(ops);
 
   //Add each op, and rethrow any errors including the index of the op
