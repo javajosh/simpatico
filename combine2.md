@@ -159,7 +159,7 @@ Before moving on its useful to define an "assertion handler":
       return [{}];
     },
   };
-  const as = assertHandlerDemo.call;
+  const has = assertHandlerDemo.call;
 
   //1. The long-winded way to use the assert handler:
   assertThrows(() => {
@@ -174,13 +174,13 @@ Before moving on its useful to define an "assertion handler":
   );
 
   // 2. the less brittle, shorter way to call the assert handler:
-  assertThrows(() => combine(assertHandler.install(), {a:1}, as({a:2})));
-  combine(assertHandler.install(), {a:1}, as({a:1}));
+  assertThrows(() => combine(assertHandler.install(), {a:1}, has({a:2})));
+  combine(assertHandler.install(), {a:1}, has({a:1}));
 
   // 3. A nice call and response pattern using the shorter form:
   combine(assertHandler.install(),
-    {a:1},     as({a:1}),
-    {c:'foo'}, as({c:'foo'}),
+    {a:1},     has({a:1}),
+    {c:'foo'}, has({c:'foo'}),
   );
 ```
 The object structure is primary - the rest of it is just window dressing.
@@ -189,7 +189,7 @@ but as a function object that can both be invoked and have properties added to i
 
 Here is a somewhat redundant example that I may remove in the future (although it does demonstrate using core values in the handler result):
 ```js
-  const as = assertHandler.call;
+  const has = assertHandler.call;
   const dbl = {
     call: () => ({handler: 'dbl'}),
     install: function(){ return {handlers: {dbl: this}, a: 0, b:0 } },
@@ -198,9 +198,9 @@ Here is a somewhat redundant example that I may remove in the future (although i
 
   const ops = [
     assertHandler.install(), dbl.install(),
-    {a:10, b:20}, as({a:10, b:20}),
-    dbl.call(), as({a:20,b:40}),
-    dbl.call(), as({a:40,b:80}),
+    {a:10, b:20}, has({a:10, b:20}),
+    dbl.call(), has({a:20,b:40}),
+    dbl.call(), has({a:40,b:80}),
     ...etc
   ];
   combine(ops);
@@ -233,15 +233,15 @@ const logHandlerDemo = {
 };
 
 // These handlers were imported by default by the litmd processor
-const as = assertHandler.call;
+const has = assertHandler.call;
 const log = logHandlerDemo.call;
 const ops = [
   assertHandler.install(),
   logHandlerDemo.install(),
-  as({debug: true, lastOutput: ''}),
-  {a:10, b:20},   log('prints the core'), as({lastOutput: 'prints the core'}),
-  {debug: false}, log('does not print'),  as({lastOutput: 'prints the core'}),
-  {debug: true},  log('prints again'),    as({lastOutput: 'prints again'}),
+  has({debug: true, lastOutput: ''}),
+  {a:10, b:20},   log('prints the core'), has({lastOutput: 'prints the core'}),
+  {debug: false}, log('does not print'),  has({lastOutput: 'prints the core'}),
+  {debug: true},  log('prints again'),    has({lastOutput: 'prints again'}),
   ...etc
 ];
 combine(ops);
@@ -251,18 +251,18 @@ _________________________________________________________
 ## Handlers replace each other
 Handlers replace, so we can overwrite the old handler and call it with the same message:
 ```js
-  const as = assertHandler.call;
+  const has = assertHandler.call;
   const inc1 = {handle: ()=>[{a:1},{b:2}] };
   const inc2 = {handle: ()=>[{a:-1},{b:-2}] }
   const msg = {handler: 'inc'}
 
   const ops = [
     assertHandler.install(), {handlers: {inc: inc1}},
-    {a:10, b:20}, as({a:10, b:20}),
-    msg,          as({a:11, b:22}), // The message increased residue
+    {a:10, b:20}, has({a:10, b:20}),
+    msg,          has({a:11, b:22}), // The message increased residue
     {handlers: {inc: inc2}},             // Replace inc1 with inc2 answering to the 'inc' msg
-    msg,          as({a:10, b:20}), // The message decreased residue
-    msg,          as({a:9, b:18}),
+    msg,          has({a:10, b:20}), // The message decreased residue
+    msg,          has({a:9, b:18}),
     ...etc
   ];
   combine(ops);
@@ -275,7 +275,7 @@ _________________________________________________________
 
 Functions replace, so we can overwrite the old handler and call it with the same message:
 ```js
-  const as = assertHandler.call;
+  const has = assertHandler.call;
   const h1 = {
     handle: ()=> [{handler: 'h2'},{a:1}],
     call:   ()=> ({handler: 'h1'}),
@@ -287,9 +287,9 @@ Functions replace, so we can overwrite the old handler and call it with the same
 
   const ops = [
     {handlers: {h1, h2, assert: assertHandler}},
-    {a:0, b:0}, as({a:0, b:0}),
-    h1.call(),  as({a:1, b:1}), // The only way that b increments is if h2 is called; hence h2 been called indirectly.
-    h1.call(),  as({a:2, b:2}),
+    {a:0, b:0}, has({a:0, b:0}),
+    h1.call(),  has({a:1, b:1}), // The only way that b increments is if h2 is called; hence h2 been called indirectly.
+    h1.call(),  has({a:2, b:2}),
     ...etc
   ];
   combine(ops);
