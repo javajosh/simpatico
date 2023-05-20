@@ -65,6 +65,10 @@ If your test suite is self-executing html pages, then including them as an
 <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a> and checking their color is enough.
 This technique is mapping over html resources with a "fresh" browser to produce a tab state.
 
+## Running the browser, running in a CLI
+The canonical way to run these tests is interactively in the browser.
+Run them from the command line using the [acceptance.js script](acceptance.js). (Requires chrome or chromium). Note that `acceptance.js` and `testable.js` are linked in that testable checks the runtime and modifies the DOM based on test success.
+
 Possibly interesting: [iframes in responsive layous](https://www.benmarshall.me/responsive-iframes/)
 
 
@@ -140,7 +144,7 @@ See html source:
     "mode": "cors"
   });
 ```
-
+This code combines the other test results into an overall "pass/fail" on *this* page:
 ```js
   const headless = /\bHeadlessChrome\//.test(navigator.userAgent);
   let testCount = document.querySelectorAll("iframe").length;
@@ -165,4 +169,30 @@ See html source:
       document.body.innerText = '';
     }
   })
+```
+
+Finally, the functional test runner script. Note that it checks the body innerHTML to determine success or failure (litmd note: this code is not executed in the browser because it is labelled as "node" and not "js"):
+
+```node
+import { exec } from 'child_process';
+
+const url = 'https://simpatico.local:8443/acceptance';
+const command = `chromium --headless --dump-dom --virtual-time-budget=2000 ${url} `;
+
+exec(command, (error, stdout, stderr) => {
+  if (error) {
+    console.error(`error: ${error},'stderror', ${stderr}`);
+  } else {
+    const content = extractBodyContent(stdout);
+    if (content !== null && content !== ''){
+      console.error('foo', content);
+    }
+  }
+});
+
+function extractBodyContent(html) {
+  const bodyRegex = /<body[^>]*>((.|[\n\r])*)<\/body>/im;
+  const match = bodyRegex.exec(html);
+  return match && match[1] ? match[1].trim() : null;
+}
 ```

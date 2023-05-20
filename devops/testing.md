@@ -16,7 +16,7 @@ This code is in [acceptance.js](acceptance.js), and run with `node acceptance.js
 
 TODO: check that the server is running.
 Get its configuration somehow.
-Run this as a pre commit hook (it runs in .5 seconds)
+Run this as a pre commit hook (it runs in .5 seconds  on my laptop)
 
 
 ```node
@@ -31,7 +31,7 @@ exec(command, (error, stdout, stderr) => {
   } else {
     const content = extractBodyContent(stdout);
     if (content !== null && content !== ''){
-      console.error('foo', content);
+      console.error('tests failed', content);
     }
   }
 });
