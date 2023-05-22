@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# To install
+# cp .githooks/pre-commit  .git/hooks
+# chmod +x .git/hooks/pre-commit
+
+# Check if node is installed
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node.js is required but it's not installed. Aborting commit."
+  exit 1
+fi
+
+# Now run your Node.js script
+node acceptance.js
+
+# Check the exit status of the script
+if [ $? -ne 0 ]; then
+  echo "Simpatico acceptance tests failed. Aborting commit."
+  exit 1
+fi
+
