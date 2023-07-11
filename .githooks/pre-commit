@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# To install
-# cp .githooks/pre-commit  .git/hooks
+# To install from project root
+# cp .githooks/pre-commit*  .git/hooks
 # chmod +x .git/hooks/pre-commit
 
 # Check if node is installed
@@ -11,7 +11,7 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 # Now run your Node.js script
-node acceptance.js
+./pre-commit.js
 
 # Check the exit status of the script
 if [ $? -ne 0 ]; then
