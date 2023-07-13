@@ -182,7 +182,7 @@ contacts.add({alias: 'bob', pubkey: 'bob-pubkey'}, 0);
 console.log(contacts);
 // We will also need connections.
 
-
+window.contacts = contacts;
 // There are a variety of handlers we may want to define, such as a send handler.
 // For now we'll handle it
 
