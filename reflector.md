@@ -139,7 +139,7 @@ const authoredFileContent = `
 <img src="image.png?###">
 <ascript src="script.js?###"></ascript>
 <ascript type="module">
-  import {foo} from './foo.js?###';
+  import {foo} from './pre-commit.js?###';
 </ascript>
 `;
 
@@ -150,7 +150,7 @@ const expectedInterpolated = `
 <img src="image.png?1234">
 <ascript src="script.js?1234"></ascript>
 <ascript type="module">
-  import {foo} from "./foo.js?1234";
+  import {foo} from "./pre-commit.js?1234";
 </ascript>
 
 `;
