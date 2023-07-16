@@ -96,10 +96,11 @@ function bindToPorts() {
   let httpsServer; //this ref used to connect the wss server
   const result = {http: 0, https: 0, ws: 0};
 
-  // Bind to legacy HTTP port
-  // Redirect all requests to HTTPS *except for letsencrypt*
+  // We always bind to http
+  // if we're using tls (the usual case), use redirect server logic
+  // if we're not using tls (in a debugging situation, perhaps), use file server logic
   try {
-    const httpLogic = config.useTls ? fileServerLogic(): httpRedirectServerLogic;
+    const httpLogic = config.useTls ?  httpRedirectServerLogic : fileServerLogic();
     const httpOptions = {
       keepAlive: 100,
       headersTimeout: 100
