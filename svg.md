@@ -699,7 +699,8 @@ svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
 
 When [SVG almost got raw sockets?!](https://leonidasv.com/til-svg-specs-almost-got-raw-socket-support/)
 
-https://martinheinz.github.io/physics-visual/
-https://gist.github.com/mbostock/3231298
-https://algs4.cs.princeton.edu/61event/CollisionSystem.java.html
-https://developer.ibm.com/tutorials/wa-build2dphysicsengine/
+  1. https://martinheinz.github.io/physics-visual/
+  1. https://gist.github.com/mbostock/3231298
+  1. https://algs4.cs.princeton.edu/61event/CollisionSystem.java.html
+  1. https://developer.ibm.com/tutorials/wa-build2dphysicsengine/
+  1. https://svgmix.com/
