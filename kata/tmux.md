@@ -1,5 +1,6 @@
 
 # Tmux
+ctrl+b s to list sessions.
 
 https://superuser.com/questions/209437/how-do-i-scroll-in-tmux
 `ctrl+b [` to scroll up.
