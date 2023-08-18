@@ -318,11 +318,28 @@ const tree3 = stree3(str);
 assertEquals(10, peek(tree3.nodes).value.foo.bar());
 ```
 
-## Step 5: [TODO] Validation
-We want a residue that describes the next valid input for that row.
-This is a pattern, that undergoes collapse by the caller.
-An input is compared to the pattern and is invalid, in general.
-The result should NOT be an addition to the stree, but rather an updated residue describing the problem.
+## Step 5: Application Structure
+Let us assume that `stree3()` is tightly coupled to `combine()` and the reduction is over objects.
+Three kinds of objects are possible: *free-form data objects*, *types*, and *instances*.
+Free-form objects are constructed as above using the rules of `combine()` but without handlers.
+*Types* are objects that have a `handlers` object with a set of named `handler`-shaped objects within it.
+Instances are descendants of types composed entirely of `messages`.
+In general, only the ROLE "programmer" authors and adds to `handlers` to form a type.
+The programmer may create *instances* to test the type.
+An instance is characterized as a residue plus the handlers that mutate it.
+Direct mutation of the instance is disallowed.
+The ROLE "user" invokes a handler using a `message`.
+Handlers may invoke each other in a "message cascade".
+One characterization of a handler is as a function that takes an instance and returns a pattern.
+A pattern describes the largest possibly valid set of input to the handler.
+A user interacts with the pattern to produce a (possibly incomplete) concrete message in a process called 'collapse'.
+Incomplete collapse can be repeated until completion.
+Messages are not added to the instance until collapse is completed.
+(Concern: if messages are not added until complete collapse, we may lose information about error modes.)
+(Concern: the elements of a message cascade are unified and added as one object. This may lose information about individual handler invocations. But it saves a great deal of space.)
+
+The motivation is that the instance specifies it's valid input upfront, and becomes a *friendly function*.
+Adding `messages` to instances, generating a new pattern, collapsing that pattern for a new message, and occasionally creating new `instances`, is the *Simpatico steady-state application loop*.
 
 ```text
 Notes
