@@ -199,9 +199,10 @@ assertEquals({a:7}, tree.branches.map(node=>node.value).reduce(combineReducer));
 
 # Step 4: Serialization
 Make stree a reducer over an array of ordered pairs, `(value, parent)`.
-We add OPERATION `toArray()` and private OPERATION `fromArray()` and modify the constructor to accept arrays.
+We add OPERATION `toArray()` and private OPERATION `fromArray()` and modify the constructor to accept an array.
+We add OPERATION `toString()` and private OPERATION `fromString()` and modify the constructor to accept a string.
 This requires that the values be serializable and concrete.
-In practical terms, only `functions` need support.
+In practical terms, only `functions` need special serialization support, from [core](./core.html).
 This contract prohibits the `value`s themselves from being arrays.
 It also prevents them from being strings.
 
@@ -315,13 +316,16 @@ const str = tree2.toString();
 assertEquals(true, typeof str === 'string');
 const tree3 = stree3(str);
 assertEquals(10, peek(tree3.nodes).value.foo.bar());
-
 ```
-## Step 5: Validation
+
+## Step 5: [TODO] Validation
 We want a residue that describes the next valid input for that row.
 This is a pattern, that undergoes collapse by the caller.
 An input is compared to the pattern and is invalid, in general.
 The result should NOT be an addition to the stree, but rather an updated residue describing the problem.
+
+```text
+Notes
 
 ### General data-structure
 Build up a general data-structure as above.
@@ -339,3 +343,5 @@ Types can also have versions such that some instances are rooted at a specific n
 Branches are also called rows.
 Rows can be referenced by number (an index in the branches array).
 One can also build a way to reference by name, but that's an exercise for the reader.
+```
+
