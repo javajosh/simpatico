@@ -39,7 +39,7 @@ With stree3 I'm taking a page from [Introduction to Algorithms](https://en.wikip
 This is useful when the number of operations and constraints grow and need to all be revisited on each design iteration.
 A thoughtful reader may note that this document itself is iterative and cumulative, like a branch of an stree.
 
-# Step 1: An N-arry tree with residue-per-node
+# Step 1: An N-ary tree with residue-per-node
 Start with a simple n-arry tree.
 Primary OPERATION is `add(value, parent)`.
 private OPERATION `nodePath(node)`.
@@ -607,7 +607,7 @@ function stree3(value, reducer = combineReducer) {
   return {add, nodePath, residue, toArray, toString, branches, nodes, root};
 }
 
-// as before
+// tests as before
 const tree = stree3({a: 0});
 assertEquals({value: {a: 0}, parent: null}, tree.root);
 const node1 = tree.add({a: 1});
@@ -620,26 +620,52 @@ assertEquals({a: 5}, tree.residue());
 assertEquals(2, tree.branches.length);
 assertEquals({a: 6}, tree.residue(tree.branches[0]));
 assertEquals({a: 7}, tree.branches.map(node => node.value).reduce(combineReducer));
-
-// check that the tree is serializing correctly
 const expectedArray = [{a: 0}, {a: 1}, {a: 2}, {a: 3}, 1, {a: 4}];
 const actualArray = tree.toArray();
 assertEquals(expectedArray, actualArray);
-
-// check that we can reconstitute the tree correctly
 const tree2 = stree3(actualArray);
 assertEquals({a: 5}, tree2.residue());
 assertEquals(2, tree2.branches.length);
 assertEquals({a: 6}, tree2.residue(tree2.branches[0]));
 assertEquals({a: 7}, tree2.branches.map(node => node.value).reduce(combineReducer));
-
-// Test deep function de/serialization
 tree2.add({foo: {bar: a=>10}});
 assertEquals(10, peek(tree2.nodes).value.foo.bar());
 const str = tree2.toString();
 assertEquals(true, typeof str === 'string');
 const tree3 = stree3(str);
 assertEquals(10, peek(tree3.nodes).value.foo.bar());
+
+// =======================================
+// taken from stree2 - this all executes correctly without change!
+const incHandler = {handle: () => [{a: 1}], call:()=>({handler: 'inc'})};
+const decHandler = {handle: () => [{a: -1}], call:()=>({handler: 'dec'})};
+const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}], call: a => ({handler: 'mul', factor: a})};
+
+// These are convenience methods for authoring; we're still just adding objects together.
+// note that assertHandler and logHandler are auto-imported from combine2. however they are small and inlinable.
+const has = assertHandler.call, log = logHandler.call;
+const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
+const ops = [
+  assertHandler.install(),
+  logHandler.install(), has({debug: true, lastOutput: ''}),
+  {handlers:{inc: incHandler, dec: decHandler, mul: mulHandler}},
+  {a: 10},has({a: 10}),
+  inc(),  has({a: 11}),
+  dec(),  has({a: 10}),
+  dec(),  has({a: 9}),
+  mul(5), has({a: 45}),
+  log('okay, lets backtack and start from an earlier node.'),
+  5,      has({a: 10}),
+  mul(2), has({a: 20}),
+  inc(),  has({a: 21}),
+  log('now lets backtrack to node 10 and '),
+  10,     has({a: 9}),
+  mul(20),has({a: 180}),
+];
+// executed for side-effects only.
+// to interact with it, assign the output to window.stree or simiar.
+stree3(ops);
+
 ```
 
 
