@@ -30,33 +30,69 @@ _____________________________________
 
 See [home](/), [combine](/combine),  [stree](/stree.md), [stree2](/stree2.md)
 
-# Step 1: An N-arry tree with reduce
+# Intro
+This is my third time implementing an stree.
+Each attempt has had some good and bad.
+The first attempt was a simple n-arry tree, but was missing features
+The second attempt was strong on authoring, but was complex and failed in some corner cases.
+With stree3 I'm taking a page from [Introduction to Algorithms](https://en.wikipedia.org/wiki/Introduction_to_Algorithms) and using a more formal, terse specification.
+This is useful when the number of operations and constraints grow and need to all be revisited on each design iteration.
+A thoughtful reader may note that this document itself is iterative and cumulative, like a branch of an stree.
+
+# Step 1: An N-arry tree with residue-per-node
 Start with a simple n-arry tree.
 Primary OPERATION is `add(value, parent)`.
-Then define OPERATION `residue(node, reducer)`.
+private OPERATION `nodePath(node)`.
+OPERATION `residue(node, reducer)`.
 Hardcoded attributes are 'value' and 'parent'.
-Root is defined by the node that does not have parent defined.
-For the tests, we use explicit "static" variables to refer to nodes, use integer values, and an explicit reducer that is "sum":
+Root is defined by a falsey `parent` - either missing (the usual case), `null`, 0 or `false`. (Other options exist, like `parent` missing, or `parent` equal to -1)
+For the tests, we use explicit "static" variables to refer to nodes, use integer values, and an explicit reducer that is "sum".
+(Concern: perhaps a better way to define root is to check for strict equality with a canonical root reference. Instead of if(node.parent) we do if(node.parent === root))
 
 ```js
-// simply wrap the values in a new object
+
+const root = {value: 0};
+/**
+ * Add a value to an n-arry tree. Return the node that wraps these parameters.
+ *
+ * @param value The value associated with the node.
+ * @param parent The node considered as a parent. For the root node, can be null or even missing
+ * @returns {{parent, value}}
+ */
 function add(value, parent){
     return {value, parent};
 }
 
-// walk up to parent, reverse, map and reduce over values.
-function residue(node, reduce){
-  let nodes = [node];
-  while (node.hasOwnProperty('parent')) {
-    nodes.push(node.parent);
+/**
+ * The array of all nodes from the specified node up to root.
+ *
+ * @param node The node to start with
+ * @returns {*[]} An array of nodes between `node` and root, inclusive
+ */
+function nodePath(node){
+  const path = [node];
+  while (node.parent) {
+    path.push(node.parent);
     node = node.parent;
   }
-  return nodes.map(node => node.value).reduceRight(reduce);
+  return path;
 }
 
-//tests over integers
-const sum = (a,b)=>a+b;
-const root = {value: 0};
+/**
+ * Compute the residue associated with the node.
+ *
+ * @param node
+ * @param reduce
+ * @returns {*}
+ */
+function residue(node, reduce){
+  // reduceRight effectively reverses the nodePath to start at root and end at the node
+  return nodePath(node).map(node => node.value).reduceRight(reduce);
+}
+
+//test over some integers
+const sum = (a,b) => a+b;
+
 const node1 = add(1, root);
 const node2 = add(2, node1);
 const node3 = add(3, node2);
@@ -66,6 +102,7 @@ assertEquals(6, residue(node3, sum));
 const node2a = add(4, node1);
 assertEquals(5, residue(node2a, sum));
 ```
+
 # Step 2: Add branches
 
 Now lets add support for OPERATION `branches()`.
@@ -76,12 +113,24 @@ Otherwise we add `node` to `branches`.
 To keep this state local, we wrap the operations in another function, called `stree3`:
 
 ```js
-function stree3(root, reducer) {
+
+function stree3(rootValue, reducer = combineReducer) {
+  const root = {value: rootValue};
   // initialize branches array containing only root
   const branches = [root];
+  // keep track of the last node added.
   let lastNode = root;
 
-  function add(value, parent=lastNode) {
+  /**
+   * Add a value to an n-arry tree.
+   * Return the node that wraps these parameters.
+   * Updates both branches[] and lastNode
+   *
+   * @param value The value associated with the node. Set to lastNode for future calls.
+   * @param parent The node considered as a parent. Can be null for root.
+   * @returns {{parent, value}}
+   */
+  function add(value, parent = lastNode) {
     const node = {value, parent};
     // update branches array
     const parentIndex = branches.indexOf(parent);
@@ -90,136 +139,106 @@ function stree3(root, reducer) {
     } else {
         branches[parentIndex] = node;
     }
+    // update other state
     lastNode = node;
+
     return node;
   }
 
-  // unchanged from above definition
-  function residue(node=lastNode, reduce=reducer) {
-    let nodes = [node];
-    while (node.hasOwnProperty('parent')) {
-      nodes.push(node.parent);
+  // add `lastNode` as the default parameter value.
+  function nodePath(node = lastNode){
+    const path = [node];
+    while (node !== root) {
+      path.push(node.parent);
       node = node.parent;
     }
-    return nodes.map(node => node.value).reduceRight(reduce);
+    return path;
   }
-  // needed to expose operations
-  return {add, residue, branches};
+  // add `lastNode` as the default parameter value.
+  function residue(node = lastNode, reduce = reducer){
+    return nodePath(node).map(node => node.value).reduceRight(reduce);
+  }
+
+  return {add, residue, root, branches};
 }
 
-// tests with branches
+// =============================================================================
+// tests branches with sum
 // define our test reducer
-const sum = (a,b)=>a+b;
-// define our test root
-const root = {value: 0};
-// create a new stree
-const tree = stree3(root, sum);
+const sum = (a,b) => a+b;
+const tree = stree3(0, sum);
+assertEquals({value:0}, tree.root);
 // keep a reference to only this node to use as a parent later
 const node1 = tree.add(1);
 tree.add(2);
 tree.add(3);
 assertEquals(6, tree.residue());
 assertEquals(1, tree.branches.length);
-
 // create a second child to node1
 tree.add(4, node1);
 assertEquals(5, tree.residue());
 assertEquals(2, tree.branches.length);
-
 // reduce over branches
 assertEquals(7, tree.branches.map(node=>node.value).reduce(sum));
-```
 
-# Step 3: make it work with combineReducer
-At this point we have something we can use with `combineReducer()` as the reducer.
-(Concern exposing `branches` directly and forcing the user to reduce manually.)
-(Concern that we need `combineReducer()` rather than just `combine()`)
-```js
-function stree3(value, reducer = combineReducer) {
-  const root = {value};
-  const branches = [root];
-  let lastNode = root;
-
-  function add(value, parent=lastNode) {
-    const node = {value, parent};
-    // if parent in branches, replace it. otherwise add the node as a new branch
-    const parentIndex = branches.indexOf(parent);
-    if (parentIndex === -1){
-        branches.push(node);
-    } else {
-        branches[parentIndex] = node;
-    }
-    // update lastNode and return it.
-    lastNode = node;
-    return node;
-  }
-
-  // Return a node path from root to the specified node
-  function nodes(node=lastNode) {
-    let nodes = [node];
-    while (node.hasOwnProperty('parent')) {
-      nodes.push(node.parent);
-      node = node.parent;
-    }
-    return nodes.reverse();
-  }
-  // Return the reduction of all nodes from root to specified node
-  function residue(node = lastNode){
-      return nodes(node).map(n => n.value).reduce(reducer, value);
-  }
-
-  // needed to expose operations
-  return {add, nodes, residue, branches, root};
-}
-
-// create a new stree
-const tree = stree3({a:0});
-assertEquals({value:{a:0}},tree.root);
-
+// =============================================================================
+// test branches with combineReducer
+const tree2 = stree3({a:0});
+assertEquals({value:{a:0}}, tree2.root);
 // keep a reference to this node to use as a parent later
-const node1 = tree.add({a:1});
-tree.add({a:2});
-tree.add({a:3});
+// use n1 instead of node1 to avoid name collision with above test
+const n1 = tree2.add({a:1});
+tree2.add({a:2});
+tree2.add({a:3});
 // assert 1 + 2 + 3 = 6 and only 1 branch
-assertEquals({a:6}, tree.residue());
-assertEquals(1, tree.branches.length);
-
+assertEquals({a:6}, tree2.residue());
+assertEquals(1, tree2.branches.length);
 // create a second child to node1
-tree.add({a:4}, node1);
+tree2.add({a:4}, n1);
 // assert 1 + 4 = 5 and 2 branches
-assertEquals({a:5}, tree.residue());
-assertEquals(2, tree.branches.length);
-
+assertEquals({a:5}, tree2.residue());
+assertEquals(2, tree2.branches.length);
 // assert that the prior residue is still reachable
-assertEquals({a:6}, tree.residue(tree.branches[0]));
-
+assertEquals({a:6}, tree2.residue(tree2.branches[0]));
 // reduce over branches
-assertEquals({a:7}, tree.branches.map(node=>node.value).reduce(combineReducer));
+assertEquals({a:7}, tree2.branches.map(node=>node.value).reduce(combineReducer));
 ```
 
-# Step 4: Serialization
-Make stree a reducer over an array of ordered pairs, `(value, parent)`.
-We add OPERATION `toArray()` and private OPERATION `fromArray()` and modify the constructor to accept an array.
-We add OPERATION `toString()` and private OPERATION `fromString()` and modify the constructor to accept a string.
+# Step 3: Serialization
+Make stree a reducer over an array of ordered pairs, `[[value, parent]]` where parent is replaced by its node index.
+  * We add OPERATION `toArray()` and private OPERATION `fromArray()` and modify the constructor to accept an array.
+  * We add OPERATION `toString()` and private OPERATION `fromString()` and modify the constructor to accept a string.
+
 This requires that the values be serializable and concrete.
 In practical terms, only `functions` need special serialization support, from [core](./core.html).
-This contract prohibits the `value`s themselves from being arrays.
-It also prevents them from being strings.
+This contract prohibits the `value`s themselves from being arrays or strings.
 
-(Concern: parsing functions means evaling code. Must be careful especially with code from elsewhere.)
-(Concern: preventing arrays is fine, but strings would all for a nice trie data structure.)
+  * Concern: parsing functions means evaling code. Must be careful especially with code from elsewhere.
+  * Concern: preventing arrays is fine, but strings would all for a nice `trie` data structure.
+  * Concern: it's convenient to serialize root `parent` as `null`. But I don't like nulls.
+  * Concern: the `reducer` param on `fromArray()` etc may be vestigial at this point. It would be nice to add this to the string representation somehow, if possible. But `combine()` is a very long function, with dependencies, and difficult to serialize.
+  * Concern: we can serialize functions, but not their dependencies. this puts a hard limit on what you can do in handler functions
 
 ```js
 import {stringifyWithFunctions, parseWithFunctions, peek} from "./core.js";
 
+/**
+ * A serializable n-arry tree with a well defined reduction defined on all nodes.
+ *
+ * @param value if an array or string, reconstitute stree from contents. if other, use as root.
+ * @param reducer reducer used to compute the residue of a node. default is combineReducer
+ * @returns {[]|string|*}
+ */
 function stree3(value, reducer = combineReducer) {
+  // Check for intitial value of array or string as a special case
   if (Array.isArray(value)) {
     return fromArray(value, reducer);
   }
   if (typeof value === 'string'){
-      return fromString(value, reducer);
+    return fromString(value, reducer);
   }
 
+  // Intitial value is not an array or string, so proceed normally
   const root = {value, parent: null};
   const branches = [root];
   const nodes = [root];
@@ -227,23 +246,19 @@ function stree3(value, reducer = combineReducer) {
 
   function add(value, parent = lastNode) {
     const node = {value, parent};
-    // if parent in branches, replace it. otherwise add the node as a new branch
     const parentIndex = branches.indexOf(parent);
     if (parentIndex === -1) {
       branches.push(node);
     } else {
       branches[parentIndex] = node;
     }
-    // update lastNode and return it.
     lastNode = node;
     nodes.push(node);
     return node;
   }
 
-  // Return a node path from root to the specified node
   function nodePath(node = lastNode) {
     let nodePath = [node];
-    // We now define a parent on root, but the value is -1
     while (node.parent) {
       nodePath.push(node.parent);
       node = node.parent;
@@ -251,16 +266,30 @@ function stree3(value, reducer = combineReducer) {
     return nodePath.reverse();
   }
 
-  // Return the reduction of all nodePath from root to specified node
   function residue(node = lastNode) {
     return nodePath(node).map(n => n.value).reduce(reducer, value);
   }
 
-
+  /**
+   * Return a representation of the n-arry tree as [value, parentIndex].
+   * The inverse of fromArray()
+   * Example: [[{a: 0}, null], [{a: 1}, 0], [{a: 2}, 1], [{a: 3}, 2], [{a: 4}, 1]];
+   *
+   * @returns {[{}, (null|number)][]}
+   */
   function toArray() {
-    return nodes.map(n => [n.value, n.parent === null ? -1 : nodes.indexOf(n.parent)]);
+    return nodes.map(n => [n.value, n.parent === null ? null : nodes.indexOf(n.parent)]);
   }
 
+  /**
+   * Produce an stree from the given array.
+   * The inverse of toArray().
+   * private
+   *
+   * @param arr
+   * @param reducer
+   * @returns a new stree
+   */
   function fromArray(arr, reducer) {
     const result = stree3(arr[0][0], reducer);
     for (var i = 1; i < arr.length; i++) {
@@ -271,15 +300,29 @@ function stree3(value, reducer = combineReducer) {
     return result;
   }
 
+  /**
+   * inverse is fromString().
+   *
+   * @returns {string} a string representation of the stree, including functions.
+   */
   function toString() {
       return stringifyWithFunctions(toArray());
   }
+
+  /**
+   * Reconstitute the stree from a string representation.
+   * inverse is toString().
+   * private.
+   *
+   * @param str
+   * @param reducer
+   * @returns stree
+   */
   function fromString(str, reducer){
       return fromArray(parseWithFunctions(str), reducer);
   }
 
-
-  // needed to expose operations
+  // expose toArray and toString
   return {add, nodePath, residue, toArray, toString, branches, nodes, root};
 }
 
@@ -298,7 +341,7 @@ assertEquals({a: 6}, tree.residue(tree.branches[0]));
 assertEquals({a: 7}, tree.branches.map(node => node.value).reduce(combineReducer));
 
 // check that the tree is serializing correctly
-const expectedArray = [[{a: 0}, -1], [{a: 1}, 0], [{a: 2}, 1], [{a: 3}, 2], [{a: 4}, 1]];
+const expectedArray = [[{a: 0}, null], [{a: 1}, 0], [{a: 2}, 1], [{a: 3}, 2], [{a: 4}, 1]];
 const actualArray = tree.toArray();
 assertEquals(expectedArray, actualArray);
 
@@ -318,7 +361,294 @@ const tree3 = stree3(str);
 assertEquals(10, peek(tree3.nodes).value.foo.bar());
 ```
 
-## Step 5: Application Structure
+# Step 4: Authoring
+Make the serialization format more authorable.
+Rather than store an array of arrays, we serialize using a flat array of integers interspersed with values.
+This method is used in [stree2](./stree2) to good effect.
+It is not just easier to author, but also saves space and parsing time.
+Despite being a relatively trivial change to `fromArray` and `toArray`, it's important enough to get a discrete step, as a nod to Ken Iverson's excellent 1979 lecture [Notation as a tool of thought](https://www.eecg.toronto.edu/~jzhu/csc326/readings/iverson.pdf)
+
+```js
+import {stringifyWithFunctions, parseWithFunctions, peek} from "./core.js";
+
+function stree3(value, reducer = combineReducer) {
+  if (Array.isArray(value)) {
+    return fromArray(value, reducer);
+  }
+  if (typeof value === 'string'){
+    return fromString(value, reducer);
+  }
+  const root = {value, parent: null};
+  const branches = [root];
+  const nodes = [root];
+  let lastNode = root;
+
+  function add(value, parent = lastNode) {
+    const node = {value, parent};
+    const parentIndex = branches.indexOf(parent);
+    if (parentIndex === -1) {
+      branches.push(node);
+    } else {
+      branches[parentIndex] = node;
+    }
+    lastNode = node;
+    nodes.push(node);
+    return node;
+  }
+
+  function nodePath(node = lastNode) {
+    let nodePath = [node];
+    while (node.parent) {
+      nodePath.push(node.parent);
+      node = node.parent;
+    }
+    return nodePath.reverse();
+  }
+
+  function residue(node = lastNode) {
+    return nodePath(node).map(n => n.value).reduce(reducer, value);
+  }
+
+  /**
+   * Return a representation of the n-arry tree as [{}, {}, 0, {}, {}].
+   * The objects are values, and the integers parent node indexes.
+   *
+   * The inverse of fromArray()
+   * Example: [{a: 0}, {a: 1}, {a: 2}, {a: 3}, 1, {a: 4}];
+   *
+   * @returns {[{}|number]}
+   */
+  function toArray() {
+    const arr = [root.value];
+    let prevNode = root;
+    let currNode = root;
+    for (let i = 1; i < nodes.length; i++) {
+      currNode = nodes[i];
+      if (currNode.parent !== prevNode){
+        arr.push(nodes.indexOf(currNode.parent))
+      }
+      arr.push(currNode.value);
+      prevNode = currNode;
+    }
+    return arr;
+  }
+
+  /**
+   * Produce an stree from the given array.
+   * The inverse of toArray().
+   * private
+   *
+   * @param arr where number types are treated as parent node index.
+   * @param reducer
+   * @returns a new stree
+   */
+  function fromArray(arr, reducer) {
+    const stree = stree3(arr[0], reducer);
+    let value, parent;
+    for (var i = 1; i < arr.length; i++) {
+      value = arr[i];
+      if (typeof value === 'number'){
+        parent = stree.nodes[value];
+        value = arr[++i]; // note the index skip
+        stree.add(value, parent);
+      } else {
+        stree.add(value);
+      }
+    }
+    return stree;
+  }
+
+  function toString() {
+      return stringifyWithFunctions(toArray());
+  }
+
+  function fromString(str, reducer){
+      return fromArray(parseWithFunctions(str), reducer);
+  }
+
+  return {add, nodePath, residue, toArray, toString, branches, nodes, root};
+}
+
+// as before
+const tree = stree3({a: 0});
+assertEquals({value: {a: 0}, parent: null}, tree.root);
+const node1 = tree.add({a: 1});
+tree.add({a: 2});
+tree.add({a: 3});
+assertEquals({a: 6}, tree.residue());
+assertEquals(1, tree.branches.length);
+tree.add({a: 4}, node1);
+assertEquals({a: 5}, tree.residue());
+assertEquals(2, tree.branches.length);
+assertEquals({a: 6}, tree.residue(tree.branches[0]));
+assertEquals({a: 7}, tree.branches.map(node => node.value).reduce(combineReducer));
+
+// check that the tree is serializing correctly
+const expectedArray = [{a: 0}, {a: 1}, {a: 2}, {a: 3}, 1, {a: 4}];
+const actualArray = tree.toArray();
+assertEquals(expectedArray, actualArray);
+
+// check that we can reconstitute the tree correctly
+const tree2 = stree3(actualArray);
+assertEquals({a: 5}, tree2.residue());
+assertEquals(2, tree2.branches.length);
+assertEquals({a: 6}, tree2.residue(tree2.branches[0]));
+assertEquals({a: 7}, tree2.branches.map(node => node.value).reduce(combineReducer));
+
+// Test deep function de/serialization
+tree2.add({foo: {bar: a=>10}});
+assertEquals(10, peek(tree2.nodes).value.foo.bar());
+const str = tree2.toString();
+assertEquals(true, typeof str === 'string');
+const tree3 = stree3(str);
+assertEquals(10, peek(tree3.nodes).value.foo.bar());
+```
+
+# Step 5: Optimizing branch residue()
+We can make residue O(1) for branches with caching.
+Rather than recomputing the entire reduction from root every time, we cache the last residue and reduce that residue plus the new input.
+  * Concern: There may be cases where you don't want this, and the canonical definition of residue doesn't require this. maybe put behind a flag default to true.
+  * Concern: residues are NOT serialized, and will all need to be recomputed on deserialization (which happens naturally).
+  * Concern: I don't like maintaining parallel arrays like branches and branchResidues. One alternative is to add a special node to every branch of the n-arry tree and store the branchResidue there. That has some conceptual niceness, as that node moves along leaving behind valid input. OTOH you now have inhomogenous nodes in the tree.
+
+```js
+import {stringifyWithFunctions, parseWithFunctions, peek} from "./core.js";
+
+function stree3(value, reducer = combineReducer) {
+  if (Array.isArray(value)) {
+    return fromArray(value, reducer);
+  }
+  if (typeof value === 'string'){
+    return fromString(value, reducer);
+  }
+  const root = {value, parent: null};
+  const branches = [root];
+  const nodes = [root];
+  let lastNode = root;
+  // initialize the branchResidue cache
+  const branchResidues = [root.value];
+
+  function add(value, parent = lastNode) {
+    const node = {value, parent};
+    const parentIndex = branches.indexOf(parent);
+    if (parentIndex === -1) {
+      // add a new residue first so that residue isn't tricked into using the residue cache
+      branchResidues.push(residue(node));
+      branches.push(node);
+    } else {
+      branches[parentIndex] = node;
+      // update the old residue - this operation is much cheaper
+      branchResidues[parentIndex] = reducer(branchResidues[parentIndex], value);
+    }
+    lastNode = node;
+    nodes.push(node);
+    return node;
+  }
+
+  function nodePath(node = lastNode) {
+    let nodePath = [node];
+    while (node.parent) {
+      nodePath.push(node.parent);
+      node = node.parent;
+    }
+    return nodePath.reverse();
+  }
+
+  function residue(node = lastNode) {
+    // check if the node is a branch, and if so return the cached residue rather than recomputing it.
+    const residueIndex = branches.indexOf(node);
+    if (residueIndex === -1){
+      return nodePath(node).map(n => n.value).reduce(reducer, value);
+    } else {
+        return branchResidues[residueIndex];
+    }
+
+  }
+
+  function toArray() {
+    const arr = [root.value];
+    let prevNode = root;
+    let currNode = root;
+    for (let i = 1; i < nodes.length; i++) {
+      currNode = nodes[i];
+      if (currNode.parent !== prevNode){
+        arr.push(nodes.indexOf(currNode.parent))
+      }
+      arr.push(currNode.value);
+      prevNode = currNode;
+    }
+    return arr;
+  }
+
+  function fromArray(arr, reducer) {
+    const stree = stree3(arr[0], reducer);
+    let value, parent;
+    for (var i = 1; i < arr.length; i++) {
+      value = arr[i];
+      if (typeof value === 'number'){
+        parent = stree.nodes[value];
+        value = arr[++i]; // note the index skip
+        stree.add(value, parent);
+      } else {
+        stree.add(value);
+      }
+    }
+    return stree;
+  }
+
+  function toString() {
+      return stringifyWithFunctions(toArray());
+  }
+
+  function fromString(str, reducer){
+      return fromArray(parseWithFunctions(str), reducer);
+  }
+
+  return {add, nodePath, residue, toArray, toString, branches, nodes, root};
+}
+
+// as before
+const tree = stree3({a: 0});
+assertEquals({value: {a: 0}, parent: null}, tree.root);
+const node1 = tree.add({a: 1});
+tree.add({a: 2});
+tree.add({a: 3});
+assertEquals({a: 6}, tree.residue());
+assertEquals(1, tree.branches.length);
+tree.add({a: 4}, node1);
+assertEquals({a: 5}, tree.residue());
+assertEquals(2, tree.branches.length);
+assertEquals({a: 6}, tree.residue(tree.branches[0]));
+assertEquals({a: 7}, tree.branches.map(node => node.value).reduce(combineReducer));
+
+// check that the tree is serializing correctly
+const expectedArray = [{a: 0}, {a: 1}, {a: 2}, {a: 3}, 1, {a: 4}];
+const actualArray = tree.toArray();
+assertEquals(expectedArray, actualArray);
+
+// check that we can reconstitute the tree correctly
+const tree2 = stree3(actualArray);
+assertEquals({a: 5}, tree2.residue());
+assertEquals(2, tree2.branches.length);
+assertEquals({a: 6}, tree2.residue(tree2.branches[0]));
+assertEquals({a: 7}, tree2.branches.map(node => node.value).reduce(combineReducer));
+
+// Test deep function de/serialization
+tree2.add({foo: {bar: a=>10}});
+assertEquals(10, peek(tree2.nodes).value.foo.bar());
+const str = tree2.toString();
+assertEquals(true, typeof str === 'string');
+const tree3 = stree3(str);
+assertEquals(10, peek(tree3.nodes).value.foo.bar());
+```
+
+
+## Step 6: Simple types
+
+
+Note: the majority of heavy-lifting here is done by `combine()`.
+The `stree` needs to deal with branching and input that combine finds invalid.
+
 Let us assume that `stree3()` is tightly coupled to `combine()` and the reduction is over objects.
 Three kinds of objects are possible: *free-form data objects*, *types*, and *instances*.
 Free-form objects are constructed as above using the rules of `combine()` but without handlers.
@@ -335,8 +665,8 @@ A pattern describes the largest possibly valid set of input to the handler.
 A user interacts with the pattern to produce a (possibly incomplete) concrete message in a process called 'collapse'.
 Incomplete collapse can be repeated until completion.
 Messages are not added to the instance until collapse is completed.
-(Concern: if messages are not added until complete collapse, we may lose information about error modes.)
-(Concern: the elements of a message cascade are unified and added as one object. This may lose information about individual handler invocations. But it saves a great deal of space.)
+   * Concern: if messages are not added until complete collapse, we may lose information about error modes.
+   * Concern: the elements of a message cascade are unified and added as one object. This may lose information about individual handler invocations. But it saves a great deal of space.
 
 The motivation is that the instance specifies it's valid input upfront, and becomes a *friendly function*.
 Adding `messages` to instances, generating a new pattern, collapsing that pattern for a new message, and occasionally creating new `instances`, is the *Simpatico steady-state application loop*.
