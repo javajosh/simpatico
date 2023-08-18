@@ -144,13 +144,13 @@ const authoredFileContent = `
 `;
 
 const expectedInterpolated = `
-<link rel="stylesheet" href="style1.css?1234">
-<link rel="stylesheet" href="style2.css?1234">
+<link rel="stylesheet" href="style1.css?123456789">
+<link rel="stylesheet" href="style2.css?123456789">
 <link rel="stylesheet" href='style3.css'>
-<img src="image.png?1234">
-<ascript src="script.js?1234"></ascript>
+<img src="image.png?123456789">
+<ascript src="script.js?123456789"></ascript>
 <ascript type="module">
-  import {foo} from "./pre-commit.js?1234";
+  import {foo} from "./pre-commit.js?123456789";
 </ascript>
 
 `;

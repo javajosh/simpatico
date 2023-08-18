@@ -145,9 +145,9 @@ window.s = stree(ops);
 At the end of the day all the elements in this array are either objects or integers.
 This example is equivalent to the previous one, but now we show the JSON representation of the ops.
 ```js
-import {stringifyFunctions} from '/core.js';
+import {stringifyWithFunctions} from '/core.js';
 const ops = [...etc];
-const ops2 = stringifyFunctions(ops, "[long function string]");
+const ops2 = stringifyWithFunctions(ops, "[long function string]");
 ```
 ops2 looks like this:
 ```json
