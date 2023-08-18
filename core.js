@@ -319,61 +319,38 @@ const safeSetItem = (key, value, ls=window.localStorage) => {
   return false;
 }
 
-/**
- * Stringifies any functions in an object, recursively.
- * This is mutating.
- *
- * @param obj The object or array to stringify. All functions will be replaced with their stringified versions.
- * @param fakeResult Useful for producing readable output
- * @returns {string|{}|*}
- */
-function stringifyFunctions(obj, fakeResult = '') {
-  if (fakeResult) return fakeResult;
-  if (typeof obj === 'function') {
-    return obj.toString();
-  } else if (Array.isArray(obj)) {
-    return obj.map(elt => stringifyFunctions(elt))
-  } if (typeof obj === 'object' && obj !== null) {
-    return Object.keys(obj).reduce((acc, key) => {
-      acc[key] = stringifyFunctions(obj[key]);
-      return acc;
-    }, {});
-  } else {
-    return obj;
-  }
-}
-
-/**
- * Parses a stringified function back into a function - this is generally dangerous,
- * equivalent to "eval()".
- *
- * @param obj
- * @param lengthLimit A simple security measure to prevent extremely long functions from being used. These functions should be short.
- * @returns {string|{}|*} Usually it will be the object itself with strings replaced with functions. If the string is not a function, it will be returned as a string.
- */
-function parseFunctions(obj, lengthLimit = 1000){
-  if (typeof obj === 'string' && regex.functions.test(obj)) {
-    if (obj.length > lengthLimit) {
-      throw new Error(`Function string is too long: ${obj.length} > ${lengthLimit}`);
-    }
-    try {
-      // Try to parse the string as a function
-      const fn = new Function(`${obj}`)();
-      if (typeof fn === 'function') {
-        return fn;
+function stringifyWithFunctions(obj) {
+  return JSON.stringify(obj, function (key, value) {
+    let fnBody;
+    if (value instanceof Function || typeof value == 'function') {
+      fnBody = value.toString();
+      if (fnBody.length < 8 || fnBody.substring(0, 8) !== 'function') { //this is ES6 Arrow Function
+        return '_ArrowF_' + fnBody;
       }
-    } catch (e) {
-      // If there's an error, just return the string
+      return fnBody;
     }
-  } else if (typeof obj === 'object' && obj !== null) {
-    return Object.keys(obj).reduce((acc, key) => {
-      acc[key] = parseFunctions(obj[key]);
-      return acc;
-    }, {});
-  }
-  return obj;
-}
+    return value;
+  });
+};
 
+function parseWithFunctions(str) {
+  return JSON.parse(str, function (key, value) {
+    if (typeof value != 'string') {
+      return value;
+    }
+    if (value.length < 8) {
+      return value;
+    }
+    let prefix = value.substring(0, 8);
+    if (prefix === 'function') {
+      return eval('(' + value + ')');
+    }
+    if (prefix === '_ArrowF_') {
+      return eval(value.slice(8));
+    }
+    return value;
+  });
+}
 
 export {
   is, as, getType, size, cast, TYPES,
@@ -385,5 +362,5 @@ export {
   and, or, sub, add, identity, curryLeft, curryRight, curry, compose,
   RNG, shuffle,
   tryToStringify, parseObjectLiteralString, regex,
-  parseFunctions, stringifyFunctions,
+  parseWithFunctions, stringifyWithFunctions,
 }
