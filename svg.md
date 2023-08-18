@@ -128,7 +128,7 @@ This is a simpler, worse version of [d3 collision demo](https://observablehq.com
      width="200px" height="200px"
      viewBox="-2 -2 4 4"
 >
-  <g id='box' transform="scale(1.15)">
+  <g id="box" transform="scale(1.15)">
     <rect x=-1 y=-1
           width=2
           height=2

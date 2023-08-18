@@ -1,6 +1,5 @@
-import {as, is, getType, cast, hasProp} from './core.js';
+import {as, getType, cast, hasProp} from './core.js';
 
-const {elt:ELT, obj:OBJ} = as;
 
 /**
  * Scatter the entries of obj onto the attributes of elt. There is no return because it is pure side effect.
@@ -13,7 +12,7 @@ const {elt:ELT, obj:OBJ} = as;
  * @param obj The source javascript object, which this code will modify!
  */
 const scatter = (elt, obj) => {
-  ELT(elt) && OBJ(obj);
+  as.elt(elt) && as.obj(obj);
   // Special treatment for circles: treat x and y as cx cy if not explicitly specified.
   if (elt.tagName === "circle") {
     if (hasProp(obj, 'x') && !hasProp(obj, 'cx')) obj.cx= obj.x;
@@ -39,9 +38,7 @@ const scatter = (elt, obj) => {
   }
 
   // Setting text value assumes one text elt somewhere beneath the g
-  if (
-    hasProp(obj, 'text')
-  ){
+  if (hasProp(obj, 'text')){
     const textElt = elt.querySelector('text');
     if (textElt) {
       textElt.textContent = obj.text;
@@ -78,7 +75,7 @@ const scatter = (elt, obj) => {
  * @returns {{}}
  */
 const gather = (elt, obj) => {
-  ELT(elt) && OBJ(obj);
+  as.elt(elt) && as.obj(obj);
   for (const key in obj){
     if (!elt.hasAttribute(key)) continue;
     const val = elt.getAttribute(key);
