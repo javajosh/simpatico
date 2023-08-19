@@ -25,9 +25,9 @@ Everyone else seemed to have the same inspiration, and a veritable cambrian expl
 
 Some deserve mention because they aren't really popular, but are very cool. Elm. Flow. Others deserve mention because they failed. Angular. GWT. Meteor.
 
-Of particular importance to the story of modern web development is Node. Node's great value was allowing JavaScript computation to occur out of the browser, and in particular, to pre-process resources. It turns out that a) people really wanted to do compilation-like transforms, and b)it's more efficient to do these transforms once, ahead of time, not in the browser. However, this capability has come at considerable cost! Not only are our development systems harder to setup and understand (with all the requisite risks), but the idea that you can learn anything from a public website is now laughable. The resources have been processed to the point of unreadability. The browser itself has been pushed so far away from it's roots as a renderer of hyperlinked documents that its source is totally unrecognizable, and unusable by newcomers to the platform. 
+Of particular importance to the story of modern web development is Node. Node's great value was allowing JavaScript computation to occur out of the browser, and in particular, to pre-process resources. It turns out that a) people really wanted to do compilation-like transforms, and b)it's more efficient to do these transforms once, ahead of time, not in the browser. However, this capability has come at considerable cost! Not only are our development systems harder to setup and understand (with all the requisite risks), but the idea that you can learn anything from a public website is now laughable. The resources have been processed to the point of unreadability. The browser itself has been pushed so far away from it's roots as a renderer of hyperlinked documents that its source is totally unrecognizable, and unusable by newcomers to the platform.
 
-Node also opened up the possibility of the "isomorphic" application, where the same langauge (and the same libraries) could be used both server- and client-side. It's also notable because it comes with a very good module system. 
+Node also opened up the possibility of the "isomorphic" application, where the same langauge (and the same libraries) could be used both server- and client-side. It's also notable because it comes with a very good module system.
 
 HTML5, CSS3 and ES6 also came out, and were great standards 100% supported everywhere except IE (11).
 
@@ -63,7 +63,7 @@ Rather than deal with paperwork, lets talk about games. A game is a state-machin
 
 The World-Event Tree, or more generally, Rehman Tree (since it can be used for more than World event), is an interesting data-structure that evolved after generalized combine to deal with the problem of collections. Later I realized it could be used for specialization and instantiation, and in fact provides a profoundly general characterization of "zoom" for an application. Also of interest is that the design of the Rehman Tree happened in combination with it's visualization as part of the coherent Simpatico system.
 
-Imagine you have an array of 10 objects. One Rehman tree might be this: 
+Imagine you have an array of 10 objects. One Rehman tree might be this:
 ```
   0 1 2 4 - a
 2 3 5 6 8 - b
@@ -73,9 +73,9 @@ Imagine you have an array of 10 objects. One Rehman tree might be this:
 
 This is the tree you get from the sequence `0 1 2 -2 3 a 4 b 5 6 -2 7 b 8 -0 9`. In this sequence, all positive numbers are ascending. Negative numbers start a new row with the parent set to the abs val of the number, so the number of rows is the number of negatives plus one (since you always have at last one row). Letters *select* a row such that the next number is added to it. Positive numbers are appended to the current row. In the layout above the first and last columns are reserved - the first column for "parent" ids, and the last column for "branch tips". The asterisk indicates the current row (which is easy to compute because it's always the row of the highest integer)
 
-The Rehman tree is based on an n-arry tree. Each node is associated with a list of nodes back to root. This list can be computed by moving left until you reach the first column, then jumping to the parent node, and repeating these two steps you reach root.
+The Rehman tree is based on an n-ary tree. Each node is associated with a list of nodes back to root. This list can be computed by moving left until you reach the first column, then jumping to the parent node, and repeating these two steps you reach root.
 
-Each node is then representative of a unique, but related sequence of nodes. We can then compute a reduction over each node. In general our reduction is not commutative, so we have to reverse the list before computing a reduction An important reduction is associated with the letters - these name the reduction associated with the last node in that row. 
+Each node is then representative of a unique, but related sequence of nodes. We can then compute a reduction over each node. In general our reduction is not commutative, so we have to reverse the list before computing a reduction An important reduction is associated with the letters - these name the reduction associated with the last node in that row.
 
 Of particular interest in Simpatico is when the reduction is over dynamic combine, and when the reduction is a collapsible pattern.
 
@@ -104,8 +104,8 @@ So in this tree I've used a slightly different, less general notation. This core
 
 (It's natural to wonder about whether or not this structure allows for composition in any meaningful way, in other words whether you can have an instance composed of other instances, in some sense.)
 
-Here's a chess game sketched out in this style. These are just types 
-Instantiate the board. Setup is instantiating each piece in turn and adding them until the board rejects. Other state that might be useful to store with each piece are blocks and pins. 
+Here's a chess game sketched out in this style. These are just types
+Instantiate the board. Setup is instantiating each piece in turn and adding them until the board rejects. Other state that might be useful to store with each piece are blocks and pins.
 
 chess
 	board
@@ -164,11 +164,11 @@ Platform maintainers are special, have a special amount of trust, and there is o
 
 If the product is as good as I believe it would be, it would first spead through the developer community, without marketing. CodePen is a good example of such a business. It would be used as a sandbox, a playground, for building out prototypes. Later, people would start using it for real applications. The easy distributed nature of Simpatico makes it very appealing for people who don't want to be locked into the platform! (Note that the transaction exception would still be in place for the license. I anticipate a great deal of pushback on this, and I'd be happy to have that debate, perhaps on Kialo so that we don't repeat ourselves over time.)
 
-Of particular interest to this business story is Meteor, the Andreseen Horowitz funded SF startup that hasn't done very well. 
+Of particular interest to this business story is Meteor, the Andreseen Horowitz funded SF startup that hasn't done very well.
 
 ## The Developer Experience
 
-The best developer experience is grounded in the fundamentals. There are two good starting points: from a text editor, file system, and interpreter (browser), or from CodePen (which should be considered a name for any web-hosted IDE). It might seem surprising to treat CodePen as a system with good fundamentals, but it's power is in it's simplicity. The *idea* that your program is composed of resources combined at runtime is present in CodePen. It's big drawback (which is substantial) is that it's not usable offline, and because it's not really a filesystem, it's not possible to use version control. 
+The best developer experience is grounded in the fundamentals. There are two good starting points: from a text editor, file system, and interpreter (browser), or from CodePen (which should be considered a name for any web-hosted IDE). It might seem surprising to treat CodePen as a system with good fundamentals, but it's power is in it's simplicity. The *idea* that your program is composed of resources combined at runtime is present in CodePen. It's big drawback (which is substantial) is that it's not usable offline, and because it's not really a filesystem, it's not possible to use version control.
 
 ### An aside about the proper fundamentals
 
@@ -183,7 +183,7 @@ So, invoking your application consists of a single function invocation, somethin
 ### Okay lets continue
 Let's assume the best case, which is a good programmer whos looking to experiment with Simpatico locally in the minimalist way. It means she has a single HTML file, and she'll be looking to add the Simpatico library, and start using it. So she `wget`s the file, adds a script tag. Knowing the friendly function convention, she would load the page and open a console, and type S.add(). This will return a description of what she can enter. It also has the side effect of *starting* the Simpatico process - it is equivalent to doing S.add(S.START) and then S.add().
 
-At this point it would be useful to explore `combine()`. 
+At this point it would be useful to explore `combine()`.
 
 What I want to program JavaScript in the browser:
 1 - A native ES6 and import statement.

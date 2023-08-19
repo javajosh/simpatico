@@ -89,7 +89,7 @@
         <li>Add alternative orderings (spiral, concentric squares, stripes, hilbert space-filling curve, etc)</li>
     </ol>
 
-    <p>The data-structure here is your basic n-arry tree, with a few twists. I wanted absolute simplicity, so child nodes point to the parent, but parent does not maintain a list of children. It can be imagined as something like a sponge, taking in arbitrary information and plopping it in just the right way, with a <i>satisfying snick</i>. We keep the data in a grid, filled in starting with the top left (the root, at 0,0).</p>
+    <p>The data-structure here is your basic n-ary tree, with a few twists. I wanted absolute simplicity, so child nodes point to the parent, but parent does not maintain a list of children. It can be imagined as something like a sponge, taking in arbitrary information and plopping it in just the right way, with a <i>satisfying snick</i>. We keep the data in a grid, filled in starting with the top left (the root, at 0,0).</p>
 
     <p>The root is the Primordial Start event. At first, this refers to <i>this session</i>. Later, after recovering state and resuming, we place ourselves as a later event in a longer process. We effectively "zoom out" of this process, and consider the timeline of behavior of the process through time, across sessions. I call <i>this</i> process a "Durable Process". Canonically, <i>prior state</i> is stored as a sequence of objects representing input. Two kinds of objects, measurement (which is precious) and reaction (which is not). And how remarkably often "measurement" refers to previous measurements!</p>
 
@@ -234,7 +234,7 @@
     return result;
   }
 
-  // Generate a random n-arry tree
+  // Generate a random n-ary tree
   function hyperTree(n, seed = 1, branchChance = .1, focus = null) {
     let v = {i: 0, row: 0, col: 0, parent: null, d: null};
     const result = [];

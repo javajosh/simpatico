@@ -33,7 +33,13 @@ javajosh *2023*
 See [home](/), [combine](/combine), TODO merge with [stree2](/stree2.md)
 
 # Introduction
-The Simpatico Tree, Summary Tree, or STree or STrie is an n-arry tree
+  1. Start with an n-ary tree.
+  2. map each node to a reduction from root, called residue.
+  3. New nodes are defined as a collapse of residue.
+  4. The set of residues associated with branch tips are special, and we define another reduction over those. Defining application state.
+
+
+The Simpatico Tree, Summary Tree, or STree or STrie is an n-ary tree
 with these features:
 
 1.  Unification of different kinds of specialization, especially
@@ -210,7 +216,7 @@ Not really sure what this is about, actually.
 Lots of hierarchical things can be modeled as an STree, but some make
 more sense than others
 
-1.  git. Commits form an n-arry tree where the branches are\...branches.
+1.  git. Commits form an n-ary tree where the branches are\...branches.
 2.  Choose-your-own-adventure style stories.
 3.  A sequence of low-level input measurements combine with a pattern to
     produce a value.
@@ -293,7 +299,7 @@ dynamic part of the head of a linked list of input. It doesn\'t really
 have to be dynamic.
 
 Well, it\'s a kind of tree that is built up in a particular way. It\'s a
-constrained kind of n-arry tree, which is optimized for long runs. We
+constrained kind of n-ary tree, which is optimized for long runs. We
 imagine the tree composed of rows, and each row has a parent, rather
 than each node. Moreover, we introduce a special coordinate system that
 supports rows and nodes as parents, and provide a (stateful) pointer to
