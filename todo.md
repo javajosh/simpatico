@@ -17,6 +17,6 @@
         1. Pick a suffix, like the commit id that last changed the resource.
            One should be able to construct a "canonical URL" something like the github raw link.
            This points out that we should a) use gitlab additionally, and b) consider self-hosting gitlab.
-           Otherwise we violate the [Rule of Recapitulation](/rules.md#recapitulation).
+           Otherwise we violate the [Rule of Recapitulation](/notes/rules.md#recapitulation).
            Do not go down the "node git library" rabbit hole.
 
