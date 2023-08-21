@@ -33,14 +33,14 @@ See [home](/), [combine](/combine),  [stree](/stree.md), [stree2](/stree2.md)
 # Intro
 This is my third time implementing an stree.
 Each attempt has had some good and bad.
-The first attempt was a simple n-arry tree, but was missing features
+The first attempt was a simple n-ary tree, but was missing features
 The second attempt was strong on authoring, but was complex and failed in some corner cases.
 With stree3 I'm taking a page from [Introduction to Algorithms](https://en.wikipedia.org/wiki/Introduction_to_Algorithms) and using a more formal, terse specification.
 This is useful when the number of operations and constraints grow and need to all be revisited on each design iteration.
 A thoughtful reader may note that this document itself is iterative and cumulative, like a branch of an stree.
 
 # Step 1: An N-ary tree with residue-per-node
-Start with a simple n-arry tree.
+Start with a simple n-ary tree.
 Primary OPERATION is `add(value, parent)`.
 private OPERATION `nodePath(node)`.
 OPERATION `residue(node, reducer)`.
@@ -53,7 +53,7 @@ For the tests, we use explicit "static" variables to refer to nodes, use integer
 
 const root = {value : 0};
 /**
- * Add a value to an n-arry tree. Return the node that wraps these parameters.
+ * Add a value to an n-ary tree. Return the node that wraps these parameters.
  *
  * @param value The value associated with the node.
  * @param parent The node considered as a parent. For the root node, can be null or even missing
@@ -122,7 +122,7 @@ function stree3(rootValue, reducer = combineReducer) {
   let lastNode = root;
 
   /**
-   * Add a value to an n-arry tree.
+   * Add a value to an n-ary tree.
    * Return the node that wraps these parameters.
    * Updates both branches[] and lastNode
    *
@@ -271,7 +271,7 @@ function stree3(value, reducer = combineReducer) {
   }
 
   /**
-   * Return a representation of the n-arry tree as [value, parentIndex].
+   * Return a representation of the n-ary tree as [value, parentIndex].
    * The inverse of fromArray()
    * Example: [[{a: 0}, null], [{a: 1}, 0], [{a: 2}, 1], [{a: 3}, 2], [{a: 4}, 1]];
    *
@@ -410,7 +410,7 @@ function stree3(value, reducer = combineReducer) {
   }
 
   /**
-   * Return a representation of the n-arry tree as [{}, {}, 0, {}, {}].
+   * Return a representation of the n-ary tree as [{}, {}, 0, {}, {}].
    * The objects are values, and the integers parent node indexes.
    *
    * The inverse of fromArray()
@@ -509,7 +509,7 @@ We can make residue O(1) for branches with caching.
 Rather than recomputing the entire reduction from root every time, we cache the last residue and reduce that residue plus the new input.
   * Concern: There may be cases where you don't want this, and the canonical definition of residue doesn't require this. maybe put behind a flag default to true.
   * Concern: residues are NOT serialized, and will all need to be recomputed on deserialization (which happens naturally).
-  * Concern: I don't like maintaining parallel arrays like branches and branchResidues. One alternative is to add a special node to every branch of the n-arry tree and store the branchResidue there. That has some conceptual niceness, as that node moves along leaving behind valid input. OTOH you now have inhomogenous nodes in the tree.
+  * Concern: I don't like maintaining parallel arrays like branches and branchResidues. One alternative is to add a special node to every branch of the n-ary tree and store the branchResidue there. That has some conceptual niceness, as that node moves along leaving behind valid input. OTOH you now have inhomogenous nodes in the tree.
 
 ```js
 import {stringifyWithFunctions, parseWithFunctions, peek} from "./core.js";
