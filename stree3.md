@@ -39,6 +39,11 @@ With stree3 I'm taking a page from [Introduction to Algorithms](https://en.wikip
 This is useful when the number of operations and constraints grow and need to all be revisited on each design iteration.
 A thoughtful reader may note that this document itself is iterative and cumulative, like a branch of an stree.
 
+Note: this page is written in [Literate Markdown](./lit.md) and executes the code you see when you load the page.
+The code is quite small, so you may not notice.
+If the tests fail, the page will appear very different, more colorful, and there will be errors in the console.
+That shouldn't happen, but if it does please [file a bug ](https://github.com/javajosh/simpatico/issues) and include the console output.
+
 # Step 1: An N-ary tree with residue-per-node
 Start with a simple n-ary tree.
 Primary OPERATION is `add(value, parent)`.
