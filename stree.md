@@ -26,8 +26,6 @@
 
 _____________________________________
 # Simpatico/Summary Tree: STree
-
-
 javajosh *2023*
 
 See [home](/), [combine](/combine), TODO merge with [stree2](/stree2.md)
@@ -37,7 +35,6 @@ See [home](/), [combine](/combine), TODO merge with [stree2](/stree2.md)
   2. map each node to a reduction from root, called residue.
   3. New nodes are defined as a collapse of residue.
   4. The set of residues associated with branch tips are special, and we define another reduction over those. Defining application state.
-
 
 The Simpatico Tree, Summary Tree, or STree or STrie is an n-ary tree
 with these features:
