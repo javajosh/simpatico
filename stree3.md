@@ -726,6 +726,167 @@ The application is simple, but just complex enough to give a small challenge.
 I've pulled the HTML & CSS from a [random todomvc implementation](https://github.com/jonathantneal/todomvc-vanillajs-2022/blob/main/index.html).
 Note that Simpatico has relatively little to say about UI binding except that we prefer vanilla JS and want to model all changes as adding objects to an stree.
 
+Apply the [application pattern](/notes/browser-events.html) `combine(state, event); render(state);`.
+Our entry point for new data will be fixed at the body root, and we'll check the source element in that handler.
+```js
+/// DO NOT RUN This is a first sketch of how this may look, and is NOT currently executed in the browser.
+
+// TODO:
+// Add more effects to this list as needed (e.g. onchange)
+// Remove the browser event code into a library, probably core.
+// Explain why I'm so explicit and repetative in the event handling (DRY is sometimes wrong)
+// Explain why I'm defining a function and then calling it, rather than just executing the body (because we want to respect 1 + N execution pattern)
+// Discuss the distinction between doing textual versus DOM manipulation, pluses and minuses.
+// modify the class and ids and event types to match what the html produces
+
+const identity = a => a;
+
+const click = e =>({
+  type: e.type,
+  x: e.offsetX,
+  y: e.offsetY,
+  t: e.timeStamp,
+  button: e.which,
+  target: e.target,
+});
+
+const key = e =>({
+  type: e.type,
+  key: e.key,
+  keyCode: e.keyCode,
+  location: e.location,
+  t: e.timeStamp,
+  target: e.target,
+});
+
+const move = e => ({
+  type: e.type,
+  x: e.offsetX,
+  y: e.offsetY,
+  dx: e.movementX,
+  dy: e.movementY,
+  t: e.timeStamp,
+});
+
+const wheel = e => ({
+  type: e.type,
+  x: e.offsetX,
+  y: e.offsetY,
+  dx: e.wheelDeltaX,
+  dy: e.wheelDeltaY,
+  t: e.timeStamp,
+});
+
+const scroll = e => ({
+  type: e.type,
+  x: window.scrollX,
+  y: window.scrollY,
+});
+
+const events = {
+  "resize": identity, //browser
+  "keyup": key, //independent
+  "keydown": key, //independent
+  "keypress": key, //dependent
+  "mousemove": move, //independent
+  "mousewheel": wheel, //independent
+  "mousedown": click, //independent
+  "mouseup": click, //independent
+  "click": click, //dependent
+  "dblclick": click, //dependent
+  "tick": identity, //synthetic
+  "scroll": identity, //dependent
+  "blur": e =>({type: 'blur'}), //browser
+  "focus": e =>({type: 'focus'}), //browser
+  "storage": identity, //browser
+  // net - xhr and websocket
+  // tick - use a requestAnimationFrame pump
+  // dice - add a seeded prng
+};
+
+function startTodoAppLoop(parent = window){
+  // reserve the first branch for global state
+  const todoapp = stree3({showActive: true, showAll: false});
+  todoapp.add({label: '', completed: false, deleted: false});
+
+  // use the same global handler for all events
+  function connectEvents(handleEvents) {
+    for (let eventName in events){
+      parent['on' + eventName] = handleEvents(events[eventName]);
+    }
+  }
+
+  // distinguish based on target props.
+  function handleEvents(e) {
+    // The first set of actions are mutating
+    if (e.click && e.target.class && e.target.class==='delete-todo'){
+      // assumes an id of the form 'delete-todo1923'.
+      // alternatively, use data- attribute
+      let branchId = e.target.id.substr('delete-todo'.length) * 1;
+      todoapp.add({deleted: true}, branchId)
+    }
+    if (e.click && e.target.class && e.target.class==='complete-todo'){
+      let branchId = e.target.id.substr('delete-todo'.length) * 1;
+      todoapp.add({completed: true}, e.target.class)
+    }
+    if (e.click && e.target.id && e.target.id==='complete-all'){
+      todoapp.branches.forEach(
+        todoapp.add({completed: true}));
+    }
+    // This is mutating, but only the UI
+    if (e.doubleclick && e.target.id){
+      let parentId = e.target.id.substr('edit-todo'.length) * 1;
+      todoapp.add({editing: true}, parentId);
+    }
+
+    // The second set of actions are filtering, and only mutate row 0
+    if (e.click && e.target.class && e.target.class==='show-all'){
+      todoapp.add({showAll: true}, todoapp.branches[0]);
+    }
+    if (e.click && e.target.class && e.target.class==='show-active'){
+      todoapp.add({showActive: true}, todoapp.branches[0]);
+      todoapp.add({showAll: false}, todoapp.branches[0]);
+    }
+    if (e.click && e.target.class && e.target.class==='show-completed'){
+      todoapp.add({showActive: false}, todoapp.branches[0]);
+      todoapp.add({showAll: false}, todoapp.branches[0]);
+    }
+
+    render(state);
+  }
+
+  function render(state=state) {
+    let output = '';
+    const activeFilter = state.branches[0].value.activeFilter;
+    // header
+    output += ``
+    // todos
+    for (todo in stree.branches.filter(activeFilter)) {
+        if (!todo.value.editing) {
+          output += `
+            <div class="view">
+              <input data-todo="toggle" class="toggle" type="checkbox" checked="${todo.completed}">
+              <label data-todo="label">${todo.label}</label>
+              <button class="destroy" data-todo="destroy"></button>
+            </div>`
+        } else {
+          output += `
+            <div class="view">
+              <input data-todo="toggle" class="toggle" type="checkbox" checked="${todo.completed}" enabled="false">
+              <input data-todo="label">${todo.label}</label>
+              <button class="destroy" data-todo="destroy" enabled="false"></button>
+            </div>`
+        }
+    }
+    // footer
+    // The spec doesn't call for stateful filter UI. If it did, we can access it in stree row 0 as in handleEvents
+    return output;
+  }
+}
+startTodoAppLoop(document.querySelector('.todoapp'));
+
+```
+
 ```html
 <section class="todoapp">
   <header class="header">
