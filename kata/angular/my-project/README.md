@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
   3. Create a new project. `ng new my-project`
   4. Add ngrx to the project. `ng add @ngrx/store`
 
-Later, once things are working, it's important to build (`ng build`) check in the bundle which is in `dist/` and links to the "kata" should point to that directory rather than this one. E.g. [/kata/angular/my-project/dist/](/kata/angular/my-project/dist/my-project)
+Later, once things are working, it's important to build (`ng build`) check in the bundle which is in `dist/` and links to the "kata" should point to that directory rather than this one. E.g. [/kata/angular/my-project/bundle/](/kata/angular/my-project/bundle). This is because the `dist/` directory is ignored by git. Also, we need to update the base url to be relative, which is the small addition of `--base-href ./` to the build command or quivalently modify the base href in `index.html/head` to be `<base href="./">`.
 
 
 
