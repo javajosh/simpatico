@@ -20,19 +20,24 @@ Flourish: use [concurrently](https://www.npmjs.com/package/concurrently)
 
 ## Tooling (IntelliJ)
 
-There is [considerable IntelliJ support for Angular](https://www.jetbrains.com/help/idea/2021.1/angular.html#ws_angular_syntax_highlighting). But for now I'm going to stick mostly with the command line for generating new components. I also use the Run Configuration to make using the various `npm run` commands a one-click thing. 
+There is [considerable IntelliJ support for Angular](https://www.jetbrains.com/help/idea/2021.1/angular.html#ws_angular_syntax_highlighting). But for now I'm going to stick mostly with the command line for generating new components. I also use the Run Configuration to make using the various `npm run` commands a one-click thing.
+
+Hosted tooling is also a thing - this is codepen for more involved front-ends.
+[Stackblitz](https://stackblitz.com/run?file=src%2Fapp%2Fapp.component.html) is one example.
 
 ## Code scaffolding
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
-Cleanup: take the titles and change the links to my stuff. Also remove the default resources links (but they are useful so here they are):
+## Cleaning up the code.
+take the titles and change the links to my stuff. Also remove the default resources links (but they are useful so here they are):
 
   1. https://angular.io/tutorial
   2. https://angular.io/cli
   3. https://material.angular.io/
   4. https://blog.angular.io/
   5. https://angular.io/devtools/
+  6. https://angular.io/guide/cheatsheet - a great reminder of directive and binding syntax, which is easy to forget.
 
 There is also this pattern which is an example of using angular templates give the user the ability to select an arbitrary chunk of DOM and replace another chunk, all without requiring component code. I also like the use of SVG icons: 
 ```angular2html
