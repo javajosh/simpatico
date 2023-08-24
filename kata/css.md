@@ -203,3 +203,59 @@ code, samp {
   white-space: nowrap;
 }
 ```
+
+Here is a minimal set of styles for authoring:
+
+```css
+html {
+  box-sizing: border-box;
+  font-size: 16px;
+  line-height: 1.5em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Helvetica, sans-serif;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+img, svg {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid black;
+}
+
+pre{
+  color: #78A960;
+  background-color: #1e1f20;
+  overflow-x: auto;
+}
+code{
+  color: #78A960;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  html{
+    color: #ffca28;
+    background-color: #1e1f20;
+  }
+
+  a {
+    color: aliceblue;
+  }
+
+  a:link{
+    color: aliceblue;
+  }
+
+  a:visited{
+    color: #1f7199;
+  }
+
+  pre{
+    color: #78A960;
+  }
+
+}
+
+```
