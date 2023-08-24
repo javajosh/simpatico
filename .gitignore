@@ -10,7 +10,7 @@ localhost.key
 domains.ext
 
 /out
-/java/out
+/kata/java/out
 # Used to test caching
 /temp.html
 # Reserved by certbot
