@@ -1,13 +1,12 @@
-# MyProject
+# Simpatico Angular Kata
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
 
 ## Preamble
 
-  1. Fix node version with nvm. `nvm install --lts` and because [something went wrong](https://github.com/nvm-sh/nvm/issues/3173) `sudo ln -s /home/simp/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node`
-  2. Install angular cli globally. `npm install -g @angular/cli`
+  1. Fix node version with nvm. `nvm install --lts` and because [something went wrong with the ng scripts that require /usr/bin/node to exist](https://github.com/nvm-sh/nvm/issues/3173) `sudo ln -s /home/simp/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node`
+  2. Install angular cli globally. `npm install -g @angular/cli` (note that this still delegates to the [cli local to the project](https://stackoverflow.com/questions/48128847/how-to-install-angular-cli-locally-without-the-g-flag))
   3. Create a new project. `ng new my-project`
-  4. Add ngrx to the project. `ng add @ngrx/store`
 
 ## Build and deploy
 
@@ -31,7 +30,14 @@ Hosted tooling is also a thing - this is codepen for more involved front-ends.
 
 ## Code scaffolding
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`. The short form is `ng g c` etc for "generate component", and so on. Lots of options including handy
+
+[ngrx also has scaffolding support](https://ngrx.io/guide/schematics):
+
+   1. `npm install @ngrx/{store,effects,entity,store-devtools} --save` this may be a little out of date
+   1. `ng add @ngrx/schematics@latest`
+   1. `ng g store State --root --module app.module.ts` Initial state setup
+   1. `ng g effect App --root --module app.module.ts` Initial effects
 
 ## Cleaning up the code.
 take the titles and change the links to my stuff. Also remove the default resources links (but they are useful so here they are):
