@@ -4,7 +4,7 @@ Groovy is a JVM hosted language that reads like Ruby, and it's an important lang
   1. Install [sdkman](https://sdkman.io/) `curl -s "https://get.sdkman.io" | bash`
   1. Install [java]() `sdk install java 20.0.2-open`
   2. Install [gradle]() `sdk install gradle 8.3`
-  4. Create a Spring Boot scaffold with [Spring Initializr](https://start.spring.io/)
+  4. Create a Spring Boot scaffold with [Spring Initializr](https://start.spring.io/) - or with the [Spring Boot CLI](https://docs.spring.io/spring-boot/docs/current/reference/html/cli.html#cli)
       1. Project: `gradle - groovy` (other options `gradle - kotlin` and `maven`)
       2. Language: `java` (other options `kotlin` and `groovy`)
       3. Packaging: `jar` (not `war`)
@@ -17,7 +17,8 @@ Groovy is a JVM hosted language that reads like Ruby, and it's an important lang
 We now have a basic BTD loop for a Java Spring Boot RESTful webservice:
    1. `gradle build`
    2. `gradle bootRun`
-   3. `curl http://localhost:8080/greeting\?name\=josh`
+   3. `curl http://localhost:8080/greeting\?name\=josh` (Or use `httpie`)
+
 
 ## Vanilla Java
 Using java with `java` and `javac` is hardly ever done, but it's a useful skill to have.
@@ -36,3 +37,18 @@ Something that is a little confusing is that your tool jvm will be running in wi
 
 ## Lots and lots of ways to install Java
 For installing, I like these instructions for [Ubuntu 22 from DO](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-on-ubuntu-22-04). In particular I like their recommendation to `sudo update-alternatives --config java`. The only downside is that this is interactive, and must be done for each tool, like `javac` e.g. `sudo update-alternatives --config javac`. They also recommend setting `JAVA_HOME` using `sudo vim /etc/environment && source /etc/environment`, which is new to me. I think I'd prefer to keep it local to the user, and `export JAVA_HOME=...` in .bashrc. (Another alternative is to use [jenv](https://github.com/jenv/jenv)). Or you can use
+```
+https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers
+from openjdk:20-alpine
+arg
+
+docker build -t
+docker run -it -p 8080:8080
+or use jib
+add to gradle gradle jib
+spring boot 2.3+ uses jib - gradle bootBuildImage (uses layered jars: deps, snapshot-deps, resources, application)
+native is only useful for lambda, maybe for k8s to reduce startup time. (spring boot starts in 38ms, micronaut 14ms on an M1)
+quarkus is joy, spring is safe
+openid connect oauth 2.1 - use auth0 for customer facing, okta for internal
+apigee for single control of all uservicesj
+```
