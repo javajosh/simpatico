@@ -1,3 +1,31 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="Simpatico, physics">
+  <meta name="author" content="jbr">
+  <title>SimpatiCode: Angular, TypeScript, Flux</title>
+
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+        <rect width='1' height='1' fill='pink' />
+    </svg>"/>
+  <link href="/style.css" rel="stylesheet" type="text/css" >
+  <link href="/kata/highlight.github-dark.css" rel="stylesheet" >
+  <script type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    hljs.registerLanguage('javascript', javascript);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement (el);
+      });
+    });
+  </script>
+  <script src="/testable.js" type="module"></script>
+
+</head>-->
+
 # Simpatico Angular Kata
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
