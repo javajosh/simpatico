@@ -704,3 +704,4 @@ When [SVG almost got raw sockets?!](https://leonidasv.com/til-svg-specs-almost-g
   1. https://algs4.cs.princeton.edu/61event/CollisionSystem.java.html
   1. https://developer.ibm.com/tutorials/wa-build2dphysicsengine/
   1. https://svgmix.com/
+  1. https://omrelli.ug/g9/gallery/
