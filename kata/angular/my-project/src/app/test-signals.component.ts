@@ -7,7 +7,7 @@ import { computed, effect, signal} from "@angular/core";
   template: `
     {{ fullName() }} <button (click)="setName('John')">Click</button>
   `,
-  styleUrls: ['./test-signals.component.css']
+  styles: []
 })
 export class TestSignalsComponent {
   firstName = signal('Jane');
