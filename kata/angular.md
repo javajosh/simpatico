@@ -58,10 +58,39 @@ In this case, we add options to keep the number of files to a minimum (-s uses i
 The Angular module system is unique. It uses TypeScript annotations to finely control what is available to components at runtime.
 The modules operate as a dependency injector, using constuctors to put examples in there.
 ```bash
-time ng g c home -s -t --flat --skip-tests
-time ng g c navbar -s -t --flat --skip-tests
-time ng g m todos
-time ng g c todos/todos -m todos -s -t --flat --skip-tests
-time ng g c todos/todo-add -m todos -s -t --flat --skip-tests
-time ng g c todos/todo-edit -m todos -s -t --flat --skip-tests
+# Create the simplest possible scaffold for an Angular app after initial `ng new my-project`
+# For timing, `npm install -g gnomon` and then pipe to gnomon like `./gen.sh | gnomon`
+
+# Global components
+ng g c home -s -t --flat --skip-tests
+ng g c navbar -s -t --flat --skip-tests
+
+# Create a todos module with components
+ng g m todos
+ng g c todos/todos -m todos -s -t --flat --skip-tests
+ng g c todos/todo-add -m todos -s -t --flat --skip-tests
+ng g c todos/todo-edit -m todos -s -t --flat --skip-tests
 ```
+
+Build with the following command, and serve the bundle:
+
+```bash
+ng build --output-path bundle
+```
+
+
+## Sudden, massive ng slowdown on Windows/WSL2
+I'm experiencing a massive slowdown of all `ng` commands that I execute my Windows/WSL2/Ubuntu VM.
+This happened suddenly, and I'm not sure what changed to cause it.
+The same commands execute quickly on my Ubuntu laptop.
+
+While it's interesting that [WSL1 is more performant when working with Windows filesystems](https://stackoverflow.com/questions/68972448/why-is-wsl-extremely-slow-when-compared-with-native-windows-npm-yarn-processing), this seems unlikely, but not impossible.
+The number of dependencies in `node_modules` has exploded.
+However, `ng` seems to hang before doing *anything* so I'm not convinced that is the problem.
+
+  1. Create a WSL1 version of the VM and see if that helps.
+    `wsl --export Ubuntu c:\ubu` then `wsl --import C:\ubu --version 1`
+     This change took ~1 hr and resulted in a 2x speedup. But it's still slow.
+  2. Another possible culprit is IntelliJ, at least indirectly.
+     It's possible that it's done something at the project level and generated another `node_modules` somewhere that is confusing `ng`.
+
