@@ -177,6 +177,7 @@ which have [slightly different install instructions](https://fontsource.org/docs
 npm install @fontsource-variable/material-symbols-rounded
 ```
 ```css
+/*** DO NOT EXECUTE ***/
 @import "~@fontsource-variable/material-symbols-rounded/wght.css";
 
 .material-symbols-outlined {
@@ -195,3 +196,5 @@ npm install @fontsource-variable/material-symbols-rounded
 ```
 
 Note that Material Symbols font file is a whopping 665KB over the wire!!!
+To avoid this there's an [svg angular symbols package](https://github.com/marella/material-design-icons/tree/main/svg#readme).
+But I've spent enough time on this!
