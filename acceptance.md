@@ -60,6 +60,13 @@
         height="200"
         src="/chat">
 </iframe>
+<iframe
+        id="angular-frame"
+        title="Embedded Angular Kata"
+        width="300"
+        height="200"
+        src="/kata/angular/my-project/bundle/index.html">
+</iframe>
 
 If your test suite is self-executing html pages, then including them as an
 <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a> and checking their color is enough.

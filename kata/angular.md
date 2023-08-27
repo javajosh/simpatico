@@ -37,11 +37,12 @@ Alternatively, [load this example directly](angular/my-project/bundle/index.html
 Loading directly is handy if using [Angular dev tools](https://angular.io/guide/devtools) or [Redux dev tools](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd) in Chrome.
 
 ```html
-  <iframe
-    title="Embedded Angular Kata"
-    width="500"
-    height="500"
-    src="angular/my-project/bundle/index.html">
+<iframe
+  id="angular-frame"
+  title="Embedded Angular Kata"
+  width="500"
+  height="500"
+  src="angular/my-project/bundle/index.html">
 </iframe>
 ```
 
