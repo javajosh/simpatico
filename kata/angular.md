@@ -32,9 +32,10 @@ Using an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ifra
 This requires a front-end build, so it cannot be iterated on using [literate markdown](/lit).
 Project setup is described in the [readme in the angular project](angular/my-project/README) .
 
-Note: The use of an iframe isolates the angular application completely from the host page.
-Alternatively, [load this example directly](angular/my-project/bundle/index.html).
-Loading directly is handy if using [Angular dev tools](https://angular.io/guide/devtools) or [Redux dev tools](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd) in Chrome.
+[load the bundle directly](angular/my-project/bundle/index.html) or
+[load the dev server version](http://localhost:4200/) (locally running only)
+handy if using [Angular dev tools](https://angular.io/guide/devtools) or
+[Redux dev tools](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd).
 
 ```html
 <iframe
@@ -198,3 +199,14 @@ npm install @fontsource-variable/material-symbols-rounded
 Note that Material Symbols font file is a whopping 665KB over the wire!!!
 To avoid this there's an [svg angular symbols package](https://github.com/marella/material-design-icons/tree/main/svg#readme).
 But I've spent enough time on this!
+
+# Material
+
+Google made components. Comes with their own [schematics](https://material.angular.io/guide/schematics).
+Install and generate a nav comoponent like so:
+
+```bash
+ng add @angular/material
+ng g @angular/material:navigation material-nav
+
+```

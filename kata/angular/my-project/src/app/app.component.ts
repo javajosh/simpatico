@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
 interface AppState {
   message: string;
