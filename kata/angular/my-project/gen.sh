@@ -10,3 +10,4 @@ ng g m todos
 ng g c todos/todos -m todos -s -t --flat --skip-tests
 ng g c todos/todo-add -m todos -s -t --flat --skip-tests
 ng g c todos/todo-edit -m todos -s -t --flat --skip-tests
+ng g c todos/todo-item -m todos -s -t --flat --skip-tests
