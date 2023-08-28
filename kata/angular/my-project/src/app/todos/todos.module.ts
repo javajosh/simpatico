@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TodosComponent } from './todos.component';
 import { TodoAddComponent } from './todo-add.component';
 import { TodoEditComponent } from './todo-edit.component';
+import {FormsModule} from "@angular/forms";
 
 
 
@@ -12,8 +13,12 @@ import { TodoEditComponent } from './todo-edit.component';
     TodoAddComponent,
     TodoEditComponent
   ],
+  exports: [
+    TodosComponent
+  ],
   imports: [
-    CommonModule
+    CommonModule,
+    FormsModule
   ]
 })
 export class TodosModule { }

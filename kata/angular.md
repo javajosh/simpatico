@@ -28,6 +28,8 @@
 
 # Kata: Angular, TypeScript, Flux
 
+## Project setup
+
 Using an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) show the Angular bundle.
 This requires a front-end build, so it cannot be iterated on using [literate markdown](/lit).
 Project setup is described in the [readme in the angular project](angular/my-project/README) .
@@ -112,13 +114,14 @@ If fonts matter so much that the browser fonts aren't good enough, use PDF.
 The next best solution is to self-host the [fonts](https://fonts.google.com/specimen/Roboto?query=roboto) (you can download them manually there)
 and [icons](https://developers.google.com/fonts/docs/material_symbols#browsing_and_downloading_individual_icons) (download them [here](https://github.com/google/material-design-icons/tree/master/variablefont))
 and add the following css. See [Google's guide to using web fonts](https://fonts.google.com/knowledge/using_type/using_web_fonts)
+and [how to customize fonts](https://material.angular.io/guide/typography#customization)
 
 ```css
 /*** DO NOT EXECUTE ***/
   @font-face {
     font-family: 'Material Symbols Outlined';
     font-style: normal;
-    src: url(material-symbols.woff) format('woff');
+    src: url(./angular/my-project/bundle/material.woff) format('woff');
   }
 
   .material-symbols-outlined {
@@ -200,7 +203,7 @@ Note that Material Symbols font file is a whopping 665KB over the wire!!!
 To avoid this there's an [svg angular symbols package](https://github.com/marella/material-design-icons/tree/main/svg#readme).
 But I've spent enough time on this!
 
-# Material
+# Material Components
 
 Google made components. Comes with their own [schematics](https://material.angular.io/guide/schematics).
 Install and generate a nav comoponent like so:
@@ -208,5 +211,4 @@ Install and generate a nav comoponent like so:
 ```bash
 ng add @angular/material
 ng g @angular/material:navigation material-nav
-
 ```
