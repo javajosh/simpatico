@@ -33,11 +33,13 @@
 [Install](https://rxjs.dev/guide/installation) with `npm install rxjs` then import from `/node_modules/rxjs/dist/esm`
 However the transient imports don't end in .js so this will not work! This is a [known bug](https://github.com/ReactiveX/rxjs/issues/4416). Someone was kind enough to make a [bundled version](https://github.com/esm-bundle/rxjs) you can add with `npm install rxjs@npm:@esm-bundle/rxjs`.
 
-Note that this code *will not work in production* because I refuse to run `npm install` after `git pull` on deployment.
-It just seems wrong somehow.
+To make this work in production, copy the library files out of `node_modules`:
+```bash
+cp ../../node_modules/rxjs/esm/es5/rxjs* lib
+```
 
 ```js
-import {fromEvent} from '/node_modules/rxjs/esm/es5/rxjs.min.js';
+import {fromEvent} from './lib/rxjs.min.js';
 
 fromEvent(document, 'click').subscribe(() => console.log('Clicked!'));
 ```
