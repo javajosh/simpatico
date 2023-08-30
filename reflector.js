@@ -251,7 +251,6 @@ function fileServerLogic() {
 
   return (req, res) => {
     const respondWithError = (err) => {
-      console.error(err);
       res.writeHead(err.code);
       res.end(err.message);
     }
@@ -335,9 +334,9 @@ function fileServerLogic() {
         data = fromDisk.data;
         hash = fromDisk.hash;
       } catch (err) {
+        log(err.message);
         respondWithError(Object.assign(err, {
           code: 500,
-          log: 'error processing resource',
           message: 'Error processing resource. \n' + failWhale,
         }));
         return;
