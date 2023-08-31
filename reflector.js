@@ -39,7 +39,7 @@ info( 'bound', bindStatus);
 if (config.runAsUser) dropProcessPrivs(config.runAsUser);
 
 // Reflector booted! Print out welcome message.
-const url = `https://${config.host}:${config.https}`;
+const url = `https://${config.hostname}:${config.https}`;
 info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url] (? => [normalized url)");
 info(`Initialization complete. Open ${url}`);
 if (process.send) process.send(config);
@@ -52,7 +52,7 @@ function processConfig(envPrefix='SIMP_') {
   const baseConfig = {
     http: 8080,
     https: 8443,
-    host: 'localhost',
+    hostname: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
     runAsUser: null,
@@ -171,8 +171,9 @@ function httpRedirectServerLogic (req, res) {
     return;
   }
   // Everything else, redirect permanently to https
-  const redirectUrl = `https://${req.hostname}:${config.https}${req.url}`;
-  res.writeHead(307, {Location: redirectUrl});
+  // test with { echo "GET /"; echo "\n"; sleep 1; } | telnet simpatico.local 8080
+  const redirectUrl = `https://${config.hostname}:${config.https}${req.url}`;
+  res.writeHead(308, {Location: redirectUrl});
   res.end()
 }
 
