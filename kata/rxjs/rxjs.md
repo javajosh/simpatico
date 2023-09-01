@@ -41,10 +41,14 @@ For example, NgRx combines RxJs with Redux to manage events and state in Angular
 
 ## Hello World
 ```js
-import {fromEvent, of, switchMap, map, timer} from './lib/rxjs.min.js';
+import {fromEvent, of, timer, delay} from './lib/rxjs.min.js';
 
 fromEvent(document, 'click').subscribe(() => console.log('Clicked!'));
+
+of(false).pipe(delay(1000)).subscribe(() => console.log('Delayed 1!'));
+timer(2000).subscribe(() => console.log('Delayed 2!'));
 ```
+
 ## Fetch
 
 Here we use [fromFetch](https://rxjs.dev/api/fetch/fromFetch) [of](https://rxjs.dev/api/index/function/of) [switchMap](), [catchError](), and [pipe](https://rxjs.dev/api/index/function/pipe) to fetch a JSON file from the server. `fromFetch` creates the observable, and `pipe` is used to chain the operators together. `switchMap` is used to transform the response into a JSON object, and `catchError` is used to handle any errors. The stream is started with the `subscribe` call.
