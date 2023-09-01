@@ -438,8 +438,8 @@ function isCompressedImage(fileName) {
   function initFileWatchingCacheInvalidator(cache, watchRecursive='.', debug=DEBUG) {
   // Make a file cache and watch for file changes to invalidate it.
   // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
-  // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
   // fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
+  // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
   chokidar.watch(watchRecursive, {
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true,
