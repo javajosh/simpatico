@@ -155,15 +155,25 @@ function httpRedirectServerLogic (req, res) {
   if (DEBUG) console.debug(`http request: ${req.url}`)
   // Let letsencrypt check my control of the domain.
   // See https://eff-certbot.readthedocs.io/en/stable/using.html#webroot
+
   if (req.url.startsWith('/.well-known/acme-challenge')){
     res.writeHead(200);
     try{
-      const fileName = process.cwd() + req.url;
-      const localSecret = fs.readFileSync(fileName);
-      res.end(localSecret);
+      // do not allow arbitrary file access
+      // See https://datatracker.ietf.org/doc/rfc8555/ section 8.3
+      // test with { echo "GET /.well-known/acme-challenge/asdflk309234ldf"; echo "\n"; sleep 1; } | telnet simpatico.local 8080
+      const validAcmeTokenRegex = /^[a-zA-Z0-9_-]+$/;
+      const token = req.url.split('/')[3];
+      if (!validAcmeTokenRegex.test(token)) {
+        throw 'bad acme challenge token ' + token;
+      } else{
+        const fileName = process.cwd() + req.url;
+        const localSecret = fs.readFileSync(fileName);
+        res.end(localSecret);
+      }
     } catch (e) {
-      const err = 'bad acme challenge request';
-      console.error(err, e);
+      const err = `unable to serve acme challenge ${req.url} : ${e}`;
+      console.error(err);
       res.writeHead(404, err);
       res.end();
     }
