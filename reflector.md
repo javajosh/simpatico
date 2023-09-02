@@ -40,7 +40,7 @@ Here are the default config values from [reflector](/reflector.js):
     host: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
-    runAsUser: null,
+    runAsUser: '',
     useCache: false,
     useGzip: true,
     useTls: false,
@@ -74,6 +74,16 @@ No third party anything.
 No CD
 
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+
+We must start up as root to bind to privileged ports 80 and 443.
+So then we must drop privileges after that.
+
+For some reason I'm unable to use `sudo npm run prod` to start the reflector as root.
+It tells me "npm not found" even though I can run `npm` as root from the command line. A mystery!
+Another small tidbit: I'm now running node under Linux on my Windows machine using WSL1 to test this.
+Note that my laptop is native Linux so it was always able to test this functionality.
+
+In general you'd want to create a synthetic, limited user to drop privileges to. But for now I've just used my user account for convenience (and because I'm the only one using this machine and only for this).
 
 # Static file server
 The static file server's primary job is to get an html file to the browser.
