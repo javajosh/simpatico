@@ -14,7 +14,9 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "start": "node reflector.js"
+    "start": "node reflector.js",
+    "local": "node reflector.js \"{useCache:false, useGzip:true, useTls:true, debug:true, http:8080, https:8443, hostname:simpatico.local, cert:localhost.crt, key:localhost.key }\"",
+    "prod": "node reflector.js  \"{http:80, https:443, ws:8081, hostname:simpatico.io, cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem, key:/etc/letsencrypt/live/simpatico.io/privkey.pem, useCache:true, useTls:true, useGzip:true, runAsUser:josh }\""
   },
   "dependencies": {
     "chokidar": "^3.5.3",
