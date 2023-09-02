@@ -55,7 +55,7 @@ function processConfig(envPrefix='SIMP_') {
     hostname: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
-    runAsUser: null,
+    runAsUser: '',
     useCache: false,
     useGzip: true,
     useTls: false,
