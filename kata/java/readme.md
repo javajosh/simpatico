@@ -37,18 +37,4 @@ Something that is a little confusing is that your tool jvm will be running in wi
 
 ## Lots and lots of ways to install Java
 For installing, I like these instructions for [Ubuntu 22 from DO](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-on-ubuntu-22-04). In particular I like their recommendation to `sudo update-alternatives --config java`. The only downside is that this is interactive, and must be done for each tool, like `javac` e.g. `sudo update-alternatives --config javac`. They also recommend setting `JAVA_HOME` using `sudo vim /etc/environment && source /etc/environment`, which is new to me. I think I'd prefer to keep it local to the user, and `export JAVA_HOME=...` in .bashrc. (Another alternative is to use [jenv](https://github.com/jenv/jenv)). Or you can use
-```
-https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers
-from openjdk:20-alpine
-arg
 
-docker build -t
-docker run -it -p 8080:8080
-or use jib
-add to gradle gradle jib
-spring boot 2.3+ uses jib - gradle bootBuildImage (uses layered jars: deps, snapshot-deps, resources, application)
-native is only useful for lambda, maybe for k8s to reduce startup time. (spring boot starts in 38ms, micronaut 14ms on an M1)
-quarkus is joy, spring is safe
-openid connect oauth 2.1 - use auth0 for customer facing, okta for internal
-apigee for single control of all uservicesj
-```
