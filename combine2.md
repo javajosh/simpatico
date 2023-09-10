@@ -8,7 +8,7 @@
   >
   <link rel="stylesheet" href="/style.css">
   <link class="hljs" rel="stylesheet" href="/kata/highlight.github-dark.css">
-<meta id="refresh" http-equiv="refresh" content="2">
+
   <script class="testable" src="testable.js" type="module"></script>
   <script class="hljs" type="module">
     import hljs from '/kata/highlight.min.js';
