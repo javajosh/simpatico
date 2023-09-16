@@ -1,34 +1,5 @@
-<!--<!DOCTYPE html>
-<head lang="en">
-  <meta charset="UTF-8">
-  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
-  <meta name="author" content="jbr">
-
-  <!-- Begin testable.js html boilerplate; testable.js is in the same directory -->
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='DodgerBlue' />
-  </svg>"/>
-  <script src="testable.js"></script>
-  <!-- End testable.js boilerplate  -->
-
-  <title>Simpatico: SVG</title>
-  <link rel="stylesheet" type="text/css" href="/style.css">
-  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
-  <script type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-    hljs.registerLanguage('javascript', javascript);
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
-    });
-  </script>
-</head>-->
-
 # Simpatico: SVG
-jbr 2023
+
 See:
 [home](/),
 [combine2](./combine2.md),

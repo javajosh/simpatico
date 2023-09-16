@@ -1,32 +1,3 @@
-<!--<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="keywords" content="Simpatico, physics">
-  <meta name="author" content="jbr">
-  <title>Simpatico - Physics</title>
-
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-        <rect width='1' height='1' fill='DodgerBlue' />
-    </svg>"/>
-  <link href="/style.css" rel="stylesheet" type="text/css" >
-  <link href="/kata/highlight.github-dark.css" rel="stylesheet" >
-  <script type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-    hljs.registerLanguage('javascript', javascript);
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
-    });
-  </script>
-  <script src="/testable.js" type="module"></script>
-
-</head>-->
-
-_____________________________________
 # Simpatico: Physics
 
 A system of N particles can be described by an array of numbers, one for each position of each particle, for the velocity and the optional force. The next position of a particle is always computed in the same way:

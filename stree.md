@@ -1,32 +1,5 @@
-<!--<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="keywords" content="Simpatico, STree, es6">
-  <meta name="author" content="Josh Rehman">
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='white' />
-  </svg>"/>
-  <script src="/testable.js" type="module"></script>
-  <title>Simpatico - STree</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
-  <script type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-    hljs.registerLanguage('javascript', javascript);
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
-    });
-  </script>
-</head>-->
-
-_____________________________________
 # Simpatico/Summary Tree: STree
-javajosh *2023*
+jbr *2023*
 
 See [home](/), [combine](/combine), TODO merge with [stree2](/stree2.md)
 

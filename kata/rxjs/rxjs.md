@@ -1,30 +1,3 @@
-<!--<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
-  <meta name="author" content="jbr">
-  <title>Simpatico: RxJs</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='DodgerBlue' />
-  </svg>"/>
-  <link rel="stylesheet" type="text/css" href="/style.css">
-  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
-  <script src="/testable.js"></script>
-  <script type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-    hljs.registerLanguage('javascript', javascript);
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
-    });
-  </script>
-</head>-->
-
 #RxJs - Reactive JavaScript
 
 RxJs is the JavaScript implementation of Microsoft's ReactiveX design pattern.

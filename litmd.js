@@ -71,6 +71,9 @@ const cssPassThroughExtension = {
   }
 };
 
+// Instantiate a singleton litmd converter that lives as long as the module/app.
+const litmd = makeMarkdownConverter();
+
 function makeMarkdownConverter (options={}) {
   showdown.extension('scriptPassThroughExtension', scriptPassThroughExtension);
   showdown.extension('htmlPassThroughExtension', htmlPassThroughExtension);
@@ -95,8 +98,7 @@ function makeMarkdownConverter (options={}) {
   if (DEBUG) console.log('litmd.js: makeMarkdownConverter', result);
   return result;
 }
-// Instantiate a singleton litmd converter that lives as long as the module/app.
-const litmd = makeMarkdownConverter();
+
 
 /**
  *  Build an HTML document from a literate litmd string.
@@ -104,7 +106,7 @@ const litmd = makeMarkdownConverter();
  *  This whole thing is brittle and needs to be redone properly.
  *
  * @param maybeMarkdownString
- * @param fileName  used to generate a default title if the markdownString doesn't have one.
+ * @param fileName  the full path to the file, used to generate a default title if the markdownString doesn't have one.
  * @returns {string}
  */
 function buildHtmlFromLiterateMarkdown(maybeMarkdownString, fileName=''){
@@ -130,24 +132,49 @@ function buildHtmlFromLiterateMarkdown(maybeMarkdownString, fileName=''){
     header = defaultHtmlHeader(fileName);
     body = markdownString;
   }
-  return header + litmd.makeHtml(body) + htmlFooter();
+  return header + litmd.makeHtml(body) + defaultHtmlFooter();
 }
 
 /**
  * Build a default header for litmd files that don't have one.
- * @param fileName
+ *
+ * @param fileName - the full file name
  * @returns {string}
  */
 function defaultHtmlHeader(fileName) {
   const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
   const title = 'Simpatico: ' + bareFileName;
   return `<!DOCTYPE html>
-      <title>${title}</title>
-      <link rel="stylesheet" href="/style.css">
-     `;
+<head lang="en">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='DodgerBlue' />
+  </svg>"/>
+  <script src="/testable.js" type="module"></script>
+
+  <title>${title}</title>
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist">
+  <meta name="author" content="jbr">
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <script type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    hljs.registerLanguage('javascript', javascript);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
+</head>
+    `;
 }
 
-function htmlFooter(author='jbr', year='2023') {
+function defaultHtmlFooter(author='jbr', year=new Date().getFullYear()) {
   return `<p>Copyright ${author} ${year}</p>`;
 }
 
@@ -159,13 +186,5 @@ function unescapeHtml(string){
     .replace(/&#39;/g, "'");
 }
 
-function removeWrapper(text, open="<!--", close="-->") {
-  // Regular expression to strip HTML comments
-  // See: https://regex101.com/r/SvRZth/1
-  const regex = new RegExp(`${open}\\s*([\\s\\S]*?)\\s*${close}`);
-  const match = regex.exec(text);
-  const html = match[1];
-  return html;
-}
 
 export {buildHtmlFromLiterateMarkdown};

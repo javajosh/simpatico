@@ -1,31 +1,5 @@
-<!--<!DOCTYPE html>
-<head>
-  <title>Simpatico: combine2()</title>
-  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-        <rect width='1' height='1' fill='white' />
-    </svg>"
-  >
-  <link rel="stylesheet" href="/style.css">
-  <link class="hljs" rel="stylesheet" href="/kata/highlight.github-dark.css">
-
-  <script class="testable" src="testable.js" type="module"></script>
-  <script class="hljs" type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-    const d=document, elts = a => d.querySelectorAll(a);
-    hljs.registerLanguage('javascript', javascript);
-    d.addEventListener('DOMContentLoaded', () =>
-      elts('pre code').forEach(block =>
-        hljs.highlightElement(block)));
-      // open all the details, too.
-      elts('details').forEach(d => d.open = true);
-  </script>
-</head>-->
-
-_________________________________________________________
 # Simpaticode: combine()
-2023
+jbr 2023
 
 See:
 [home](/),
@@ -34,7 +8,6 @@ See:
 [litmd](/lit.md),
 [audience](/audience.md)
 
-<div class="makeItStop">I find the auto-refresh to be too annoying to leave on by default.</div>
 
 `combine(a, b)` combines two object arguments `b` with `a` and returns the result.
 You use it in a webpage like this:
