@@ -1,6 +1,5 @@
 <!--<!DOCTYPE html>
-<html lang="en">
-<head>
+<head lang="en">
   <meta charset="UTF-8">
   <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist, web verite">
   <meta name="author" content="jbr">

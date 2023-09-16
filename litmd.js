@@ -108,23 +108,28 @@ const litmd = makeMarkdownConverter();
  * @returns {string}
  */
 function buildHtmlFromLiterateMarkdown(maybeMarkdownString, fileName=''){
-  if (typeof maybeMarkdownString === 'string' || !fileName.endsWith('.md'))
-    return maybeMarkdownString;
-  const markdownString = maybeMarkdownString.toString();
 
-  const firstCut = markdownString.split('</head>-->');
-  let header = firstCut[0];
+  if (typeof maybeMarkdownString === 'string' || !fileName.endsWith('.md')){
+    return maybeMarkdownString;
+  }
+
+  let header ='';
   let body = '';
-  const hasHeader = header.length > 0;
-  if (hasHeader){
-    header = header.replace('<!--', '') + '</head>';
-    body = firstCut[1];
+
+  const markdownString = maybeMarkdownString.toString().trim();
+  const hasExplicitHTMLHeader = markdownString.startsWith("<!--<!DOCTYPE html>");
+
+  if (hasExplicitHTMLHeader){
+    // strip the comments around <!--<!DOCTYPE html> and </head>-->
+    // see https://regex101.com/r/QyIlcj/2
+    const regex = /<!--<!DOCTYPE html>\W*<head\b[^>]*>(.*)<\/head>-->(.*)/s;
+    const group = regex.exec(markdownString);
+    header = `<!DOCTYPE html><head>${group[1].trim()}</head>`;
+    body = group[2].trim();
   } else {
     header = defaultHtmlHeader(fileName);
     body = markdownString;
   }
-
-  if (DEBUG) console.log('litmd.js: buildHtmlFromLiterateMarkdown', 'header', header, 'body', body);
   return header + litmd.makeHtml(body) + htmlFooter();
 }
 
