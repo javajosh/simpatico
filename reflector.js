@@ -307,15 +307,31 @@ function fileServerLogic() {
 
     if (config.logFileServerRequests) logRequest(req);
 
-    // To turn a url into a filename on this server we:
-    // Strip search parameters.
-    // Treat directories (ending in /) as a request for index.html in that directory
-    // Add .html to any url that doesn't have an extension, allowing short urls like simpatico.io/chat
+    /**
+     * Turn url string into a specific filename.
+     * 1. Strip arguments
+     * 2. If it's a directory access, pick index.html or readme.md in that order of preference.
+     * 3. If it's missing an extension, pick md or html in order of preference.
+     * 4. If nothing matches, do nothing to the url and rely on calling code to 404.
+     *
+     * @param url The full URL being requested. E.g. '/chat' or '/svg'
+     * @returns {string} A "normalized" URL e.g. '/chat.html' or '/svg.md'
+     */
     function urlToFileName (url) {
       let u = url;
       if (u.indexOf('?') > -1)   u = u.substr(0, u.indexOf('?'));
-      if (u.endsWith('/'))       u += 'index.html';
-      if (u.indexOf('.') === -1) u += ".md";
+
+      const cwd = process.cwd();
+
+      if (u.endsWith('/')) {
+        if      (fs.existsSync(cwd + u + '/index.html')) u += "index.html";
+        else if (fs.existsSync(cwd + u + '/readme.md'))  u += "readme.md";
+      }
+      if (u.indexOf('.') === -1) {
+        if      (fs.existsSync(cwd + u)) return urlToFileName(u + "/"); // not sure if this ever happens.
+        else if (fs.existsSync(cwd + u + '.md'))   u += ".md";
+        else if (fs.existsSync(cwd + u + '.html')) u += ".html";
+      }
       return u;
     }
 
