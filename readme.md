@@ -43,9 +43,6 @@ Use a simple text editor you already know and a browser plus a single simple ser
   * The Reflector server at simpatico.io takes 200MB of RAM and can handle 10k requests-per-second on a $5 VPS.
   * Extremely fast, single process operation. TLS terminates in node, nginx proxy is not needed.
 
-## Demo
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/r1FFLHpOXmc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Experiments
 
