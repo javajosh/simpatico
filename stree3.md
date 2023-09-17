@@ -214,7 +214,7 @@ Make stree a reducer over an array of ordered pairs, `[[value, parent]]` where p
   * We add OPERATION `toString()` and private OPERATION `fromString()` and modify the constructor to accept a string.
 
 This requires that the values be serializable and concrete.
-In practical terms, only `functions` need special serialization support, from [core](./core.html).
+In practical terms, only `functions` need special serialization support, from [core](core).
 This contract prohibits the `value`s themselves from being arrays or strings.
 
   * Concern: parsing functions means evaling code. Must be careful especially with code from elsewhere.
@@ -647,7 +647,8 @@ const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}]
 
 // These are convenience methods for authoring; we're still just adding objects together.
 // note that assertHandler and logHandler are auto-imported from combine2. however they are small and inlinable.
-const has = assertHandler.call, log = logHandler.call;
+// 'log' is a default import so call the logHandler function 'loggy'
+const has = assertHandler.call, loggy = logHandler.call;
 const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
 const ops = [
   assertHandler.install(),
@@ -658,11 +659,11 @@ const ops = [
   dec(),  has({a: 10}),
   dec(),  has({a: 9}),
   mul(5), has({a: 45}),
-  log('okay, lets backtack and start from an earlier node.'),
+  loggy('okay, lets backtack and start from an earlier node.'),
   5,      has({a: 10}),
   mul(2), has({a: 20}),
   inc(),  has({a: 21}),
-  log('now lets backtrack to node 10 and '),
+  loggy('now lets backtrack to node 10 and '),
   10,     has({a: 9}),
   mul(20),has({a: 180}),
 ];
@@ -940,9 +941,6 @@ startTodoAppLoop(document.querySelector('.todoapp'));
   <p>Double-click to edit a todo</p>
 </footer>
 ```
-
-
-
 
 Note: the majority of heavy-lifting here is done by `combine()`.
 The `stree` needs to deal with branching and input that combine finds invalid.

@@ -1,27 +1,3 @@
-<!-- <!DOCTYPE html>
-<head>
-  <title>Simpaticode: stree()</title>
-  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-        <rect width='1' height='1' fill='white' />
-    </svg>"
-  >
-  <link rel="stylesheet" href="/style.css">
-  <link class="hljs" rel="stylesheet" href="/kata/highlight.github-dark.css">
-  <script class="testable" src="testable.js" type="module"></script>
-  <script class="hljs" type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-    const d=document;
-    hljs.registerLanguage('javascript', javascript);
-    d.addEventListener('DOMContentLoaded', () =>
-      d.querySelectorAll('pre code').forEach(block =>
-        hljs.highlightElement(block)));
-      // open all the details, too.
-      d.querySelectorAll('details').forEach(d => d.open = true);
-  </script>
-</head>-->
-_________________________________________________________
 # Simpaticode: stree()
 jbr 2023
 
@@ -118,7 +94,7 @@ const decHandler = {handle: () => [{a: -1}], call:()=>({handler: 'dec'})};
 const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}], call: a => ({handler: 'mul', factor: a})};
 
 // These are convenience methods for authoring; we're still just adding objects together.
-const has = assertHandler.call, log = logHandler.call;
+const has = assertHandler.call, loggy = logHandler.call;
 const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
 const ops = [
   assertHandler.install(),
@@ -129,11 +105,11 @@ const ops = [
   dec(),  has({a: 10}),
   dec(),  has({a: 9}),
   mul(5), has({a: 45}),
-  log('okay, lets backtack and start from an earlier node.'),
+  loggy('okay, lets backtack and start from an earlier node.'),
   5,      has({a: 10}),
   mul(2), has({a: 20}),
   inc(),  has({a: 21}),
-  log('now lets backtrack to node 10 and '),
+  loggy('now lets backtrack to node 10 and '),
   10,     has({a: 9}),
   mul(20),has({a: 180}),
 ]
@@ -290,15 +266,15 @@ const h1 = {handle: (core, msg) => [{a:1}], call: {handler: 'h1'}};
 const h2 = {handle: (core, msg) => [{a:2}], call: {handler: 'h2'}};
 const [a, b] = [h1.call, h2.call];
 
-const has = assertHandler.call, log = logHandler.call;
+const has = assertHandler.call, loggy = logHandler.call;
 const ops = [
   assertHandler.install(),
   logHandler.install(),
   {handlers: {h1, h2}, debug: DEBUG},
-  {a:0}, log('this is node 4'), has({a:0}), a, b,                  has({a:3}),
-  3 , log('row 1 parent 3'),    has({a:0}), b, b,                  has({a:4}),
-  3 , log('row 2 parent 3'),    has({a:0}), b, b, a, b, b, a, a,   has({a:11}),
-  11, log('row 3 parent 11'),   has({a:2}), a, a,                  has({a:4}),
+  {a:0}, loggy('this is node 4'), has({a:0}), a, b,                  has({a:3}),
+  3 , loggy('row 1 parent 3'),    has({a:0}), b, b,                  has({a:4}),
+  3 , loggy('row 2 parent 3'),    has({a:0}), b, b, a, b, b, a, a,   has({a:11}),
+  11, loggy('row 3 parent 11'),   has({a:2}), a, a,                  has({a:4}),
 ];
 const s = stree(ops);
 

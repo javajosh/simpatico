@@ -9,10 +9,11 @@ const dontExecuteHtml = '<!---';
 const dontExecuteCss = '/***';
 
 const markdownDefaultImports= `
-  import {assertEquals, assertThrows, is, as} from "/core.js";
+  import * as c from "/core.js";
   import {combine, combineReducer, assertHandler, logHandler} from "/combine2.js";
   import {stree} from "/stree2.js";
   const etc = []; // stupid, yes. but funny, [...etc]
+  const {assert, assertEquals, assertThrows, is, as, log, debug} = c;
 `;
 
 const scriptPassThroughExtension = {

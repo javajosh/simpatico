@@ -49,7 +49,7 @@ If you want to run tests non-interactively, you can do so with `chrome` in headl
 $ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 $ sudo dpkg -i google-chrome-stable_current_amd64.deb
 $ sudo apt -f install
-$ google-chrome --headless --disable-gpu http://127.0.0.1:8081/core.html
+$ google-chrome --headless --disable-gpu http://127.0.0.1:8081/core.md
 ```
 
 Note that if ES6 modules supported `file://` urls, or if I concatenated the modules into a single js file, you would ONLY need a browser process to run the tests.

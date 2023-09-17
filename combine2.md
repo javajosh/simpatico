@@ -207,14 +207,14 @@ const logHandlerDemo = {
 
 // These handlers were imported by default by the litmd processor
 const has = assertHandler.call;
-const log = logHandlerDemo.call;
+const loggy = logHandlerDemo.call;
 const ops = [
   assertHandler.install(),
   logHandlerDemo.install(),
   has({debug: true, lastOutput: ''}),
-  {a:10, b:20},   log('prints the core'), has({lastOutput: 'prints the core'}),
-  {debug: false}, log('does not print'),  has({lastOutput: 'prints the core'}),
-  {debug: true},  log('prints again'),    has({lastOutput: 'prints again'}),
+  {a:10, b:20},   loggy('prints the core'), has({lastOutput: 'prints the core'}),
+  {debug: false}, loggy('does not print'),  has({lastOutput: 'prints the core'}),
+  {debug: true},  loggy('prints again'),    has({lastOutput: 'prints again'}),
   ...etc
 ];
 combine(ops);

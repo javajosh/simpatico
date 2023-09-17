@@ -7,7 +7,7 @@ See:
 [audience](/audience.md),
 [reflector](/reflector.md)
 
-This is a very tiny chat system.
+This is a very tiny chat system, indeed.
 It demonstrates "low-level" web-sockets programming with modern javascript.
 It also demonstrates the use of [crypto](/crypto.md).
 Messages are broadcast to all connected clients.

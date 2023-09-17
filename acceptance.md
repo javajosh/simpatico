@@ -22,7 +22,7 @@
         title="core"
         width="300"
         height="200"
-        src="/core.html">
+        src="/core">
 </iframe>
 <iframe id="combine2-frame"
         title="combine"
@@ -40,13 +40,13 @@
         title="crypto"
         width="300"
         height="200"
-        src="/crypto.md">
+        src="/crypto">
 </iframe>
 <iframe id="friendly-frame"
         title="friendly"
         width="300"
         height="200"
-        src="/friendly.html">
+        src="/friendly">
 </iframe>
 <iframe id="svg-frame"
         title="svg"

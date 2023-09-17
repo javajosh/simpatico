@@ -27,7 +27,6 @@ References:
 
 
 ```js
-  import {log, assert} from './core.js';
   import {generateSymmetricKey, encrypt, pack, decrypt, unpack, equalBuffers} from './crypto.js';
 
   // encrypt message
@@ -77,7 +76,6 @@ I believe that 'raw' is universally supported, however.
 
 ```js
   import {generateSymmetricKey, importSymmetricKey, pack, encrypt, decrypt} from './crypto.js';
-  import {log, mapObject, getProp} from './core.js';
 
   //Make a key and encrypt something with it
   const key = await generateSymmetricKey();
@@ -127,7 +125,7 @@ Now lets make asymmetric keys and use them to sign things, and also to wrap thin
     }, keyPair.privateKey,
     encode(msg)
   );
-  console.log('keypair', keyPair, 'msg', msg, 'signature', signature);
+  log('keypair', keyPair, 'msg', msg, 'signature', signature);
 
   // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/verify
   // bool = verify(algorithm, key, signature, data)
@@ -138,7 +136,7 @@ Now lets make asymmetric keys and use them to sign things, and also to wrap thin
     signature,
     encode(msg),
   );
-  console.log('verified', verified);
+  log('verified', verified);
 ```
 
 ## Exporting a derived symmetric key
@@ -149,8 +147,6 @@ It is small, build-less, written with modern ES6 and quite legible.
 ```js
   // The excellent https://github.com/jo/webcryptobox
   import * as wcb from './webcryptobox.js';
-
-  const log = ('emit', 1) ? (await import('./core.js')).log : ()=>{};
 
   const alice = await wcb.generateKeyPair();
   const bob = await wcb.generateKeyPair();

@@ -163,7 +163,6 @@ This stree is using simple addition as the branch/row reducer.
 Not really sure what this is about, actually.
 ```js
   import latch from './demos/demo-latch.js'
-  import { log} from "./core.js";
 
   log('start', latch.residue().count)
   latch.add({count: -10})

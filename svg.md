@@ -33,7 +33,7 @@ __________________________________________
 ```
 
 ```js
-import {svg, shuffle, now, log} from '/simpatico.js';
+import {svg, shuffle, now} from '/simpatico.js';
 // Bind elements
 const greenSquare = svg.elt("green-square");
 const yellowSquare = svg.elt("yellow-square");
@@ -112,7 +112,7 @@ This is a simpler, worse version of [d3 collision demo](https://observablehq.com
 ```
 
 ```js
-import { svg, shuffle, now, log } from '/simpatico.js';
+import { svg, shuffle, now } from '/simpatico.js';
 
 // Bind
 const svgElement = svg.elt('particle-container');
