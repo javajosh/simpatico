@@ -18,12 +18,12 @@
     --hover-brightness: 1.2;
     --justify-important: center;
     --justify-normal: left;
-    --line-height: 1.5;
+    --line-height: 1.4em;
     --width-card: 285px;
     --width-card-medium: 460px;
     --width-card-wide: 800px;
     --width-content: 1080px;
-    --body-margin: 50px;
+    --body-margin: 0 auto;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,10 +52,15 @@ body {
     background: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-family);
+    font-weight: 300;
     line-height: var(--line-height);
     margin: var(--body-margin);
+    max-width: 550px;
+    min-width: 230px;
     overflow-x: hidden;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 footer,

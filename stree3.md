@@ -1,12 +1,38 @@
+<!--<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="Simpatico, stree, es6">
+  <meta name="author" content="Josh Rehman">
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='white' />
+  </svg>"/>
+  <script src="/testable.js" type="module"></script>
+  <title>Simpatico: stree3</title>
+  <link rel="stylesheet" type="text/css" href="todo_mvc.css">
+  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <script type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    hljs.registerLanguage('javascript', javascript);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
+</head>-->
+
+_____________________________________
 # Simpatico/Summary Tree: STree3
 *javajosh 2023*
 
 See [home](/), [combine](/combine),  [stree](/stree.md), [stree2](/stree2.md)
 
 # Intro
-This is my third time implementing an stree.
+This is my third time implementing stree.
 Each attempt has had some good and bad.
-The first attempt was a simple n-ary tree, but was missing features
+The first attempt was a simple n-ary tree, but was missing features.
 The second attempt was strong on authoring, but was complex and failed in some corner cases.
 With stree3 I'm taking a page from [Introduction to Algorithms](https://en.wikipedia.org/wiki/Introduction_to_Algorithms) and using a more formal, terse specification.
 This is useful when the number of operations and constraints grow and need to all be revisited on each design iteration.
