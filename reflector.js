@@ -510,13 +510,13 @@ function chatBroadcastStrategy(message, fromId, ws){
   for (let i = 0; i < connections.length; i++) {
     let conn = connections[i];
     // normally we skip the sender, but for testing we can echo back to the sender.
-    //if (conn === ws) return;
+    // if (conn === ws) return;
     try{
       // Delete dead connections
       if (typeof conn === 'undefined' || conn.readyState !== WebSocket.OPEN) {
-        log(`connection ${i} died`);
-        delete connections[i]
-        return;
+        log(`connection ${i} died, deleting`);
+        delete connections[i];
+        continue;
       }
       // Prepend the sender id to the message.
       const msg = `${fromId} > ${message}`;
@@ -538,10 +538,3 @@ const failWhale = `
 |_|  \\__/_||_||_|        \\_/\\_/  |_||_|\\__/_||_|\\___|
 `;
 
-const html301=`<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
-<TITLE>301 Moved</TITLE></HEAD><BODY>
-<H1>301 Moved</H1>
-The document has moved
-<A HREF="https://simpatico.io/">here</A>.
-</BODY></HTML>
-`;
