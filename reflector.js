@@ -41,7 +41,7 @@ if (config.runAsUser) dropProcessPrivs(config.runAsUser);
 // Reflector booted! Print out welcome message.
 const url = `https://${config.hostname}:${config.https}`;
 info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url] (? => [normalized url)");
-info(`Initialization complete. Open ${url}`);
+info(`Initialization complete. Open ${url}/working.md`);
 if (process.send) process.send(config);
 
 // ================================================================

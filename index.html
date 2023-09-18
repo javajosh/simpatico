@@ -1,101 +1,151 @@
 <!DOCTYPE html>
-<html lang="en">
+<html color-mode="user" lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="keywords" content="HTML, JavaScript, ES9, functional, minimalist">
-  <meta name="author" content="jbr" data-date="2023">
-  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-        <rect width='1' height='1' fill='DodgerBlue' />
-    </svg>"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='DodgerBlue' />
+  </svg>"/>
+  <script src="/testable.js" type="module"></script>
+
   <title>Simpatico</title>
-  <link rel="stylesheet" href="/style.css">
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist">
+  <meta name="author" content="jbr">
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <script type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    hljs.registerLanguage('javascript', javascript);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
 </head>
 <body>
-<h1>Simpatico</h1>
-<p>jbr <i>2023</i></p>
+<header>
+  <nav>
+    <a href="https://simpatico.io"><img alt="logo" src="/img/wizard.svg" height="70"></a>
+    <ul>
+      <li>Home</li>
+      <li><a href="#docs">Docs</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="https://www.github.com/javajosh/simpatico/" target="_blank">GitHub ↗</a></li>
+    </ul>
+  </nav>
+  <h1>A <u>minimalist</u> server for individual creators</h1>
+  <p><b>No front-end build, no frameworks,</b> just <em>literate</em> HTML, CSS, and JavaScript, and <mark>you're done</mark>.</p>
 
-<p>
-  <i>Site status:</i> unreleased tech demo.
-  Non-technical, non-learner users will find very little to interest them, currently.
-  Advanced technical users will be interested in the <a href="https://github.com/javajosh/simpatico">github code</a>.
-  One way to go from one to the other is to read <a href="https://eloquentjavascript.net/">Eloquent JavaScript</a> and do the exercises.
-</p>
-<p>
-  In other words, this site is <a href="http://textfiles.com/underconstruction/">under construction</a>
-</p>
+</header>
+<main>
+  <hr>
+  <section>
+    <header>
+      <h2>Simple, zero-dependency components</h2>
+      <p>For clean code that doesn't get in the way</p>
+    </header>
+    <aside>
+<!--      <img alt="HTML only" src="./img/html.svg" height="150">-->
+      <h3>HTML and You're Done</h3>
+      <p>Simpatico Reflector styles your root HTML elements, so you don't need to learn a new CSS framework or naming
+        conventions.</p>
+      <p><a href="https://www.w3schools.com/TAGS/ref_byfunc.asp" target="_blank"><em>HTML Guide
+        ↗</em></a></p>
+    </aside>
+    <aside>
+<!--      <img alt="Mobile friendly" src="./img/mobile.svg" height="150">-->
+      <h3>Mobile-friendly UI</h3>
+      <p>Simpatico Reflector is designed to look great on all browsers and devices out of the box for rapid prototyping.
+      </p>
+      <p>It's like an amped up CSS reset that you can toss into any project to get decent styling.</p>
+    </aside>
+    <aside>
+<!--      <img alt="MIT license" src="./img/license.svg" height="150">-->
+      <h3>MIT License</h3>
+      <p>Simpatico Reflector is released under the permissive MIT license so you can freely use it however you'd like.</p>
+      <p>That means personal projects, commercial ventures, remixes and more are all welcome.</p>
+    </aside>
+  </section>
+  <hr>
+  <section id="testimonials">
+    <blockquote>
+<!--      <img alt="Quote" src="./img/icon-quote.svg" height="80"><br>-->
+      "Amazing!"
+      <footer><br><br><i>- Josh Rehman, author of Simpatico</i></footer>
+    </blockquote>
+  </section>
+  <hr>
+  <section id="features">
+    <header>
+      <h2>Flexibility without complexity</h2>
+      <p>A few, clean styling options without all the bells and whistles</p>
+    </header>
+    <table>
+      <thead>
+      <tr>
+        <th></th>
+        <th>Simpatico</th>
+        <th>Codepen</th>
+        <th>Custom</th>
+      </tr>
+      </thead>
+      <tbody><tr>
+        <td>Mobile friendly</td>
+        <td><b>✓</b></td>
+        <td>✓</td>
+        <td>∅</td>
+      </tr>
+      <tr>
+        <td>Works out of the box</td>
+        <td><b>✓</b></td>
+        <td>✓</td>
+        <td>∅</td>
+      </tr>
+      <tr>
+        <td>Works offline</td>
+        <td><b>✓</b></td>
+        <td>∅</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Preserves user privacy</td>
+        <td><b>✓</b></td>
+        <td>∅</td>
+        <td>∅</td>
+      </tr>
+      <tr>
+        <td>Literate markdown</td>
+        <td><b>✓</b></td>
+        <td>∅</td>
+        <td>∅</td>
+      </tr>
+      <tr>
+        <td>Perfect for browsers</td>
+        <td><b>✓</b></td>
+        <td>∅</td>
+        <td>∅</td>
+      </tr>
+      </tbody></table>
+  </section>
+  <hr>
+  <div id="figure">
+    <header>
+      <h2>A working site in no-time</h2>
+      <p>More building and less fiddling with builds!</p>
+    </header>
+  </div>
 
-<h2>Interesting resources</h2>
-<ol>
-  <li><a href="/acceptance">Acceptance tests</a> iframe + testable.
-  <li><a href="/chat">Chat</a> exercising browser websockets api; primordial chat client
-  <li><a href="/stree3">stree3()</a> a functional approach to the n-ary tree.
-  <li><a href="/stree2">stree2()</a> using arrays instead of an n-ary tree.
-  <li><a href="/combine2">combine2()</a> just the timeline features, with less code. Working on caching.
-  <li><a href="/kata/">kata</a> many exercises, performed in a dojo.
-  <ol>
-    <li><a href="/kata/angular">angular</a> a complex SPA library that includes TypeScript, RxJs, Redux, and Material Design (and angular 16 signals)
-    <li><a href="/kata/rxjs/rxjs.md">rxjs</a> focus on observable reactive programming with rxjs
-    <li><a href="/kata/htmx">htmx</a> an interesting js library that uses html attributes to control ajax in the HATEOAS pattern.
-    <li><a href="/kata/mermaid.html">mermaid</a> a diagramming library.
-    <li><a href="/kata/d3">d3</a> d3 svg dataviz library.
-    <li><a href="/kata/proximity-coherence">site proximity coherence</a> a classic webapp problem, with a new twist.
-    <li><a href="/kata/html.html">HTML authoring</a>
-  </ol>
-  <li><a href="/lit">Literate Markdown (litmd) and authoring standard</a> minimalist litmd literate programming for browsers.
-  <li><a href="/friendly">Friendly Functions</a> a simple runtime type system
-  <li><a href="/crypto">Browser cryptology</a> exercising browser crypto api
-  <li><a href="/db/">SQLite in the browser</a> 400kb WASM
-  <li><a href="/notes/simpatico">Simpatico</a> An overview of simpatico's parts, most of which are represented here.
-  <li><a href="/svg">SVG authoring and lib</a>
-  <li><a href="/core">Core</a> Utilities, predicates, types
-  <li><a href="/reflector">Reflector</a>Simpatico's server-side component, based on node
-  <li><a href="/wp">word processor</a></li> 2kb word processor in an html file that uses <code>contenteditable</code> and <code>localstorage</code>
-</ol>
-
-<h2>Gadgets around the web</h2>
-<ol>
-  <li><a href="https://oimo.io/works">saharan's browser physics art</a></li>
-  <li><a href="https://bellard.org/jslinux/vm.html?url=alpine-x86.cfg&mem=192">Fabrice Bellard jslinux</a></li>
-  <li><a href="https://svelte.dev/tutorial">Svelte's tutorial</a> and also <a href="https://svelte.dev/blog/frameworks-without-the-framework">philosophy</a></li>
-  <li><a href="https://codepen.io/">Codepen.io</a> Lots of great gadgets on this site</li>
-  <li><a href="https://blog.val.town/blog/migrating-from-supabase">Val Town, codepen for the backend</a></li>
-  <li><a href="https://cprimozic.net/blog/building-a-signal-analyzer-with-modern-web-tech/">Signal analyzer</a></li>
-</ol>
-
-<h2>Recently Interesting Views</h2>
-<ol>
-  <li><a href="https://mikecann.co.uk/posts/the-future-of-applications">The future of applications</a></li>
-  <li><a href="https://jaylittle.com/post/view/2023/4/low-code-software-development-is-a-lie">No code is no good</a></li>
-  <li><a href="https://www.exhypothesi.com/clocks-and-causality/">Clocks in distributed systems</a></li>
-</ol>
-
-<h2>Unneeded complexity</h2>
-<p>Simpatico's design solves many problems at the root, by not using problematic technology in the first place. This is a list of mitigations that <i>we don't need</i></p>
-<ol>
-  <li><a href="https://web.dev/inp/">Interaction to Next Paint (INP)</a> - A new metrics API to measure how slow a page is. Simpatico obviates this by not being huge, and having miniamlist libraries.</li>
-</ol>
-<h2>Similar things</h2>
-<ol>
-  <li><a href="https://nbdev.fast.ai/">nbdev</a> a jupyter distribution with some added value. Similar in goal to <a
-    href="lit.md">literate markdown</a></li>
-</ol>
-
-<h2>todo</h2>
-
-<ol>
-  <li>reflector: cache invalidation not working. the server cache updates, but the browser doesn't. header issue?</li>
-  <li>reflector: improve no-extension handling. allow md or html</li>
-  <li>reflector: complete headless chrome functional test framework</li>
-  <li>reflector: serve another domain, like javajosh.com. add virtual hosts.</li>
-  <li>reflector: extract into an npm module</li>
-  <li>npm &amp; git: create new org for published modules</li>
-  <li>general: cleanup notes to be more professional</li>
-  <li>html: build a good looking landing page.</li>
-  <li>angular: experiment with including global resource and see if that gets bundled.</li>
-  <li>angular: build a good looking UI</li>
-</ol>
+</main>
+<footer>
+  <hr>
+  <p>
+     Copyright 2023 SimpatiCorp and Josh Rehman
+  </p>
+</footer>
 
 </body>
 </html>
