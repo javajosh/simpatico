@@ -23,7 +23,7 @@
 </p>
 
 <br>
-Use a simple text editor you already know and a browser plus a single simple server process to create simple, literate programs that execute immediately in the browser. Minimalist, privacy respecting, readable and short source code. No front-end build!
+Use a text editor and browser you already know and a simple server process to create literate programs that execute immediately and without a build. Tiny, privacy respecting, readable and short JavaScript source. No front-end build!
 <br>
 
 
