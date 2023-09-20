@@ -4,6 +4,7 @@
 See:
 [home](/),
 [litmd](/lit.md),
+[chat](/chat.md),
 [reflector](/reflector.md)
 
 # Ephemeral chat client
@@ -22,17 +23,17 @@ The key property of the wss reference is the existence of a `send()` method so w
 <ol id="chat-app">
   <li><input id="text-entry" type="text" placeholder="type hit enter"></li>
   <li><span id="private-key"></span></li>
+  <li><span id="public-key-fingerprint"></span></li>
 </ol>
 ```
 
 ```js
   import * as wcb from './webcryptobox.js';
 
-  const websocketURL = window.location.toString().replace(/^http/, 'ws');
-
   // Bind to UI elts
   const chatApp = document.getElementById('chat-app');
   const privateKey = document.getElementById('private-key');
+  const publicKeyFingerprint = document.getElementById('public-key-fingerprint');
   const textEntry = document.getElementById('text-entry');
 
   // Generate a new keypair
@@ -42,20 +43,18 @@ The key property of the wss reference is the existence of a `send()` method so w
     privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey)
   };
 
+  const pubKeyFingerprint = wcb.encodeBase64(await wcb.sha256Fingerprint(keyPair.publicKey));
+  publicKeyFingerprint.innerText = pubKeyFingerprint;
+
   // Show the private key. Obviously this is not secure, but we're still under construction.
   privateKey.innerText = keyPairPem.privateKeyPem;
 
+
+  const websocketURL = window.location.toString().replace(/^http/, 'ws');
   // Start the connection, register a listener/msg handler
   // TODO: connection may be lost and recreated.
   // TODO: client keep-alive messages
   let connection = connect(websocketURL, keyPair, keyPairPem, e => addListItem(e.data));
-
-  // Generic DOM helper function to add a list element
-  function addListItem (itemHtml, parent = chatApp) {
-    const li = document.createElement("li");
-    li.innerHTML = itemHtml;
-    parent.appendChild(li);
-  }
 
   // Turn body change events (emitted by form fields) into msg sends.
   chatApp.addEventListener('change', e =>  {
@@ -68,11 +67,18 @@ The key property of the wss reference is the existence of a `send()` method so w
     }
   });
 
+  // Generic DOM helper function to add a list element
+  function addListItem (itemHtml, parent = chatApp) {
+    const li = document.createElement("li");
+    li.innerHTML = itemHtml;
+    parent.appendChild(li);
+  }
+
   // Read: Open the socket and) become capable of sending and recieving messages
   function connect (url, keyPair, keyPairPem, handler) {
     const conn = new WebSocket(url);
     conn.onopen = () => {
-      sendMessage(keyPairPem.publicKeyPem, conn);
+      sendMessage(pubKeyFingerprint, conn);
     }
     conn.onmessage = handler;
     return conn;

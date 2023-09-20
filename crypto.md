@@ -146,30 +146,34 @@ It is small, build-less, written with modern ES6 and quite legible.
 
 ```js
   // The excellent https://github.com/jo/webcryptobox
-  import * as wcb from './webcryptobox.js';
+import * as wcb from './webcryptobox.js';
 
-  const alice = await wcb.generateKeyPair();
-  const bob = await wcb.generateKeyPair();
-  const text = 'Nobody else can offer me something, something heart felt like you did it.';
-  const message = wcb.decodeText(text);
-  const box = await wcb.encryptTo({ message, privateKey: alice.privateKey, publicKey: bob.publicKey });
-  const decryptedBox = await wcb.decryptFrom({ box, privateKey: bob.privateKey, publicKey: alice.publicKey });
-  const decryptedText = wcb.encodeText(decryptedBox);
+const alice = await wcb.generateKeyPair();
+const bob = await wcb.generateKeyPair();
+const text = 'Nobody else can offer me something, something heart felt like you did it.';
+const message = wcb.textToBuffer(text);
+const box = await wcb.encryptTo({message, privateKey: alice.privateKey, publicKey: bob.publicKey});
+const decryptedBox = await wcb.decryptFrom({box, privateKey: bob.privateKey, publicKey: alice.publicKey});
+const decryptedText = wcb.bufferToText(decryptedBox);
 
-  // Now lets see if we can export and import the keys and have it work the same way
-  const alicePub = await wcb.exportPublicKeyPem(alice.publicKey);
-  const alicePriv = await wcb.exportPrivateKeyPem(alice.privateKey);
-  log('asymm', alicePub, alicePriv);
-  const alicePubImported = await wcb.importPublicKeyPem(alicePub);
-  const alicePrivImported = await wcb.importPrivateKeyPem(alicePriv);
-  log('asymm', alicePubImported, alicePrivImported);
-  const alice2 = {publicKey: alicePubImported, privateKey: alicePrivImported};
-  const box2 = await wcb.encryptTo({ message, privateKey: alice2.privateKey, publicKey: bob.publicKey });
-  log('asymm', alice2, box2);
-  const decryptedBox2 = await wcb.decryptFrom({ box: box2, privateKey: bob.privateKey, publicKey: alice2.publicKey });
-  const decryptedText2 = wcb.encodeText(decryptedBox2);
+// Now lets see if we can export and import the keys and have it work the same way
+const alicePub = await wcb.exportPublicKeyPem(alice.publicKey);
+const alicePriv = await wcb.exportPrivateKeyPem(alice.privateKey);
+log('asymm', alicePub, alicePriv);
+const alicePubImported = await wcb.importPublicKeyPem(alicePub);
+const alicePrivImported = await wcb.importPrivateKeyPem(alicePriv);
+log('asymm', alicePubImported, alicePrivImported);
+const alice2 = {publicKey: alicePubImported, privateKey: alicePrivImported};
+const box2 = await wcb.encryptTo({message, privateKey: alice2.privateKey, publicKey: bob.publicKey});
+log('asymm', alice2, box2);
+const decryptedBox2 = await wcb.decryptFrom({box: box2, privateKey: bob.privateKey, publicKey: alice2.publicKey});
+const decryptedText2 = wcb.bufferToText(decryptedBox2);
 
-  assertEquals(decryptedText, decryptedText2);
+// Get a printable sha256 hash of the key
+const alicePubKeyFingerprint = await wcb.sha256Fingerprint(alice.publicKey);
+log(wcb.encodeBase64(alicePubKeyFingerprint));
+
+assertEquals(decryptedText, decryptedText2);
 ```
 # Discussion
 Why crypto?

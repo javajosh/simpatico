@@ -31,13 +31,13 @@ export const cipher = `${EC_PARAMS.name}-${EC_PARAMS.namedCurve}-${AES_PARAMS.na
 // utils
 
 // decode text message
-export const decodeText = text => {
+export const textToBuffer = text => {
   const enc = new TextEncoder()
   return enc.encode(text)
 }
 
 // encode data as text
-export const encodeText = data => {
+export const bufferToText = data => {
   const dec = new TextDecoder()
   return dec.decode(data)
 }
@@ -406,7 +406,7 @@ export const importEncryptedPrivateKeyPem = async ({ pem, passphrase }) => {
 const deriveWrappingKeyFrom = async ({ salt, privateKey, publicKey }) => {
   const passphraseBits = await derivePassword({ privateKey, publicKey, length: 32 })
   const passphraseHex = encodeHex(passphraseBits)
-  const passphrase = decodeText(passphraseHex)
+  const passphrase = textToBuffer(passphraseHex)
   return deriveWrappingKey({ salt, passphrase })
 }
 

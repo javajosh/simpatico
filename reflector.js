@@ -485,18 +485,28 @@ function chatServerLogic(ws) {
   ws.on('message', msg => chatBroadcastStrategy(msg, fromId, ws));
 }
 
+const connectionRegistration = {};
 function chatSecureStrategy(message, fromId, ws) {
+  // cast message to a string - it starts out as a byte buffer.
+  message = message + "";
   // Ignore long messages
   if (message.length > 300) {
     ws.send('your message was too long');
     return;
   }
-  // Each connection starts out life in a "raw" state, no public key associated.
-  // Once it registers a public key, it is considered "registered".
-  // Subsequent messages can be sent to and from the public keys.
-  // It is better to use a state machine, but this is simpler.
-  // Each message is a JWT or similar, signed by the private key.
-  // The reflector may or may not verify signatures - it's reasonable either way.
+  log(message);
+  let out = ws;
+  try{
+    if (message.startsWith("register:")){
+      connectionRegistration[message] = ws;
+      out.send('registered!');
+    } else if (message.startsWith("to:")){
+      out = connectionRegistration[message.substr(3)];
+      out.send(message);
+    }
+  } catch(e) {
+    error(e);
+  }
 }
 
 function chatBroadcastStrategy(message, fromId, ws){
@@ -522,7 +532,7 @@ function chatBroadcastStrategy(message, fromId, ws){
       const msg = `${fromId} > ${message}`;
       // Send and log
       conn.send(msg);
-      log('chatServerLogic', 'fromId', fromId, 'message', message.length);
+      log('chatServerLogic', 'fromId', fromId, 'to', i, 'message', message + '');
 
     } catch(e) {
       // Q: what all can go wrong here?
