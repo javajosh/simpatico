@@ -95,9 +95,10 @@ Note that to get this to work you need to run `npm install` to add the qr code l
   });
 
   // Generic DOM helper function to add a list element
+  // Sanitizes: https://developer.mozilla.org/en-US/docs/Web/API/Element/setHTML
   function addListItem (itemHtml, parent = chatApp) {
     const li = document.createElement("li");
-    li.innerHTML = itemHtml;
+    li.setHTML(itemHtml);
     parent.appendChild(li);
   }
 
