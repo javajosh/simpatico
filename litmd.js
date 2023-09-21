@@ -146,7 +146,7 @@ function defaultHtmlHeader(fileName) {
   const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
   const title = 'Simpatico: ' + bareFileName;
   return `<!DOCTYPE html>
-<head lang="en">
+<head lang="en" color-mode="user">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 

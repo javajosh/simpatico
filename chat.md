@@ -24,7 +24,7 @@ Note that to get this to work you need to run `npm install` to add the qr code l
   <li><input id="text-entry" type="text" placeholder="type hit enter"></li>
 </ol>
 
-<script src="./node_modules/qrcode/build/qrcode.js"></script>
+<script src="qrcode.js"></script>
 ```
 
 ```js
