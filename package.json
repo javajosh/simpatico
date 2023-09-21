@@ -21,6 +21,7 @@
   "dependencies": {
     "chokidar": "^3.5.3",
     "mermaid": "^10.1.0",
+    "qrcode": "github:soldair/node-qrcode",
     "rxjs": "npm:@esm-bundle/rxjs@^7.8.1",
     "ws": "8.11.0"
   }

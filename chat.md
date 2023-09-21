@@ -15,14 +15,16 @@ This change requires a [reflector](reflector) change, wrapping the wss reference
 and a reverse lookup that maps addresses to a wss reference.
 The key property of the wss reference is the existence of a `send()` method so we can model our solution in the browser.
 
+Note that to get this to work you need to run `npm install` to add the qr code library.
 
 ## Client
 
 ```html
-
 <ol id="chat-app">
   <li><input id="text-entry" type="text" placeholder="type hit enter"></li>
 </ol>
+
+<script src="./node_modules/qrcode/build/qrcode.js"></script>
 ```
 
 ```js
@@ -54,7 +56,10 @@ The key property of the wss reference is the existence of a `send()` method so w
 
   addListItem(`<pre>${JSON.stringify(keyPairPem, null, 2)}</pre>`);
   addListItem(`<a href="${addressLink}">${addressLink}</a>`);
-  // addListItem(`parentAddress: ${parentAddress}`);
+  addListItem(`parentAddress: ${parentAddress}`);
+  addListItem(`address QR code: <canvas id="qr"></canvas>`);
+
+  QRCode.toCanvas(document.getElementById('qr'), addressLink, debug);
 
   // strip the hash because websocket urls cannot have a hash
   const websocketURL = window.location.toString().replace(/^http/, 'ws').split('#')[0];
