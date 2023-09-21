@@ -15,7 +15,7 @@ This change requires a [reflector](reflector) change, wrapping the wss reference
 and a reverse lookup that maps addresses to a wss reference.
 The key property of the wss reference is the existence of a `send()` method so we can model our solution in the browser.
 
-Note that to get this to work you need to run `npm install` to add the qr code library.
+Note that to get this to work you need to run `npm install` to add the qr code library; however this uses `node_gyp` which is problematic, so I've committed the bundle to avoid this necessity.
 
 ## Client
 
@@ -24,7 +24,11 @@ Note that to get this to work you need to run `npm install` to add the qr code l
   <li><input id="text-entry" type="text" placeholder="type hit enter"></li>
 </ol>
 
+<!-- Idiosyncratic dependencies. -->
+<!-- npm install && cp ./node_modules/qrcode/build/qrcode.js . -->
 <script src="qrcode.js"></script>
+<!-- curl https://raw.githubusercontent.com/chancejs/chancejs/master/chance.js > chance.js -->
+<script src="chance.js"></script>
 ```
 
 ```js
@@ -61,11 +65,19 @@ Note that to get this to work you need to run `npm install` to add the qr code l
 
   QRCode.toCanvas(document.getElementById('qr'), addressLink, debug);
 
+  const profile = {
+    address: keyPairPem.pubKeyFingerprint,
+    name: chance.name({ prefix: true }),
+    color: chance.color({format: 'hex'}),
+    animal: chance.animal(),
+    roll: chance.d20(),
+  }
+
   // strip the hash because websocket urls cannot have a hash
   const websocketURL = window.location.toString().replace(/^http/, 'ws').split('#')[0];
 
   // Start the connection, register a listener/msg handler
-  let connection = connect(websocketURL, keyPair, keyPairPem, e => addListItem(e.data));
+  let connection = connect(websocketURL, keyPair, keyPairPem, e => addListItem(`<pre>${e.data}</pre>`));
 
   // Turn body change events (emitted by form fields) into msg sends.
   chatApp.addEventListener('change', e =>  {
@@ -92,9 +104,7 @@ Note that to get this to work you need to run `npm install` to add the qr code l
   // Read: Open the socket and) become capable of sending and recieving messages
   function connect (url, keyPair, keyPairPem, handler) {
     const conn = new WebSocket(url);
-    conn.onopen = () => {
-      sendMessage({address: keyPairPem.pubKeyFingerprint});
-    }
+    conn.onopen = () => sendMessage(profile);
     conn.onmessage = handler;
     return conn;
   }
@@ -105,7 +115,7 @@ Note that to get this to work you need to run `npm install` to add the qr code l
 
   // Send a message over the websocket
   function sendMessage(msg, conn = connection) {
-    msg = JSON.stringify(msg);
+    msg = JSON.stringify(msg, null, 2);
     debug(`sendMessage(${msg})`);
     if (!isConnReady(conn)) throw 'connection is not ready';
     conn.send(msg);
