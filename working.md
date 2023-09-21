@@ -24,6 +24,7 @@ Interesting resources
 5.  [combine2()](/combine2) just the timeline features, with less code.
     Working on caching.
 6.  [kata](/kata/) many exercises, performed in a dojo.
+    1.  [bootstrap](/kata/bootstrap/index.html) Material design bootstrap
     1.  [angular](/kata/angular) a complex SPA library that includes
         TypeScript, RxJs, Redux, and Material Design (and angular 16
         signals)
