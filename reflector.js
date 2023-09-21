@@ -12,6 +12,7 @@ import chokidar from 'chokidar';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
+import { stree3 as stree } from './stree3.js';
 import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
 const log = (...args) => {
@@ -25,7 +26,6 @@ const hiddenConfigFields = {password: '******', jdbc: '******'};
 const elide = (obj, hide=hiddenConfigFields) => DEBUG ? obj : combine(obj, hide);
 
 // Reflector global dynamic state
-const connections = []; // used by the wss server
 let cache = {}; // used by the http/s fileserver
 initFileWatchingCacheInvalidator(cache);
 
@@ -471,6 +471,7 @@ function isCompressedImage(fileName) {
   });
 }
 
+const connections = stree({});
 /**
  * This is the main entry point for the chat server, triggered by a new connection.
  * This method makes use of global 'connections'
@@ -478,61 +479,40 @@ function isCompressedImage(fileName) {
  * @param ws - the new websocket connection
  */
 function chatServerLogic(ws) {
-  // Register the connection, use the connection array index as the id.
-  const fromId = connections.length;
-  connections.push(ws);
+  // Register the connection, always branch from root
+  connections.add({ws}, 0);
+
   // Register a strategy for handling incoming messages in the steady state.
-  ws.on('message', msg => chatBroadcastStrategy(msg, fromId, ws));
+  ws.on('message', msg => handleMessage(msg, connections.branchIndex));
 }
 
-const connectionRegistration = {};
-function chatSecureStrategy(message, fromId, ws) {
-  // cast message to a string - it starts out as a byte buffer.
-  message = message + "";
-  // Ignore long messages
-  if (message.length > 300) {
-    ws.send('your message was too long');
-    return;
-  }
-  log(message);
-  let out = ws;
-  try{
-    if (message.startsWith("register:")){
-      connectionRegistration[message] = ws;
-      out.send('registered!');
-    } else if (message.startsWith("to:")){
-      out = connectionRegistration[message.substr(3)];
-      out.send(message);
-    }
-  } catch(e) {
-    error(e);
-  }
-}
 
-function chatBroadcastStrategy(message, fromId, ws){
+function handleMessage(message, branchIndex){
+  const connection = connections.branchResidues[branchIndex];
+
   // Ignore long messages
   if (message.length > 300) {
-    ws.send('your message was too long');
+    connection.ws.send('your message was too long');
     return;
   }
   // Broadcast to all connections
   //  NB: using a for-loop instead of foreach makes the stack traces nicer.
-  for (let i = 0; i < connections.length; i++) {
-    let conn = connections[i];
+  for (let i = 0; i < connections.branchResidues.length; i++) {
+    let conn = connections.branchResidues[i].ws;
     // normally we skip the sender, but for testing we can echo back to the sender.
-    // if (conn === ws) return;
+    // if (conn.ws === ws) return;
     try{
       // Delete dead connections
       if (typeof conn === 'undefined' || conn.readyState !== WebSocket.OPEN) {
         log(`connection ${i} died, deleting`);
-        delete connections[i];
+        // delete connections[i];
         continue;
       }
       // Prepend the sender id to the message.
-      const msg = `${fromId} > ${message}`;
+      const msg = `${branchIndex} > ${message}`;
       // Send and log
       conn.send(msg);
-      log('chatServerLogic', 'fromId', fromId, 'to', i, 'message', message + '');
+      log('chatServerLogic', 'branchIndex', branchIndex, 'to', i, 'message', message + '');
 
     } catch(e) {
       // Q: what all can go wrong here?

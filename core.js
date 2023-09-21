@@ -352,6 +352,38 @@ function parseWithFunctions(str) {
   });
 }
 
+/**
+ * Return N bytes (default 20) of random base64 encoded in a URL-safe string.
+ * Inspired by: https://neilmadden.blog/2018/08/30/moving-away-from-uuids/
+ * Note: this is browser only.
+ * @example
+ *  console.log("deepId()", deepId());
+ * @returns 20 bytes of random data, base64 encoded.
+ */
+function deepId(depthInBytes=20) {
+  const data = new Uint8Array(depthInBytes);
+  self.crypto.getRandomValues(data);
+  return base64EncodeBuffer(data);
+}
+
+// Note: this is browser only.
+function base64EncodeBuffer(buffer, debug=false){
+  // NB: you can't use map() here because of array typing.
+  const chars = [];
+  const bytes = new Uint8Array(buffer);
+  for(let i = 0; i < bytes.byteLength; i++){
+    chars.push(String.fromCharCode(bytes[i]));
+  }
+  if (debug) log(
+    'buffer', buffer,
+    'chars', chars,
+    "chars.join('')", chars.join(''),
+    "btoa(chars.join(''))", btoa(chars.join('')),
+  );
+
+  return btoa(chars.join(''));
+}
+
 export {
   is, as, getType, size, cast, TYPES,
   now, log, debug, info, error,
@@ -363,4 +395,5 @@ export {
   RNG, shuffle,
   tryToStringify, parseObjectLiteralString, regex,
   parseWithFunctions, stringifyWithFunctions,
+  deepId, base64EncodeBuffer,
 }

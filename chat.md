@@ -22,8 +22,6 @@ The key property of the wss reference is the existence of a `send()` method so w
 
 <ol id="chat-app">
   <li><input id="text-entry" type="text" placeholder="type hit enter"></li>
-  <li><span id="private-key"></span></li>
-  <li><span id="public-key-fingerprint"></span></li>
 </ol>
 ```
 
@@ -32,34 +30,46 @@ The key property of the wss reference is the existence of a `send()` method so w
 
   // Bind to UI elts
   const chatApp = document.getElementById('chat-app');
-  const privateKey = document.getElementById('private-key');
-  const publicKeyFingerprint = document.getElementById('public-key-fingerprint');
   const textEntry = document.getElementById('text-entry');
 
   // Generate a new keypair
   const keyPair = await wcb.generateKeyPair();
   const keyPairPem = {
     publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
-    privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey)
+    privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
+    pubKeyFingerprint: c.base64EncodeBuffer(await wcb.sha256Fingerprint(keyPair.publicKey)),
   };
 
-  const pubKeyFingerprint = wcb.encodeBase64(await wcb.sha256Fingerprint(keyPair.publicKey));
-  publicKeyFingerprint.innerText = pubKeyFingerprint;
+  const address = keyPairPem.pubKeyFingerprint;
+  const addressLink = window.location.href + '#' + address;
 
-  // Show the private key. Obviously this is not secure, but we're still under construction.
-  privateKey.innerText = keyPairPem.privateKeyPem;
+  // Get an address out of the hash
+  let parentAddress='';
+  if (window.location.hash){
+    parentAddress = window.location.hash;
+  } else {
+    // For now, just send messages to ourself.
+    parentAddress = address;
+  }
 
+  addListItem(`<pre>${JSON.stringify(keyPairPem, null, 2)}</pre>`);
+  addListItem(`<a href="${addressLink}">${addressLink}</a>`);
+  // addListItem(`parentAddress: ${parentAddress}`);
 
-  const websocketURL = window.location.toString().replace(/^http/, 'ws');
+  // strip the hash because websocket urls cannot have a hash
+  const websocketURL = window.location.toString().replace(/^http/, 'ws').split('#')[0];
+
   // Start the connection, register a listener/msg handler
-  // TODO: connection may be lost and recreated.
-  // TODO: client keep-alive messages
   let connection = connect(websocketURL, keyPair, keyPairPem, e => addListItem(e.data));
 
   // Turn body change events (emitted by form fields) into msg sends.
   chatApp.addEventListener('change', e =>  {
     if (isConnReady(connection)) {
-      sendMessage(e.target.value);
+      sendMessage({
+        from: address,
+        to: parentAddress,
+        body: e.target.value,
+      });
       e.target.value = "";
     } else {
         window.alert('Unable to send message, connection not ready');
@@ -78,7 +88,7 @@ The key property of the wss reference is the existence of a `send()` method so w
   function connect (url, keyPair, keyPairPem, handler) {
     const conn = new WebSocket(url);
     conn.onopen = () => {
-      sendMessage(pubKeyFingerprint, conn);
+      sendMessage({address: keyPairPem.pubKeyFingerprint});
     }
     conn.onmessage = handler;
     return conn;
@@ -90,6 +100,7 @@ The key property of the wss reference is the existence of a `send()` method so w
 
   // Send a message over the websocket
   function sendMessage(msg, conn = connection) {
+    msg = JSON.stringify(msg);
     debug(`sendMessage(${msg})`);
     if (!isConnReady(conn)) throw 'connection is not ready';
     conn.send(msg);

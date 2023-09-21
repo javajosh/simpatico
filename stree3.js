@@ -19,6 +19,7 @@ function stree3(value, reducer = combineReducer) {
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
+  let branchIndex = 0;
   // initialize the branchResidue cache
   const branchResidues = [root.value];
 
@@ -42,11 +43,12 @@ function stree3(value, reducer = combineReducer) {
     const node = {value, parent};
 
     // add or update branch residue
-    const branchIndex = branches.indexOf(parent);
+    branchIndex = branches.indexOf(parent);
     if (branchIndex === -1) {
       // add a new residue first so that residue isn't tricked into using the residue cache
       branchResidues.push(residue(node));
       branches.push(node);
+      branchIndex = branches.length - 1;
     } else {
       branches[branchIndex] = node;
       // update the old residue - this operation is cheaper than recomputing the residue using nodePath
@@ -163,7 +165,7 @@ function stree3(value, reducer = combineReducer) {
     return fromArray(parseWithFunctions(str), reducer);
   }
 
-  return {add, nodePath, residue, toArray, toString, branches, nodes, root};
+  return {add, nodePath, residue, toArray, toString, branches, nodes, root, branchIndex, branchResidues};
 }
 
 export {stree3}
