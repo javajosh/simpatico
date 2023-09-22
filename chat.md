@@ -29,6 +29,12 @@ Note that to get this to work you need to run `npm install` to add the qr code l
 <script src="qrcode.js"></script>
 <!-- curl https://raw.githubusercontent.com/chancejs/chancejs/master/chance.js > chance.js -->
 <script src="chance.js"></script>
+<!--
+  Sadly only Chrome supports setHTML(). We need DOMPurify as a polyfill
+  See : https://developer.mozilla.org/en-US/docs/Web/API/Element/setHTML
+  curl https://raw.githubusercontent.com/cure53/DOMPurify/main/dist/purify.min.js > purify.min.js
+-->
+<script src="purify.min.js"></script>
 ```
 
 ```js
@@ -95,10 +101,11 @@ Note that to get this to work you need to run `npm install` to add the qr code l
   });
 
   // Generic DOM helper function to add a list element
-  // Sanitizes: https://developer.mozilla.org/en-US/docs/Web/API/Element/setHTML
+  // Sanitizes
   function addListItem (itemHtml, parent = chatApp) {
     const li = document.createElement("li");
-    li.setHTML(itemHtml);
+    // li.setHTML(itemHtml);
+    li.innerHTML = DOMPurify.sanitize(itemHtml);
     parent.appendChild(li);
   }
 
