@@ -1,0 +1,39 @@
+server:
+  port: 8002
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+
+spring:
+  application:
+    name: order-service
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
+      uri: http://config-server
+  r2dbc:
+    username: admin
+    password: admin
+    url: r2dbc:postgresql://localhost:5433/orderdb
+  sql:
+    init:
+      mode: always
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/auth/realms/PolarBookshop
+  zipkin:
+    base-url: ${ZIPKIN_URL:http://localhost:9411/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,refresh

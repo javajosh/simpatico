@@ -1,0 +1,38 @@
+server:
+  port: 8001
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+
+spring:
+  application:
+    name: book-service
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
+      uri: http://config-server
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bookdb
+    username: admin
+    password: admin
+  profiles:
+    active: test-data
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/auth/realms/PolarBookshop
+  zipkin:
+    base-url: ${ZIPKIN_URL:http://localhost:9411/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,refresh
