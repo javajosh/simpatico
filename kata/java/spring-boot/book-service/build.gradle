@@ -21,9 +21,12 @@ dependencies {
 	implementation 'org.flywaydb:flyway-core'
   implementation 'org.springframework.boot:spring-boot-starter-validation'
   runtimeOnly 'org.postgresql:postgresql'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
-
+// https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html
 tasks.named('test') {
+  // IntelliJ *really* doesn't want to acknowledge this as a valid method call. But it works, so ???
 	useJUnitPlatform()
+
 }
