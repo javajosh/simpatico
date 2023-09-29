@@ -17,6 +17,9 @@ The key property of the wss reference is the existence of a `send()` method so w
 
 Note that to get this to work you need to run `npm install` to add the qr code library; however this uses `node_gyp` which is problematic, so I've committed the bundle to avoid this necessity.
 
+Note also that this is incomplete: symmetric keys are not being shared, and messages are not encrypted yet.
+HTML is sanitized, but [prototype pollution will eventually be possible](https://portswigger.net/daily-swig/google-engineers-plot-to-mitigate-prototype-pollution).
+
 ## Client
 
 ```html
