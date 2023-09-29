@@ -62,7 +62,7 @@ public class Main  {
     // See https://stackoverflow.com/questions/6802483/how-to-directly-initialize-a-hashmap-in-a-literal-way
 
     // The old way
-    Map<String, String> map1 = new HashMap<String, String>() {{
+    Map<String, String> map1 = new HashMap<>() {{
       put("a", "b");
       put("c", "d");
     }};
@@ -91,7 +91,7 @@ public class Main  {
   public static void javaFilePain() throws IOException {
     // The logging story in Java is a mess.
     String expectedValue = "import java.io.IOException;";
-    Path path = Paths.get("/home/simp/IdeaProjects/simpatico/java/src/Main.java");
+    Path path = Paths.get("./Main.java");
     String read = Files.readAllLines(path).get(0);
     // Mini hamcrest
     if (!read.equals(expectedValue)) {
