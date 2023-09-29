@@ -50,6 +50,7 @@ spring:
 > with a Flyway migration.
 
 The Book Service application will let you manage books for a bookshop.
+[Java records are part of Spring JDBC's data structure search algoritm](https://docs.spring.io/spring-data/jdbc/docs/current/reference/html/#mapping.object-creation)
 
 ```java
 public record Book(
