@@ -192,6 +192,62 @@ $ http POST :8001/books isbn="1234567890" title="The Lord of the Rings"
 $ http :8001/books"
 ```
 
+##  Adding validation
+
+Add this dependency to `build.gradle`:
+```groovy
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+```
+Add annotations to the `Book` record:
+
+```java
+public record Book(
+  @Id
+  Long id,
+  @NotBlank()
+  String isbn,
+  @NotBlank()
+  String title
+){}
+```
+
+Add a `@Valid` annotation to the `addBook()` method:
+
+```java
+@PostMapping
+@ResponseStatus(HttpStatus.CREATED)
+public Book addBook(@Valid @RequestBody Book book) {
+  return bookRepository.save(book);
+  }
+```
+
+By default, this will return a `400` "Bad Request" to the client if a field is missing.
+Note that the @Id annotation will return `500` if you attempt to add an identical isbn.
+To get better error messages we can define an exception handler in the controller class:
+
+```java
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+@ExceptionHandler(MethodArgumentNotValidException.class)
+public Map<String, String> handleValidationExceptions(
+  MethodArgumentNotValidException ex) {
+    Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult().getAllErrors().forEach((error) -> {
+        String fieldName = ((FieldError) error).getField();
+        String errorMessage = error.getDefaultMessage();
+        errors.put(fieldName, errorMessage);
+    });
+    return errors;
+}
+```
+
+In our case, a bad title `http POST :8001/books isbn="3" title=""` will return:
+
+```json
+{
+    "title": "must not be blank"
+}
+```
+
 ##  Centralized configuration with Spring Cloud Config
 
 Set up another Spring Boot process as a configuration server with Spring Cloud Config.
