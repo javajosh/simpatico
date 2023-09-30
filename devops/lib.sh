@@ -546,7 +546,12 @@ function ufw_install() {
 function sdkman_install(){
   # Install SDKMAN and Java 21
   sudo apt install zip
+  # if you're really going to be doing things on this server, then you probably want these packages, too:
+  # sudo apt install autojump silversearcher-ag
   curl -s "https://get.sdkman.io" | bash
   source "/home/josh/.sdkman/bin/sdkman-init.sh"
   sdk install java 21-amzn
+  # j <project>
+  # chmod 700 ./gradlew
+  # ./gradlew -Dorg.gradle.daemon=false bootRun`
 }
