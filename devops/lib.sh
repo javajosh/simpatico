@@ -542,3 +542,11 @@ function ufw_install() {
   # Stop flooding Console with messages
   ufw logging off
 }
+
+function sdkman_install(){
+  # Install SDKMAN and Java 21
+  sudo apt install zip
+  curl -s "https://get.sdkman.io" | bash
+  source "/home/josh/.sdkman/bin/sdkman-init.sh"
+  sdk install java 21-amzn
+}

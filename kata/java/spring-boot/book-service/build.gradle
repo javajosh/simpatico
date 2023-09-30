@@ -28,5 +28,9 @@ dependencies {
 tasks.named('test') {
   // IntelliJ *really* doesn't want to acknowledge this as a valid method call. But it works, so ???
 	useJUnitPlatform()
+}
 
+bootRun {
+  // Set min and max jvm heap to about 300MB
+  jvmArgs = ["-Dms=300m", "-Dmx=300m"]
 }
