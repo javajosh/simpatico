@@ -543,15 +543,36 @@ function ufw_install() {
   ufw logging off
 }
 
+# TODO replace this with a docker image.
 function sdkman_install(){
   # Install SDKMAN and Java 21
   sudo apt install zip
   # if you're really going to be doing things on this server, then you probably want these packages, too:
-  # sudo apt install autojump silversearcher-ag
+  # sudo apt install autojump silversearcher-ag docker.io docker-compose
   curl -s "https://get.sdkman.io" | bash
   source "/home/josh/.sdkman/bin/sdkman-init.sh"
   sdk install java 21-amzn
   # j <project>
   # chmod 700 ./gradlew
-  # ./gradlew -Dorg.gradle.daemon=false bootRun`
+  # ./gradlew -Dorg.gradle.daemon=false bootRun
+}
+
+function docker_install(){
+  # Based on https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04
+  # Add docker repo
+  sudo apt install apt-transport-https ca-certificates curl software-properties-common
+  # TODO resolve Warning: apt-key is deprecated. Manage keyring files in trusted.gpg.d instead (see apt-key(8)).
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  # Get current distro name with lsb_release -a
+  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable"
+  apt-cache policy docker-ce
+
+  # Install docker
+  sudo apt install docker-ce
+  # Check that it's running
+  # sudo systemctl status docker
+
+  # Allow non-root user to run docker commands
+  sudo usermod -aG docker ${USER}
+  su - ${USER}
 }
