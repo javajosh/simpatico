@@ -8,7 +8,8 @@ See:
 [reflector](/reflector.md)
 
 # Ephemeral chat client
-An ephemeral chat client has no durable state, and generates a new address on every invocation.
+An ephemeral chat client lives only as long as the DOM - as long as the browser tab.
+
 The client boots and provides a URL that encodes it's address.
 Open the link in a new tab, and you get two things: a new address, and a connection between the two.
 This change requires a [reflector](reflector) change, wrapping the wss reference with metadata, the addresses,
@@ -24,7 +25,11 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
 
 ```html
 <ol id="chat-app">
-  <li><input id="text-entry" type="text" placeholder="type hit enter"></li>
+  <li><input
+    id="text-entry"
+    type="text"
+    placeholder="type hit enter">
+  </li>
 </ol>
 
 <!-- Idiosyncratic dependencies. -->
@@ -112,7 +117,7 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
     parent.appendChild(li);
   }
 
-  // Read: Open the socket and) become capable of sending and recieving messages
+  // Read: Open the socket and become capable of sending and recieving messages
   function connect (url, keyPair, keyPairPem, handler) {
     const conn = new WebSocket(url);
     conn.onopen = () => sendMessage(profile);
