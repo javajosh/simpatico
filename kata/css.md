@@ -3,6 +3,8 @@ See [kata](kata.md), [mvp](mvp.html)
 
 [write](https://writ.cmcenroe.me/reference.html)
 
+The basics:
+
 ```css
 html {
   font-family: Palatino, Georgia, Lucida Bright, Book Antiqua, serif;
@@ -230,4 +232,11 @@ code{
 
 }
 
+
+
 ```
+## Flexbox
+See https://css-tricks.com/snippets/css/a-guide-to-flexbox/ TODO
+
+## Grid
+See https://css-tricks.com/snippets/css/complete-guide-grid/ TODO
