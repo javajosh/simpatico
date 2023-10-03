@@ -1,17 +1,32 @@
 # Simpatico Kata: Proximity Coherence
-"Proximity coherence" is a quality of a site that many web technologies are attempting to satisfy.
-It is the quality of *consistency between resources*.
+"Proximity coherence" is a quality of a site that many web technologies are designed to produce.
+It is the quality of *consistency between resources* when they are "nearby" each other, for example served by the same domain.
 
 We often want to make two html files look similar, but allow them to differ in some way.
-Most websites are like this: a repeated navigation (and hidden header) and unique content below.
-One parent and many children "blend" to form the output.
+Most websites are like this: a repeated navigation (and hidden header) and unique footer content below.
+In terms of programmer-produced resources, this templating approach combines one parent and many children to form the output.
 
-Most of my career has been spent doing this blending at request time, on the server. It is done N times for N requests.
-An SSG moves this blending to build time, on the server. It is done 1 time for N requests.
-This is quite appealing!
-In my view, the less power your templating system has, the better.
-This is where I begin to differ with Hugo and Next.js (which btw I recommended only because it is the closest thing to a javascript SSG).
+In Web 1.0, this blending happens at request time, on the server. It is done N times for N requests.
 
+Web 2.0 does it two ways: SSGs and SPAs.
+One way uses a static site generator (SSG) moves this blending to build time, even earlier.
+The blending is done 1 time for N requests.
+This approach is highly efficient. The output is trivial to host, because there is no dynamism.
+The trade-off is that the output is very static, changing only at build-time.
+
+The other Web 2.0 approach, and far more popular, is the Single Page Application (SPA).
+With this method, the blending occurs very late, at runtime, in the user's browser.
+There is a single very static "shell" resource associated with the domain, which will exist for the duration of the user session.
+Navigation is reified within the SPA, such that subsequent resources are combined with the SPA shell.
+"natural" browser navigation does not occur, so back button behavior must be carefully restored.
+However this achieves maximal power, at the expense of being a lot of often unwieldy code.
+(In practice the title "Full-Stack Web Developer" means someone who develops both SPAs and the RESTful services they rely on for data.)
+
+This document describes a *third* web 2.0 approach, which is an attempt at a "minimalist SPA" solution.
+All of the power of a SPA but without the complexity of a front-end build.
+Let's see how far we get!
+
+# Blending
 
 Let parent.html and child.html be pages that need to be *blended*.
 We load the two strings from disk, call them parent and child.
@@ -116,6 +131,7 @@ Here is a possible design:
 
 Here is a simple implementation:
 ```js
+/// DO NOT EXECUTE TODO: figure out what's happening here.
 const head = slug => `${slug}`;
 const nav = blogSummary => `${blogSummary}`;
 const article = fileName => `${fileName}`;
@@ -170,10 +186,10 @@ Shared content is harder, and many ad hoc solutions have been attempted on the s
   3. java (servlet containers) - this ushered in the "thread-per-request" model. Fashion later abandoned the 'container' in preference for applications owning their `main()` (a good change). Note that "dependency injection" was a pattern invented to make up for java's lack of object literals (singletons).
   4. java (golden age: spring/jetty; dropwizard) - requests can share OS threads using virtual threads. Project Loom will allow programming vThreads just like os threads.
 
-Note: similar shapes exist in the other webapp ecosystems in every popular langauge, e.g. python, ruby, and node.
+Note: similar shapes exist in the other webapp ecosystems in every popular language, e.g. python, ruby, and node.
 
 Most of these innovations have to do with *scale*.
-The underlying requirement, that of proximity coherence (and in general to reduce repetative tasks), remains unchanged.
+The underlying requirement, that of proximity coherence (and in general to reduce repetitive tasks), remains unchanged.
 
 ## Coherence on the Client with Single-Page Applications: SPA
 After the world realized that XHR could be used to construct single page applications (SPA), another method of achieving proximity coherence was discovered!
