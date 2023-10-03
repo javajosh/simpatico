@@ -39,3 +39,7 @@ This [lovely article](https://computer.rip/2023-03-24-docker.html) (and in a sty
 
 Private registries: https://www.slant.co/topics/2436/~best-docker-image-private-registries
 
+## Mystery
+
+Figure out why containerd is taking up CPU and egress on the linode.
+It's only 1% and 1.5kb but still. It should be 0.
