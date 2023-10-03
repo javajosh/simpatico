@@ -17,38 +17,32 @@ Interesting resources
 ---------------------
 
 1.  [Acceptance tests](/acceptance) iframe + testable.
-2.  [Chat](/chat) exercising browser websockets api; primordial chat
-    client
-3.  [stree3()](/stree3) a functional approach to the n-ary tree.
-4.  [stree2()](/stree2) using arrays instead of an n-ary tree.
-5.  [combine2()](/combine2) just the timeline features, with less code.
-    Working on caching.
-6.  [kata](/kata/) many exercises, performed in a dojo.
+
+1.  [kata](/kata/) many exercises, performed in a dojo.
     1.  [bootstrap](/kata/bootstrap/index.html) Material design bootstrap
-    1.  [angular](/kata/angular) a complex SPA library that includes
-        TypeScript, RxJs, Redux, and Material Design (and angular 16
-        signals)
-    2.  [rxjs](/kata/rxjs/rxjs.md) focus on observable reactive
-        programming with rxjs
-    3.  [htmx](/kata/htmx) an interesting js library that uses html
-        attributes to control ajax in the HATEOAS pattern.
-    4.  [mermaid](/kata/mermaid.html) a diagramming library.
-    5.  [d3](/kata/d3) d3 svg dataviz library.
-    6.  [site proximity coherence](/kata/proximity-coherence) a classic
-        webapp problem, with a new twist.
-    7.  [HTML authoring](/kata/html.html)
-7.  [Literate Markdown (litmd) and authoring standard](/lit) minimalist
-    litmd literate programming for browsers.
-8.  [Friendly Functions](/friendly) a simple runtime type system
-9.  [Browser cryptology](/crypto) exercising browser crypto api
-10. [SQLite in the browser](/db/) 400kb WASM
-11. [Simpatico](/notes/simpatico) An overview of simpatico\'s parts,
-    most of which are represented here.
-12. [SVG authoring and lib](/svg)
-13. [Core](/core) Utilities, predicates, types
-14. [Reflector](/reflector)Simpatico\'s server-side component, based on
-    node
-15. [word processor](/wp)
+    1.  [angular](/kata/angular) SPA TypeScript, RxJs, Redux,  Material Design,angular 16 signals
+    2.  [rxjs](/kata/rxjs/rxjs.md) JS ReactiveX observables
+    3.  [htmx](/kata/htmx) [HATEOAS](https://en.wikipedia.org/wiki/HATEOAS) JS library that uses HTML attributes to control ajax in the HATEOAS pattern. See also [grug brained developer](https://grugbrain.dev/)
+    4.  [mermaid](/kata/mermaid.html) diagramming in markdown.
+    5.  [d3](/kata/d3) exercise d3 js svg dataviz library.
+
+# Labs
+1. [Literate Markdown (litmd) and authoring standard](/lit) minimalist litmd literate programming for browsers. Used to produce the rest of these experiments.
+1. [SVG authoring and lib](/svg). Exploring ways to animate SVG with JS with minimal code and no dependencies.
+1. [Chat](/chat) exercising browser websockets api; primordial chat client
+1. [stree()](/stree3) a functional approach to the n-ary tree.
+1. [combine()](/combine2) just the timeline features, with less code. Working on caching.
+1. [site proximity coherence](/kata/proximity-coherence) Many solutions exist to keep a site made of unique resources looking coherent.
+   This is a fully client-side approach using javascript and resource layout conventions.
+1. [HTML authoring](/kata/html.html)
+1. [Friendly Functions](/friendly) a simple runtime type system
+1. [Browser cryptology](/crypto) exercising browser crypto api
+1. [SQLite in the browser](/db/) 400KB WASM build of SQL Lite running fully in the browser
+1. [Simpatico](/notes/simpatico) An overview of simpatico\'s parts, most of which are represented here.
+
+1. [Core](/core) Utilities, predicates, types
+1. [Reflector](/reflector)Simpatico\'s server-side component, based on node
+1. [word processor](/wp)
 
 Gadgets around the web
 ----------------------

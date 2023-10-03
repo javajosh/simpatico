@@ -175,7 +175,7 @@ function defaultHtmlHeader(fileName) {
     `;
 }
 
-function defaultHtmlFooter(author='jbr', year=new Date().getFullYear()) {
+function defaultHtmlFooter(author='simpaticorp', year=new Date().getFullYear()) {
   return `<p>Copyright ${author} ${year}</p>`;
 }
 

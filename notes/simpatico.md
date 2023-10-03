@@ -1,6 +1,7 @@
 # Simpatico
 
 This is a browser-hosted JavaScript prototype of Simpatico.
+See [working](working) for a list of links to working experiments using these ideas.
 Simpatico has the goal of describing a new, minimal characterization of "software application".
 This prototype is distributed as a collection of 4 ideas, one module per idea, one test harness per module.
 
@@ -101,7 +102,7 @@ This naive approach will help simplify our thinking while we deal with issues ar
 The entire general program loop looks something like the following JavaScript psuedo-code:
 
 ```js
-// Listing 1
+/// Listing 1
  1 const combine = (state, input) => {...}
  2 const render = state => {...}
  3 let state = {};
@@ -133,7 +134,7 @@ An obvious thing to want to do is to simply keep track of all input in state, pe
 You might do this by defining `combine` on listing 1 line 1 like this:
 
 ```js
-// Listing 2
+/// Listing 2
  1 const combine = (state, event) => {
  2     if (!is.arr(state.events)) state.events = [];
  3     state.events.push(event);
