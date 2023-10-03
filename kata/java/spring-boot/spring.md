@@ -253,6 +253,12 @@ In our case, a bad title `http POST :8001/books isbn="3" title=""` will return:
 Set up another Spring Boot process as a configuration server with Spring Cloud Config.
 Use it to provide configuration to Spring Boot microservices.
 
+## Building for deployment
+
+Using the [Spring Boot Grade/Dependency Plugin](https://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/htmlsingle/#packaging-executable) one can build an executable Jar with `bootJar`. One can also build a docker image with `bootBuildImage'. Pretty neat!
+
+=====================
+
 ### 2.1 Initializing a project for Config Server
 
 > Initialize a new Spring Boot project for Config Server including the following dependencies:
