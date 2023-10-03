@@ -9,7 +9,7 @@ Here is one way to get started using these tools on [simpatico.io](https://simpa
 Once at that site the simpatico modules are loaded in your browser, and you can play with them with the browser dev tools.
 (This low-tech, self-serve approach is intentional.
 The goal is to achieve the highest power/complexity ratio.
-See [kata](kata/kata.md) for more info.)
+See [kata](kata/kata.md) for more info. See [inspiration](inspiration) for some context.)
 
 Here is another way to get started running a local server:
 
