@@ -6,7 +6,7 @@
 He wrote [Logo](https://www.calormen.com/jslogo/) (note that this in-browser simulation of Logo doesn't quite capture the feel of programming it on an Apple IIe), a fact I learned much later reading hsi book ["Mind Storms"](http://worrydream.com/refs/Papert%20-%20Mindstorms%201st%20ed.pdf).
 All of his ideas in Mind Storms came true for at least one little kid through Logo - me!
 
-## [Bret Victor](http://worrydream.com/
+## [Bret Victor](http://worrydream.com/)
 A font of [great ideas](http://worrydream.com/LearnableProgramming/) and [memorable talks](https://www.youtube.com/watch?v=PUv66718DII).
 Bret has to be credited with sounding the alarm that there is any problem with programming at all.
 
@@ -42,7 +42,7 @@ However, it is written in C so making modifications requires an understanding of
 ## Rich Hickey
 Inventor of [Clojure](https://clojure.org/), and has given many excellent talks about the philosophy behind programming, like [Simple made easy!](https://www.youtube.com/watch?v=SxdOUGdseq4)
 
-[combine](combine2), it turns out, is a type of transducer, which I discovered after writing *combine* about after [Hickey gave a transducer talk](https://www.youtube.com/watch?v=4KqUvG8HPYo).
+[combine](combine2.md), it turns out, is a type of transducer, which I discovered after writing *combine* about after [Hickey gave a transducer talk](https://www.youtube.com/watch?v=4KqUvG8HPYo).
 
 ## Grug brained developer
 The [Grug brained developer](https://grugbrain.dev/) is great, and wrote an essay about
@@ -56,7 +56,7 @@ There are "movements" like the "indie web" and "local first" which resonate, alt
 is the idea that you should be able to *do stuff* without being connected to a remote host. This is a radical idea now, but it's how it's been for most of computing history.
   - [Indie-web](https://indieweb.org/) is a kind of alternative to big walled-garden content hosts. it's for geeks, and I don't agree with a lot of its stated goals (microformats are silly; [the many "levels" of indieweb](https://indieweb.org/IndieMark) are actively harmful). But I can't argue with the basic notions of decentralized ownership and control.
   - IPFS and distributed web tech [seems neat](https://decrypt.co/resources/how-to-use-ipfs-the-backbone-of-web3) but its association with crypto scams have tarnished it's originally beautiful idea.
-  - [CRDTs](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type) are an important class of data-structure, which both [combine](combine2) and [stree](stree3) are related.
+  - [CRDTs](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type) are an important class of data-structure, which both [combine](combine2.md) and [stree](stree3.md) are related.
 
 ## Note
 
