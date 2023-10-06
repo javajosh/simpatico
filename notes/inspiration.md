@@ -56,7 +56,7 @@ There are "movements" like the "indie web" and "local first" which resonate, alt
 is the idea that you should be able to *do stuff* without being connected to a remote host. This is a radical idea now, but it's how it's been for most of computing history.
   - [Indie-web](https://indieweb.org/) is a kind of alternative to big walled-garden content hosts. it's for geeks, and I don't agree with a lot of its stated goals (microformats are silly; [the many "levels" of indieweb](https://indieweb.org/IndieMark) are actively harmful). But I can't argue with the basic notions of decentralized ownership and control.
   - IPFS and distributed web tech [seems neat](https://decrypt.co/resources/how-to-use-ipfs-the-backbone-of-web3) but its association with crypto scams have tarnished it's originally beautiful idea.
-  - [CRDTs](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type) are an important class of data-structure, which both [combine](combine2.md) and [stree](stree3.md) are related.
+  - [CRDTs](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type) are an important class of data-structure, which both [combine](combine2.md) and [stree](stree3.md) are related. (See this excellent [Interactive Intro to CRDTs](https://jakelazaroff.com/words/an-interactive-intro-to-crdts/))
 
 ## Note
 
