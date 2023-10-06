@@ -2,13 +2,13 @@
 Groovy is a JVM hosted language that reads like Ruby, and it's an important langauge because Java's #1 build-tool is `gradle` which relies heavily on `groovy` language features. It's almost always installed implicitly with gradle, these days:
 
   1. Install [sdkman](https://sdkman.io/) `curl -s "https://get.sdkman.io" | bash`
-  1. Install [java]() `sdk install java 20.0.2-open`
+  1. Install [java]() `sdk install java 21-amzn`
   2. Install [gradle]() `sdk install gradle 8.3`
   4. Create a Spring Boot scaffold with [Spring Initializr](https://start.spring.io/) - or with the [Spring Boot CLI](https://docs.spring.io/spring-boot/docs/current/reference/html/cli.html#cli)
       1. Project: `gradle - groovy` (other options `gradle - kotlin` and `maven`)
       2. Language: `java` (other options `kotlin` and `groovy`)
       3. Packaging: `jar` (not `war`)
-      4. Java: 20 (not 8, 11, 17 because I want to play with [Loom](https://www.baeldung.com/openjdk-project-loom))
+      4. Java: 21 (not 8, 11, 17 because I want to play with [Loom](https://www.baeldung.com/openjdk-project-loom))
       5. Dependencies:
           1. Spring Web (not HATEOAS which would be useful for htmx frontend, not Spring Reactive Web with netty for performance, not Jersey which is a standard jdk rest lib.)
           2. JDBC and PostgreSQL we will eventually want. Also Spring Data JDBC and Spring Data JPA. Sad to not see JDBI as an option. (But comment out because we don't have a database yet and Spring doesn't like that)
@@ -27,6 +27,10 @@ However, this is really the basis of everything else, so you have to learn it.
 The btd loop is as follows:
    1. `vim MyClass.java`
    2. `javac MyClass.java && java MyClass`
+
+## Debugging Java
+Usually I just depend on IntelliJ to "do the right thing".
+However this [excellent write up](https://mostlynerdless.de/blog/2023/10/03/level-up-your-java-debugging-skills-with-on-demand-debugging/) highlights some valuable tips and tricks for working with the debugger. My favorite subcommand is `java "-agentlib:jdwp=help"`
 
 # Notes
 

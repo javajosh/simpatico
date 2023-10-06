@@ -56,3 +56,4 @@ In other words, this site and its contents is [under construction](http://textfi
     by not being huge, and having miniamlist libraries. #complexity
   1.  [nbdev](https://nbdev.fast.ai/) a jupyter distribution with some
     added value. Similar in goal to [literate markdown](lit.md) #similar
+  1. [NIST randomness beacon](https://csrc.nist.gov/projects/interoperable-randomness-beacons/beacon-20) emit a periodic randomness measurement.
