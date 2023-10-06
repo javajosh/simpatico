@@ -180,7 +180,7 @@ function defaultHtmlHeader(fileName) {
     <ul>
       <li>Home</li>
       <li><a href="/notes/simpatico">Docs</a></li>
-      <li><a href="services">Services</a></li>
+      <li><a href="/services">Services</a></li>
       <li><a href="https://www.github.com/javajosh/simpatico/" target="_blank">GitHub ↗</a></li>
     </ul>
   </nav>
