@@ -107,19 +107,21 @@ Cat tail length is proportional to the odds that the tail will be stepped on, by
 We can say a cat-tail length is a real number between 0 and 1, roughly proportional to the odds that an average human will step on them.
 (In reality those odds are a function of the length and also the human's awareness of their feet. Call it "clumsiness" from 0 to 1.)
 
-It's a metaphor for sensitivity.
-The first issue to address is this: why not just cut off the tail and avoid the risk?
-This would seem to meet everyone's needs.
+The cat-tail is a metaphor for human emotional sensitivity.
+The question naturally arises: why not just cut off the tail and avoid the risk of being stepped on?
+This is roughly the program of stoicism, buddhism, etc.
+This solution would seem to meet everyone's needs:
 The cat is safer.
 The human is less likely to err and hurt the cat.
 
-The two objections I can think of are sentimental and utilitarian.
-First, sentimentally I think tails are lovely and it would be a shame if cats didn't have them.
-Second, from a utilitarian perspective the analogy falls short because it's very hard to shorten a tail when the tail is "emotional sensitivity".
-You can (and should) shorten your tail with CBT and meditation.
-From a utilitarian perspective, you might say that a cat with a very long tail is an invitation for you to grow in awareness of where you put your feet!
-This will be handy for you not just with your cat, but with all the other cats in the world, particularly in large groups of cats where even if they have shorter tails,
-not stepping on any tail can be a challenge. Your long tail cat is good practice for you.
+The two objections I can think of are sentimental and practical.
+Sentimentally I think tails are lovely and it would be a shame if cats didn't have them.
+Second, from a practical perspective the analogy falls short because it's very hard to shorten a tail when the tail is "emotional sensitivity".
+Let us say you shorten your tail with CBT and meditation.
+It will still not be possible to eliminate your tail entirely, barring full enlightenment, which is a rare occurance.
+So from a utilitarian perspective, you might say that a cat with a very long tail is an invitation for you to grow in awareness of where you put your feet!
+This will be handy for you not just with your cat, but with all the other cats in the world, particularly in large groups of cats where the superposition of tails is very difficult to not step on indeed.
+Your long tail cat is good practice for you.
 
 Then we also have the funny phenomena where some cats want their tail to be longer!
 And there are also some people who actively encourage their cats to a) have longer tails and b) interpret tail stomps as malevolent in all cases.

@@ -146,7 +146,8 @@ function defaultHtmlHeader(fileName) {
   const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
   const title = 'Simpatico: ' + bareFileName;
   return `<!DOCTYPE html>
-<head lang="en" color-mode="user">
+<html lang="en" color-mode="user">
+<head >
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -172,6 +173,19 @@ function defaultHtmlHeader(fileName) {
     });
   </script>
 </head>
+<body>
+<header>
+  <nav>
+    <a href="https://simpatico.io"><img alt="logo" src="/img/wizard.svg" height="70"></a>
+    <ul>
+      <li>Home</li>
+      <li><a href="/notes/simpatico">Docs</a></li>
+      <li><a href="services">Services</a></li>
+      <li><a href="https://www.github.com/javajosh/simpatico/" target="_blank">GitHub ↗</a></li>
+    </ul>
+  </nav>
+  </header>
+<main>
     `;
 }
 
