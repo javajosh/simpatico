@@ -293,7 +293,7 @@ spring:
 
 ### 2.2 Defining a configuration repository
 
-> **Assignment**. Define a Git repository to host configuration data, then update the Config Server application
+> Define a Git repository to host configuration data, then update the Config Server application
 > to use the repository and to enable the centralized configuration feature. Finally, run the Config Server.
 
 You can define you own configuration repository in Git or use https://github.com/javajosh/config-repo directly.
