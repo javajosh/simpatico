@@ -28,6 +28,9 @@ The btd loop is as follows:
    1. `vim MyClass.java`
    2. `javac MyClass.java && java MyClass`
 
+Running vanilla java in IntelliJ is suprisingly tricky.
+In the end, you need to make a distinct module for 'vanilla' that doesn't overlap with other modules.
+
 ## Debugging Java
 Usually I just depend on IntelliJ to "do the right thing".
 However this [excellent write up](https://mostlynerdless.de/blog/2023/10/03/level-up-your-java-debugging-skills-with-on-demand-debugging/) highlights some valuable tips and tricks for working with the debugger. My favorite subcommand is `java "-agentlib:jdwp=help"`
