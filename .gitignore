@@ -9,8 +9,9 @@ localhost.csr
 localhost.key
 domains.ext
 
-/out
-/kata/java/out
+/out/
+/target/
+
 # Used to test caching
 /temp.html
 # Reserved by certbot
