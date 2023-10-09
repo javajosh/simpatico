@@ -31,7 +31,24 @@ From the [podman website](https://podman.io/)
   > What is Podman?
   > Podman is a daemonless container engine for developing, managing, and running OCI Containers on your Linux System.
   > Containers can either be run as root or in rootless mode. Simply put: alias docker=podman.
+[Install podman](https://podman.io/docs/installation)
 
+```bash
+sudo apt-get update
+sudo apt-get -y install podman podman-compose
+```
+Then read the [podman tutorial](https://github.com/containers/podman/blob/main/docs/tutorials/podman_tutorial.md).
+Here is a kick the tires command:
+
+```bash
+podman run --memory=128M --name basic_httpd -dt -p 8080:8080/tcp -e HTTPD_VAR_RUN=/run/httpd -e HTTPD_MAIN_CONF_D_PATH=/etc/httpd/conf.d \
+                  -e HTTPD_MAIN_CONF_PATH=/etc/httpd/conf \
+                  -e HTTPD_CONTAINER_SCRIPTS_PATH=/usr/share/container-scripts/httpd/ \
+                  registry.fedoraproject.org/f29/httpd /usr/bin/run-httpd
+```
+
+
+## OCI
 [OCI](https://opencontainers.org/) stands for "Open Containers Initiative", which is a rabbit hole.
 
 ## Errata
@@ -43,3 +60,17 @@ Private registries: https://www.slant.co/topics/2436/~best-docker-image-private-
 
 Figure out why containerd is taking up CPU and egress on the linode.
 It's only 1% and 1.5kb but still. It should be 0.
+
+## Disabling Docker
+
+From the [SO discussion](https://stackoverflow.com/questions/62961427/disable-docker-upon-startup-in-ubuntu-20-04):
+
+```bash
+$ sudo systemctl disable docker.service
+$ sudo systemctl disable docker.socket
+```
+
+and more of a "teach a man to fish" command:
+```bash
+$ systemctl list-unit-files | grep -i docker
+```
