@@ -1,7 +1,7 @@
 See [maximalism](./maximalism.md)
 
 # Inspiration
-  1. [The Architecture of Open Source Applications] 500 line programs (https://aosabook.org/en/index.html#500lines)
+  1. [The Architecture of Open Source Applications](https://aosabook.org/en/index.html#500lines)
   1. [Choose Boring Technology](https://mcfunley.com/choose-boring-technology)
   1. [Minifesto](http://minifesto.org/)
   1. [Where have all the hackers gone?](https://morepablo.com/2023/05/where-have-all-the-hackers-gone.html) - soil, surface, atmosphere
