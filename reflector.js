@@ -1,4 +1,3 @@
-// import in 3 groups: platform, 3rd party, and local.
 import process from 'node:process';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -66,7 +65,8 @@ function processConfig(envPrefix='SIMP_') {
     // measured: {},      //added below
   };
   const envConfig = mapObject(baseConfig, ([key,_]) => ([key, process.env[`${envPrefix}${key.toUpperCase()}`]]));
-  const argConfig = parseObjectLiteralString(process.argv[2]);
+  const hasArgument = process.argv.length >= 3; // first arg is node, second arg is reflector, third arg are for us here.
+  const argConfig = hasArgument ? parseObjectLiteralString(process.argv[2]) : {};
 
   const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
   const measured = { measured: {
