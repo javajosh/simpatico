@@ -240,3 +240,6 @@ See https://css-tricks.com/snippets/css/a-guide-to-flexbox/ TODO
 
 ## Grid
 See https://css-tricks.com/snippets/css/complete-guide-grid/ TODO
+
+# Minimap
+Although it still only works for Firefox as of 2023, this [minimap idea](https://css-tricks.com/using-the-little-known-css-element-function-to-create-a-minimap-navigator/) is still a good one. Also, see [the codepen](https://codepen.io/rpsthecoder/pen/Jwpxaj?editors=0010)

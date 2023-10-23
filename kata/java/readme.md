@@ -45,3 +45,5 @@ Something that is a little confusing is that your tool jvm will be running in wi
 ## Lots and lots of ways to install Java
 For installing, I like these instructions for [Ubuntu 22 from DO](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-on-ubuntu-22-04). In particular I like their recommendation to `sudo update-alternatives --config java`. The only downside is that this is interactive, and must be done for each tool, like `javac` e.g. `sudo update-alternatives --config javac`. They also recommend setting `JAVA_HOME` using `sudo vim /etc/environment && source /etc/environment`, which is new to me. I think I'd prefer to keep it local to the user, and `export JAVA_HOME=...` in .bashrc. (Another alternative is to use [jenv](https://github.com/jenv/jenv)). Or you can use
 
+## Ideas for Kata
+This is [an interesting use of htmx with websockets over Spring Boot](https://nuriaruizblog.wordpress.com/2023/10/08/websockets-htmx-spring-boot/)
