@@ -19,7 +19,6 @@ const assertThrows = async fn => {
   assert(throws, `Expected fn to throw, but it didn't and returned [${tryToStringify(result)}]`);
 };
 
-
 const tryToStringify = a => {
   if (typeof a !== 'object') return a;
   let result = '<Circular>';
@@ -59,23 +58,8 @@ const equals = (a, b) => {
   if (aType === 'function') return (a.toString() === b.toString()); else
   return scalarEquals(a, b);
 }
-const clone = (value) => {
-  if (typeof value === 'object') {
-    if (Array.isArray(value)) {
-      return value.map(clone);
-    } else if (value === null) {
-      return null;
-    } else {
-      const result = {};
-      Object.keys(value).forEach(key => {
-        result[key] = clone(value[key]);
-      });
-      return result;
-    }
-  } else {
-    return value;
-  }
-}
+const clone = structuredClone;
+const copy = structuredClone;
 
 const assertEquals = (expected, actual, msg='') =>
   assert(equals(expected, actual), `expected is \n${tryToStringify(expected)} but actual is \n${tryToStringify(actual)}. ${msg}`)
@@ -86,23 +70,11 @@ const or = (a, b) => !!a || !!b
 const sub = (a, b) => b - a
 const add = (a, b) => b + a
 const identity = a => a
-const curryLeft = (f, a) => b => f(a,b) //left to right
-const curryRight = (f, a) => b => f(b,a) //right to left
-const curry = curryLeft
-const compose = (f, g) => a => g(f(a))
 
 // It is tempting to add peek like this, but it's in bad taste. So use the functional version:
 // Array.prototype.peek = function(){return this.length > 0 ? this[this.length-1] : null};
 const peek = (arr, defaultValue=null, depth=1) => (arr.length - depth >= 0) ? arr[arr.length - depth] : defaultValue
 const push = (arr, a) => {arr.push(a); return arr} //mutating
-
-// Copies good for arrays
-const copy1 = a => [...a]
-const copy2 = a => a.slice()
-// Copies good for objects
-const copy3 = a => JSON.parse(JSON.stringify(a)) //sadly unstable key order
-const copy4 = a => mapObject(a, identity); //shallow copy, but might be extensible.
-const copy = copy3; //TODO: find or make a better copy.
 
 
 // Types
@@ -127,7 +99,7 @@ const TYPES = {
 };
 
 const getType = (a) => {
-  const {UNDEF,NUL,STR,FUN,OBJ,ARR,ELT,CORE,HANDLER,MSG} = TYPES;
+  const {UNDEF,NUL,STR,FUN,OBJ,ARR,ELT,HANDLER,MSG} = TYPES;
   let t = typeof a;
   if (t !== OBJ)        return t;
 
@@ -192,12 +164,12 @@ const cast = (type, str) => {
 };
 
 
-// is looks something like {NUL: a => getType(a) === NUL, STR: a => getType(a) === STR ...}
-// ASSERT wraps with an assertion  {NUL: (a, msg) => assert(getType(a) === NUL, msg), STR: (a,msg) => assert(getType(a) === STR, msg)}
+// "is" are predicates like {NUL: a => getType(a) === NUL, STR: a => getType(a) === STR ...}
+// "as" wraps "is" with an assertion  {NUL: (a, msg) => assert(getType(a) === NUL, msg), STR: (a,msg) => assert(getType(a) === STR, msg) ...}
 const is = mapObject(TYPES, ([k, v]) =>
   [k.toLowerCase(), a => getType(a) === v]
 )
-is.int = (a) => is.num(a) && (a % 1 === 0)
+is.int = (a) => is.num(a) && (Math.floor(a) === a)
 is.exists = a => (typeof a !== 'undefined') && (a !== null)
 is.between = (lo, hi, a) =>
   size(lo) <= size(hi) &&
@@ -331,7 +303,7 @@ function stringifyWithFunctions(obj) {
     }
     return value;
   });
-};
+}
 
 function parseWithFunctions(str) {
   return JSON.parse(str, function (key, value) {
@@ -391,7 +363,7 @@ export {
   hasProp, getProp, propType, mapObject,
   equals, clone,
   arrMin, arrMax, peek, push, copy,
-  and, or, sub, add, identity, curryLeft, curryRight, curry, compose,
+  and, or, sub, add, identity,
   RNG, shuffle,
   tryToStringify, parseObjectLiteralString, regex,
   parseWithFunctions, stringifyWithFunctions,

@@ -86,17 +86,7 @@ assertThrows(() => assertEquals({a: 1, b: [2, 3]}, {a: 1, b: [2, 3, false]}))
   assert(is.num(.1))
   assert(is.int(1))
 ```
-## Functions
 
-```js
-  const add = (a, b) => a + b, mul = (a, b) => a * b
-  const add5 = c.curryLeft(add, 5)
-  assertEquals(add5(2), 7)
-  assertEquals(c.curry, c.curryLeft)
-  const mul10 = c.curry(mul, 10)
-  const add5mul10 = c.compose(add5, mul10)
-  assertEquals(add5mul10(5), 100)
-```
 ## Arrays
 Functional, non-mutating versions of the built in array functions.
 
