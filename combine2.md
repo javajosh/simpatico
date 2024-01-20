@@ -70,7 +70,7 @@ _________________________________________________________
 ```
 
 Handlers are how you program cores in Simpatico.
-Handlers are objects with a handle property, which should be a function that takes two arguments, core and msg.
+Handlers are objects with a `handle` property, which should be a function that takes two arguments, `core` and `msg`.
 The core is the target, or destination, of the message.
 The result is an array of objects that describe how the core should change.
 _________________________________________________________
