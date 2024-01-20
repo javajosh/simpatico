@@ -238,14 +238,50 @@ Interact with the file system, and check the server's response.
 A node program that uses fork to start the server, and then uses curl to interact with it.
 
 
-## Current work
+## URL to filename
+Computing an absolute filename from the URL path can be easy if we require complete, explicit files.
+E.g. `/simpatico.io/index.md`.
+However, it is useful to allow users to access ambiguous URLs like `simpatico.io/` or `simpatico.io/chat`.
+The approach is to generate a list of candidate filenames, and then return the first that exists.
+
+Validity is also important since we don't want to allow leading dots in the filename.
+And in general we don't want to allow any other problematic characters, like tildes (~).
+
+```js
+import {peek} from './core.js';
+
+function candidates(path){
+    if (path.endsWith('/')){
+        return [path + 'index.md', path + 'index.html'];
+    }
+    const parts = path.split('/');
+    if (parts.some(part => part.startsWith('.'))){
+        throw 'invalid path: ' + path;
+    }
+    const last = peek(parts);
+    const isFile = /[^.]{2,}\.[^.]{2,}/.test(last);
+    return (isFile) ?  [path] : [path + '.md', path + '.html', path + '/index.md', path + '/index.html'];
+}
+
+assertEquals(['/index.md'], candidates('/index.md'));
+assertEquals(['/foo/bar/index.md'], candidates('/foo/bar/index.md'));
+assertEquals(['/index.md','/index.html'], candidates('/'));
+assertEquals(['/chat/index.md', '/chat/index.html'], candidates('/chat/'));
+assertEquals(['/chat.md', '/chat.html', '/chat/index.md', '/chat/index.html'], candidates('/chat'));
+assertEquals(['/foo/bar/chat.md', '/foo/bar/chat.html', '/foo/bar/chat/index.md', '/foo/bar/chat/index.html'], candidates('/foo/bar/chat'));
+
+
+assertThrows(() => candidates('/foo/../bar/index.html'));
+assertThrows(() => candidates('/.git'));
+assertThrows(() => candidates('/foo/bar/.git'));
+```
 
 The following goals are currently underspecified and not met:
     1. Do not melt under load,
     1. serve minimal data, efficiently.
 
 The "fast & easy" things we can do are mimic well-known software in this area
-like [nginx](https://nginx.org/) or [caddy](https://github.com/caddyserver/caddy).
+
 The basic strategy is to "reduce what you serve" and "serve things efficiently".
 
 To reduce what we serve, we need to add aggressive client caching:

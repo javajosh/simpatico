@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
 
-import { info, error, debug, mapObject, hasProp, parseObjectLiteralString } from './core.js';
+import { info, error, debug, mapObject, hasProp, parseObjectLiteralString, peek } from './core.js';
 import { combine, combineAllArgs } from './combine.js';
 import { stree3 as stree } from './stree3.js';
 import {buildHtmlFromLiterateMarkdown} from './litmd.js';
@@ -312,40 +312,46 @@ function fileServerLogic() {
      * 1. Strip arguments
      * 2. If it's a directory access, pick index.html or readme.md in that order of preference.
      * 3. If it's missing an extension, pick md or html in order of preference.
-     * 4. If nothing matches, do nothing to the url and rely on calling code to 404.
+     * 4. If nothing matches, throw an exception and rely on calling code to 404.
      *
-     * @param url The full URL being requested. E.g. '/chat' or '/svg'
+     * @param path The full URL being requested. E.g. '/chat' or '/svg'
      * @returns {string} A "normalized" URL e.g. '/chat.html' or '/svg.md'
      */
-    function urlToFileName (url) {
-      let u = url;
-      if (u.indexOf('?') > -1)   u = u.substr(0, u.indexOf('?'));
-
+    function urlToFileName (path) {
       const cwd = process.cwd();
-
-      if (u.endsWith('/')) {
-        if      (fs.existsSync(cwd + u + '/index.html')) u += "index.html";
-        else if (fs.existsSync(cwd + u + '/readme.md'))  u += "readme.md";
+      // strip out parameters
+      if (path.indexOf('?') > -1)   {
+        path = path.substr(0, path.indexOf('?'));
       }
-      if (u.indexOf('.') === -1) {
-        if      (fs.existsSync(cwd + u)) return urlToFileName(u + "/"); // not sure if this ever happens.
-        else if (fs.existsSync(cwd + u + '.md'))   u += ".md";
-        else if (fs.existsSync(cwd + u + '.html')) u += ".html";
+      const c = candidates(path);
+      let found;
+      c.map(candidate => {
+        let candidatePath = cwd + '/' + candidate;
+        if (fs.existsSync(candidatePath)) {
+          found = candidatePath;
+        }
+      });
+      if (found){
+        return found;
+      } else {
+        throw 'no candidate found for path ' + path + ' ' + c;
       }
-      return u;
     }
 
-    // If they asked for a dotfile, just return an error. There's probably more like this that we can filter out.
-    if (urlToFileName(req.url).startsWith('/.')) {
-      respondWithError(combine(new Error(), {
-        code: 500,
-        log: 'attempt to access dotfile',
-        message: failWhale,
-      }));
-      return;
+    function candidates(path){
+      if (path.endsWith('/')){
+        return [path + 'index.md', path + 'index.html'];
+      }
+      const parts = path.split('/');
+      if (parts.some(part => part.startsWith('.'))){
+        throw 'invalid path: ' + path;
+      }
+      const last = peek(parts);
+      const isFile = /\./.test(last);
+      return (isFile) ?  [path] : [path + '.md', path + '.html', path + '/index.md', path + '/index.html'];
     }
 
-    const fileName = process.cwd() + urlToFileName(req.url);
+    const fileName = urlToFileName(req.url);
     let data = '';
     let hash = '';
     if (config.useCache && hasProp(cache, fileName)) {
