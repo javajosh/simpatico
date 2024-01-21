@@ -265,12 +265,25 @@ function fileServerLogic() {
       res.writeHead(err.code);
       res.end(err.message);
     }
+
+    let fileName;
+    try {
+      fileName = urlToFileName(req.url);
+    } catch (err){
+      const code = err.substr(0,3);
+      respondWithError(Object.assign(err, {
+        code,
+        message: 'There was a problem \n' + failWhale,
+      }));
+      return;
+    }
+
     const respondWithData = data => {
       res.writeHead(
         200,
         Object.assign(
-          getContentTypeHeader(urlToFileName(req.url)),
-          getCacheHeaders(urlToFileName(req.url), data),
+          getContentTypeHeader(fileName),
+          getCacheHeaders(fileName, data),
           getCrossOriginHeaders(),
           getContentSecurityPolicyHeaders(),
         )
@@ -282,7 +295,6 @@ function fileServerLogic() {
       res.end('you have the most recent version');
     }
     const logRequest = req => {
-      const fileName = urlToFileName(req.url);
       const normalized = (fileName !== req.url);
       // For some reason node 18 and 19 on unbuntu 22 just refused optional chaining syntax.
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
@@ -334,7 +346,7 @@ function fileServerLogic() {
       if (found){
         return found;
       } else {
-        throw 'no candidate found for path ' + path + ' ' + c;
+        throw '404 no candidate found for path ' + path + ' in candidates: ' + c;
       }
     }
 
@@ -344,7 +356,7 @@ function fileServerLogic() {
       }
       const parts = path.split('/');
       if (parts.some(part => part.startsWith('.'))){
-        throw 'invalid path: ' + path;
+        throw '500 invalid path: ' + path;
       }
       const last = peek(parts);
       const isFile = /\./.test(last);
@@ -352,17 +364,7 @@ function fileServerLogic() {
     }
 
 
-    let fileName;
-    try {
-      fileName = urlToFileName(req.url);
-    } catch (err){
-      log(err.message);
-      respondWithError(Object.assign(err, {
-        code: 404,
-        message: 'Resource not found. \n' + failWhale,
-      }));
-      return;
-    }
+
     let data = '';
     let hash = '';
     if (config.useCache && hasProp(cache, fileName)) {
