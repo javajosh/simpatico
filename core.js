@@ -58,6 +58,7 @@ const equals = (a, b) => {
   if (aType === 'function') return (a.toString() === b.toString()); else
   return scalarEquals(a, b);
 }
+// This alone requires node 17+
 const clone = structuredClone;
 const copy = structuredClone;
 

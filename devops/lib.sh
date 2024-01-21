@@ -576,3 +576,10 @@ function docker_install(){
   sudo usermod -aG docker ${USER}
   su - ${USER}
 }
+
+# Make sure the user node is linked to the global node. Rerun after version change.
+function fix_sudo_node(){
+  sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/node" "/usr/local/bin/node"
+  sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npm" "/usr/local/bin/npm"
+  sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npx" "/usr/local/bin/npx"
+}
