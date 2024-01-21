@@ -351,7 +351,18 @@ function fileServerLogic() {
       return (isFile) ?  [path] : [path + '.md', path + '.html', path + '/index.md', path + '/index.html'];
     }
 
-    const fileName = urlToFileName(req.url);
+
+    let fileName;
+    try {
+      fileName = urlToFileName(req.url);
+    } catch (err){
+      log(err.message);
+      respondWithError(Object.assign(err, {
+        code: 404,
+        message: 'Resource not found. \n' + failWhale,
+      }));
+      return;
+    }
     let data = '';
     let hash = '';
     if (config.useCache && hasProp(cache, fileName)) {
@@ -361,7 +372,7 @@ function fileServerLogic() {
       // We missed the cache, so initiate a read file.
       if (config.useCache)
         log('cache miss for', fileName);
-      try{
+      try {
         // This function isn't inlined because its also called in the sub-resource
         const fromDisk = readProcessCache(fileName);
         data = fromDisk.data;
@@ -375,6 +386,7 @@ function fileServerLogic() {
         return;
       }
     }
+
 
     // The browser may already have the most recent version.
     // TODO: store this hash in the cache somewhere.
