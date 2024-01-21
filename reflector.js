@@ -338,7 +338,7 @@ function fileServerLogic() {
       const c = candidates(path);
       let found;
       c.map(candidate => {
-        let candidatePath = cwd + '/' + candidate;
+        let candidatePath = cwd + candidate;
         if (fs.existsSync(candidatePath)) {
           found = candidatePath;
         }
