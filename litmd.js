@@ -10,17 +10,75 @@ const dontExecuteCss = '/***';
 
 const markdownDefaultImports= `
   import * as c from "/core.js";
-  import {combine, combineReducer, assertHandler, logHandler} from "/combine2.js";
+  // import {combine, combineReducer} from "/combine2.js";
+  // import {assertHandler, logHandler} from "/handlers.js";
   import {stree} from "/stree2.js";
   const etc = []; // stupid, yes. but funny, [...etc]
   const {assert, assertEquals, assertThrows, is, as, log, debug} = c;
 `;
 
+/**
+ * Build a default header for litmd files that don't have one.
+ *
+ * @param fileName - the full file name
+ * @returns {string}
+ */
+const defaultHtmlHeader = (fileName) => {
+  const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
+  const title = 'Simpatico: ' + bareFileName;
+  return `<!DOCTYPE html>
+<html lang="en" color-mode="user">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
+      <rect width='1' height='1' fill='DodgerBlue' />
+  </svg>"/>
+  <script src="/testable.js" type="module"></script>
+
+  <title>${title}</title>
+  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist">
+  <meta name="author" content="jbr">
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <script type="module">
+    import hljs from '/kata/highlight.min.js';
+    import javascript from '/kata/highlight.javascript.min.js';
+    hljs.registerLanguage('javascript', javascript);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="https://simpatico.io"><img alt="logo" src="/img/wizard.svg" height="70"></a>
+    <ul>
+      <li>Home</li>
+      <li><a href="/notes/simpatico">Docs</a></li>
+      <li><a href="/services">Services</a></li>
+      <li><a href="https://www.github.com/javajosh/simpatico/" target="_blank">GitHub ↗</a></li>
+    </ul>
+  </nav>
+  </header>
+<main>
+    `;
+}
+
+const defaultHtmlFooter = (author='SimpatiCorp', year=new Date().getFullYear()) => {
+  return `<p>Copyright ${author} ${year}</p>`;
+}
+
 const scriptPassThroughExtension = {
   type: 'output',
   filter:  (htmlDocument, converter, options) => {
     return htmlDocument.replace(/<pre><code class="js.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
-      const displayString = `<details><summary>js</summary><pre><code class="js language-js">${code}</code></pre></details>`;
+      const displayString = `<details open><summary>js</summary><pre><code class="js language-js">${code}</code></pre></details>`;
       code = code.trim();
       code = unescapeHtml(code);
       const doNotExecute = code.startsWith(dontExecuteScript);
@@ -136,62 +194,7 @@ function buildHtmlFromLiterateMarkdown(maybeMarkdownString, fileName=''){
   return header + litmd.makeHtml(body) + defaultHtmlFooter();
 }
 
-/**
- * Build a default header for litmd files that don't have one.
- *
- * @param fileName - the full file name
- * @returns {string}
- */
-function defaultHtmlHeader(fileName) {
-  const bareFileName = fileName.replace(/^.*(4`1\\|\/|:)/, '').split('.')[0];
-  const title = 'Simpatico: ' + bareFileName;
-  return `<!DOCTYPE html>
-<html lang="en" color-mode="user">
-<head >
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-      <rect width='1' height='1' fill='DodgerBlue' />
-  </svg>"/>
-  <script src="/testable.js" type="module"></script>
-
-  <title>${title}</title>
-  <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist">
-  <meta name="author" content="jbr">
-  <link rel="stylesheet" type="text/css" href="/style.css">
-  <link rel="stylesheet" href="/kata/highlight.github-dark.css">
-  <script type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-    hljs.registerLanguage('javascript', javascript);
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
-    });
-  </script>
-</head>
-<body>
-<header>
-  <nav>
-    <a href="https://simpatico.io"><img alt="logo" src="/img/wizard.svg" height="70"></a>
-    <ul>
-      <li>Home</li>
-      <li><a href="/notes/simpatico">Docs</a></li>
-      <li><a href="/services">Services</a></li>
-      <li><a href="https://www.github.com/javajosh/simpatico/" target="_blank">GitHub ↗</a></li>
-    </ul>
-  </nav>
-  </header>
-<main>
-    `;
-}
-
-function defaultHtmlFooter(author='SimpatiCorp', year=new Date().getFullYear()) {
-  return `<p>Copyright ${author} ${year}</p>`;
-}
 
 function unescapeHtml(string){
   return string.replace(/&lt;/g, '<')

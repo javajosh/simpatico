@@ -112,7 +112,7 @@ Functional, non-mutating versions of the built in array functions.
     handle: () => {
     }
   }), c.TYPES.HANDLER)
-  assertEquals(c.getType({msg: ''}), c.TYPES.MSG)
+  assertEquals(c.getType({handler: ''}), c.TYPES.MSG)
 
   // Size is defined differently for different types.
   assertEquals(c.size(10), 10)

@@ -1,4 +1,4 @@
-import {assert, cast, debug, getType, is, now, tryToStringify, TYPES} from './core.js';
+import {assert, cast, debug, getType, hasProp, is, now, tryToStringify, TYPES} from './core.js';
 // import {gather, scatter} from "./svg.js";
 
 const DEBUG = false;
@@ -15,11 +15,10 @@ const combine = (target, msg, rules = getRules()) => {
   } else if (tmsg === UNDEF) {
     return target;
   } else if (tmsg !== NUL) {
-    // Functions just invoke, so erase the counter type
-    if (tmsg === FUN) ttarget = ANY;
-    else if (ttarget === FUN && tmsg !== NUL) tmsg = ANY;
+    // invoke the target function unless the message is a function, which replaces
+    if (ttarget === FUN && tmsg !== FUN) tmsg = ANY;
     // Arrays push, so erase the message type
-    else if (ttarget === ARR && tmsg !== ARR) tmsg = ANY;
+    if (ttarget === ARR && tmsg !== ARR) tmsg = ANY;
   }
 
   // Lookup the rule, throw if you can't find it.
@@ -75,6 +74,7 @@ const getRules = () => {
   rules[FUN + NUL] = (a, b) => null;
   rules[FUN + ANY] = (a, b) => a(b);
   rules[ANY + FUN] = (a, b) => b(a);
+  rules[FUN + FUN] = (a, b) => b;
 
   // rules[ELT + OBJ] = (a, b) => scatter(a, b);
   // rules[OBJ + ELT] = (a, b) => gather(a, b);
@@ -97,7 +97,12 @@ const getRules = () => {
   rules[OBJ + MSG] = (core, msg) => {
     // World event - defensively copy because we mutate
     const isWorldEvent = is.undef(msg.parent);
-    if (isWorldEvent) msg = {time: now(), ...msg};
+    if (isWorldEvent) {
+      msg = {time: now(), ...msg};
+      if (!hasProp(core, 'msgs')){
+        core.msgs = [];
+      }
+    }
     msg = {id: core.msgs.length, ...msg};
     core.msgs.push(msg);
 

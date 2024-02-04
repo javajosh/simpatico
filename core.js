@@ -19,14 +19,18 @@ const assertThrows = async fn => {
   assert(throws, `Expected fn to throw, but it didn't and returned [${tryToStringify(result)}]`);
 };
 
-const tryToStringify = a => {
-  if (typeof a !== 'object') return a;
-  let result = '<Circular>';
-  try{ result = JSON.stringify(a); } catch (ignored) {}
-  return result;
-}
+const tryToStringify = obj => {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (value !== null && typeof value === 'object') {
+      if (seen.has(value)) return '<Circular>';
+      seen.add(value);
+    }
+    return value;
+  });
+};
 
-const hasProp = (obj, prop) => obj.hasOwnProperty(prop)
+const hasProp = (obj, prop) => is.exists(obj) && obj.hasOwnProperty(prop)
 const getProp = (obj, prop, defaultValue = null) => hasProp(obj, prop) ? obj[prop] : defaultValue;
 const propType = (obj, prop) => getType(obj[prop])
 // noinspection JSCheckFunctionSignatures
@@ -58,6 +62,7 @@ const equals = (a, b) => {
   if (aType === 'function') return (a.toString() === b.toString()); else
   return scalarEquals(a, b);
 }
+const exists = (a) => a !== undefined && a !== null;
 // This alone requires node 17+
 const clone = structuredClone;
 const copy = structuredClone;
@@ -96,7 +101,7 @@ const TYPES = {
 
   //Simpatico types
   HANDLER: "handle", //a handler has a handle function
-  MSG: "msg", //a message has a msg attr
+  MSG: "handler", //a message has a handler attr
 };
 
 const getType = (a) => {
@@ -171,7 +176,7 @@ const is = mapObject(TYPES, ([k, v]) =>
   [k.toLowerCase(), a => getType(a) === v]
 )
 is.int = (a) => is.num(a) && (Math.floor(a) === a)
-is.exists = a => (typeof a !== 'undefined') && (a !== null)
+is.exists = exists;
 is.between = (lo, hi, a) =>
   size(lo) <= size(hi) &&
   size(lo) <= size(a) &&
@@ -362,7 +367,7 @@ export {
   now, log, debug, info, error,
   assert, assertEquals, assertThrows,
   hasProp, getProp, propType, mapObject,
-  equals, clone,
+  equals, clone, exists,
   arrMin, arrMax, peek, push, copy,
   and, or, sub, add, identity,
   RNG, shuffle,

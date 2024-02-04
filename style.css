@@ -340,6 +340,10 @@ article aside a {
     color: var(--color-secondary);
 }
 
+span[title] {
+  text-decoration: underline dotted;
+}
+
 /* Images */
 figure {
     margin: 0;

@@ -1,4 +1,4 @@
-# Simpatico/Summary Tree: STree
+# STree
 jbr *2023*
 
 See [home](/), [combine](/combine), TODO merge with [stree2](/stree2.md)
@@ -167,16 +167,16 @@ Not really sure what this is about, actually.
   log('start', latch.residue().count)
   latch.add({count: -10})
   assertEquals(latch.residue().count, 90)
-  latch.add({msg: 'dec'})
+  latch.add({handler: 'dec'})
   assertEquals(latch.residue().count,89)
-  latch.add({msg: 'dec', amount:10})
+  latch.add({handler: 'dec', amount:10})
   assertEquals(latch.residue().count, 79)
-  latch.add({msg: 'dec', amount:79})
+  latch.add({handler: 'dec', amount:79})
   assertEquals(latch.residue().count, 0)
-  assertThrows( ()=>latch.add({msg: 'dec'}))
+  assertThrows( ()=>latch.add({handler: 'dec'}))
 
-  // latch.add({msg: 'dec', amount: 5}, r => assertEquals(r.count, 94));
-  // latch.add({msg: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
+  // latch.add({handler: 'dec', amount: 5}, r => assertEquals(r.count, 94));
+  // latch.add({handler: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
 ```
 
 

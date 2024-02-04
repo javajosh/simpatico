@@ -1,16 +1,22 @@
-<!--<!DOCTYPE html>
-<head>
-  <title>Simpaticode: acceptance</title>
-  <link class="testable" id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
-        <rect width='1' height='1' fill='DodgerBlue' />
-    </svg>"
-  >
-  <link rel="stylesheet" href="/style.css?###">
+# acceptance
 
-</head>-->
+```css
+iframe {
+    overflow: hidden;
+}
+```
+```js
 
-# Simpaticode: acceptance
+// TODO: make clicking on iframes to navigate to the src attribute work
+window.document.addEventListener("DOMContentLoaded", function() {
+  if (event.target.tagName === 'IFRAME') {
+    event.target.contentWindow.document.addEventListener('click', function(event) {
+      console.log("hello");
+      window.location.href = event.target.src;
+    });
+  }
+});
+```
 
 <iframe id="homepage-frame"
         title="homepage"

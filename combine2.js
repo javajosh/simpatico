@@ -1,69 +1,50 @@
-// A much simpler combine not for production use - just playing with some ideas.
-
-import {assertEquals, tryToStringify} from './core.js';
-
-const DEBUG = false;
-const isNum = d => Number.isInteger(d);
-const isArray = d => Array.isArray(d);
-const isObj = a => typeof a === 'object' && !isArray(a);
-const isScalar = a => !isArray(a) && !isObj(a);
-
-const isCore = a =>    typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
-const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
-const isMsg = a =>     typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
-const isInstance = a =>isCore(a) && a.hasOwnProperty('nodeId') && isNum(a.nodeId);
-const isType = a =>    isCore(a) && a.hasOwnProperty('type') && typeof a['type'] === 'string';
-
-const assertHandler = {
-  name: 'assert',
-  install: function(){return {handlers: {assert: this}}},
-  call: a => ({handler: 'assert', ...a}),
-  handle: (core, msg) => {
-    Object.entries(msg).forEach(([key, msgValue]) => {
-      if (key === 'handler' || key === 'parent') return; // skip the handler name itself
-      if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
-      else throw new Error(`core ${tryToStringify(core)} is missing asserted property ` + key);
-    });
-    return [{}];
-  },
-};
-
-const logHandler = {
-  name: 'log',
-  install: function(output=console.log){
-    this.output = output;
-    return {
-      handlers: {log: this},
-      debug   : true, // residue that can turn off logging
-      lastOutput: '', // the last thing logged
-    }},
-  call: a => {
-    if (typeof a === 'string') a = {msg: a};
-    return {handler: 'log', ...a};
-  },
-  handle: function (core, msg) {
-    if (core.debug){
-      let out = (msg && msg.hasOwnProperty('msg')) ? msg.msg : undefined;
-      this.output('logHandler:', out, {msg, core});
-      if (out)
-        return {lastOutput: msg.msg}
+const tryToStringify = obj => {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (value !== null && typeof value === 'object') {
+      if (seen.has(value)) return '<Circular>';
+      seen.add(value);
     }
-  }
+    return value;
+  });
 };
 
+const isObj =     a => typeof a === 'object' && !Array.isArray(a);
+const isCore =    a => typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
+const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
+const isMsg =     a => typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
+
+/**
+ * Combines two values, a and b, based on their types and properties.
+ * Combine is a pure function.
+ * By convention b "acts on" a.
+ * When b is null, a is "zeroed out" according to a's type:
+ * 1. When a is null or undefined, b is returned.
+ * 2. When a and b are objects, this acts like a structural Object.assign().
+ * 3. When a and b are arrays, they are concatenated.
+ * 4. When a is a "core" (an object with "handlers") and b is a "msg" (an object with a string "handle" property), the handler is invoked.
+ * (Handlers are objects with a "handle" function that returns an array of object results, which are recursively combined.)
+ *
+ * Note: we can't zero out a boolean without introducing null, so we toggle it instead.
+ * Note: Combine is not associative (results are order-dependent), but it does have an identity and a zero.
+ *
+ * @param {any} a - The first value to be combined.
+ * @param {any} b - The second value to be combined.
+ * @returns {any} The result of combining the two values.
+ */
 function combine(a, b) {
-  // this convention implies b "acts on" a, in this case by 'zeroing a out' when b is null.
-  // we can't zero out a boolean without introducing null, so we toggle it instead.
-  // combine is not associative, but it does have an identity and a zero.
-  if (typeof a === 'undefined' || a === null) return b; // 'something is better than nothing'
-  if (typeof b === 'undefined') return a; // 'avoid special cases and let nothing compose as a noop'
-  if (b === null) { // 'use null as a signal to set a type-dependent zero
-    if (Array.isArray(a))       return [];
-    if (typeof a === 'object')  return {};
-    if (typeof a === 'number')  return  0;
-    if (typeof a === 'string')  return '';
-    if (typeof a === 'boolean') return !a;
-    if (typeof a === 'function') return () => {};
+  const ta = typeof a;
+  const tb = typeof b;
+
+  if (ta === 'undefined' || a === null) return b; // 'something is better than nothing'
+  if (tb === 'undefined') return a;               // 'avoid special cases and let nothing compose as a noop'
+  if (b === null) {                               // 'use null as a signal to set a type-dependent zero
+    if (Array.isArray(a)) return [];
+    if (ta === 'object')  return {};
+    if (ta === 'number')  return  0;
+    if (ta === 'string')  return '';
+    if (ta === 'boolean') return !a;
+    if (ta === 'function') return () => {};
   }
 
   // If both args are arrays, combine every element - concatenation is also a reasonable rule
@@ -86,32 +67,37 @@ function combine(a, b) {
         // e = Object.assign(e,{msg})
         throw e;
       }
+      // invoke the handler
       let result = a.handlers[b.handler].handle(a, b);
       if (!Array.isArray(result)) result = [result];
+      // recursively combine results back with a
       result.every(obj => a = combine(a, obj));
       return a;
-    }
-    const result = {};
-    for (const key of Object.keys(a)) {
-      result[key] = a[key];
-      if (key in b) {
-        result[key] = combine(a[key], b[key]);
+    } else {
+      // ordinary object combination - behave like a recursive Object.assign()
+      const result = {};
+      for (const key of Object.keys(a)) {
+        result[key] = a[key];
+        if (key in b) {
+          result[key] = combine(a[key], b[key]);
+        }
       }
-    }
-    for (const key of Object.keys(b)) {
-      if (!(key in a)) {
-        result[key] = b[key];
+      for (const key of Object.keys(b)) {
+        if (!(key in a)) {
+          result[key] = b[key];
+        }
       }
+      return result;
     }
-    return result;
   }
 
-  if (typeof a === 'string'   && typeof b === 'string'  ) return b;
-  if (typeof a === 'boolean'  && typeof b === 'boolean' ) return b;
-  if (typeof a === 'function' && typeof b === 'function') return b;
-  if (typeof a === 'number'   && typeof b === 'number'  ) return a + b;
+  // scalar combination - usually just replace
+  if (ta === 'string'   && tb === 'string'  ) return b;
+  if (ta === 'boolean'  && tb === 'boolean' ) return b;
+  if (ta === 'function' && tb === 'function') return b;
+  if (ta === 'number'   && tb === 'number'  ) return a + b;
 
-  throw new Error(`unable to combine ${tryToStringify(a)} and ${tryToStringify(b)} types ${typeof a} ${typeof b}`);
+  throw new Error(`unable to combine ${tryToStringify(a)} and ${tryToStringify(b)} types ${ta} ${tb}`);
 }
 
 function combineAll(...args) {
@@ -127,5 +113,4 @@ function combineAll(...args) {
 export {
   combineAll as combine,
   combine as combineReducer,
-  assertHandler, logHandler
 }

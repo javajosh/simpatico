@@ -1,4 +1,4 @@
-# Simpaticode: stree()
+# stree2()
 jbr 2023
 
 See:
@@ -89,6 +89,7 @@ __________________________________________________
 Let's  make sure that combine works within the stree, using some simple, synthetic handlers.
 
 ```js
+import {assertHandler, logHandler} from "/handlers.js";
 const incHandler = {handle: () => [{a: 1}], call:()=>({handler: 'inc'})};
 const decHandler = {handle: () => [{a: -1}], call:()=>({handler: 'dec'})};
 const mulHandler = {handle: (core, msg) => [{a : null},{a: msg.factor * core.a}], call: a => ({handler: 'mul', factor: a})};
@@ -260,6 +261,7 @@ The first rows are types, consisting only of handlers.
 The latter rows are instances, consisting only of messages.
 
 ```js
+import {assertHandler, logHandler} from "/handlers.js";
 const DEBUG = false;
 
 const h1 = {handle: (core, msg) => [{a:1}], call: {handler: 'h1'}};
