@@ -337,12 +337,13 @@ function fileServerLogic() {
       }
       const c = candidates(path);
       let found;
-      c.map(candidate => {
-        let candidatePath = cwd + candidate;
+      for (let i = 0; i < c.length; i++) {
+        let candidatePath = cwd + c[i];
         if (fs.existsSync(candidatePath)) {
           found = candidatePath;
+          break;
         }
-      });
+      }
       if (found){
         return found;
       } else {
