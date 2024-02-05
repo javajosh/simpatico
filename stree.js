@@ -1,10 +1,9 @@
-import {now, as}  from './core.js';
 import {combine} from './combine.js';
 
 const stree = (startValue = {}, reducer = combine) => {
   const ROOT = {
     id: 0,
-    time: now(),
+    time: Date.now(),
     branch: 0,
     parent: null,
     children: [],
@@ -20,9 +19,12 @@ const stree = (startValue = {}, reducer = combine) => {
   const read = () => (focus > 0) ? ms[focus] : branches[-focus];
   const residue = () => read().residue;
   const setFocus = i => {
-    as.between(-branches.length - 1, ms.length - 1 , i);
-    focus = i;
-    return read();
+    if ( (-branches.length - 1 <= i) || (i <= ms.length - 1)){
+      focus = i;
+      return read();
+    } else {
+      throw 'Invalid focus value ' + i;
+    }
   };
 
   const add = (value, newFocus=focus) => {
@@ -32,7 +34,7 @@ const stree = (startValue = {}, reducer = combine) => {
     const branch = (focus <= 0) ? parent.branch : -branches.length;
     const m = {
       id: ms.length,
-      time: now(),
+      time: Date.now(),
       children: [],
       branch,
       parent,
@@ -53,9 +55,8 @@ const stree = (startValue = {}, reducer = combine) => {
       branches.push(m);
     }
 
-    // add a reference to messages
+    // add a reference to the new message to messages
     ms.push(m);
-    // return the reference
     return m;
   }
 

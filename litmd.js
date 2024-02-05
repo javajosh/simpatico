@@ -12,7 +12,7 @@ const markdownDefaultImports= `
   import * as c from "/core.js";
   // import {combine, combineReducer} from "/combine2.js";
   // import {assertHandler, logHandler} from "/handlers.js";
-  import {stree} from "/stree2.js";
+  // import {stree} from "/stree2.js";
   const etc = []; // stupid, yes. but funny, [...etc]
   const {assert, assertEquals, assertThrows, is, as, log, debug} = c;
 `;

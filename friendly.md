@@ -1,52 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="keywords" content="ES6, Minimalist, State Management, Functional Programming">
-  <meta name="author" content="javajosh">
+# Friendly Functions
+created *27 Jan 2019* last updated *20 June 2022* by jbr
 
-  <link id="favicon" rel="icon" type="image/png" href="./img/white.png"/>
-  <meta id="refresh" http-equiv="refresh" content="-1">
-  <script type="module" src="testable.js"></script>
+A friendly function is one that tells you how to call it, and if there is an argument which part of the argument is wrong.
 
-  <title>Friendly.js</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
-</head>
-<body>
-<h1>Friendly Functions</h1>
-<p>Josh Rehman, created <i>27 Jan 2019</i> last updated <i>20 June 2022</i></p>
+ 1. If you call it with nothing, it returns a <i>pattern</i> describing how to call it.
+ 2. If you call it with an object that matches the pattern, then, great!
+ 3. If you call it with an object that only partially matches the pattern, it will return an object containing a combination of matched values and unmatched patterns.
 
-<p>
-  A friendly function is one that tells you how to call it.
-</p>
-<ol>
-  <li>If you call it with nothing, it returns a <i>pattern</i> describing how to call it.</li>
-  <li>If you call it with an object that matches the pattern, then, great!</li>
-  <li>If you call it with an object that only partially matches the pattern, it will return an object containing a combination of matched values and unmatched patterns.</li>
-</ol>
+How can you tell the difference between a successful function invocation and an unsuccessful one?
+Return something other than an object!
+The most general (and useful) convention is to return an array.
 
-<p>
-  <i>Important Note:</i> Currently we do NOT return successfully matched values, and instead just return the parts that fail.
-</p>
+Related:
+  1. [Zod](https://github.com/colinhacks/zod) "TypeScript-first schema validation with static type inference "
+  2. [JSONSchema and the schema store](https://www.schemastore.org/json/)
 
-<p>
-  How can you tell the difference between a successful function invocation and an unsuccessful one?
-  Well, this is an important part of the convention: return something other than an object!
-  The most general (and useful) convention is to return an array.
-  If you want to return a single object, return <code>[{...}]</code>
-</p>
 
-<p>See the source for more details.</p>
-
-<p>Related:</p>
-<ol>
-  <li><a href="https://github.com/colinhacks/zod">Zod</a> "TypeScript-first schema validation with static type inference "</li>
-  <li><a href="https://www.schemastore.org/json/">JSONSchema and the schema store </a></li>
-</ol>
-
-<script type="module">
-  import {as, assertEquals} from './core.js';
-  import {checkValue, validate} from './friendly.js';
+```js
+  import {checkValue, validate} from '/friendly.js';
 
   const {str, num, bool, fun, obj, undef, arr, same,
     all, contains, arrEquals} = as;
@@ -223,7 +194,4 @@
   assertEquals(friendly({a: 1}), {a: ['bool']})
   assertEquals(friendly({b: true}), {a: ['bool']})
   assertEquals(friendly({a: true}), 2)
-
-</script>
-</body>
-</html>
+```

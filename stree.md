@@ -1,7 +1,7 @@
 # STree
 jbr *2023*
 
-See [home](/), [combine](/combine), TODO merge with [stree2](/stree2.md)
+See [combine](/combine)
 
 # Introduction
   1. Start with an n-ary tree.
@@ -159,28 +159,9 @@ This stree is using simple addition as the branch/row reducer.
   assertEquals(s.residue(), {a:1})
 ```
 
-## Latch Demo
-Not really sure what this is about, actually.
-```js
-  import latch from './demos/demo-latch.js'
-
-  log('start', latch.residue().count)
-  latch.add({count: -10})
-  assertEquals(latch.residue().count, 90)
-  latch.add({handler: 'dec'})
-  assertEquals(latch.residue().count,89)
-  latch.add({handler: 'dec', amount:10})
-  assertEquals(latch.residue().count, 79)
-  latch.add({handler: 'dec', amount:79})
-  assertEquals(latch.residue().count, 0)
-  assertThrows( ()=>latch.add({handler: 'dec'}))
-
-  // latch.add({handler: 'dec', amount: 5}, r => assertEquals(r.count, 94));
-  // latch.add({handler: 'dec', amount: 50},r => assertEquals(r.err.failures, {amount:['between', 0, 10]}));
-```
 
 
-# Data-Modeling with STree
+# Discussion: Data-Modeling with STree
 
 Lots of hierarchical things can be modeled as an STree, but some make
 more sense than others

@@ -1,20 +1,22 @@
-import {stringifyWithFunctions, parseWithFunctions, peek} from "./core.js";
-import {combineReducer} from "./combine2.js";
+import {stringifyWithFunctions, parseWithFunctions} from "./core.js";
+import {combineReducer} from "./combine.js";
 
 /**
- * A serializable n-ary tree with a well defined reduction defined on all nodes.
+ * Create a serializable n-ary tree with a well defined reduction defined on all nodes.
  *
  * @param value if an array or string, reconstitute stree from contents. if other, use as root.
- * @param reducer reducer used to compute the residue of a node. default is combineReducer
+ * @param reducer reducer used to compute the residue of a node. default is combine
  * @returns {[]|string|*}
  */
 function stree3(value, reducer = combineReducer) {
+  // handle special values, array and string, for deserialization initialization
   if (Array.isArray(value)) {
     return fromArray(value, reducer);
   }
   if (typeof value === 'string'){
     return fromString(value, reducer);
   }
+  // if the value isn't a special one, initialize our internal datastructures
   const root = {value, parent: null};
   const branches = [root];
   const nodes = [root];
@@ -26,9 +28,9 @@ function stree3(value, reducer = combineReducer) {
   /**
    * Add a value to an n-ary tree.
    * Return the node that wraps these parameters.
-   * Updates both branches[] and lastNode
+   * Updates branches[] and lastNode
    * The parent can be specified as either a node or an index into nodes.
-   * If the reducer is not commutative, the order of the children matters.
+   * If the reducer is not commutative (combine isn't), the order of the children matters.
    * If the reducer fails (throws), the node is not added and the lastNode is not updated.
    *
    * @param value The value associated with the node. Set to lastNode for future calls. Note that it will be Object.freeze'd

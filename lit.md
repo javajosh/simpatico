@@ -154,11 +154,13 @@ In this test we have a custom import that conflicts with the default imports.
 That itself should fail.
 
 In `litmd.js` you have `markdownDefaultImports` currently set to:
+
 ```js
 ///
 import {assertEquals, assertThrows} from "/core.js";
-import {combine, assertHandler, logHandler} from "/combine2.js";
+import {combine, assertHandler, logHandler} from "/Users/alber/IdeaProjects/simpatico/combine.js";
 import {stree} from "/stree2.js";
+
 const etc = []; // stupid, yes. but funny, [...etc]
 ```
 

@@ -2,7 +2,7 @@
 
 See:
 [home](/),
-[combine2](./combine2.md),
+[combine2](combine.md),
 [litmd](/lit.md),
 [audience](/audience.md)
 

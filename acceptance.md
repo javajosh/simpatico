@@ -1,78 +1,47 @@
 # acceptance
 
 ```css
-iframe {
-    overflow: hidden;
+div#iframes {
+  display: flex;
+  flex-wrap: wrap;
 }
-```
-```js
 
-// TODO: make clicking on iframes to navigate to the src attribute work
-window.document.addEventListener("DOMContentLoaded", function() {
-  if (event.target.tagName === 'IFRAME') {
-    event.target.contentWindow.document.addEventListener('click', function(event) {
-      console.log("hello");
-      window.location.href = event.target.src;
-    });
-  }
-});
-```
+iframe {
+  flex: 1 0 calc(33.33% - 20px); /* Adjust the width as needed */
+  margin: 10px;
+}
 
-<iframe id="homepage-frame"
-        title="homepage"
-        width="300"
-        height="200"
-        src="/index.html">
-</iframe>
-<iframe id="core-frame"
-        title="core"
-        width="300"
-        height="200"
-        src="/core">
-</iframe>
-<iframe id="combine2-frame"
-        title="combine"
-        width="300"
-        height="200"
-        src="/combine2">
-</iframe>
-<iframe id="stree2-frame"
-        title="stree"
-        width="300"
-        height="200"
-        src="/stree2">
-</iframe>
-<iframe id="crypto-frame"
-        title="crypto"
-        width="300"
-        height="200"
-        src="/crypto">
-</iframe>
-<iframe id="friendly-frame"
-        title="friendly"
-        width="300"
-        height="200"
-        src="/friendly">
-</iframe>
-<iframe id="svg-frame"
-        title="svg"
-        width="300"
-        height="200"
-        src="/svg">
-</iframe>
-<iframe id="chat-frame"
-        title="chat"
-        width="300"
-        height="200"
-        src="/chat">
-</iframe>
-<iframe
-        id="angular-frame"
-        title="Embedded Angular Kata"
-        width="300"
-        height="200"
-        src="/kata/angular/my-project/bundle/index.html">
-</iframe>
+```
+<div id="iframes">
+  <a href="/index.html">/index.html</a>
+  <iframe src="/index.html"></iframe>
+
+  <a href="/core">/core</a>
+  <iframe src="/core"></iframe>
+
+  <a href="/combine">/combine</a>
+  <iframe src="/combine"></iframe>
+
+  <a href="/stree">/stree</a>
+  <iframe src="/stree"></iframe>
+
+  <a href="/stree3">/stree3</a>
+  <iframe src="/stree3"></iframe>
+
+  <a href="/crypto">/crypto</a>
+  <iframe src="/crypto"></iframe>
+
+  <a href="/friendly">/friendly</a>
+  <iframe src="/friendly"></iframe>
+
+  <a href="/svg">/svg</a>
+  <iframe src="/svg"></iframe>
+
+  <a href="/chat">/chat</a>
+  <iframe src="/chat"></iframe>
+</div>
+
+# About
 
 If your test suite is self-executing html pages, then including them as an
 <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe">iframe</a> and checking their color is enough.

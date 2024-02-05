@@ -10,7 +10,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString, peek } from './core.js';
-import { combine, combineAllArgs } from './combine.js';
+import { combine } from './combine.js';
 import { stree3 as stree } from './stree3.js';
 import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
@@ -49,19 +49,19 @@ if (process.send) process.send(config);
 function processConfig(envPrefix='SIMP_') {
   //hardcoded defaults, usually best for new devs
   const baseConfig = {
-    http: 8080,
-    https: 8443,
+    http: "8080",
+    https: "8443",
     hostname: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
     runAsUser: '',
-    useCache: false,
-    useGzip: true,
-    useTls: false,
+    useCache: "false",
+    useGzip: "true",
+    useTls: "false",
     password: 's3cret',
-    logFileServerRequests: true,
-    superCacheEnabled: false,
-    debug: false,
+    logFileServerRequests: "true",
+    superCacheEnabled: "false",
+    debug: "false",
     // measured: {},      //added below
   };
   const envConfig = mapObject(baseConfig, ([key,_]) => ([key, process.env[`${envPrefix}${key.toUpperCase()}`]]));
@@ -77,7 +77,7 @@ function processConfig(envPrefix='SIMP_') {
       started: new Date().toUTCString(),
   }};
   // The big difference with Object.assign in this case is that undefined on later objects is treated as a noop
-  const config = combineAllArgs(baseConfig, envConfig, argConfig, measured);
+  const config = combine(baseConfig, envConfig, argConfig, measured);
 
   // Mutate DEBUG to be consistent with conflig.debug
   DEBUG = config.debug;
