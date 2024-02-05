@@ -1,16 +1,17 @@
-import { combineReducer} from './combine2.js'
+import { combineReducer} from '/combine.js'
 
 const DEBUG = false;
 // Utilities I could take from core but I want to keep this file standalone.
 // Note that the combine imports above are only used for default parms and can be easily removed.
-const isNum = d => Number.isInteger(d);
+const isInt = d => Number.isInteger(d);
 const peek = (arr) => {
+  if (arr.length === 0) return null;
   if (arr.length === 1) return arr[0];
   return arr[arr.length - 1];
 }
 
 /**
- * An stree arranges messages in a tree structure, where each message is a branch, and each branch is a row.
+ * An stree arranges messages in a tree structure.
  * The tree is represented as an array of rows, where each row is an array of nodes.
  * Operations have a stateless and stateful version with the stateful version being the default, faster, and less reliable.
  *
@@ -61,8 +62,8 @@ function stree(
   }
 
   function add(d) {
-    const targetIsNode = isNum(d) && d >= 0;
-    const targetIsRow = isNum(d) && d < 0;
+    const targetIsNode = isInt(d) && (d >= 0);
+    const targetIsRow = isInt(d) && (d < 0);
 
     if (targetIsNode){ // and we're gonna make a new row, a new branch
       if (d >= nodes.length) throw 'invalid parent node ' + d;

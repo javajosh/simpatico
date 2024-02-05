@@ -1,10 +1,9 @@
-# Simpaticode: combine2()
+# Simpaticode: combine()
 jbr 2023
 
 See:
 [home](/),
-[combine](./combine.html),
-[stree](./stree2.md),
+[stree](/stree.md),
 [litmd](/lit.md),
 [audience](/audience.md)
 
@@ -14,7 +13,7 @@ You <span title="Note: this code doesn't execute in the page context because it 
 ```html
 <script type="module">
   import {assertEquals} from '/core.js';
-  import {combine} from '/combine2.js';
+  import {combine} from '/combine.js';
   assertEquals(3, combine(1, 2));
 </script>
 ```
@@ -24,12 +23,12 @@ To use the library in node, omit the script tags and set `{"type": "module"}` in
 Simpatico is not yet published to npm, but for now a simple `wget` will work:
 ```bash
   $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/core.js
-  $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/combine2.js
+  $ curl -O https://raw.githubusercontent.com/javajosh/simpatico/master/combine.js
 ```
 Within [litmd](/lit.md) code snippets served by the [reflector](/reflector.md) you can omit this particular import statement.
 (If you don't include your own imports, default imports will apply):
 ```js
-  import {combine} from '/combine2.js';
+  import {combine} from '/combine.js';
   assertEquals(3, combine(1, 2));
 ```
 This code has executed in your browser context.
@@ -42,7 +41,7 @@ _________________________________________________________
 Combine's action varies according to the types of its arguments.
 Numbers add. Most other scalars "replace":
 ```js
-  import {combine} from "/combine2.js";
+  import {combine} from "/combine.js";
 
   assertEquals('bar', combine('foo', 'bar'), 'strings replace');
   assertEquals(false, combine(true, false), 'booleans replace');
@@ -53,13 +52,13 @@ For objects, combine mostly behaves just like `Object.assign`.
 They both merge keys:
 
 ```js
-  import {combine} from "/combine2.js";
+  import {combine} from "/combine.js";
   assertEquals({a:1, b:2}, combine({a:1},{b:2}), 'combine merges keys');
   assertEquals({a:1, b:2}, Object.assign({},{a:1},{b:2}), 'Object.assign merges keys');
 ```
- `Object.assign` is shallow, `combine()` is deep:
+`Object.assign` is shallow, `combine()` is deep:
 ```js
-  import {combine} from "/combine2.js";
+  import {combine} from "/combine.js";
   assertEquals({a: {b : 2}},          combine({a: {b : 1}}, {a: {b : 1}}), 'combine is deep');
   assertEquals({a: {b : 1}}, Object.assign({},{a: {b : 1}}, {a: {b : 1}}), 'Object.assign is shallow');
 ```
@@ -84,24 +83,28 @@ Handlers take two arguments, the target and the message, in the first and second
 Also, we add a 'msg' entry that describes a typical message for this handler:
 
 ```js
-  import {combine} from "/combine2.js";
+  import {combine} from "/combine.js";
   // This handler returns an array of 2 objects:
   const inc = {handle: (core, msg) => [ {a:1}, {b:2} ] };
   assertEquals([ {a:1}, {b:2} ], inc.handle());
 
   // the core is a handlers object, plus some state, called residue
   // in this case the residue is initialized to {a:10, b:20}
-  const core= {handlers: {inc}, a:10, b:20};
+  let core= {handlers: {inc}, a:10, b:20};
 
   // call the handler with a message
   const msg = {handler: 'inc'};
 
   // check the effect on residue
-  assertEquals({handlers: {inc}, a:11, b:22}, combine(core, msg), 'shows a side-effect on residue.');
-  assertEquals({handlers: {inc}, a:10, b:20}, core, 'core is untouched');
-  assertEquals({handlers: {inc}, a:11, b:22}, combine(core, msg));
-  assertEquals({handlers: {inc}, a:12, b:24}, combine(core, msg, msg), 'increments compound');
-  assertEquals({handlers: {inc}, a:13, b:26}, combine(core, msg, msg, msg));
+  core = combine(core, msg)
+  assertEquals(11, core.a, 'shows a side-effect on residue.');
+  assertEquals(22, core.b, 'shows a side-effect on residue.');
+  core = combine(core, msg);
+  assertEquals(12, core.a, 'shows a side-effect on residue.');
+  assertEquals(24, core.b, 'shows a side-effect on residue.');
+  // combine(core, msg, msg)
+  // assertEquals(14, core.a, 'shows a side-effect on residue.');
+  // assertEquals(28, core.b, 'shows a side-effect on residue.');
 ```
 
 The handler above takes no arguments and gives a constant result.
@@ -125,7 +128,7 @@ _________________________________________________________
 ## Assertion handler
 Before moving on its useful to define an "<span title="This was successful and was extracted into handlers.js">assertion handler</span>":
 ```js
-  import {combine} from "/combine2.js";
+  import {combine, combineAllArgs} from "/combine.js";
 
   const assertHandlerDemo = {
     name: 'assert',
@@ -133,6 +136,7 @@ Before moving on its useful to define an "<span title="This was successful and w
     call: a => ({handler: 'assert', ...a}),
     handle: (core, msg) => {
       Object.entries(msg).forEach(([key, msgValue]) => {
+        if (key === 'id' || key === 'time') return; // skip dynamically added values
         if (key === 'handler' || key === 'parent') return; // skip the handler name itself
         if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
         else throw 'core is missing asserted property ' + key;
@@ -155,11 +159,11 @@ Before moving on its useful to define an "<span title="This was successful and w
   );
 
   // 2. the less brittle, shorter way to call the assert handler:
-  assertThrows(() => combine(assertHandlerDemo.install(), {a:1}, has({a:2})));
-  combine(assertHandlerDemo.install(), {a:1}, has({a:1}));
+  assertThrows(() => combineAllArgs(assertHandlerDemo.install(), {a:1}, has({a:2})));
+  combineAllArgs(assertHandlerDemo.install(), {a:1}, has({a:1}));
 
   // 3. A nice call and response pattern using the shorter form:
-  combine(assertHandlerDemo.install(),
+  combineAllArgs(assertHandlerDemo.install(),
     {a:1},     has({a:1}),
     {c:'foo'}, has({c:'foo'}),
   );
@@ -170,7 +174,7 @@ but as a function object that can both be invoked and have properties added to i
 
 Here is a somewhat redundant example that I may remove in the future (although it does demonstrate using core values in the handler result):
 ```js
-  import {combine} from "/combine2.js";
+  import {combine} from "/combine.js";
   import {assertHandler} from "/handlers.js";
   const has = assertHandler.call;
   const dbl = {
@@ -193,7 +197,7 @@ _________________________________________________________
 <span title="Also successful, extracted into handlers.js">This is a handler that logs</span>
 ```js
 import {hasProp} from "/core.js";
-import {combine} from "/combine2.js";
+import {combine} from "/combine.js";
 import {assertHandler, logHandler} from "/handlers.js";
 
 const logHandlerDemo = {
@@ -237,7 +241,7 @@ _________________________________________________________
 ## Handlers replace each other
 Handlers replace, so we can overwrite the old handler and call it with the same message:
 ```js
-  import {combine} from "/combine2.js";
+  import {combine} from "/combine.js";
   import {assertHandler} from "/handlers.js";
   const has = assertHandler.call;
   const inc1 = {handle: ()=>[{a:1},{b:2}] };
@@ -263,26 +267,26 @@ _________________________________________________________
 
 Functions replace, so we can overwrite the old handler and call it with the same message:
 ```js
-  import {combine} from "/combine2.js";
-  import {assertHandler} from "/handlers.js";
-  const has = assertHandler.call;
-  const h1 = {
-    handle: ()=> [{handler: 'h2'},{a:1}],
-    call:   ()=> ({handler: 'h1'}),
-  };
-  const h2 = {
-    handle: ()=> [{b:1}],
-    call:   ()=> ({handler: 'h2'}),
-  };
+  import {combine} from "/combine.js";
+import {assertHandler} from "/handlers.js";
+const has = assertHandler.call;
+const h1 = {
+  handle: ()=> [{handler: 'h2'},{a:1}],
+  call:   ()=> ({handler: 'h1'}),
+};
+const h2 = {
+  handle: ()=> [{b:1}],
+  call:   ()=> ({handler: 'h2'}),
+};
 
-  const ops = [
-    {handlers: {h1, h2, assert: assertHandler}},
-    {a:0, b:0}, has({a:0, b:0}),
-    h1.call(),  has({a:1, b:1}), // The only way that b increments is if h2 is called; hence h2 been called indirectly.
-    h1.call(),  has({a:2, b:2}),
-    ...etc
-  ];
-  combine(ops);
+const ops = [
+  {handlers: {h1, h2, assert: assertHandler}},
+  {a:0, b:0}, has({a:0, b:0}),
+  h1.call(),  has({a:1, b:1}), // The only way that b increments is if h2 is called; hence h2 been called indirectly.
+  h1.call(),  has({a:2, b:2}),
+  ...etc
+];
+combine(ops);
 ```
 
 ## Core and handler lifetime
@@ -306,24 +310,24 @@ The intuition is of something like splashing in the water, with the water itself
 
 ## What we have
 At this point we have a data structure that
-   1. can reach an arbitrary JavaScript object shape
-   1. We can select how we get there, going either one value at a time or several, grouped in objects.
-   1. We can mutate by adding regular objects.
-   1. We can compute which data objects to add by reifying function invocation with handlers.
+1. can reach an arbitrary JavaScript object shape
+1. We can select how we get there, going either one value at a time or several, grouped in objects.
+1. We can mutate by adding regular objects.
+1. We can compute which data objects to add by reifying function invocation with handlers.
 
 These features of `combine()`, along with reusable handlers like assert and log, plus authoring guidelines,  make it a very potent data modeling tool.
 
 ## *What we need*.
-   1. We need a way not just to zero but to remove items in combine.
-   1. Perhaps a special object, or some other convention.
-   1. Perhaps adapt the method of combine1 (although we lose our zeroes)
-   1. I also don't like the array merge (should be concat).
-   1. I also don't like number sum by default. It should be configurable.
+1. We need a way not just to zero but to remove items in combine.
+1. Perhaps a special object, or some other convention.
+1. Perhaps adapt the method of combine1 (although we lose our zeroes)
+1. I also don't like the array merge (should be concat).
+1. I also don't like number sum by default. It should be configurable.
 
 Some good examples of cores:
-   1. Reify objects, one value/key per row/core, with assign combine.
-   1. Tic tac toe game.
-   1. Chess game core to handle things like [pgn chess notation](http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2)
+1. Reify objects, one value/key per row/core, with assign combine.
+1. Tic tac toe game.
+1. Chess game core to handle things like [pgn chess notation](http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2)
 
 _________________________________________________________
 # Next: stree
