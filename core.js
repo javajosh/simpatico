@@ -127,6 +127,17 @@ const getType = (a) => {
   return OBJ;
 }
 
+const inferType = (str) => {
+  as.str(str);
+  if (!isNaN(str)) {
+    return 'number';
+  } else if (str === 'true' || str === 'false') {
+    return 'boolean';
+  } else {
+    return 'string';
+  }
+}
+
 const size = (a) => {
   const t = getType(a);
   const {UNDEF,NUL,NUM,STR,FUN,OBJ,ARR,ELT,HANDLER,MSG} = TYPES;
@@ -272,13 +283,14 @@ const parseObjectLiteralString = arg => {
   // Quote anything that isn't quoted
   // Please note that this implementation assumes that there are no colons, commas, or curly braces within the unquoted values.
   const quoted = arg.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:(['"])?([a-zA-Z0-9\\.\/]+)(['"])?/g, '"$2":"$5"');
-  return JSON.parse(quoted);
+  const untyped = JSON.parse(quoted);
+  return mapObject(untyped, ([k,v])=>([k, cast(inferType(v),v)]));
 }
 
 const regex ={
   email: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/, //regexr.com/2rhq7
   password: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/, //regexr.com/3bfsi
-  matchNonAscii: /[^\x00-\x7F]+\ *(?:[^\x00-\x7F]| )*/, //regexr.com/3acrs
+  matchNonAscii: /[^\x00-\x7F]+ *(?:[^\x00-\x7F]| )*/, //regexr.com/3acrs
   ipAddress: /\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\b/, // regexr.com/38odc
   svgOptimize: /(\d*\.\d{3})\d*/, // regexr.com/2ri1h really like the simplicity
   url: /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/, //regexr.com/2rj36 too permisive but its okay
@@ -364,7 +376,7 @@ function base64EncodeBuffer(buffer, debug=false){
 
 export {
   is, as, getType, size, cast, TYPES,
-  now, log, debug, info, error,
+  now, log, debug, info, error, date,
   assert, assertEquals, assertThrows,
   hasProp, getProp, propType, mapObject,
   equals, clone, exists,
@@ -372,6 +384,6 @@ export {
   and, or, sub, add, identity,
   RNG, shuffle,
   tryToStringify, parseObjectLiteralString, regex,
-  parseWithFunctions, stringifyWithFunctions,
+  safeSetItem, parseWithFunctions, stringifyWithFunctions,
   deepId, base64EncodeBuffer,
 }

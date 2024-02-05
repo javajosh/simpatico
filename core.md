@@ -1,7 +1,7 @@
 # Core.js
 javajosh 2023
 
-A handful of comprehensive helper functions to make working with ES6 more functional.
+A handful of comprehensive helper functions to make working with ES6 more functional. To avoid ambiguity core functions are prefixed with `c.`.
 
 ## Logging
 
@@ -168,12 +168,12 @@ Used for [reflector](reflector.md) arguments
     key:/etc/letsencrypt/live/simpatico.io/privkey.pem
   }`)
   // Doesn't do type conversion, but that's okay
-  as.str(parsed.http)
+  as.int(parsed.http)
   // Only take strings
   assertThrows(() => c.parseObjectLiteralString())
   assertThrows(() => c.parseObjectLiteralString({}))
   // You must not have spaces between key, colon and value. I'd like to relax this, but am not a regexpert.
-  // This also means that you can't have a value with a leading space, which is possibly annoying
+  // This also means that you can't have a value with a leading space, which is annoying
   assertThrows(() => c.parseObjectLiteralString(`{http :80, https:443}`))
 
   ```

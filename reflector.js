@@ -477,7 +477,7 @@ function isCompressedImage(fileName) {
     fileName.endsWith('.gif')
   );
 }
-  function initFileWatchingCacheInvalidator(cache, watchRecursive='.', debug=DEBUG) {
+  function initFileWatchingCacheInvalidator(cache, watchRecursive='.') {
   // Make a file cache and watch for file changes to invalidate it.
   // See https://nodejs.org/docs/latest-v18.x/api/fs.html#fswatchfilename-options-listener
   // fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
