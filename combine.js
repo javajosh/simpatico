@@ -47,49 +47,47 @@ function combine(a, b) {
     if (ta === 'function') return () => {};
   }
 
-  // If both args are arrays, combine every element - concatenation is also a reasonable rule
+  // If both args are arrays, concat
   if (Array.isArray(a) && Array.isArray(b)) {
-    return a.concat(b);
+    return [...a, ...b];
   }
 
-  // if the target is an array, push the argument onto the array
+  // if the target is an array,  push the msg onto the array
   if (Array.isArray(a) && !Array.isArray(b)) {
-    a.push(b);
+    return [...a, b];
+  }
+
+
+  if (isCore(a) && isMsg(b)){
+    if (!isHandler(a.handlers[b.handler])) {
+      throw new Error(`Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`);
+    }
+    // invoke the handler
+    let result = a.handlers[b.handler].handle(a, b);
+    // TODO throw non-array results; evaluate the limits of what is undoable
+    if (!Array.isArray(result)) result = [result];
+    // recursively combine results back with a
+    result.every(obj => a = combine(a, obj));
     return a;
   }
 
-  // If both args are plain objects, combine every shared key, and add the non-shared keys, too.
   if (isObj(a) && isObj(b)) {
-    if (isCore(a) && isMsg(b)){
-      if (!isHandler(a.handlers[b.handler])) {
-        let e = new Error(`Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`);
-        // const msg = `Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`;
-        // e = Object.assign(e,{msg})
-        throw e;
+    // ordinary object combination - behave like a recursive Object.assign()
+    const result = {};
+    for (const key of Object.keys(a)) {
+      result[key] = a[key];
+      if (key in b) {
+        result[key] = combine(a[key], b[key]);
       }
-      // invoke the handler
-      let result = a.handlers[b.handler].handle(a, b);
-      if (!Array.isArray(result)) result = [result];
-      // recursively combine results back with a
-      result.every(obj => a = combine(a, obj));
-      return a;
-    } else {
-      // ordinary object combination - behave like a recursive Object.assign()
-      const result = {};
-      for (const key of Object.keys(a)) {
-        result[key] = a[key];
-        if (key in b) {
-          result[key] = combine(a[key], b[key]);
-        }
-      }
-      for (const key of Object.keys(b)) {
-        if (!(key in a)) {
-          result[key] = b[key];
-        }
-      }
-      return result;
     }
+    for (const key of Object.keys(b)) {
+      if (!(key in a)) {
+        result[key] = b[key];
+      }
+    }
+    return result;
   }
+
 
   // scalar combination - usually just replace
   if (ta === 'string'   && tb === 'string'  ) return b;

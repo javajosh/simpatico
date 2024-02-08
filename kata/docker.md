@@ -19,7 +19,7 @@ This repository forms a trie of execution steps.
 ## Docker Modeled with Simpatico
 There is a clear correspondence between Simpatico and Docker:
 The `Dockerfile` is like the ops array.
-The image is like the residue under [combine](combine2.md).
+The image is like the residue under [combine](combine.md).
 The repo and Docker daemon (which stores images/residues) is like the [stree](/stree2.md).
 
 # Providers
