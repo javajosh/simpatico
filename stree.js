@@ -46,9 +46,9 @@ function stree(value, reducer = combineReducer) {
 
     const parentResidue = parent.residue;
     if (parentResidue) {
-      node.residue = reducer(parent.residue, node.value);
+      node.residue = reducer(parentResidue, node.value);
       branches[branches.indexOf(parent)] = node;
-      delete parent.residue;
+      delete parent.residue; //save some memory
     } else {
       node.residue = residue(node);
       branches.push(node);
