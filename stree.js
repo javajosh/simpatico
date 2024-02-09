@@ -1,7 +1,7 @@
-import {combine} from './combine.js';
+import { combineReducer } from './combine.js';
 
 // TODO support using node references in addition to indices
-const stree = (startValue = {}, reducer = combine) => {
+const stree = (startValue = {}, reducer = combineReducer) => {
   const ROOT = {
     id: 0,
     time: Date.now(),

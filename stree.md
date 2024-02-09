@@ -117,7 +117,7 @@ You can create a group of related objects using `Object.assign()`, which is a we
 ```js
    import { stree } from './stree.js';
 
-  const s = stree({}, Object.assign)
+  const s = stree({}, (a,b) => Object.assign({},a,b))
   assertEquals(1, s.branches.length)
   assertEquals({}, s.branches[0].residue)
   assertEquals(0, s.getFocus())
@@ -135,13 +135,12 @@ You can create a group of related objects using `Object.assign()`, which is a we
   assertEquals(0,       s.getFocus())
   assertEquals({a:2},   s.residue())
 
-  // TODO fix these failing tests
-  // s.add({b:3}, 1)
-  // assertEquals(2,           s.branches.length, 'new branch')
-  // assertEquals({a:2},       s.branches[0].residue, 'old branch unchanged')
-  // assertEquals({a:2, b:3},  s.branches[1].residue, 'new branch')
-  // assertEquals(-1,          s.getFocus())
-  // assertEquals({a:2, b:3},  s.residue())
+  s.add({b:3}, 1)
+  assertEquals(2,           s.branches.length, 'new branch')
+  assertEquals({a:2},       s.branches[0].residue, 'old branch unchanged')
+  assertEquals({a:1, b:3},  s.branches[1].residue, 'new branch')
+  assertEquals(-1,          s.getFocus())
+  assertEquals({a:1, b:3},  s.residue())
 
 ```
 
