@@ -84,7 +84,7 @@ function processConfig(envPrefix='SIMP_') {
     if (typeof a === 'boolean' && typeof b === 'string') return b === 'true';
   });
 
-  // Mutate DEBUG to be consistent with conflig.debug
+  // Mutate DEBUG to be consistent with config.debug
   DEBUG = config.debug;
 
   if (DEBUG) debug('DEBUG=true Here are all configs:',
