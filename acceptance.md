@@ -25,9 +25,6 @@ iframe {
   <a href="/stree">/stree</a>
   <iframe src="/stree"></iframe>
 
-  <a href="/stree3">/stree3</a>
-  <iframe src="/stree3"></iframe>
-
   <a href="/crypto">/crypto</a>
   <iframe src="/crypto"></iframe>
 

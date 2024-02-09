@@ -11,7 +11,7 @@ import chokidar from 'chokidar';
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString, peek } from './core.js';
 import { combine } from './combine.js';
-import { stree3 as stree } from './stree3.js';
+import { stree as stree } from './stree.js';
 import {buildHtmlFromLiterateMarkdown} from './litmd.js';
 
 const log = (...args) => {
