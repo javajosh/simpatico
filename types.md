@@ -25,37 +25,8 @@ more sense than others
 15. A set of forms, as with paperwork.
 16. Related sequences of build targets (e.g., gradle)
 
-
-The Problem of State Management
--------------------------------
-
-The problem of process state management is currently tackled by software
-components like Redux.
-
-Note that server side software doesn't have state; or rather, it's
-state is a very tightly coupled to the static source code. That type of
-code is dominated by the definition of singletons (and the reuse of
-them), to support, ultimately, Controllers that do the work. In general,
-a server must be responsible for its own security.
-
-These singletons recapitulate many of the same concerns that arise in
-build systems; in fact it's the same concern but handled at compile time
-by one tool (Maven) and at runtime by another tool (Spring). Or on the
-client by one tool at compile-time (npm, ng) and another at runtime
-(angular module annotations).
-
-The natural data-structure then would be to model state as a special
-dynamic part of the head of a linked list of input. It doesn't really
-have to be dynamic.
-
-Well, it\'s a kind of tree that is built up in a particular way. It's a
-constrained kind of n-ary tree, which is optimized for long runs. We
-imagine the tree composed of rows, and each row has a parent, rather
-than each node. Moreover, we introduce a special coordinate system that
-supports rows and nodes as parents, and provide a (stateful) pointer to
-the target. The rule is that if you're pointing at a node, you create a
-new row with that as its parent. Otherwise, you're just adding to the
-row.
+# The Problem of State Management
+The problem of process state management is currently tackled by software components like [Redux](https://redux.js.org/).
 
 ### Some code
 
