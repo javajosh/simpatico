@@ -30,11 +30,20 @@ const isMsg =     a => typeof a === 'object' && a.hasOwnProperty('handler')  && 
  *
  * @param {any} a - The first value to be combined.
  * @param {any} b - The second value to be combined.
+ * @param rules - optionally add some rules; return undefined to allow pass through
  * @returns {any} The result of combining the two values.
  */
-function combine(a, b) {
+function combine(a, b, rules = (a,b) => {}) {
   const ta = typeof a;
   const tb = typeof b;
+
+  if (rules && typeof rules === 'function'){
+    const result = rules(a,b);
+    if (typeof result !== 'undefined'){
+      return result;
+    }
+  }
+
 
   if (ta === 'undefined' || a === null) return b; // 'something is better than nothing'
   if (tb === 'undefined') return a;               // 'avoid special cases and let nothing compose as a noop'
@@ -88,7 +97,6 @@ function combine(a, b) {
     return result;
   }
 
-
   // scalar combination - usually just replace
   if (ta === 'string'   && tb === 'string'  ) return b;
   if (ta === 'boolean'  && tb === 'boolean' ) return b;
@@ -98,17 +106,21 @@ function combine(a, b) {
   throw new Error(`unable to combine ${tryToStringify(a)} and ${tryToStringify(b)} types ${ta} ${tb}`);
 }
 
+const combineReducer = (a, b) => combine(a,b);
+
+// This is a convenience function that makes calling combine a bit easier
 function combineAll(...args) {
-  if (args.length === 2) {
-    return combine(args[0], args[1]);
-  } else if (args.length === 1 && Array.isArray(args[0])) {
-    return args[0].reduce(combine, {});
+  if (args.length === 1 && Array.isArray(args[0])) {
+    return args[0].reduce(combineReducer, {});
+  } else if (args.length === 2 && Array.isArray(args[0]) && typeof args[1] === 'function') {
+    return args[0].reduce((a,b)=>combine(a,b, args[1]), {});
   } else {
-    return args.reduce(combine, {});
+    return args.reduce((a,b)=>combine(a,b), {});
   }
 }
 
 export {
   combineAll as combine,
-  combine as combineReducer,
+  combineReducer,
+  combine as combineRules,
 }

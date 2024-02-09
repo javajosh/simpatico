@@ -77,7 +77,7 @@ function processConfig(envPrefix='SIMP_') {
       started: new Date().toUTCString(),
   }};
   // The big difference with Object.assign in this case is that undefined on later objects is treated as a noop
-  const config = combine(baseConfig, envConfig, argConfig, measured);
+  const config = combine( [baseConfig, envConfig, argConfig, measured], (a, b) => {if (typeof a === 'number' && typeof b === 'number') return b});
 
   // Mutate DEBUG to be consistent with conflig.debug
   DEBUG = config.debug;
