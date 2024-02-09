@@ -1,7 +1,7 @@
 # Types
 *javajosh 2024*
 
-See [home](/), [combine](/combine.md), [stree](/stree.md)
+See [home](./index.html), [combine](/combine.md), [stree](/stree.md)
 
 # Data-Modeling with STree
 
@@ -49,18 +49,27 @@ A nice sketch of what a top-level stree for a SPA webapp might look like:
 ```
 
 # Simple Record Example
+In this example, we define a `person` type and inititalize an stree with it.
+It's a single handler that only applies a pattern.
+Some of the verbosity is the test harness itself.
+The content of the `handle()` function is almost all boilerplate to be extracted into combine.
+This also avoids the need to import `validate()`.
 
 ```js
 import {stree} from '/stree.js';
-import {combineReducer} from '/combine.js';
+import {combineReducer, HandlerError} from '/combine.js';
 import {validate} from '/friendly.js';
 
 const person = {
   name: 'person',
+  example: {
+    name: 'alice',
+    phone: '1234567890',
+  },
   pattern: {
     name: ['str', 'between', 3, 50],
     phone: ['str', 'between', 10, 10],
-    notes: ['str'],
+    notes: ['optional', 'str'],
   },
   handle: function(core, msg){
     const errors = validate(this.pattern, msg);
@@ -70,11 +79,25 @@ const person = {
   }
 }
 
-const s = stree({handlers:{person}}, combineReducer, {});
+const s = stree({handlers:{person}}, combineReducer);
+let result;
 try {
-  s.add({handler: 'person'});
-  assertTrue(false);
+  result = s.add({handler: 'person'});
+  assert(false);
 } catch (e) {
-    console.log(e.customData)
+  if (e instanceof HandlerError){
+    console.log('HandlerError thrown as expected', e.customData, result)
+  } else {
+    throw e;
+  }
+}
+
+try {
+  result = s.add({handler: 'person', ...person.example});
+} catch (e) {
+  if (e instanceof HandlerError){
+    console.log(e.customData, result);
+  }
+  throw e;
 }
 ```

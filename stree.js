@@ -17,7 +17,7 @@ function stree(value, reducer = combineReducer) {
     return fromString(value, reducer);
   }
   // if the value isn't a special one, initialize our internal datastructures
-  const root = {value, parent: null};
+  const root = {value, parent: null, residue: value};
   const branches = [root];
   const nodes = [root];
   let lastNode = root;

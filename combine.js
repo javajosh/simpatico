@@ -41,7 +41,7 @@ class HandlerError extends Error {
  * @param rules - optionally add some rules; return undefined to allow pass through
  * @returns {any} The result of combining the two values.
  */
-function combine(a, b, rules = (a,b) => {}) {
+function combine(a, b, rules = () => {}) {
   const ta = typeof a;
   const tb = typeof b;
 
@@ -136,4 +136,5 @@ export {
   combineAll as combine,
   combineReducer,
   combine as combineRules,
+  HandlerError,
 }
