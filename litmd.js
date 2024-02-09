@@ -43,13 +43,42 @@ const defaultHtmlHeader = (fileName) => {
   <meta name="author" content="jbr">
   <link rel="stylesheet" type="text/css" href="/style.css">
   <link rel="stylesheet" href="/kata/highlight.github-dark.css">
+  <style>
+    .dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      width: 300px;
+      border-radius: 8px;
+      border: 2px solid black;
+    }
+  </style>
   <script type="module">
     import hljs from '/kata/highlight.min.js';
     import javascript from '/kata/highlight.javascript.min.js';
+
     hljs.registerLanguage('javascript', javascript);
     document.addEventListener('DOMContentLoaded', () => {
+      // add syntax highlighting
       document.querySelectorAll('pre code').forEach((el) => {
         hljs.highlightElement(el);
+      });
+
+      // Support clickable definitions on mobile, which does cannot hover
+      document.querySelectorAll('span[title]').forEach(span => {
+        span.addEventListener('click', function() {
+          const dialog = document.createElement('div');
+          dialog.textContent = span.getAttribute('title');
+          dialog.classList.add('dialog');
+          document.body.appendChild(dialog);
+          dialog.addEventListener('click', function(e) {
+            dialog.remove();
+          });
+        });
       });
     });
   </script>
