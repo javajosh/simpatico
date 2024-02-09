@@ -8,7 +8,7 @@ import {combineReducer} from "./combine.js";
  * @param reducer reducer used to compute the residue of a node. default is combine
  * @returns {[]|string|*}
  */
-function stree(value, reducer = combineReducer) {
+function stree(value = {}, reducer = combineReducer) {
   // handle special values, array and string, for deserialization initialization
   if (Array.isArray(value)) {
     return fromArray(value, reducer);
@@ -78,6 +78,9 @@ function stree(value, reducer = combineReducer) {
    * @returns {*}
    */
   function residue(node = lastNode) {
+    if (typeof node === 'number'){
+      node = nodes[node];
+    }
     return node.residue ? node.residue : nodePath(node).map(n => n.value).reduce(reducer, value);
   }
 

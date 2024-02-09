@@ -57,7 +57,7 @@ This also avoids the need to import `validate()`.
 
 ```js
 import {stree} from '/stree.js';
-import {combineReducer, HandlerError} from '/combine.js';
+import { HandlerError} from '/combine.js';
 import {validate} from '/friendly.js';
 
 const person = {
@@ -79,8 +79,10 @@ const person = {
   }
 }
 
-const s = stree({handlers:{person}}, combineReducer);
+const s = stree({handlers: {person}});
 let result;
+
+// try an invalid record
 try {
   result = s.add({handler: 'person'});
   assert(false);
@@ -91,7 +93,7 @@ try {
     throw e;
   }
 }
-
+// try a valid record, creating a row for "alice"
 try {
   result = s.add({handler: 'person', ...person.example});
 } catch (e) {
@@ -100,4 +102,26 @@ try {
   }
   throw e;
 }
+
+// try to make a new, clean row for "bob"
+s.add({handler: 'person', name: 'bob', phone: '0987654321'}, 1);
+console.log(s.residue(1), s.residue(2));
+
+// TODO support updating just one tuple of the record.
+// This will require combining the msg with the residue and re-running validation on the whole thing.
+// Not sure how this will feel, or how necessary it is, since the caller can always pull the prev residue
+try{
+    s.add({handler: 'person', name: 'charlie'});
+} catch (e) {
+  if (e instanceof HandlerError){
+    console.log(e.customData, result);
+  } else {
+    throw e;
+  }
+}
+// The (verbose) way to get around a subset update is something like this:
+const {handlers, ...current} = s.residue();
+const update = Object.assign({}, current, {handler: 'person', name: 'charlie'});
+s.add(update);
+console.log(s.residue());
 ```
