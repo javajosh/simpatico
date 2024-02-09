@@ -1,7 +1,7 @@
 # Types
 *javajosh 2024*
 
-See [home](./index.html), [combine](/combine.md), [stree](/stree.md)
+See [home](./index.html), [combine](/combine.md), [stree](/stree.md), [friendly](/friendly.md)
 
 # Data-Modeling with STree
 
@@ -68,7 +68,7 @@ const person = {
   },
   pattern: {
     name: ['str', 'between', 3, 50],
-    phone: ['str', 'between', 10, 10],
+    phone: ['str', 'size', 10],
     notes: ['optional', 'str'],
   },
   handle: function(core, msg){

@@ -75,6 +75,7 @@ Related:
   undef(checkValue(['num','between', 0, 3], 2));
   undef(checkValue(['str', 'between', 1, 3], "a")); // checking length
   undef(checkValue(['str', 'between', 1, 3], "abc"));
+  undef(checkValue(['str', 'size', 3], "abc"));
 
   undef(checkValue(['optional','num','between', 0, 3], 2));
   undef(checkValue(['optional','num','between', 0, 3] /*, undefined */ ));
