@@ -4,13 +4,11 @@ jbr *2023*
 See [combine](/combine)
 
 # Introduction
-  1. Start with an n-ary tree.
-  2. map each node to a reduction from root, called residue.
-  3. New nodes are defined as a collapse of residue.
-  4. The set of residues associated with branch tips are special, and we define another reduction over those. Defining application state.
+  1. Start with an n-ary tree wrapping the value
+  2. Add a residue to the node, to a reduction from root
 
 The Simpatico Tree, Summary Tree, or STree or STrie is an n-ary tree
-with these features:
+with these applications:
 
 1.  Unification of different kinds of specialization, especially
     inheritance vs instantiation.
@@ -20,63 +18,32 @@ with these features:
     graph.
 4.  The primary type is \"person\" and each row represents a
     relationship and the messages passed over time.
-5.  The opposite of egalitarian is utilitarian, genes, family, or value.
-6.  Associate a reduction with every node over the values from root to
-    that node.
-7.  Provide a novel, hopefully useful reduction, the [combine
-    function](/combine)
 8.  Guidance on the use of this data-structure and algorithm as a
     fundamental programming primitive.
 9.  We demonstrate parts of the operation elsewhere:
     1.  [Browser events](/notes/browser-events.html) demonstrates
         techniques for trapping and integrating HCI events.
     2.  [Chat](/chat) demonstrates integrating network events.
-    3.  [Combine](/combine) demonstrates message cascade.
-10. A \"component\" can interpret arbitrary input.
-11. The canonical component is an HTML file (although we will define
-    other equivalent configurations)
-12. The primary data-structure is always human-centered, the contents of
-    the relationship, with various analyses available.
-13. Connection takes effort, time, money, and thought.
-14. Prioritize those projects, or you will die alone.
-15. Discovery takes effort, time, money and thought.
-16. Prioritize those projects, or you will die unknown.
+    3.  [Combine](/combine) demonstrates a data-oriented reduction.
 
-## The STree is a data-structure and a set of reductions
-The most elegant way to specify this data structure is as a sequence of
-reductions which accept as input the output of the previous:
 
-1.  Reduction 1: The basic input is a list of values, which are
-    interleaved objects and integers.
-    1.  Integers are interpreted as a \'selection\' or \'focus\' over
-        either nodes (the positive integers) or the rows (negative
-        integers). Targeting a node creates a new branch, and targeting
-        a branch adds to that branch.
-    2.  Strings are turned into objects, and objects are parented by a
-        new node according to current focus. The stateful focus allows
-        for long runs of input targeted at the same row. It also better
-        represents the essential independence of targeting and messaging
-        at this stage. (We will later explore the possibility of
-        explicitly auto-classifying input using a specialized row type
-        for all input).
+## STree as a sequence of reductions
+
+
+1.  Reduction 1: The basic input is a list of values, interleaved objects and integers.
+    Integers are interpreted as a 'selection' or 'focus' over either nodes (the positive integers) or the rows (negative integers plus 0).
+    Targeting a node creates a new branch, and targeting a branch adds to that branch.
 2.  Reduction 2: Each branch is reduced with `combine()` into a residue.
     1.  For efficiency, only one residue is kept per branch.
-    2.  One useful purpose of this residue is to express a pattern for
-        new input!
-    3.  A null residue means there can be no new input.
-    4.  This reduction implements \"the message cascade\" that lets you
-        see why values are what they are.
 3.  Reduction 3: All residues are reduced into a summary.
-    1.  The simplest useful summary simply concatenates.
+    1.  The simplest useful summary simply concatenates, as in an array
     2.  The summary allows controlled interaction between rows during
         every measurement integration
 
-The intuition is that you\'re building long rows of objects, and the
+The intuition is that you're building long rows of objects, and the
 rows relate to each other in a particular way. But this simple
 data-structure has some very useful properties for organizing software,
-particularly when interpreted as a sequence in time. An STree is a list
-of measurements binned according to a pattern, and then combined with
-the bin to produce something useful.
+particularly when interpreted as a sequence in time.
 
 
 # Tests
@@ -85,78 +52,97 @@ This implementation is the straight-forward n-array tree, with a focus.
 By default a residue is computed and kept associated with each node, but this can be optimized.
 
 ## Support for non-combine() reductions
-This stree can support integer inputs, unlike
-This stree is using simple addition as the branch/row reducer.
+One can get a trie by using string concatenation.
+One can get a summing tree by using addition as combine.
+One can get a sequence of related objects by using `Object.assign()`.
+
+## STree over sum
+
 ```js
-  // Default imports already define an stree, so we need to rename it.
-  import {stree as stree1} from './stree.js';
+  import { stree } from './stree.js';
 
-  // Create a new stree; verify initial state
-  const r = stree1(0, (a, b) => a + b);
-  assertEquals(r.branches.length, 1);
-  assertEquals(r.branches[0].residue, 0);
-  assertEquals(r.getFocus(), 0);
-  assertEquals(r.residue(), 0);
+  // Create a new stree under addition
+  const s = stree(0, (a, b) => a + b);
+  assertEquals(1, s.branches.length);
+  assertEquals(0, s.branches[0].residue);
+  assertEquals(0, s.getFocus());
+  assertEquals(0, s.residue());
 
-  // Add 1; verify that the zeroeth row is now 1 and nothing else changed.
-  r.add(1);
-  assertEquals(1, r.branches.length,  'Branch length should not have changed');
-  assertEquals(1, r.branches[0].residue, 'The residue is now 1');
-  assertEquals(0, r.getFocus(), 'still focused on row 0');
-  assertEquals(1, r.residue(), 'Another way to get residue');
+  s.add(1);
+  assertEquals(1, s.branches.length,  'Branch length should not have changed');
+  assertEquals(1, s.branches[0].residue, 'The residue is now 1');
+  assertEquals(0, s.getFocus(), 'still focused on row 0');
+  assertEquals(1, s.residue(), 'Another way to get residue');
 
-  // Add 3; The zeroeth row is now 4
-  r.add(3);
-  assertEquals(r.branches.length, 1);
-  assertEquals(r.branches[0].residue, 4);
-  assertEquals(r.getFocus(), 0);
-  assertEquals(r.residue(), 4);
+  s.add(3);
+  assertEquals(1, s.branches.length, 'Branch length should not have changed');
+  assertEquals(4, s.branches[0].residue, 'The residue is now 4, the sum of 1 and 3');
+  assertEquals(0, s.getFocus(), 0, 'Still focused on row 0');
+  assertEquals(4, s.residue(), 4);
 
   // Set focus
-  r.setFocus(1);
-  assertEquals(r.branches.length, 1);
-  assertEquals(r.branches[0].residue, 4);
-  assertEquals(r.getFocus(), 1);
-  assertEquals(r.residue(), 1);
+  s.setFocus(1);
+  assertEquals(1, s.branches.length, 1);
+  assertEquals(4, s.branches[0].residue, 4);
+  assertEquals(1, s.getFocus(), 'focus is now on node 1');
+  assertEquals(1, s.residue(), 'residue is of node 1, which is 1');
 
   // Adding to a node will create a new branch with value 6. Rows are labeled with negative integers.
-  r.add(5);
-  assertEquals(r.branches.length, 2);
-  assertEquals(r.branches[0].residue, 4);
-  assertEquals(r.branches[1].residue, 6);
-  assertEquals(r.getFocus(), -1);
-  assertEquals(r.residue(), 6);
+  s.add(5);
+  assertEquals(2, s.branches.length, 'now there are 2 branches');
+  assertEquals(4, s.branches[0].residue, 'the first branch is at 4, as before');
+  assertEquals(6, s.branches[1].residue, 'the second branch is 1+5');
+  assertEquals(-1, s.getFocus(), 'the focus is on the second branch with index -1');
+  assertEquals(6, s.residue(), 'the default residue should be 6');
 
-  r.add(5)
-  assertEquals(r.branches.length, 2);
-  assertEquals(r.branches[0].residue, 4);
-  assertEquals(r.branches[1].residue, 11);
-  assertEquals(r.getFocus(), -1);
-  assertEquals(r.residue(), 11);
+  s.add(5)
+  assertEquals(2, s.branches.length);
+  assertEquals(4, s.branches[0].residue);
+  assertEquals(11, s.branches[1].residue, 'only this residue changed');
+  assertEquals(-1, s.getFocus());
+  assertEquals(11, s.residue(), 'the default residue is correct');
 
-  // Focusing on second node in first row of value 3 and residue 4.
-  // Creates a new row
-  r.setFocus(2);
-  r.add(3);
-  assertEquals(r.branches.length, 3);
-  assertEquals(r.branches[0].residue, 4);
-  assertEquals(r.branches[1].residue, 11);
-  assertEquals(r.branches[2].residue, 7);
-  assertEquals(r.getFocus(), -2);
-  assertEquals(r.residue(), 7);
+  // First argument is the value, second is the (node) focus
+  // This will create a new row
+  s.add(3, 2);
+  assertEquals(3, s.branches.length, 'there are now 3 branches');
+  assertEquals(4, s.branches[0].residue);
+  assertEquals(11, s.branches[1].residue);
+  assertEquals(7, s.branches[2].residue, 'the new branch has residue 7');
+  assertEquals(-2, s.getFocus());
+  assertEquals(7, s.residue());
+  ```
+## STree over `Object.assign()`
+You can create a group of related objects using `Object.assign()`, which is a weaker form of [combine](/combine.md).
+```js
+   import { stree } from './stree.js';
 
-  // Now an stree with objects
-  const s = stree1()
-  assertEquals(s.branches.length, 1)
-  assertEquals(s.branches[0].residue, {})
-  assertEquals(s.getFocus(), 0)
-  assertEquals(s.residue(), {})
+  const s = stree({}, Object.assign)
+  assertEquals(1, s.branches.length)
+  assertEquals({}, s.branches[0].residue)
+  assertEquals(0, s.getFocus())
+  assertEquals({}, s.residue())
 
   s.add({a:1})
-  assertEquals(s.branches.length, 1)
-  assertEquals(s.branches[0].residue, {a:1})
-  assertEquals(s.getFocus(), 0)
-  assertEquals(s.residue(), {a:1})
+  assertEquals(1,       s.branches.length)
+  assertEquals({a:1},   s.branches[0].residue)
+  assertEquals(0,       s.getFocus())
+  assertEquals({a:1},   s.residue())
+
+  s.add({a:2})
+  assertEquals(1,       s.branches.length)
+  assertEquals({a:2},   s.branches[0].residue)
+  assertEquals(0,       s.getFocus())
+  assertEquals({a:2},   s.residue())
+
+  // TODO fix these failing tests
+  // s.add({b:3}, 1)
+  // assertEquals(2,           s.branches.length, 'new branch')
+  // assertEquals({a:2},       s.branches[0].residue, 'old branch unchanged')
+  // assertEquals({a:2, b:3},  s.branches[1].residue, 'new branch')
+  // assertEquals(-1,          s.getFocus())
+  // assertEquals({a:2, b:3},  s.residue())
+
 ```
 
 
@@ -204,7 +190,7 @@ simultaneously with old versions of a form. Our \"test suite\" is always
 a characteristic set of form inputs that can be reached. Note that a
 \"Core\" and a set of handlers is a bit like a set of forms.
 
-Stop 2s Refresh
+
 
 ------------------------------------------------------------------------
 
@@ -284,14 +270,3 @@ A nice sketch of what a top-level stree residue might look like:
       });
 ```
 
-## Errata
-
-```css
-b {
-  display: inline-block;
-  background: orangered;
-  min-width: 50px;
-  min-height: 50px;
-  line-height: 1.2;
-}
-```
