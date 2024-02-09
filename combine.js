@@ -45,13 +45,6 @@ function combine(a, b, rules = (a,b) => {}) {
   const ta = typeof a;
   const tb = typeof b;
 
-  if (rules && typeof rules === 'function'){
-    const result = rules(a,b);
-    if (typeof result !== 'undefined'){
-      return result;
-    }
-  }
-
 
   if (ta === 'undefined' || a === null) return b; // 'something is better than nothing'
   if (tb === 'undefined') return a;               // 'avoid special cases and let nothing compose as a noop'
@@ -85,7 +78,7 @@ function combine(a, b, rules = (a,b) => {}) {
 
     if (!Array.isArray(result)) throw new HandlerError(result);
     // recursively combine results back with a
-    result.every(obj => a = combine(a, obj));
+    result.every(obj => a = combine(a, obj, rules));
     return a;
   }
 
@@ -95,7 +88,7 @@ function combine(a, b, rules = (a,b) => {}) {
     for (const key of Object.keys(a)) {
       result[key] = a[key];
       if (key in b) {
-        result[key] = combine(a[key], b[key]);
+        result[key] = combine(a[key], b[key], rules);
       }
     }
     for (const key of Object.keys(b)) {
@@ -105,6 +98,15 @@ function combine(a, b, rules = (a,b) => {}) {
     }
     return result;
   }
+
+  // allow override of rules
+  if (rules && typeof rules === 'function'){
+    const result = rules(a,b);
+    if (typeof result !== 'undefined'){
+      return result;
+    }
+  }
+
 
   // scalar combination - usually just replace
   if (ta === 'string'   && tb === 'string'  ) return b;

@@ -354,6 +354,7 @@ let result;
 // no user data at all
 try {
   result = combine([{handlers: {user}}, {handler: 'user'}]);
+  assertTrue(false);
 }catch (e){
   assertEquals({name: ['str', 'between', 1,10], age: [ 'num', 'between', 1, 100]}, e.customData);
   assertEquals(undefined, result);
@@ -361,6 +362,7 @@ try {
 // only the name, missing age
 try {
   result = combine([{handlers: {user}}, {handler: 'user', name: 'alice'}]);
+  assertTrue(false);
 }catch (e){
   assertEquals({age: [ 'num', 'between', 1, 100]}, e.customData);
   assertEquals(undefined, result);
@@ -378,6 +380,9 @@ You can override the default ruleset in combine.
 import {combineRules} from '/combine.js';
 
 assertEquals(6, combineRules(2,3, (a,b) => a * b));
+// custom embedded rules are scalar so they work in objects.
+// to do general custom rules would require type-checking
+assertEquals({a: 6}, combineRules({a:2},{a:3}, (a,b) => a * b));
 
 //To make it a reducer you need to do a manaul partial application.
 const mulCombine = (a,b) => combineRules(a,b,(a,b) => a * b);

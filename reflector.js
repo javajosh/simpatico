@@ -49,19 +49,19 @@ if (process.send) process.send(config);
 function processConfig(envPrefix='SIMP_') {
   //hardcoded defaults, usually best for new devs
   const baseConfig = {
-    http: "8080",
-    https: "8443",
+    http: 8080,
+    https: 8443,
     hostname: 'localhost',
     cert: './fullchain.pem',
     key: './privkey.pem',
     runAsUser: '',
-    useCache: "false",
-    useGzip: "true",
-    useTls: "false",
+    useCache: false,
+    useGzip: true,
+    useTls: false,
     password: 's3cret',
-    logFileServerRequests: "true",
-    superCacheEnabled: "false",
-    debug: "false",
+    logFileServerRequests: true,
+    superCacheEnabled: false,
+    debug: false,
     // measured: {},      //added below
   };
   const envConfig = mapObject(baseConfig, ([key,_]) => ([key, process.env[`${envPrefix}${key.toUpperCase()}`]]));
@@ -77,7 +77,12 @@ function processConfig(envPrefix='SIMP_') {
       started: new Date().toUTCString(),
   }};
   // The big difference with Object.assign in this case is that undefined on later objects is treated as a noop
-  const config = combine( [baseConfig, envConfig, argConfig, measured], (a, b) => {if (typeof a === 'number' && typeof b === 'number') return b});
+  // TODO: modify parseObjectLiteral to do typecasting and avoid these custom rules.
+  const config = combine( [baseConfig, envConfig, argConfig, measured], (a, b) => {
+    if (typeof a === 'number' && typeof b === 'number') return b;
+    if (typeof a === 'number' && typeof b === 'string') return +b;
+    if (typeof a === 'boolean' && typeof b === 'string') return b === 'true';
+  });
 
   // Mutate DEBUG to be consistent with conflig.debug
   DEBUG = config.debug;
