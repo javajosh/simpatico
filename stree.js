@@ -22,8 +22,6 @@ function stree(value, reducer = combineReducer) {
   const nodes = [root];
   let lastNode = root;
   let branchIndex = 0;
-  // initialize the branchResidue cache
-  const branchResidues = [root.value];
 
   /**
    * Add a value to an n-ary tree.
@@ -80,14 +78,7 @@ function stree(value, reducer = combineReducer) {
    * @returns {*}
    */
   function residue(node = lastNode) {
-    // check if the node is a branch, and if so return the cached residue rather than recomputing it.
-    const residueIndex = branches.indexOf(node);
-    if (residueIndex === -1){
-      return nodePath(node).map(n => n.value).reduce(reducer, value);
-    } else {
-      return branchResidues[residueIndex];
-    }
-
+    return node.residue ? node.residue : nodePath(node).map(n => n.value).reduce(reducer, value);
   }
 
   /**
@@ -162,7 +153,7 @@ function stree(value, reducer = combineReducer) {
     return fromArray(parseWithFunctions(str), reducer);
   }
 
-  return {add, nodePath, residue, toArray, toString, branches, nodes, root, branchIndex, branchResidues};
+  return {add, nodePath, residue, toArray, toString, branches, nodes, root, branchIndex};
 }
 
 export {stree}

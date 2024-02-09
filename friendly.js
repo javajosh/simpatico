@@ -80,6 +80,17 @@ const checkValue = (predArray, value) => {
           failedPreds.push(pred, lo, hi);
         }
         break;
+      case "size":
+        const length = predArray[i + 1];
+        i += 1;
+
+        pass = is.equals(length, size(value));
+        if (!pass) {
+          predArray.push('failed')
+          predArray.push(value);
+          failedPreds.push(pred, length);
+        }
+        break;
       case "pick":
         const count = predArray[i + 1];
         const options = predArray.slice(i + 2);

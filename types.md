@@ -28,7 +28,7 @@ more sense than others
 # The Problem of State Management
 The problem of process state management is currently tackled by software components like [Redux](https://redux.js.org/).
 
-### Some code
+# Example of SPA state
 
 A nice sketch of what a top-level stree for a SPA webapp might look like:
 ```js
@@ -38,17 +38,43 @@ A nice sketch of what a top-level stree for a SPA webapp might look like:
         measurement: 'START',
         timestamp: now(),
         pid: Math.random(),
-        global: window,
         runtime: "macos chrome timezone language",
-        localStorage: localStorageObject,
-        cookies,
         input: {keydown:[], mousemove:[], net:[], console:[], clock:[], dice:[], screen:[], zoom:[]},
         output: {screen: window.document.body, storage: window.localStorage, cookie: window.document.cookie},
         apps: {
           root: {msgs:[{},{},{},2,{},3,{},{}], residue: {}},
           string : {msgs:[{},{},{},2,{},3,{},{}], residue: {}},
         },
-        // os windows, applications, files, functions, components
-        // request, response, sub-resources, timings embeded in response, etc.
       });
+```
+
+# Simple Record Example
+
+```js
+import {stree} from '/stree.js';
+import {combineReducer} from '/combine.js';
+import {validate} from '/friendly.js';
+
+const person = {
+  name: 'person',
+  pattern: {
+    name: ['str', 'between', 3, 50],
+    phone: ['str', 'between', 10, 10],
+    notes: ['str'],
+  },
+  handle: function(core, msg){
+    const errors = validate(this.pattern, msg);
+    if (errors) return errors;
+    const {handler, ...data} = msg;
+    return [data];
+  }
+}
+
+const s = stree({handlers:{person}}, combineReducer, {});
+try {
+  s.add({handler: 'person'});
+  assertTrue(false);
+} catch (e) {
+    console.log(e.customData)
+}
 ```
