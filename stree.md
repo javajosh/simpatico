@@ -1,16 +1,11 @@
 # Simpatico/Summary Tree: STree3
 *javajosh 2023*
 
-See [home](/), [combine](/combine),  [stree](/stree.md), [stree2](/stree2.md)
+See [home](/), [combine](/combine.md), [stree](/stree.md)
 
 # Intro
-This is my third time implementing stree.
-Each attempt has had some good and bad.
-The first attempt was a simple n-ary tree, but was missing features.
-The second attempt was strong on authoring, but was complex and failed in some corner cases.
-With stree3 I'm taking a page from [Introduction to Algorithms](https://en.wikipedia.org/wiki/Introduction_to_Algorithms) and using a more formal, terse specification.
-This is useful when the number of operations and constraints grow and need to all be revisited on each design iteration.
-A thoughtful reader may note that this document itself is iterative and cumulative, like a branch of an stree.
+With stree I'm taking a page from [Introduction to Algorithms](https://en.wikipedia.org/wiki/Introduction_to_Algorithms) and using a more formal, terse specification.
+This is useful when the number of operations and constraints grow and need to all be revisited on each design iteration
 
 Note: this page is written in [Literate Markdown](./lit.md) and executed the code when you loaded the page.
 The code is quite small, so you may not notice.
@@ -18,17 +13,14 @@ If the tests fail, the page will appear very different, more colorful, and there
 That shouldn't happen, but if it does please [file a bug ](https://github.com/javajosh/simpatico/issues) and include the console output.
 
 # Step 1: An N-ary tree with residue-per-node
-Start with a simple n-ary tree.
-Primary OPERATION is `add(value, parent)`. "Add value to parent"; wraps the value in a node, and connects the node to parent.
-private OPERATION `nodePath(node)`.
+Start with a basic n-ary tree.
+Primary OPERATION is `add(value, parent)`. "Add value to parent" wraps the value in a node, and connects the node to parent.
+private OPERATION `nodePath(node)`. Returns all objects from root to node.
 OPERATION `residue(node, reducer)`.
 Hardcoded attributes are 'value' and 'parent'.
-Root is defined by a falsey `parent` - either missing (the usual case), `null`, 0 or `false`.
-For the tests, we use explicit "static" variables to refer to nodes, use integer values, and an explicit reducer that is "sum".
-(Concern: perhaps a better way to define root is to check for strict equality with a canonical root reference. Instead of if(node.parent) we do if(node.parent === root))
+Root is defined by a falsey `parent` - by convention, root parent is `null`.
 
 ```js
-
 const root = {value : 0};
 /**
  * Add a value to an n-ary tree. Return the node that wraps these parameters.
@@ -53,7 +45,7 @@ function nodePath(node){
     path.push(node.parent);
     node = node.parent;
   }
-  return path;
+  return path.reverse();
 }
 
 /**
@@ -83,10 +75,10 @@ assertEquals(5, residue(node2a, sum));
 
 # Step 2: Add branches
 
-Now lets add support for OPERATION `branches()`.
-This operation is stateful and cannot be done functionally without adding `children`.
-However, we can modify `add()` to be stateful and maintain `branches`.
+OPERATION `branches()`.
+Modify `add()` to be stateful and maintain `branches`.
 In `add()` if `branches` contains `parent`, then we replace `parent` with `node`.
+(In future revisions, we can check if residue is present to see if the parent is a branch)
 Otherwise we add `node` to `branches`.
 To keep this state local, we wrap the operations in another function, called `stree3`:
 
