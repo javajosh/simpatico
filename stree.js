@@ -1,5 +1,6 @@
 import {combine} from './combine.js';
 
+// TODO support using node references in addition to indices
 const stree = (startValue = {}, reducer = combine) => {
   const ROOT = {
     id: 0,
@@ -11,13 +12,15 @@ const stree = (startValue = {}, reducer = combine) => {
     residue: startValue,
   };
 
+  let focus = 0;
   const ms = [ROOT];
   const branches = [ROOT];
-  let focus = 0;
+
 
   const getFocus = () => focus;
   const read = () => (focus > 0) ? ms[focus] : branches[-focus];
   const residue = () => read().residue;
+  const getResidues = () => branches.map(branch => branch.residue);
   const setFocus = i => {
     if ( (-branches.length - 1 <= i) || (i <= ms.length - 1)){
       focus = i;
@@ -41,26 +44,22 @@ const stree = (startValue = {}, reducer = combine) => {
       value,
       residue,
     };
-    // add a reference to the parent.
     parent.children.push(m);
 
-    // add a reference to branches
     const existingBranch = branch === parent.branch;
     if (existingBranch){
       branches[-branch] = m;
-      // keep the residues in small cases for convenience.
       // delete parent.residue; // save some memory
     } else { // new branch
       focus = -branches.length;
       branches.push(m);
     }
 
-    // add a reference to the new message to messages
     ms.push(m);
     return m;
   }
 
-  const getResidues = () => branches.map(branch => branch.residue);
+
 
   return {setFocus, getFocus, read, residue, add, ms, branches, getResidues};
 }
