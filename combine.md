@@ -230,8 +230,9 @@ const logHandlerDemo = {
     if (core.debug) {
       this.outputFunction('logHandler', msg, core);
       if (hasProp(msg, 'msg'))
-        return {lastOutput: msg.msg};
+        return [{lastOutput: msg.msg}];
     }
+    return [];
   }
 };
 
@@ -305,46 +306,85 @@ const ops = [
 ];
 combine(ops);
 ```
+# Handlers that return non-array results are treated as an error
+A non-array return value is treated as a recoverable error.
+Because `combine` is a pure function, no modification of the core occurs.
 
-## Core and handler lifetime
-I anticipate that modify a handler during the core's lifetime is quite rare, and in fact we design carefully around such a case.
-In particular, make cores lifetime shorter, so we don't have to worry about it.
-Some cores must have a long life though, like that which defines our relationships.
-It makes sense to make that more freeform.
 
-However, I think it will be very common that users will have different versions of a core, meaning different versions of the same handler.
-And they will have active instances of these versions active simultaneously.
-This effect is very difficult to achieve with class OOP techniques, but comes naturally here.
+```js
+import { combine } from '/combine.js';
 
-# Generalizing combine()
-One can generalize the concept, for example you could use the combine concept to read from an object. The mental model is something like a measuring object coming in, with some internal structure picking out the parts to read, and then those values are replaced by the target values, and values that don't exist do nothing. A variation is to allow a user to provide a name or a phrase of what they want to learn, and then just "do your best" to pick things that seem related.
-_________________________________________________________
-# Definition of "Core"
-A core is an object with a property named 'handlers', of type object, with each key a short descriptive name and each value a handler.
-A handler is an object with a property named 'handle' of type function, that takes two args, computes the modifications required, and returns those modifications, without applying them, as an array of objects.
-The returned objects are `combine`d recursively, forming a *message cascade*
-The intuition is of something like splashing in the water, with the water itself splashing up, and splashing again, until it the water is still again.
+const alwaysErrorHandler = {handlers: {err: {name: 'err', handle: () => ({a:1, b:2})}}};
+let result;
+try{
+  result = combine([alwaysErrorHandler, {handler: 'err'} ]);
+} catch(e) {
+  assertEquals({a:1, b:2}, e.customData);
+  assertEquals(undefined, result);
+}
+```
+# Combine and friendly functions
+This convention supports the use of [friendly functions](friendly.md) to do validation on handler arguments.
+(This will be a regular pattern in most handlers, so we will eventually move the boilerplate into combine.)
+```js
+import { combine } from '/combine.js';
+import { validate } from '/friendly.js';
 
-## What we have
-At this point we have a data structure that
-   1. can reach an arbitrary JavaScript object shape
-   1. We can select how we get there, going either one value at a time or several, grouped in objects.
-   1. We can mutate by adding regular objects.
-   1. We can compute which data objects to add by reifying function invocation with handlers.
+const user = {
+  name: 'user',
+  pattern: {
+      name: ['str', 'between', 1,10],
+      age: [ 'num', 'between', 1, 100],
+  },
+  example: {
+      name: 'alice',
+      age: 25,
+  },
+  handle: function (core, msg) {
+      // check that the msg is valid
+      const errors = validate(this.pattern, msg);
+      if (errors) return errors;
+      // if valid, remove the handler property to avoid blowing the stack and return in an array
+      const {handler, ...user} = msg;
+      return [user];
+  }
+}
+let result;
 
-These features of `combine()`, along with reusable handlers like assert and log, plus authoring guidelines,  make it a very potent data modeling tool.
+// no user data at all
+try {
+  result = combine([{handlers: {user}}, {handler: 'user'}]);
+}catch (e){
+  assertEquals({name: ['str', 'between', 1,10], age: [ 'num', 'between', 1, 100]}, e.customData);
+  assertEquals(undefined, result);
+}
+// only the name, missing age
+try {
+  result = combine([{handlers: {user}}, {handler: 'user', name: 'alice'}]);
+}catch (e){
+  assertEquals({age: [ 'num', 'between', 1, 100]}, e.customData);
+  assertEquals(undefined, result);
+}
+// both name and age are present
+result = combine([{handlers: {user}}, {handler: 'user', name: 'alice', age: 25}]);
+assertEquals('alice', result.name);
+assertEquals(25, result.age);
 
-## *What we need*.
-   1. We need a way not just to zero but to remove items in combine.
-   1. Perhaps a special object, or some other convention.
-   1. Perhaps adapt the method of combine1 (although we lose our zeroes)
-   1. I also don't like the array merge (should be concat).
-   1. I also don't like number sum by default. It should be configurable.
+```
 
-Some good examples of cores:
-   1. Reify objects, one value/key per row/core, with assign combine.
-   1. Tic tac toe game.
-   1. Chess game core to handle things like [pgn chess notation](http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2)
+# Custom rules
+You can override the default ruleset in combine.
+```js
+import {combineRules} from '/combine.js';
+
+assertEquals(6, combineRules(2,3, (a,b) => a * b));
+
+//To make it a reducer you need to do a manaul partial application.
+const mulCombine = (a,b) => combineRules(a,b,(a,b) => a * b);
+assertEquals(16, [2,2,2,2].reduce(mulCombine, 1));
+```
+
+
 
 _________________________________________________________
 # Next: stree
@@ -354,4 +394,4 @@ We can imagine branching our program state in a very natural way.
 This method of branching turns out to be both simpler and more expressive than either inheritance relationships or instantiation.
 This will be dealt with in the `stree` section.
 
-Continue with [stree2](./stree2.md).
+Continue with [stree3](./stree3.md).

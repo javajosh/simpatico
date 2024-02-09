@@ -14,6 +14,14 @@ const isCore =    a => typeof a === 'object' && a.hasOwnProperty('handlers') && 
 const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
 const isMsg =     a => typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
 
+class HandlerError extends Error {
+  constructor(handlerResult) {
+    super("Handler returned an error");
+    this.name = "HandlerError";
+    this.customData = handlerResult;
+  }
+}
+
 /**
  * Combines two values, a and b, based on their types and properties.
  * Combine is a pure function.
@@ -72,9 +80,10 @@ function combine(a, b, rules = (a,b) => {}) {
       throw new Error(`Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`);
     }
     // invoke the handler
+    // TODO add friendly function support
     let result = a.handlers[b.handler].handle(a, b);
-    // TODO throw non-array results; evaluate the limits of what is undoable
-    if (!Array.isArray(result)) result = [result];
+
+    if (!Array.isArray(result)) throw new HandlerError(result);
     // recursively combine results back with a
     result.every(obj => a = combine(a, obj));
     return a;
@@ -113,7 +122,7 @@ function combineAll(...args) {
   if (args.length === 1 && Array.isArray(args[0])) {
     return args[0].reduce(combineReducer, {});
   } else if (args.length === 2 && Array.isArray(args[0]) && typeof args[1] === 'function') {
-    return args[0].reduce((a,b)=>combine(a,b, args[1]), {});
+    return args[0].reduce((a,b) => combine(a,b, args[1]), {});
   } else if (args.length === 2 ) {
     return combine(args[0], args[1]);
   }else {

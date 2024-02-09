@@ -22,7 +22,7 @@ const logHandler = {
       let out = (msg && msg.hasOwnProperty('msg')) ? msg.msg : undefined;
       this.output('logHandler:', out, {msg, core});
       if (out)
-        return {lastOutput: msg.msg}
+        return [{lastOutput: msg.msg}];
     }
   },
   // install is a convenience property to help ensure a clean initialization of the containing core
