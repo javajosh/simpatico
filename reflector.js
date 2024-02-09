@@ -20,7 +20,7 @@ const log = (...args) => {
 }
 
 // Reflector global config
-let DEBUG = true; // This is mutated by processConfig
+let DEBUG = false; // This is mutated by processConfig
 const hiddenConfigFields = {password: '******', jdbc: '******'};
 const elide = (obj, hide=hiddenConfigFields) => DEBUG ? obj : combine(obj, hide);
 
