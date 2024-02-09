@@ -504,24 +504,22 @@ function stree3(value, reducer = combineReducer) {
   if (typeof value === 'string') {
     return fromString(value, reducer);
   }
-  const root = {value, parent: null};
+  const root = {value, parent: null, residue: value};
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
-  // initialize the branchResidue cache
-  const branchResidues = [root.value];
 
   function add(value, parent = lastNode) {
     const node = {value, parent};
-    const parentIndex = branches.indexOf(parent);
-    if (parentIndex === -1) {
-      // add a new residue first so that residue isn't tricked into using the residue cache
-      branchResidues.push(residue(node));
-      branches.push(node);
+
+    const parentResidue = parent.residue;
+    if (parentResidue) {
+      node.residue = reducer(parent.residue, node.value);
+      branches[branches.indexOf(parent)] = node;
+      delete parent.residue;
     } else {
-      branches[parentIndex] = node;
-      // update the old residue - this operation is much cheaper
-      branchResidues[parentIndex] = reducer(branchResidues[parentIndex], value);
+      node.residue = residue(node);
+      branches.push(node);
     }
     lastNode = node;
     nodes.push(node);
@@ -538,14 +536,7 @@ function stree3(value, reducer = combineReducer) {
   }
 
   function residue(node = lastNode) {
-    // check if the node is a branch, and if so return the cached residue rather than recomputing it.
-    const residueIndex = branches.indexOf(node);
-    if (residueIndex === -1) {
-      return nodePath(node).map(n => n.value).reduce(reducer, value);
-    } else {
-      return branchResidues[residueIndex];
-    }
-
+      return node.residue ? node.residue : nodePath(node).map(n => n.value).reduce(reducer, value);
   }
 
   function toArray() {
@@ -592,7 +583,7 @@ function stree3(value, reducer = combineReducer) {
 
 // tests as before
 const tree = stree3({a: 0});
-assertEquals({value: {a: 0}, parent: null}, tree.root);
+assertEquals({value: {a: 0}, parent: null, residue: {a: 0}}, tree.root);
 const node1 = tree.add({a: 1});
 tree.add({a: 2});
 tree.add({a: 3});
