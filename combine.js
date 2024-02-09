@@ -114,8 +114,10 @@ function combineAll(...args) {
     return args[0].reduce(combineReducer, {});
   } else if (args.length === 2 && Array.isArray(args[0]) && typeof args[1] === 'function') {
     return args[0].reduce((a,b)=>combine(a,b, args[1]), {});
-  } else {
-    return args.reduce((a,b)=>combine(a,b), {});
+  } else if (args.length === 2 ) {
+    return combine(args[0], args[1]);
+  }else {
+    return args.reduce((a,b) => combine(a,b), {});
   }
 }
 
