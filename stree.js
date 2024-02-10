@@ -16,12 +16,12 @@ function stree(value = {}, reducer = combineReducer) {
   if (typeof value === 'string'){
     return fromString(value, reducer);
   }
-  // if the value isn't a special one, initialize our internal datastructures
-  const root = {value, parent: null, residue: value};
+
+  const root = {value, parent: null, residue: value, branchIndex:0};
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
-  let branchIndex = 0;
+
 
   /**
    * Add a value to an n-ary tree.
@@ -36,25 +36,27 @@ function stree(value = {}, reducer = combineReducer) {
    * @returns {{parent, value, value}}
    */
     function add(value, parent = lastNode) {
-    if (typeof parent === 'number'){
-      parent = nodes[parent];
-    }
-    Object.freeze(value);
-    const node = {value, parent};
+      if (typeof parent === 'number'){
+        parent = nodes[parent];
+      }
+      Object.freeze(value);
+      const node = {value, parent};
 
-    const parentResidue = parent.residue;
-    if (parentResidue) {
-      node.residue = reducer(parentResidue, node.value);
-      branches[branches.indexOf(parent)] = node;
-      delete parent.residue; //save some memory
-    } else {
-      node.residue = residue(node);
-      branches.push(node);
+      const parentResidue = parent.residue;
+      if (parentResidue) {
+        node.residue = reducer(parentResidue, node.value);
+        // replace parent node in branches with the child
+        branches[parent.branchIndex] = node;
+        delete parent.residue; //save some memory
+      } else {
+        node.residue = residue(node);
+        node.branchIndex = branches.length;
+        branches.push(node);
+      }
+      lastNode = node;
+      nodes.push(node);
+      return node;
     }
-    lastNode = node;
-    nodes.push(node);
-    return node;
-  }
 
   /**
    * The array of all nodes from root to the specified node, inclusive.
@@ -156,7 +158,7 @@ function stree(value = {}, reducer = combineReducer) {
     return fromArray(parseWithFunctions(str), reducer);
   }
 
-  return {add, nodePath, residue, toArray, toString, branches, nodes, root, branchIndex};
+  return {add, nodePath, residue, toArray, toString, branches, nodes, root};
 }
 
 export {stree}
