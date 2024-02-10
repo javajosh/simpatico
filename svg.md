@@ -475,18 +475,18 @@ function clockAnglesInDegrees(timestamp) {
 ```
 _______________________________________________________
 # Animating events
+This svg animation consumes several kinds of events: timer, mouse, and scroll.
+Once the canvas is filled, it will start over on the upper left.
+Each event type is a different stable color.
 
 ```html
 <svg id="animate-events-demo"
   viewBox="0 0 40 10"
   width="800px" height="200px"
 >
-  <rect width="1" height="1" rx=".2" />
+  <rect width="1" height="1" rx=".2" fill="#5583E7"/>
 </svg>
 ```
-This svg consumes several kinds of events: timer, mouse, and scroll.
-Once the canvas is filled, it will start over on the upper left.
-Each rectangle is a different color, and the color is totally random.
 
 ```js
 import {svg} from '/simpatico.js';
@@ -496,24 +496,34 @@ const animateEventsDemo = svg.elt('animate-events-demo');
 
 // Config
 const DEBUG = false;
-const clockDuration = 5000;
+const clockDuration = -1;
 const W = 40, H = 10;
 const dx = 1, dy = 1;
+console.log('animateEventsDemo config', {W, H, dx, dy, clockDuration, DEBUG});
+
 let x = 0, y = 0;
-console.log('animateEventsDemo config', {W, H, dx, dy, x, y, clockDuration, DEBUG});
 
 // Steady-state - listen for a bunch of different events:
-animateEventsDemo.addEventListener('click',     eventSink);
+animateEventsDemo.addEventListener('click', eventSink);
 animateEventsDemo.addEventListener('mousemove', eventSink);
-document.addEventListener('scroll',    eventSink);
-window.addEventListener(svg.clock(10, clockDuration).clockId, eventSink);
+document.addEventListener('scroll', eventSink);
+const clockId = svg.clock(50, clockDuration).clockId;
+window.addEventListener(clockId, eventSink);
+
+// see https://www.tints.dev/green/2864E1
+const colors = {
+  'click': "#1A4DBC",
+  'mousemove': "#13398B",
+  'scroll': "#AAC1F3",
+}
+colors[clockId] = "#5583E7";
 
 // Keep cloning the last child, asigning it a new position and color
 // To avoid a memory leak we remove the oldest child when we hit the limit
 function eventSink(e) {
   const clone = cloneLast();
-  [x,y] = mod2D();
-  const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+  const {x,y} = mod2D();
+  const color = colors[e.type];
   svg.scatter(clone, {x,y, fill: color});
   if (DEBUG) console.log('animateEventsDemo eventSink', {x, y, dx, dy, fill: color}, e);
 }
@@ -529,7 +539,7 @@ function mod2D() {
     }
   }
   if (DEBUG) console.log('mod2D', {x, y, dx, dy});
-  return [x, y];
+  return {x, y};
 };
 
 // Clone the last element in the svg and add it to the svg
@@ -669,9 +679,9 @@ svg.scatter(greenSquare, {x:cos(C*t), y:sin(C*t), rotate: t % 3600/10});
 
 When [SVG almost got raw sockets?!](https://leonidasv.com/til-svg-specs-almost-got-raw-socket-support/)
 
-  1. https://martinheinz.github.io/physics-visual/
-  1. https://gist.github.com/mbostock/3231298
-  1. https://algs4.cs.princeton.edu/61event/CollisionSystem.java.html
-  1. https://developer.ibm.com/tutorials/wa-build2dphysicsengine/
-  1. https://svgmix.com/
-  1. https://omrelli.ug/g9/gallery/
+  1. [Minimalist physics simulation using Canvas](https://martinheinz.github.io/physics-visual/) ([code](https://github.com/MartinHeinz/physics-visual))
+  1. [d3 collision demo, svg](https://gist.github.com/mbostock/3231298)
+  1. [java collision system using AWT](https://algs4.cs.princeton.edu/61event/CollisionSystem.java.html)
+  1. [js 2d physics engine from IBM](https://developer.ibm.com/tutorials/wa-build2dphysicsengine/)
+  1. [svg icon library](https://svgmix.com/)
+  1. [g9 is a mystifying, fascinating library that makes everything draggable](https://omrelli.ug/g9/gallery/)
