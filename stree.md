@@ -649,6 +649,17 @@ Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data a
   viewBox="0 0 40 10"
   width="800px" height="200px"
 >
+  <g  transform="translate(30 , 0)">
+    <rect width ="10" height = "10" fill = "white"/>
+    <foreignObject transform="scale(1)" width="10" height="10">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:.5px; color:black">
+        <code><pre id="residue-output">
+          {a:0}
+        </pre></code>
+      </div>
+    </foreignObject>
+  </g>
+
   <g>
     <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC"/>
     <text x=".5" y=".5" alignment-baseline="middle" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
@@ -659,11 +670,12 @@ Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data a
 
 ```js
 import {stree} from '/stree.js';
-import {svg} from '/simpatico.js';
+import {svg, tryToStringify} from '/simpatico.js';
 
 
 // Bind
 const scene = svg.elt('animate-stree');
+const residueOutput = svg.elt('residue-output');
 
 // Config
 const DEBUG = true;
@@ -681,9 +693,22 @@ window.addEventListener(
   svg.clock(20, -1).clockId,
   ( ) => { if (i < s.nodes.length) renderNode( s.nodes[i++] ) }
 );
+scene.addEventListener('click', (e) => {
+    const target = e.target.closest('g');
+    if (target && target.node){
+        const node = target.node;
+      log(node);
+      residueOutput.innerText = tryToStringify({
+        id: node.id,
+        value: node.value,
+        residue: s.residue(node),
+        parent: node.parent.id,
+      });
+    }
+})
 // s.nodes.forEach(renderNode); //if you want to render immediately.
-// cleanup the template
-setTimeout(( )=>{scene.removeChild(scene.firstElementChild)}, 200)
+// optional: cleanup the template
+// setTimeout(( )=>{scene.removeChild(scene.firstElementChild)}, 200)
 
 // TODO: restart on click
 function nodeColor(node){
@@ -710,7 +735,7 @@ function nodeColor(node){
 function renderNode(node) {
   const clone = cloneLast(scene);
   const pos = nodePosition(node);
-  svg.scatter(clone, {...pos, text: node.id, fill: nodeColor(node) });
+  svg.scatter(clone, {...pos, text: node.id, fill: nodeColor(node), "data-node": node });
   log(node, pos, clone);
 }
 

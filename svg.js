@@ -58,10 +58,21 @@ const scatter = (elt, obj) => {
 
 
   // Scatter the rest! This is why we deleted entries earlier, btw.
-  for (const [key, value] of Object.entries(obj)){
-    const old = elt.getAttribute(key);
-    if (value + '' !== old)
-    elt.setAttribute(key, value);
+  for (let [key, value] of Object.entries(obj)){
+    let old;
+    //handle data- elts
+    if (key.startsWith('data-')){
+      key = key.substr(5);
+      old = elt[key];
+      if (old !== value){
+        elt[key] = value;
+      }
+    } else {
+      old = elt.getAttribute(key);
+      if (value + '' !== old){
+        elt.setAttribute(key, value);
+      }
+    }
   }
   return elt;
 };
