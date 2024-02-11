@@ -21,13 +21,14 @@ const assertThrows = async fn => {
 
 const tryToStringify = obj => {
   const seen = new WeakSet();
-  return JSON.stringify(obj, (key, value) => {
+  const detectCircular = (key, value) => {
     if (value !== null && typeof value === 'object') {
       if (seen.has(value)) return '<Circular>';
       seen.add(value);
     }
     return value;
-  });
+  }
+  return JSON.stringify(obj, detectCircular, 2);
 };
 
 const hasProp = (obj, prop) => is.exists(obj) && obj.hasOwnProperty(prop)
