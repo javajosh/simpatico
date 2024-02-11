@@ -640,14 +640,20 @@ stree3(ops);
 
 # Animating stree
 This svg animation consumes stree messages
-Each message type is a different stable color.
+Each message type is a different stable color (in this demo there is only one msg type).
+One fun thing to do is hover over the console output which will select the element in the scene.
+Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data attribute.
 
 ```html
 <svg id="animate-stree"
   viewBox="0 0 40 10"
   width="800px" height="200px"
 >
-  <rect width=".95" height=".95" rx=".2" fill="#5583E7"/>
+  <g>
+    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC"/>
+    <text x=".5" y=".5" alignment-baseline="middle" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
+  </g>
+
 </svg>
 ```
 
@@ -657,69 +663,71 @@ import {svg} from '/simpatico.js';
 
 
 // Bind
-const animateEventsDemo = svg.elt('animate-stree');
+const scene = svg.elt('animate-stree');
 
 // Config
 const DEBUG = true;
 const W = 40, H = 10;
 const dx = 1, dy = 1;
-console.log('animateStree config', {W, H, dx, dy, DEBUG});
 
-const ops = [{a: 0}, {a: 1}, {a: 2}, {a: 3}, 1, {a: 4}];
+// build up an arbitrary stree. the values don't matter
+const a = {a:1};
+//           0,1,2,  3,4,  5,6,  7,  8,9,  a,  b,  c,d,   e,   f
+const ops = [a,a,a,1,a,a,3,a,a,1,a,3,a,a,2,a,5,a,8,a,a,-2,a,-3,a];
 const s = stree(ops);
-// let i = 0;
-// window.addEventListener(
-//   svg.clock(10, 1000).clockId,
-//   (e) => {
-//     console.log(e);
-//   }
-// );
-s.nodes.forEach(renderNode);
 
+let i = 0;
+window.addEventListener(
+  svg.clock(20, -1).clockId,
+  ( ) => { if (i < s.nodes.length) renderNode( s.nodes[i++] ) }
+);
+// s.nodes.forEach(renderNode); //if you want to render immediately.
+// cleanup the template
+setTimeout(( )=>{scene.removeChild(scene.firstElementChild)}, 200)
 
+// TODO: restart on click
+function nodeColor(node){
+    // return '#1A4DBC';
+  // see https://www.tints.dev/green/2864E1
+  const colors = {
+    'core' : "#342334",
+    'handler': "#342334",
+    'msg': "#1A4DBC",
+  }
+  let color;
+  if (node.handlers){
+    color = colors.core;
+  } else if (node.handle){
+    color = colors.handler;
+  } else {
+    color = colors.msg;
+  }
+  return color;
+}
 
 // Keep cloning the last child, asigning it a new position and color
 // To avoid a memory leak we remove the oldest child when we hit the limit
 function renderNode(node) {
-  // see https://www.tints.dev/green/2864E1
-  const colors = {
-    'core' : "#342334",
-    'handler': "#1A4DBC",
-    'msg': "#13398B",
-  }
-  let color;
-  if (node.handlers){
-      color = colors.core;
-  } else if (node.handle){
-      color = colors.handler;
-  } else {
-      color = colors.msg;
-  }
-
-  svg.scatter(cloneLast(), {...compactTree(node), fill: color });
-
+  const clone = cloneLast(scene);
+  const pos = nodePosition(node);
+  svg.scatter(clone, {...pos, text: node.id, fill: nodeColor(node) });
+  log(node, pos, clone);
 }
 
-function compactTree(node) {
+function nodePosition(node) {
   let x = 0;
-  while (node && node.parent && (node.branchIndex === node.parent.branchIndex)){
+  while (node.parent && (node.branchIndex === node.parent.branchIndex)){
     node = node.parent;
     x += dx;
   }
   const y = dy * node.branchIndex;
-
-  if (DEBUG) console.log('compactTree', node, {x, y, dx, dy});
   return {x, y};
 };
 
 // Clone the last element in the svg and add it to the svg
-// If we are over the child limit, remove the oldest child, forming a FIFO queue
-function cloneLast(scene=animateEventsDemo, childLimit=W*H) {
-  const last = animateEventsDemo.lastElementChild;
+function cloneLast(scene) {
+  const last = scene.lastElementChild;
   const clone = last.cloneNode(true);
-  if (scene.children.length > childLimit ) {
-    scene.removeChild(scene.firstElementChild);
-  }
   scene.appendChild(clone);
   return clone;
 }

@@ -17,7 +17,7 @@ function stree(value = {}, reducer = combineReducer) {
     return fromString(value, reducer);
   }
 
-  const root = {value, parent: null, residue: value, branchIndex: 0};
+  const root = {value, parent: null, residue: value, branchIndex: 0, id: 0};
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
@@ -40,7 +40,7 @@ function stree(value = {}, reducer = combineReducer) {
         parent = nodes[parent];
       }
       Object.freeze(value);
-      const node = {value, parent};
+      const node = {value, parent}; //residue, branchIndex, and id added below
 
       const parentResidue = parent.residue;
       if (parentResidue) {
@@ -55,6 +55,7 @@ function stree(value = {}, reducer = combineReducer) {
         branches.push(node);
       }
       lastNode = node;
+      node.id = nodes.length;
       nodes.push(node);
       return node;
     }
@@ -126,7 +127,7 @@ function stree(value = {}, reducer = combineReducer) {
     for (let i = 1; i < arr.length; i++) {
       value = arr[i];
       if (typeof value === 'number'){
-        parent = s.nodes[value];
+        parent = (value > 0) ? s.nodes[value] : s.branches[-value];
         value = arr[++i]; // note the index skip
         s.add(value, parent);
       } else {
