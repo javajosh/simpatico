@@ -671,6 +671,7 @@ Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data a
 ```js
 import {stree} from '/stree.js';
 import {svg, tryToStringify} from '/simpatico.js';
+import {assertHandler, logHandler} from "/handlers.js";
 
 
 // Bind
@@ -682,10 +683,41 @@ const DEBUG = true;
 const W = 40, H = 10;
 const dx = 1, dy = 1;
 
-// build up an arbitrary stree. the values don't matter
-const a = {a:1};
+// Here's a more usual set of handlers
+const incHandler = {handle: () => [{a: 1}], call: () => ({handler: 'inc'})};
+const decHandler = {handle: () => [{a: -1}], call: () => ({handler: 'dec'})};
+const mulHandler = {
+  handle: (core, msg) => [{a: null}, {a: msg.factor * core.a}],
+  call: a => ({handler: 'mul', factor: a})
+};
+
+// These are convenience methods for authoring; we're still just adding objects together.
+// note that assertHandler and logHandler are auto-imported from combine2. however they are small and inlinable.
+// 'log' is a default import so call the logHandler function 'loggy'
+const has = assertHandler.call, loggy = logHandler.call;
+const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
+const ops = [
+  assertHandler.install(),
+  logHandler.install(), has({debug: true, lastOutput: ''}),
+  {handlers: {inc: incHandler, dec: decHandler, mul: mulHandler}},
+  {a: 10}, has({a: 10}),
+  inc(), has({a: 11}),
+  dec(), has({a: 10}),
+  dec(), has({a: 9}),
+  mul(5), has({a: 45}),
+  loggy('okay, lets backtrack and start from an earlier node.'),
+  5, has({a: 10}),
+  mul(2), has({a: 20}),
+  inc(), has({a: 21}),
+  loggy('now lets backtrack to node 10 and '),
+  10, has({a: 9}),
+  mul(20), has({a: 180}),
+];
+
+// build up an arbitrary very simple stree. the values don't matter, only the structure
+// const a = {a:1};
 //           0,1,2,  3,4,  5,6,  7,  8,9,  a,  b,  c,d,   e,   f
-const ops = [a,a,a,1,a,a,3,a,a,1,a,3,a,a,2,a,5,a,8,a,a,-2,a,-3,a];
+// const ops = [a,a,a,1,a,a,3,a,a,1,a,3,a,a,2,a,5,a,8,a,a,-2,a,-3,a];
 const s = stree(ops);
 
 let i = 0;
@@ -715,7 +747,7 @@ function nodeColor(node){
     // return '#1A4DBC';
   // see https://www.tints.dev/green/2864E1
   const colors = {
-    'core' : "#342334",
+    'core' : "#342FF4",
     'handler': "#342334",
     'msg': "#1A4DBC",
   }
