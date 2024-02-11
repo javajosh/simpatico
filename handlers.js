@@ -11,7 +11,7 @@ const assertHandler = {
       if (core.hasOwnProperty(key)) assertEquals(msgValue, core[key]);
       else throw new Error(`core ${tryToStringify(core)} is missing asserted property ` + key);
     });
-    return [{}];
+    return [];
   },
 };
 
@@ -21,8 +21,12 @@ const logHandler = {
     if (core.debug){
       let out = (msg && msg.hasOwnProperty('msg')) ? msg.msg : undefined;
       this.output('logHandler:', out, {msg, core});
-      if (out)
+      if (out){
         return [{lastOutput: msg.msg}];
+      } else {
+        return [];
+      }
+
     }
   },
   // install is a convenience property to help ensure a clean initialization of the containing core

@@ -648,11 +648,14 @@ Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data a
 <svg id="animate-stree"
   viewBox="0 0 40 10"
   width="800px" height="200px"
+  style="border: 1px solid gray"
 >
-  <g  transform="translate(30 , 0)">
-    <rect width ="10" height = "10" fill = "white"/>
-    <foreignObject transform="scale(1)" width="10" height="10">
-      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:.5px; color:black">
+  <g  transform="translate(30,0)">
+    <rect width ="10" height = "10" fill="white"/>
+    <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
+
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
+        <h3 style="color:black">Inspector</h3>
         <code><pre id="residue-output">
           {a:0}
         </pre></code>
@@ -733,8 +736,9 @@ scene.addEventListener('click', (e) => {
       residueOutput.innerText = tryToStringify({
         id: node.id,
         value: node.value,
+        msgs: node.msgs,
         residue: s.residue(node),
-        parent: node.parent.id,
+        parent: node.parent ? node.parent.id : 'null',
       });
     }
 })
