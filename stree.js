@@ -88,6 +88,10 @@ function stree(value = {}, reducer = combineReducer) {
     return node.residue ? node.residue : nodePath(node).map(n => n.value).reduce(reducer, value);
   }
 
+  function residues() {
+    return branches.map(a => a.residue);
+  }
+
   /**
    * Return a representation of the n-ary tree as [{}, {}, 0, {}, {}].
    * The objects are values, and the integers parent node indexes.
@@ -160,7 +164,7 @@ function stree(value = {}, reducer = combineReducer) {
     return fromArray(parseWithFunctions(str), reducer);
   }
 
-  return {add, nodePath, residue, toArray, toString, branches, nodes, root};
+  return {add, nodePath, residue, residues, toArray, toString, branches, nodes, root};
 }
 
 export {stree}

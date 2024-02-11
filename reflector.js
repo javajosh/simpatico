@@ -12,7 +12,7 @@ import chokidar from 'chokidar';
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString, peek } from './core.js';
 import { combine } from './combine.js';
 import { stree as stree } from './stree.js';
-import {buildHtmlFromLiterateMarkdown} from './litmd.js';
+import { buildHtmlFromLiterateMarkdown } from './litmd.js';
 
 const log = (...args) => {
   if (config.debug)
@@ -506,15 +506,16 @@ const connections = stree({});
  */
 function chatServerLogic(ws) {
   // Register the connection, always branch from root
-  connections.add({ws}, 0);
+  const conn = connections.add({ws}, 0);
 
   // Register a strategy for handling incoming messages in the steady state.
-  ws.on('message', msg => handleMessage(msg, connections.branchIndex));
+  ws.on('message', msg => handleMessage(msg, conn.branchIndex));
 }
 
 
 function handleMessage(message, branchIndex){
-  const connection = connections.branchResidues[branchIndex];
+  const residues = connections.residues();
+  const connection = residues[branchIndex];
 
   // Ignore long messages
   if (message.length > 300) {
@@ -523,15 +524,15 @@ function handleMessage(message, branchIndex){
   }
   // Broadcast to all connections
   //  NB: using a for-loop instead of foreach makes the stack traces nicer.
-  for (let i = 0; i < connections.branchResidues.length; i++) {
-    let conn = connections.branchResidues[i].ws;
+  for (let i = 0; i < residues.length; i++) {
+    let conn = residues[i].ws;
     // normally we skip the sender, but for testing we can echo back to the sender.
-    // if (conn.ws === ws) return;
+    if (conn.ws === connection.ws) return;
     try{
       // Delete dead connections
       if (typeof conn === 'undefined' || conn.readyState !== WebSocket.OPEN) {
         log(`connection ${i} died, deleting`);
-        // delete connections[i];
+        delete connections[i];
         continue;
       }
       // Prepend the sender id to the message.

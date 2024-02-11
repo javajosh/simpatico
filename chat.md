@@ -61,7 +61,7 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
   };
 
   const address = keyPairPem.pubKeyFingerprint;
-  const addressLink = window.location.href + '#' + address;
+  const addressLink = window.location.href.split('#')[0] + '#' + address;
 
   // Get an address out of the hash
   let parentAddress='';
