@@ -1,5 +1,5 @@
 import {stringifyWithFunctions, parseWithFunctions} from "./core.js";
-import {combineReducer} from "./combine.js";
+import {combineReducer, getMessages} from "./combine.js";
 
 /**
  * Create a serializable n-ary tree with a well defined reduction defined on all nodes.
@@ -55,8 +55,9 @@ function stree(value = {}, reducer = combineReducer) {
         branches.push(node);
       }
       lastNode = node;
-      node.id = nodes.length;
       nodes.push(node);
+      node.id = nodes.length;
+      node.msgs = getMessages();
       return node;
     }
 

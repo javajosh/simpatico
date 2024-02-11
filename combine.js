@@ -22,6 +22,13 @@ class HandlerError extends Error {
   }
 }
 
+let msgs = [];
+function getMessages(){
+  const result = [...msgs];
+  msgs = [];
+  return result;
+}
+
 /**
  * Combines two values, a and b, based on their types and properties.
  * Combine is a pure function.
@@ -44,6 +51,7 @@ class HandlerError extends Error {
 function combine(a, b, rules = () => {}) {
   const ta = typeof a;
   const tb = typeof b;
+  let error;
 
 
   if (ta === 'undefined' || a === null) return b; // 'something is better than nothing'
@@ -76,9 +84,16 @@ function combine(a, b, rules = () => {}) {
     // TODO add friendly function support
     let result = a.handlers[b.handler].handle(a, b);
 
-    if (!Array.isArray(result)) throw new HandlerError(result);
+    if (!Array.isArray(result)) {
+      error = new HandlerError(result);
+      msgs.push(error);
+      throw error;
+    }
+
+    if (msgs !== []) msgs.push(result);
     // recursively combine results back with a
     result.every(obj => a = combine(a, obj, rules));
+
     return a;
   }
 
@@ -107,14 +122,15 @@ function combine(a, b, rules = () => {}) {
     }
   }
 
-
   // scalar combination - usually just replace
   if (ta === 'string'   && tb === 'string'  ) return b;
   if (ta === 'boolean'  && tb === 'boolean' ) return b;
   if (ta === 'function' && tb === 'function') return b;
   if (ta === 'number'   && tb === 'number'  ) return a + b;
 
-  throw new Error(`unable to combine ${tryToStringify(a)} and ${tryToStringify(b)} types ${ta} ${tb}`);
+  error = new Error(`unable to combine ${tryToStringify(a)} and ${tryToStringify(b)} types ${ta} ${tb}`);
+  msgs.push(error);
+  throw error;
 }
 
 const combineReducer = (a, b) => combine(a,b);
@@ -137,4 +153,5 @@ export {
   combineReducer,
   combine as combineRules,
   HandlerError,
+  getMessages,
 }
