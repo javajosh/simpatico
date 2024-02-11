@@ -637,3 +637,91 @@ const ops = [
 stree3(ops);
 
 ```
+
+# Animating stree
+This svg animation consumes stree messages
+Each message type is a different stable color.
+
+```html
+<svg id="animate-stree"
+  viewBox="0 0 40 10"
+  width="800px" height="200px"
+>
+  <rect width=".95" height=".95" rx=".2" fill="#5583E7"/>
+</svg>
+```
+
+```js
+import {stree} from '/stree.js';
+import {svg} from '/simpatico.js';
+
+
+// Bind
+const animateEventsDemo = svg.elt('animate-stree');
+
+// Config
+const DEBUG = true;
+const W = 40, H = 10;
+const dx = 1, dy = 1;
+console.log('animateStree config', {W, H, dx, dy, DEBUG});
+
+const ops = [{a: 0}, {a: 1}, {a: 2}, {a: 3}, 1, {a: 4}];
+const s = stree(ops);
+// let i = 0;
+// window.addEventListener(
+//   svg.clock(10, 1000).clockId,
+//   (e) => {
+//     console.log(e);
+//   }
+// );
+s.nodes.forEach(renderNode);
+
+
+
+// Keep cloning the last child, asigning it a new position and color
+// To avoid a memory leak we remove the oldest child when we hit the limit
+function renderNode(node) {
+  // see https://www.tints.dev/green/2864E1
+  const colors = {
+    'core' : "#342334",
+    'handler': "#1A4DBC",
+    'msg': "#13398B",
+  }
+  let color;
+  if (node.handlers){
+      color = colors.core;
+  } else if (node.handle){
+      color = colors.handler;
+  } else {
+      color = colors.msg;
+  }
+
+  svg.scatter(cloneLast(), {...compactTree(node), fill: color });
+
+}
+
+function compactTree(node) {
+  let x = 0;
+  while (node && node.parent && (node.branchIndex === node.parent.branchIndex)){
+    node = node.parent;
+    x += dx;
+  }
+  const y = dy * node.branchIndex;
+
+  if (DEBUG) console.log('compactTree', node, {x, y, dx, dy});
+  return {x, y};
+};
+
+// Clone the last element in the svg and add it to the svg
+// If we are over the child limit, remove the oldest child, forming a FIFO queue
+function cloneLast(scene=animateEventsDemo, childLimit=W*H) {
+  const last = animateEventsDemo.lastElementChild;
+  const clone = last.cloneNode(true);
+  if (scene.children.length > childLimit ) {
+    scene.removeChild(scene.firstElementChild);
+  }
+  scene.appendChild(clone);
+  return clone;
+}
+
+```
