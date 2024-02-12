@@ -645,6 +645,7 @@ One fun thing to do is hover over the console output which will select the eleme
 Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data attribute.
 
 ```html
+<p>key: <span id="color-key"></span></p>
 <svg id="animate-stree"
   viewBox="0 0 40 10"
   width="800px" height="200px"
@@ -683,6 +684,7 @@ import {assertHandler, logHandler} from "/handlers.js";
 // Bind
 const scene = svg.elt('animate-stree');
 const residueOutput = svg.elt('residue-output');
+const colorKey = svg.elt('color-key');
 
 // Config
 const DEBUG = true;
@@ -726,6 +728,19 @@ const ops = [
 // const ops = [a,a,a,1,a,a,3,a,a,1,a,3,a,a,2,a,5,a,8,a,a,-2,a,-3,a];
 const s = stree(ops);
 
+// see https://www.tints.dev/green/2864E1
+const colors =  {
+  handlers: "DodgerBlue",
+  assert: "Coral",
+  log: "Orange",
+  inc: "Orchid",
+  dec: "MediumPurple",
+  mul: "BlueViolet",
+  msg: "MediumSeaGreen",
+}
+// display key
+colorKey.innerHTML = Object.entries(colors).map( ([key, color]) => `<span style="padding: 3px;color: black; background-color: ${color}">${key}</span> `).reduce((a,b)=>a+b, '');
+
 // Restartable animation
 let clock = svg.clock(20, -1);
 const animateAdd = () =>
@@ -766,33 +781,7 @@ scene.addEventListener('click', (e) => {
     }
 })
 // s.nodes.forEach(renderNode); //if you want to render immediately.
-// optional: cleanup the template
-// setTimeout(( )=>{scene.removeChild(scene.firstElementChild)}, 200)
 
-// TODO: restart on click
-function nodeColor(node){
-    // return '#1A4DBC';
-  // see https://www.tints.dev/green/2864E1
-  const colors =  {
-    handlers: "DodgerBlue",
-    assert: "Coral",
-    log: "Orange",
-    inc: "Orchid",
-    dec: "MediumPurple",
-    mul: "BlueViolet",
-    msg: "MediumSeaGreen",
-  }
-  let color;
-  const v = node.value;
-  if (v.handlers){
-    color = colors.handlers;
-  } else if (v.handler){
-    color = colors[v.handler]
-  } else {
-    color = colors.msg;
-  }
-  return color;
-}
 
 // Keep cloning the last child, asigning it a new position and color
 // To avoid a memory leak we remove the oldest child when we hit the limit
@@ -812,6 +801,19 @@ function nodePosition(node) {
   const y = dy * node.branchIndex;
   return {x, y};
 };
+
+function nodeColor(node){
+  let color;
+  const v = node.value;
+  if (v.handlers){
+    color = colors.handlers;
+  } else if (v.handler){
+    color = colors[v.handler]
+  } else {
+    color = colors.msg;
+  }
+  return color;
+}
 
 // Clone the last element in the svg and add it to the svg
 function cloneLast(scene) {
