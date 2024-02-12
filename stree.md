@@ -668,7 +668,7 @@ To restart the animation, click outside a node.
 
   <g>
     <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC"/>
-    <text x=".5" y=".5" alignment-baseline="middle" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
+    <text x=".492" y=".525" alignment-baseline="middle" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
   </g>
 
 </svg>
@@ -773,16 +773,21 @@ scene.addEventListener('click', (e) => {
 function nodeColor(node){
     // return '#1A4DBC';
   // see https://www.tints.dev/green/2864E1
-  const colors = {
-    'core' : "#342FF4",
-    'handler': "#342334",
-    'msg': "#1A4DBC",
+  const colors =  {
+    handlers: "DodgerBlue",
+    assert: "Coral",
+    log: "Orange",
+    inc: "Orchid",
+    dec: "MediumPurple",
+    mul: "BlueViolet",
+    msg: "MediumSeaGreen",
   }
   let color;
-  if (node.handlers){
-    color = colors.core;
-  } else if (node.handle){
-    color = colors.handler;
+  const v = node.value;
+  if (v.handlers){
+    color = colors.handlers;
+  } else if (v.handler){
+    color = colors[v.handler]
   } else {
     color = colors.msg;
   }
