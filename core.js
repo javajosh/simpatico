@@ -1,8 +1,27 @@
 const now = () => Date.now() // e.g. 1678023832587
 const date = () => new Date().toISOString() // e.g. 2023-01-29T03:40:21.319Z
-const log = console.log.bind(console)
-const debug = console.debug.bind(console)
-const info = console.info.bind(console)
+const log = (...args) => {
+  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+    console.log(__filename, ...args);
+  } else {
+    console.log(window.location.pathname, ...args);
+  }
+}
+
+const debug = (...args) => {
+  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+    console.debug(__filename, ...args);
+  } else {
+    console.debug(window.location.pathname, ...args);
+  }
+}
+const info = (...args) => {
+  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+    console.info(__filename, ...args);
+  } else {
+    console.info(window.location.pathname, ...args);
+  }
+}
 
 const error = msg => {throw new Error(msg)}
 const assert = (truthy, msg) => !!truthy ? true : error(msg)
