@@ -1,41 +1,72 @@
 # acceptance
 
 ```css
-div#iframes {
+.iframe-container {
   display: flex;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.iframe-wrapper {
+  flex: 0 0 50%;
+  box-sizing: border-box;
+  padding: 10px;
 }
 
 iframe {
-  flex: 1 0 calc(33.33% - 20px); /* Adjust the width as needed */
-  margin: 10px;
+  width: 100%;
+  height: 200px; /* Adjust height as needed */
 }
 
+.caption {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+}
+
+
+
 ```
-<div id="iframes">
-  <a href="/index.html">/index.html</a>
+<div id="iframe-container">
+<div class="iframe-wrapper">
   <iframe src="/index.html"></iframe>
+  <a class="caption" href="/index.html">/index.html</a>
+</div>
 
-  <a href="/core">/core</a>
+<div class="iframe-wrapper">
   <iframe src="/core"></iframe>
+  <a class="caption" href="/core">/core</a>
+</div>
 
-  <a href="/combine">/combine</a>
+<div class="iframe-wrapper">
   <iframe src="/combine"></iframe>
+  <a class="caption" href="/combine">/combine</a>
+</div>
 
-  <a href="/stree">/stree</a>
+<div class="iframe-wrapper">
   <iframe src="/stree"></iframe>
+  <a class="caption" href="/stree">/stree</a>
+</div>
 
-  <a href="/crypto">/crypto</a>
+<div class="iframe-wrapper">
   <iframe src="/crypto"></iframe>
+  <a class="caption" href="/crypto">/crypto</a>
+</div>
 
-  <a href="/friendly">/friendly</a>
+<div class="iframe-wrapper">
   <iframe src="/friendly"></iframe>
+  <a class="caption" href="/friendly">/friendly</a>
+</div>
 
-  <a href="/svg">/svg</a>
+<div class="iframe-wrapper">
   <iframe src="/svg"></iframe>
+  <a class="caption" href="/svg">/svg</a>
+</div>
 
-  <a href="/chat">/chat</a>
+<div class="iframe-wrapper">
   <iframe src="/chat"></iframe>
+  <a class="caption" href="/chat">/chat</a>
+</div>
 </div>
 
 # About
