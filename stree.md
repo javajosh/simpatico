@@ -657,7 +657,10 @@ Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data a
       <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
         <h3 style="color:black">Inspector</h3>
         <code><pre id="residue-output">
-          {a:0}
+Click on a node on the left.
+This region will display information about the node.
+Note that the display is animated.
+To restart the animation, click outside a node.
         </pre></code>
       </div>
     </foreignObject>
@@ -723,15 +726,33 @@ const ops = [
 // const ops = [a,a,a,1,a,a,3,a,a,1,a,3,a,a,2,a,5,a,8,a,a,-2,a,-3,a];
 const s = stree(ops);
 
-let i = 0;
-window.addEventListener(
-  svg.clock(20, -1).clockId,
-  ( ) => { if (i < s.nodes.length) renderNode( s.nodes[i++] ) }
-);
+// Restartable animation
+let clock = svg.clock(20, -1);
+const animateAdd = () =>
+{
+  // reset scene
+  while (scene.children.length > 2) {
+    scene.removeChild(scene.lastElementChild);
+  }
+  // reset clock
+  clock.stop();
+  clock = svg.clock(20, -1);
+
+  // do the animation
+  let i = 0;
+  window.addEventListener(
+    clock.clockId,
+    () => {
+      if (i < s.nodes.length) renderNode(s.nodes[i++])
+    }
+  );
+}
+animateAdd();
+
 scene.addEventListener('click', (e) => {
     const target = e.target.closest('g');
     if (target && target.node){
-        const node = target.node;
+      const node = target.node;
       log(node);
       residueOutput.innerText = tryToStringify({
         id: node.id,
@@ -740,6 +761,8 @@ scene.addEventListener('click', (e) => {
         residue: s.residue(node),
         parent: node.parent ? node.parent.id : 'null',
       });
+    } else {
+      animateAdd();
     }
 })
 // s.nodes.forEach(renderNode); //if you want to render immediately.

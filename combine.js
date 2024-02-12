@@ -81,7 +81,6 @@ function combine(a, b, rules = () => {}) {
       throw new Error(`Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`);
     }
     // invoke the handler
-    // TODO add friendly function support
     let result = a.handlers[b.handler].handle(a, b);
 
     if (!Array.isArray(result)) {
