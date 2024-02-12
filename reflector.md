@@ -291,6 +291,39 @@ To reduce what we serve, we need to add aggressive client caching:
 
 Additionally, we can make the resources smaller over the wire by using `gzip` (and perhaps `brotli`) to compress the response. Virtually all clients support this compression scheme, and it would also reduce memory pressure in the file cache, so we might want to just replace the plaintext cache with a compressed cache, and do not support non gzip clients.
 
+## Measuring Traffic
+It's nice to know how many people are visiting your instance.
+[Google Analytics](https://analytics.google.com/) is the *de facto* standard way to measure traffic.
+While it is "free" to the developer, it is quite expensive for your users in terms of violating their privacy.
+It's also impossible to add *any* 3rd party resources to the reflector given its strict privacy-preserving headers.
+
+Using the log output is a natural solution to this problem.
+The problem is that there are a lot of bots and other "fake" requests.
+The solution I'd like to try is to force visitors to do a verifiable computation and post that to an endpoint.
+Then, to measure traffic over time I can filter on verified visitors.
+
+### Option 1: proof of work
+One solution is "proof of work":
+  1. generate a fixed public key, embed in the common header
+  2. The client signs a dynamic message, like an approximate timestamp, or their own ip address, and post it to a reserved endpoint.
+  3. The server verifies the signature, and prints out a line in the log
+  4. (Optionally) set a cookie so that the browser only needs to do this "once"
+
+One drawback with a naive solution is that the signature would need to be computed on every page.
+This is possibly wasteful of client resources.
+The use of a cookie, even for just one site, may also be problematic.
+Also, this is a complicated solution that requires relatively a lot of code.
+
+### Option 2: log heuristics
+Another solution is to examine the logs more closely and apply a heuristic of some kind.
+For example, I've noticed that when "real" browsers hit the site, there is a cluster of GETs.
+So, it should be possible to write a program that examines the log and says "looks like real browsers accessed these resources this many times"
+Or we can add code to reflector itself that detects these clusters, and stores counts associated with the file cache.
+
+
+```js
+
+```
 
 ## Authoring with IntelliJ IDEA
 I use IntelliJ IDEA to author my code.
