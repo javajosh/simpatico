@@ -89,7 +89,7 @@ function combine(a, b, rules = () => {}) {
       throw error;
     }
 
-    if (msgs !== []) msgs.push(result);
+    if (msgs !== []) msgs = [...msgs, ...result];
     // recursively combine results back with a
     result.every(obj => a = combine(a, obj, rules));
 

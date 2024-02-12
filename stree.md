@@ -12,6 +12,164 @@ The code is quite small, so you may not notice.
 If the tests fail, the page will appear very different, more colorful, and there will be errors in the console.
 That shouldn't happen, but if it does please [file a bug ](https://github.com/javajosh/simpatico/issues) and include the console output.
 
+# Animating stree
+This svg animation consumes stree messages
+Each message type is a different stable color (in this demo there is only one msg type).
+One fun thing to do is hover over the console output which will select the element in the scene.
+Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data attribute.
+
+
+
+```html
+<p>key: <span id="color-key"></span></p>
+<svg id="animate-stree"
+  viewBox="0 0 40 10"
+  width="800px" height="200px"
+  style="border: 1px solid gray"
+>
+  <g  transform="translate(30,0)">
+    <rect width ="10" height = "10" fill="white"/>
+    <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
+
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
+        <h3 style="color:black">Inspector</h3>
+        <code><pre id="residue-output">
+Click on a node on the left.
+This region will display information about the node.
+Note that the display is animated.
+To restart the animation, click outside a node.
+        </pre></code>
+      </div>
+    </foreignObject>
+  </g>
+
+  <g>
+    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC"/>
+    <text x=".492" y=".525" alignment-baseline="middle" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
+  </g>
+
+</svg>
+```
+
+```js
+import {stree} from '/stree.js';
+import {svg, tryToStringify} from '/simpatico.js';
+import {arithmeticOps} from './stree-examples.js';
+
+// Bind
+const scene = svg.elt('animate-stree');
+const residueOutput = svg.elt('residue-output');
+const colorKey = svg.elt('color-key');
+
+// Config
+const DEBUG = true;
+const W = 40, H = 10;
+const dx = 1, dy = 1;
+const colors = {
+  handlers: "DodgerBlue",
+  assert: "Coral",
+  log: "Orange",
+  inc: "Orchid",
+  dec: "MediumPurple",
+  mul: "BlueViolet",
+  msg: "MediumSeaGreen",
+}
+// display key
+colorKey.innerHTML = Object.entries(colors).map(([key, color]) =>
+  `<span style="padding: 3px;color: black; background-color: ${color}">${key}</span> `)
+  .reduce((a, b) => a + b, '');
+
+// build the stree
+const s = stree(arithmeticOps);
+
+// Restartable animation
+let clock = svg.clock(20, -1);
+const animateAdd = () => {
+  // reset scene
+  while (scene.children.length > 2) {
+    scene.removeChild(scene.lastElementChild);
+  }
+  // reset clock
+  clock.stop();
+  clock = svg.clock(20, -1);
+
+  // do the animation
+  let i = 0;
+  window.addEventListener(
+    clock.clockId,
+    () => {
+      if (i < s.nodes.length) renderNode(s.nodes[i++])
+    }
+  );
+}
+animateAdd();
+
+scene.addEventListener('click', (e) => {
+  const target = e.target.closest('g');
+  if (target && target.node) {
+    const node = target.node;
+    // log(node);
+    const {handlers, ...residue} = s.residue(node);
+    residueOutput.innerText = tryToStringify({
+      id: node.id,
+      value: node.value,
+      msgs: node.msgs,
+      residue,
+      parent: node.parent ? node.parent.id : 'null',
+    });
+  } else {
+    animateAdd();
+  }
+})
+// s.nodes.forEach(renderNode); //if you want to render immediately.
+
+
+// Keep cloning the last child, asigning it a new position and color
+// To avoid a memory leak we remove the oldest child when we hit the limit
+function renderNode(node) {
+  const clone = cloneLast(scene);
+  const pos = nodePosition(node);
+  // log(node, pos, clone);
+  svg.scatter(clone, {...pos, text: node.id, fill: nodeColor(node), "data-node": node});
+}
+
+function nodePosition(node) {
+  let x = 0;
+  while (node.parent && (node.branchIndex === node.parent.branchIndex)) {
+    node = node.parent;
+    x += dx;
+  }
+  const y = dy * node.branchIndex;
+  return {x, y};
+};
+
+function nodeColor(node) {
+  let color;
+  const v = node.value;
+  if (v.handlers) {
+    color = colors.handlers;
+  } else if (v.handler) {
+    color = colors[v.handler]
+  } else {
+    color = colors.msg;
+  }
+  return color;
+}
+
+// Clone the last element in the svg and add it to the svg
+function cloneLast(scene) {
+  const last = scene.lastElementChild;
+  const clone = last.cloneNode(true);
+  scene.appendChild(clone);
+  return clone;
+}
+
+```
+<script>
+// close the demo code to not confuse readers
+document.querySelectorAll('details:nth-of-type(1), details:nth-of-type(2)').forEach(detail => detail.removeAttribute('open'));
+</script>
+
 # Step 1: An N-ary tree with residue-per-node
 Start with a basic n-ary tree.
 Primary OPERATION is `add(value, parent)`. "Add value to parent" wraps the value in a node, and connects the node to parent.
@@ -634,193 +792,9 @@ const ops = [
 ];
 // executed for side-effects only.
 // to interact with it, assign the output to window.stree or simiar.
+// Note: this example was exported to 'stree-examples.js' as 'arithmeticOps'
 stree3(ops);
 
 ```
 
-# Animating stree
-This svg animation consumes stree messages
-Each message type is a different stable color (in this demo there is only one msg type).
-One fun thing to do is hover over the console output which will select the element in the scene.
-Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data attribute.
 
-```html
-<p>key: <span id="color-key"></span></p>
-<svg id="animate-stree"
-  viewBox="0 0 40 10"
-  width="800px" height="200px"
-  style="border: 1px solid gray"
->
-  <g  transform="translate(30,0)">
-    <rect width ="10" height = "10" fill="white"/>
-    <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
-
-      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
-        <h3 style="color:black">Inspector</h3>
-        <code><pre id="residue-output">
-Click on a node on the left.
-This region will display information about the node.
-Note that the display is animated.
-To restart the animation, click outside a node.
-        </pre></code>
-      </div>
-    </foreignObject>
-  </g>
-
-  <g>
-    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC"/>
-    <text x=".492" y=".525" alignment-baseline="middle" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
-  </g>
-
-</svg>
-```
-
-```js
-import {stree} from '/stree.js';
-import {svg, tryToStringify} from '/simpatico.js';
-import {assertHandler, logHandler} from "/handlers.js";
-
-
-// Bind
-const scene = svg.elt('animate-stree');
-const residueOutput = svg.elt('residue-output');
-const colorKey = svg.elt('color-key');
-
-// Config
-const DEBUG = true;
-const W = 40, H = 10;
-const dx = 1, dy = 1;
-
-// Here's a more usual set of handlers
-const incHandler = {handle: () => [{a: 1}], call: () => ({handler: 'inc'})};
-const decHandler = {handle: () => [{a: -1}], call: () => ({handler: 'dec'})};
-const mulHandler = {
-  handle: (core, msg) => [{a: null}, {a: msg.factor * core.a}],
-  call: a => ({handler: 'mul', factor: a})
-};
-
-// These are convenience methods for authoring; we're still just adding objects together.
-// note that assertHandler and logHandler are auto-imported from combine2. however they are small and inlinable.
-// 'log' is a default import so call the logHandler function 'loggy'
-const has = assertHandler.call, loggy = logHandler.call;
-const inc = incHandler.call, dec = decHandler.call, mul = mulHandler.call;
-const ops = [
-  assertHandler.install(),
-  logHandler.install(), has({debug: true, lastOutput: ''}),
-  {handlers: {inc: incHandler, dec: decHandler, mul: mulHandler}},
-  {a: 10}, has({a: 10}),
-  inc(), has({a: 11}),
-  dec(), has({a: 10}),
-  dec(), has({a: 9}),
-  mul(5), has({a: 45}),
-  loggy('okay, lets backtrack and start from an earlier node.'),
-  5, has({a: 10}),
-  mul(2), has({a: 20}),
-  inc(), has({a: 21}),
-  loggy('now lets backtrack to node 10 and '),
-  10, has({a: 9}),
-  mul(20), has({a: 180}),
-];
-
-// build up an arbitrary very simple stree. the values don't matter, only the structure
-// const a = {a:1};
-//           0,1,2,  3,4,  5,6,  7,  8,9,  a,  b,  c,d,   e,   f
-// const ops = [a,a,a,1,a,a,3,a,a,1,a,3,a,a,2,a,5,a,8,a,a,-2,a,-3,a];
-const s = stree(ops);
-
-// see https://www.tints.dev/green/2864E1
-const colors =  {
-  handlers: "DodgerBlue",
-  assert: "Coral",
-  log: "Orange",
-  inc: "Orchid",
-  dec: "MediumPurple",
-  mul: "BlueViolet",
-  msg: "MediumSeaGreen",
-}
-// display key
-colorKey.innerHTML = Object.entries(colors).map( ([key, color]) => `<span style="padding: 3px;color: black; background-color: ${color}">${key}</span> `).reduce((a,b)=>a+b, '');
-
-// Restartable animation
-let clock = svg.clock(20, -1);
-const animateAdd = () =>
-{
-  // reset scene
-  while (scene.children.length > 2) {
-    scene.removeChild(scene.lastElementChild);
-  }
-  // reset clock
-  clock.stop();
-  clock = svg.clock(20, -1);
-
-  // do the animation
-  let i = 0;
-  window.addEventListener(
-    clock.clockId,
-    () => {
-      if (i < s.nodes.length) renderNode(s.nodes[i++])
-    }
-  );
-}
-animateAdd();
-
-scene.addEventListener('click', (e) => {
-    const target = e.target.closest('g');
-    if (target && target.node){
-      const node = target.node;
-      log(node);
-      residueOutput.innerText = tryToStringify({
-        id: node.id,
-        value: node.value,
-        msgs: node.msgs,
-        residue: s.residue(node),
-        parent: node.parent ? node.parent.id : 'null',
-      });
-    } else {
-      animateAdd();
-    }
-})
-// s.nodes.forEach(renderNode); //if you want to render immediately.
-
-
-// Keep cloning the last child, asigning it a new position and color
-// To avoid a memory leak we remove the oldest child when we hit the limit
-function renderNode(node) {
-  const clone = cloneLast(scene);
-  const pos = nodePosition(node);
-  svg.scatter(clone, {...pos, text: node.id, fill: nodeColor(node), "data-node": node });
-  log(node, pos, clone);
-}
-
-function nodePosition(node) {
-  let x = 0;
-  while (node.parent && (node.branchIndex === node.parent.branchIndex)){
-    node = node.parent;
-    x += dx;
-  }
-  const y = dy * node.branchIndex;
-  return {x, y};
-};
-
-function nodeColor(node){
-  let color;
-  const v = node.value;
-  if (v.handlers){
-    color = colors.handlers;
-  } else if (v.handler){
-    color = colors[v.handler]
-  } else {
-    color = colors.msg;
-  }
-  return color;
-}
-
-// Clone the last element in the svg and add it to the svg
-function cloneLast(scene) {
-  const last = scene.lastElementChild;
-  const clone = last.cloneNode(true);
-  scene.appendChild(clone);
-  return clone;
-}
-
-```

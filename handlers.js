@@ -1,4 +1,4 @@
-import {assertEquals, tryToStringify} from "./core.js";
+import {assertEquals, tryToStringify, log} from "./core.js";
 
 const assertHandler = {
   name: 'assert',
@@ -30,7 +30,7 @@ const logHandler = {
     }
   },
   // install is a convenience property to help ensure a clean initialization of the containing core
-  install: function(output = console.log){
+  install: function(output = log){
     this.output = output;
     return {
       handlers: {log: this},
