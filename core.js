@@ -2,7 +2,7 @@ const now = () => Date.now() // e.g. 1678023832587
 const date = () => new Date().toISOString() // e.g. 2023-01-29T03:40:21.319Z
 const log = (...args) => {
   if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-    console.log(__filename, ...args);
+    console.log(...args);
   } else {
     console.log(window.location.pathname, ...args);
   }
@@ -10,14 +10,14 @@ const log = (...args) => {
 
 const debug = (...args) => {
   if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-    console.debug(__filename, ...args);
+    console.debug(...args);
   } else {
     console.debug(window.location.pathname, ...args);
   }
 }
 const info = (...args) => {
   if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-    console.info(__filename, ...args);
+    console.info(...args);
   } else {
     console.info(window.location.pathname, ...args);
   }
