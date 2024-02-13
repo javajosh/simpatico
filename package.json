@@ -1,7 +1,7 @@
 {
   "name": "simpatico",
   "homepage": "https://simpatico.io",
-  "version": "0.4",
+  "version": "0.3.6",
   "description": "building software, together",
   "main": "simpatico.js",
   "repository": "https://github.com/javajosh/simpatico.git",
@@ -13,14 +13,16 @@
   "license": "MIT",
   "private": false,
   "type": "module",
+  "scripts": {
+    "start": "node reflector.js",
+    "local": "node reflector.js \"{useCache:false, useGzip:true, useTls:true, debug:true, http:8080, https:8443, hostname:simpatico.local, cert:localhost.crt, key:localhost.key }\"",
+    "prod": "node reflector.js  \"{http:80, https:443, ws:8081, hostname:simpatico.io, cert:/etc/letsencrypt/live/simpatico.io/fullchain.pem, key:/etc/letsencrypt/live/simpatico.io/privkey.pem, useCache:true, useTls:true, useGzip:true, runAsUser:josh }\""
+  },
   "dependencies": {
-    "chance": "^1.1.11",
     "chokidar": "^3.5.3",
-    "dompurify": "^3.0.8",
     "mermaid": "^10.1.0",
     "qrcode": "github:soldair/node-qrcode",
     "rxjs": "npm:@esm-bundle/rxjs@^7.8.1",
-    "webcryptobox": "^4.0.0",
     "ws": "8.11.0"
   }
 }
