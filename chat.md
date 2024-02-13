@@ -32,21 +32,19 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
   </li>
 </ol>
 
-<!-- Idiosyncratic dependencies. -->
-<!-- npm install && cp ./node_modules/qrcode/build/qrcode.js . -->
-<script src="qrcode.js"></script>
-<!-- curl https://raw.githubusercontent.com/chancejs/chancejs/master/chance.js > chance.js -->
-<script src="chance.js"></script>
+<!-- global imports. TODO figure out how to use import syntax with these -->
+<script src="./node_modules/qrcode/build/qrcode.js"></script>
+<script src="./node_modules/chance/dist/chance.min.js"></script>
+<script src="./node_modules/dompurify/dist/purify.js"></script>
 <!--
   Sadly only Chrome supports setHTML(). We need DOMPurify as a polyfill
   See : https://developer.mozilla.org/en-US/docs/Web/API/Element/setHTML
-  curl https://raw.githubusercontent.com/cure53/DOMPurify/main/dist/purify.min.js > purify.min.js
 -->
-<script src="purify.min.js"></script>
+
 ```
 
 ```js
-  import * as wcb from './webcryptobox.js';
+  import * as wcb from './node_modules/webcryptobox/index.js';
 
   // Bind to UI elts
   const chatApp = document.getElementById('chat-app');

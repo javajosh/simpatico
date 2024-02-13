@@ -70,6 +70,11 @@
   "resolved" "https://registry.npmjs.org/camelcase/-/camelcase-5.3.1.tgz"
   "version" "5.3.1"
 
+"chance@^1.1.11":
+  "integrity" "sha512-kqTg3WWywappJPqtgrdvbA380VoXO2eu9VCV895JgbyHsaErXdyHK9LOZ911OvAk6L0obK7kDk9CGs8+oBawVA=="
+  "resolved" "https://registry.npmjs.org/chance/-/chance-1.1.11.tgz"
+  "version" "1.1.11"
+
 "chokidar@^3.5.3":
   "integrity" "sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw=="
   "resolved" "https://registry.npmjs.org/chokidar/-/chokidar-3.5.3.tgz"
@@ -426,6 +431,11 @@
   "resolved" "https://registry.npmjs.org/dijkstrajs/-/dijkstrajs-1.0.3.tgz"
   "version" "1.0.3"
 
+"dompurify@^3.0.8":
+  "integrity" "sha512-b7uwreMYL2eZhrSCRC4ahLTeZcPZxSmYfmcQGXGkXiZSNW1X85v+SDM5KsWcpivIiUBH47Ji7NtyUdpLeF5JZQ=="
+  "resolved" "https://registry.npmjs.org/dompurify/-/dompurify-3.0.8.tgz"
+  "version" "3.0.8"
+
 "dompurify@2.4.5":
   "integrity" "sha512-jggCCd+8Iqp4Tsz0nIvpcb22InKEBrGz5dw3EQJMs8HPJDsKbFIO3STYtAvCfDx26Muevn1MHVI0XxjgFfmiSA=="
   "resolved" "https://registry.npmjs.org/dompurify/-/dompurify-2.4.5.tgz"
@@ -769,6 +779,11 @@
   "integrity" "sha512-PgF341avzqyx60neE9DD+XS26MMNMoUQRz9NOZwW32nPQrF6p77f1htcnjBSEV8BGMKZ16choqUG4hyI0Hx7mA=="
   "resolved" "https://registry.npmjs.org/web-worker/-/web-worker-1.2.0.tgz"
   "version" "1.2.0"
+
+"webcryptobox@^4.0.0":
+  "integrity" "sha512-XnFfVQsZiQYFCzgF3QVfQFrCInZcCcbJHfzY8wAIatqbnHOSOLGsczV1w+z/ZLwQhsl9EWeow5znTYN7Fx+AcQ=="
+  "resolved" "https://registry.npmjs.org/webcryptobox/-/webcryptobox-4.0.0.tgz"
+  "version" "4.0.0"
 
 "which-module@^2.0.0":
   "integrity" "sha512-iBdZ57RDvnOR9AGBhML2vFZf7h8vmBjhoaZqODJBFWHVtKkDmKuHai3cx5PgVMrX5YDNp27AofYbAwctSS+vhQ=="
