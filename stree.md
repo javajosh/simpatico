@@ -76,8 +76,11 @@ const colors = {
 }
 // display key
 colorKey.innerHTML = Object.entries(colors).map(([key, color]) =>
-  `<span style="padding: 3px;color: black; background-color: ${color}">${key}</span> `)
+  `<span style="padding: 3px;color: black; border-radius:10px;background-color: ${color}">${key}</span> `)
   .reduce((a, b) => a + b, '');
+
+// close the demo code to not confuse readers
+document.querySelectorAll('details:nth-of-type(1), details:nth-of-type(2)').forEach(detail => detail.removeAttribute('open'));
 
 // build the stree
 const s = stree(arithmeticOps);
@@ -164,11 +167,8 @@ function cloneLast(scene) {
   return clone;
 }
 
+
 ```
-<script>
-// close the demo code to not confuse readers
-document.querySelectorAll('details:nth-of-type(1), details:nth-of-type(2)').forEach(detail => detail.removeAttribute('open'));
-</script>
 
 # Step 1: An N-ary tree with residue-per-node
 Start with a basic n-ary tree.
