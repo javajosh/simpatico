@@ -28,6 +28,9 @@ const isIframe = window.parent !== null;
 const favicon = document.getElementById('favicon');
 if (!favicon) throw 'testable.js requires a #favicon element in the document';
 
+const log = (...args) => console.log(window.location.pathname, ...args);
+
+
 const svgIcon = fill => `data:image/svg+xml,
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
       <rect width='1' height='1' fill='${fill}' />
@@ -48,7 +51,7 @@ window.addEventListener('load', () => {
   // If the entire page loads without triggering a fail, the tests succeeded!
   if (!fail){
     favicon.href = svgIcon(colors.success);
-    console.log('Tests succeeded!');
+    log('Tests succeeded!');
     if (isIframe) {
       window.parent.dispatchEvent(new CustomEvent('test-success'));
     }
@@ -70,7 +73,7 @@ window.addEventListener('error', () => {
 window.addEventListener('keyup', ({key}) => {
   if (key === ' ') {
     window.stop();
-    console.log('Refresh stopped!');
+    log('Refresh stopped!');
     favicon.href = svgIcon(colors.neutral);
     document.body.classList.remove('error-background');
   }
