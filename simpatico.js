@@ -4,3 +4,4 @@ export {stree} from './stree.js';
 export {validate} from './friendly.js';
 export * as svg from './svg.js';
 export * as crypto from './crypto.js';
+export {renderStree} from './stree-visualization.js'

@@ -25,15 +25,11 @@ Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data a
 ```
 ```js
 import {arithmeticOps} from "./stree-examples.js";
-import {fromArray} from './stree.js';
-import {render} from './stree-visualization.js';
-import * as svg from './svg.js';
+import {stree, renderStree, svg} from './simpatico.js';
 
 const arithParent = svg.elt('arithmetic-render');
-log(arithParent);
-
-const s = fromArray(arithmeticOps, (a,b) => a + b);
-render(s, arithParent);
+const s = stree(arithmeticOps);
+renderStree(s, arithParent);
 ```
 
 # Step 1: An N-ary tree with residue-per-node
@@ -81,7 +77,7 @@ function nodePath(node){
  */
 function residue(node, reduce){
   // reduceRight effectively reverses the nodePath to start at root and end at the node
-  return nodePath(node).map(node => node.value).reduceRight(reduce);
+  return nodePath(node).map(node => node.value).reduce(reduce, root.value);
 }
 
 //test over some integers
@@ -664,21 +660,26 @@ stree3(ops);
 
 ```html
 <div id="trie-render"></div>
+```
+```js
+import {trieOps} from "./stree-examples.js";
+import {stree, renderStree, svg} from './simpatico.js';
+
+const trieParent = svg.elt('trie-render');
+const s = stree(trieOps, (a,b)=> ({a: a.a + b.a}));
+renderStree(s, trieParent);
+
+
+```
+```html
 <div id="obj-render"></div>
 ```
 ```js
-import {trieOps, objOps} from "./stree-examples.js";
-import {fromArray} from './stree.js';
-import {render} from './stree-visualization.js';
-import * as svg from './svg.js';
+import {objOps} from "./stree-examples.js";
+import {stree, renderStree, svg} from './simpatico.js';
 
-const trieParent = svg.elt('trie-render');
 const objParent = svg.elt('obj-render');
+const s = stree(objOps);
+renderStree(s, objParent);
 
-const s1 = fromArray(trieOps, (a,b) => a + b);
-log('trieOps', s1.nodes);
-render(s1, trieParent);
-
-const s2 = fromArray(objOps);
-log(s2.nodes);
 ```

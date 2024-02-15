@@ -1,19 +1,21 @@
 import {assertHandler, logHandler} from "/handlers.js";
 
+// it would be nice to support non-object values in stree, however this conflicts with both fromArray and other things.
 const trieOps = [
-  'he',
-  0, 'y',
-  0, 're',
-  2, 'tic',
-  0, 'rmit',
-];
+  'he', '',
+  0, 'y', '',
+  0, 're', '',
+  4, 'tic', '',
+  0, 'rmit', '',
+].map(a => (typeof a === 'number') ? a : {a});
 
 const objOps = [
   {name: '', age: 0},
   {name: 'alice', age: 20},
   0, {name: 'bob', age: 30},
   0, {name: 'charlie', age: 40},
-  1, {notes: 'alice is great'}
+  1, {notes: 'alice is great'},
+  3, {notes: 'bob is also pretty great'},
 ];
 
 // Here's a more usual set of handlers

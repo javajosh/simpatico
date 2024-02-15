@@ -47,7 +47,7 @@ const classes1 = {
   colorKey: 'color-key',
 };
 
-const render = (
+const renderStree = (
   s,
   parent,
   classes = classes1,
@@ -63,7 +63,10 @@ const render = (
   const scene = svg.elt(classes.svg, parent);
   const residueOutput = svg.elt(classes.inspector, parent);
   const colorKey = svg.elt(classes.colorKey, parent);
-  log('elts', scene, residueOutput, colorKey);
+
+  // Hide the visualization code TODO: this only closes the first two details in the document; we want to close the two details that follow the "scene" element.
+  parent.parentElement.querySelectorAll('details:nth-of-type(1), details:nth-of-type(2)').forEach(detail => detail.removeAttribute('open'));
+
 
   // Config
   const DEBUG = true;
@@ -165,4 +168,4 @@ const render = (
   }
 }
 
-export {render}
+export {renderStree}

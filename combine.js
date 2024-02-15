@@ -22,6 +22,10 @@ class HandlerError extends Error {
   }
 }
 
+/**
+ * An interesting idea to get insight into the message cascade, however this fails if calls to combine are interleaved since module scoped values are shared.
+ * @type {*[]}
+ */
 let msgs = [];
 function getMessages(){
   const result = [...msgs];
