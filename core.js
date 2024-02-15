@@ -182,7 +182,7 @@ const size = (a) => {
 
 // Cast a string into another type - only string, number and boolean supported, currently.
 // Mainly supports the case when JS returns NaN when parsing a string
-const cast = (type, str) => {
+const cast = (str, type=inferType(str)) => {
   const {STR,NUM,BOOL} = TYPES;
   assert(getType(str) === 'string', `string cast value required; called with [${getType(str)}]`);
 
@@ -191,7 +191,7 @@ const cast = (type, str) => {
       return str;
     case NUM:
       const result = 1 * str;
-      if (Number.isNaN(result)) throw new Error(`Cannot convert ${str} into a number`);
+      if (isNaN(result)) throw new Error(`Cannot convert ${str} into a number`);
       return result;
     case BOOL:
       return (str === 'true');
@@ -206,7 +206,8 @@ const cast = (type, str) => {
 const is = mapObject(TYPES, ([k, v]) =>
   [k.toLowerCase(), a => getType(a) === v]
 )
-is.int = (a) => is.num(a) && (Math.floor(a) === a)
+is.int = (a) => is.num(a) && (Math.floor(a) === a);
+is.scalar = (a) => !is.arr(a) && !is.obj(a);
 is.exists = exists;
 is.between = (lo, hi, a) =>
   size(lo) <= size(hi) &&
@@ -218,11 +219,9 @@ is.f = () => false
 // Arrays
 is.all = arr => as.arr(arr) && arr.reduce(and, true)
 is.any = arr => as.arr(arr) && arr.reduce(or, false)
+is.hasProp = hasProp
 
 
-
-// It would be nice if this was expressible as arr.reduce(equals, true), but I couldn't get it to work.
-// Also, this code is probably a lot more performant.
 is.same = (arr) => {
   as.arr(arr);
   let prev = arr[0], curr;
@@ -239,12 +238,17 @@ is.includes = is.contains;
 is.excludes = (arr, a) => !is.contains(arr, a);
 is.arrEquals = arrEquals;
 is.equals = equals;
+is.notEquals = (a,b) => !equals(a,b);
 
-// This is awkward because we have to guess the cardinality of the predicate.
-// Another reason why the more straight-forward form is probably better.
-const as = mapObject(is,([k,v]) =>
-  [k, (a, b, c, d) => assert(v(a,b,c), d)]
-);
+
+const as = mapObject(is,([key, predFn]) => [key, (...args) => {
+  if (args.length === predFn.length + 1){
+    assert(predFn(args.slice(0, -1)), peek(args))
+  } else {
+    assert(predFn(...args))
+  }
+  return true;
+}]);
 
 // ====================================
 // Math stuff
@@ -304,7 +308,7 @@ const parseObjectLiteralString = arg => {
   // Please note that this implementation assumes that there are no colons, commas, or curly braces within the unquoted values.
   const quoted = arg.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:(['"])?([a-zA-Z0-9\\.\/]+)(['"])?/g, '"$2":"$5"');
   const untyped = JSON.parse(quoted);
-  return mapObject(untyped, ([k,v])=>([k, cast(inferType(v),v)]));
+  return mapObject(untyped, ([k,v])=>([k, cast(v)]));
 }
 
 const regex ={

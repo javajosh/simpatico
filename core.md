@@ -14,9 +14,9 @@ A handful of comprehensive helper functions to make working with ES6 more functi
 ## Assertions
 
 ```js
+import {cast, TYPES} from './core.js';
+
 //   Uncomment to test and make sure it actually fails.
-//   c.error('this is an error ')
-//   assert(false, 'testing assertion failure');
 //   assertThrows(1)
 //   assertThrows(()=>{}, 'testing assertion failure');
 
@@ -24,53 +24,57 @@ assertEquals({a: 1, b: [2, 3]}, {a: 1, b: [2, 3]})
 assertEquals({b:[{a:1},{b:2}], a:1},{a:1, b:[{a:1},{b:2}]});
 
 // Some negative testing.
-assertThrows(() => num('1'))
-assertThrows(() => bool('1'))
-assertThrows(() => obj([]))
-assertThrows(() => between(0, 10, 11))
-// assertThrows(()=>same([false, true]))
-assertThrows(() => same([1, 1, 2]))
-assertThrows(() => all([true, false]))
-assertThrows(() => num(cast(TYPES.NUM, 'a')))
+assertThrows(() => {throw ''})
+assertThrows(() => {c.error('this is an error ')})
+assertThrows(() => {assert(false, 'testing assertion failure')})
+assertThrows(() => as.num('1'))
+assertThrows(() => as.bool('1'))
+assertThrows(() => as.obj([]))
+assertThrows(() => as.between(0, 10, 11))
+assertThrows(() => as.between(10, 10, 11))
+assertThrows(()=>  as.same([false, true]))
+assertThrows(() => as.same([1, 1, 2]))
+assertThrows(() => as.all([true, false]))
+assertThrows(() => as.num(c.cast('a', TYPES.NUM)))
 assertThrows(() => assertEquals({a: 1, b: [2, 3]}, {a: 1, b: [2, 3, false]}))
 ```
 
 ## Object Functions
 
 ```js
-  const a = {a: 1}, b = {b: 2}
-  assertThrows(() => {
-    throw ''
-  })
+  const a = {a: 1};
+  const b = {b: 2};
 
+  is.hasProp(a, 'a');
+  as.hasProp(a, 'a');
   assert(c.hasProp(a, 'a'))
   assert(!c.hasProp(a, 'b'))
 
-  //assertEquals(c.getProp(a, 'a'), 2) // useful negative to fix up message
-  assertEquals(c.getProp(a, 'a'), 1)
-  assertEquals(c.getProp(a, 'b', 3), 3)
+  as.equals(c.getProp(a, 'a'), 1)
+  // test the default behavior of getProp
+  as.equals(c.getProp(a, 'b', 3), 3)
 
   const d = c.mapObject(a, ([k, v]) => [k, v + 5])
-  assert(c.hasProp(d, 'a'))
-  assertEquals(d['a'], 6)
+  as.hasProp(d, 'a')
+  as.equals(d['a'], 6)
 ```
 
 ## Equals
 
 ```js
   const a = {a: 1}, b = {b: 2}
-  assert(c.equals(1, 1))
-  assert(!c.equals(1, 2))
-  assert(!c.equals(a, b))
-  assert(c.equals(a, {a: 1}))
-  assert(!c.equals(a, {a: 1, b: 2}))
+  as.equals(1, 1)
+  as.notEquals(1, 2)
+  as.notEquals(a, b)
+  as.equals(a, {a: 1})
+  as.notEquals(a, {a: 1, b: 2})
 
   const arr0 = [], arr1 = [1, 3, 5], arr2 = [1, 3, 5], arr3 = [1, 3], arr4 = [1, 3, 5, 'a']
-  assert(c.equals(arr1, arr2))
-  assert(!c.equals(arr0, arr1))
-  assert(!c.equals(arr1, arr3))
-  assert(!c.equals(arr1, arr4))
-  assert(!c.equals(arr0, arr4))
+  as.equals(arr1, arr2)
+  as.notEquals(arr0, arr1)
+  as.notEquals(arr1, arr3)
+  as.notEquals(arr1, arr4)
+  as.notEquals(arr0, arr4)
 ```
 ## Booleans
 ```js
@@ -92,14 +96,14 @@ Functional, non-mutating versions of the built in array functions.
 
 ```js
   const arr0 = [], arr1 = [1, 3, 5], arr2 = [1, 3, 5], arr3 = [1, 3], arr4 = [1, 3, 5, 'a']
-  assertEquals(c.peek(arr1), 5)
-  assertEquals(c.peek(arr0), null)
-  assertEquals(c.peek(arr0, 0), 0)
+  as.equals(c.peek(arr1), 5)
+  as.equals(c.peek(arr0), null)
+  as.equals(c.peek(arr0, 0), 0)
 
 
   const arr5 = c.push(arr1, 3)
-  assert(c.equals([1, 3, 5, 3], arr1))
-  assert(c.equals(arr5, arr1))
+  as.equals([1, 3, 5, 3], arr1)
+  as.equals(arr5, arr1)
 ```
 ## Types
 
@@ -107,10 +111,10 @@ Functional, non-mutating versions of the built in array functions.
   assertEquals(c.getType(1), c.TYPES.NUM)
   assertEquals(c.getType([]), c.TYPES.ARR)
   assertEquals(c.getType({}), c.TYPES.OBJ)
+
   // Simpatico specific duck-typing
   assertEquals(c.getType({
-    handle: () => {
-    }
+    handle: () => {}
   }), c.TYPES.HANDLER)
   assertEquals(c.getType({handler: ''}), c.TYPES.MSG)
 
@@ -147,8 +151,8 @@ Functional, non-mutating versions of the built in array functions.
   as.equals([], [])
   as.contains([1, 3, 4], 3)
   as.excludes([1, 3, 4], 5)
-  as.bool(c.cast('boolean', 'false'))
-  as.num(c.cast('number', "1234"))
+  as.bool(c.cast('false'))
+  as.num(c.cast('1234'))
   as.all([1, 1, 1])
   as.all(['a','a','a'])
   as.same([true, true])
