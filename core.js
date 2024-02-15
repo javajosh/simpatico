@@ -209,32 +209,20 @@ const is = mapObject(TYPES, ([k, v]) =>
 is.int = (a) => is.num(a) && (Math.floor(a) === a);
 is.scalar = (a) => !is.arr(a) && !is.obj(a);
 is.exists = exists;
+// between checks a range inclusively, that is, [lo, hi] not [lo, hi) which may be more typical
 is.between = (lo, hi, a) =>
   size(lo) <= size(hi) &&
   size(lo) <= size(a) &&
   size(hi) >= size(a);
-
 is.t = () => true
 is.f = () => false
 // Arrays
 is.all = arr => as.arr(arr) && arr.reduce(and, true)
 is.any = arr => as.arr(arr) && arr.reduce(or, false)
 is.hasProp = hasProp
-
-
-is.same = (arr) => {
-  as.arr(arr);
-  let prev = arr[0], curr;
-  for(let i = 1; i < arr.length; i++){
-    curr = arr[i];
-    if (!equals(curr, prev)){
-      return false;
-    }
-  }
-  return true;
-}
 is.contains = (arr, a) => as.arr(arr) && arr.includes(a);
 is.includes = is.contains;
+is.same = (arr) => as.arr(arr) && arr.every(a => equals(a, arr[0]));
 is.excludes = (arr, a) => !is.contains(arr, a);
 is.arrEquals = arrEquals;
 is.equals = equals;
@@ -249,6 +237,13 @@ const as = mapObject(is,([key, predFn]) => [key, (...args) => {
   }
   return true;
 }]);
+
+// Override some assertions for better messages.
+as.equals = (a,b) => {
+  if (is.equals(a,b)) return true;
+  else throw `expected ${a} but got ${b}`;
+}
+
 
 // ====================================
 // Math stuff
