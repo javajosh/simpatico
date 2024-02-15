@@ -40,7 +40,8 @@ if (config.runAsUser) dropProcessPrivs(config.runAsUser);
 // Reflector booted! Print out welcome message.
 const url = `https://${config.hostname}:${config.https}`;
 info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[user-agent]] [req.url] (? => [normalized url)");
-info(`Initialization complete. Open ${url}/working.md`);
+info(`Initialization complete. Open ${url}/${findRecentFile()} or ${url}/acceptance)}`);
+
 if (process.send) process.send(config);
 
 // ================================================================
@@ -495,6 +496,25 @@ function isCompressedImage(fileName) {
     delete cache[path];
     log(`cache invalidated "delete" ${path}`);
   });
+}
+
+function findRecentFile(directoryPath=process.cwd()) {
+  let mostRecentFile = '';
+  let lastModifiedTime = 0;
+  const allowedExtensions = ['.md', '.html'];
+
+  fs.readdirSync(directoryPath).forEach((file) => {
+    if (!allowedExtensions.includes(path.extname(file))) {
+      return;
+    }
+    const filePath = `${directoryPath}/${file}`;
+    const stats = fs.statSync(filePath);
+    if (stats.mtimeMs > lastModifiedTime) {
+      lastModifiedTime = stats.mtimeMs;
+      mostRecentFile = file;
+    }
+  });
+  return mostRecentFile;
 }
 
 const connections = stree({});
