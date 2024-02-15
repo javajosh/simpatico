@@ -214,7 +214,7 @@ import {assertHandler, logHandler} from "/handlers.js";
 
 const logHandlerDemo = {
   name: 'log',
-  install: function (outputFunction = console.log) {
+  install: function (outputFunction = log) {
     this.outputFunction = outputFunction;
     return {
       handlers: {log: this},
