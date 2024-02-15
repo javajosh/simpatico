@@ -488,12 +488,12 @@ function isCompressedImage(fileName) {
   }).on('change', fileName => {
     const path = process.cwd() + '/' + fileName;
     delete cache[path];
-    log(`cache invalidated "change" ${path}`);
+    log(`cache invalidated "change" ${url}/${fileName}`);
   })
   .on('unlink', fileName => {
     const path = process.cwd() + '/' + fileName;
     delete cache[path];
-    log(`cache invalidated "unlink" ${path}`);
+    log(`cache invalidated "delete" ${path}`);
   });
 }
 
