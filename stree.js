@@ -9,14 +9,6 @@ import {combineReducer, getMessages} from "./combine.js";
  * @returns {[]|string|*}
  */
 function stree(value = {}, reducer = combineReducer) {
-  // handle special values, array and string, for deserialization initialization
-  if (Array.isArray(value)) {
-    return fromArray(value, reducer);
-  }
-  if (typeof value === 'string'){
-    return fromString(value, reducer);
-  }
-
   const root = {value, parent: null, residue: value, branchIndex: 0, id: 0};
   const branches = [root];
   const nodes = [root];
@@ -55,9 +47,9 @@ function stree(value = {}, reducer = combineReducer) {
         branches.push(node);
       }
       lastNode = node;
-      nodes.push(node);
       node.id = nodes.length;
       node.msgs = getMessages();
+      nodes.push(node);
       return node;
     }
 
@@ -86,13 +78,12 @@ function stree(value = {}, reducer = combineReducer) {
     if (typeof node === 'number'){
       node = nodes[node];
     }
-    return node.residue ? node.residue : nodePath(node).map(n => n.value).reduce(reducer, value);
+    return node.residue ? node.residue : nodePath(node).map(n => n.value).reduce(reducer);
   }
 
   function residues() {
     return branches.map(a => a.residue);
   }
-
   /**
    * Return a representation of the n-ary tree as [{}, {}, 0, {}, {}].
    * The objects are values, and the integers parent node indexes.
@@ -109,39 +100,13 @@ function stree(value = {}, reducer = combineReducer) {
     for (let i = 1; i < nodes.length; i++) {
       currNode = nodes[i];
       if (currNode.parent !== prevNode){
-        arr.push(nodes.indexOf(currNode.parent))
+        arr.push(currNode.parent.id)
       }
       arr.push(currNode.value);
       prevNode = currNode;
     }
     return arr;
   }
-
-  /**
-   * Produce an stree from the given array.
-   * The inverse of toArray().
-   * private
-   *
-   * @param arr where number types are treated as parent node index.
-   * @param reducer
-   * @returns a new stree
-   */
-  function fromArray(arr, reducer) {
-    const s = stree(arr[0], reducer);
-    let value, parent;
-    for (let i = 1; i < arr.length; i++) {
-      value = arr[i];
-      if (typeof value === 'number'){
-        parent = (value > 0) ? s.nodes[value] : s.branches[-value];
-        value = arr[++i]; // note the index skip
-        s.add(value, parent);
-      } else {
-        s.add(value);
-      }
-    }
-    return s;
-  }
-
   /**
    * Compute a string representation of the stree, including function bodies as strings
    * inverse is fromString().
@@ -152,20 +117,46 @@ function stree(value = {}, reducer = combineReducer) {
     return stringifyWithFunctions(toArray());
   }
 
-  /**
-   * Reconstitute the stree from a string representation.
-   * inverse is toString().
-   * private.
-   *
-   * @param str
-   * @param reducer
-   * @returns stree
-   */
-  function fromString(str, reducer){
-    return fromArray(parseWithFunctions(str), reducer);
-  }
 
   return {add, nodePath, residue, residues, toArray, toString, branches, nodes, root};
 }
 
-export {stree}
+/**
+ * Produce an stree from the given array.
+ * The inverse of toArray().
+ * private
+ *
+ * @param arr where number types are treated as parent node index.
+ * @param reducer
+ * @returns a new stree
+ */
+function fromArray(arr, reducer) {
+  const s = stree(arr[0], reducer);
+  let value, parent;
+  for (let i = 1; i < arr.length; i++) {
+    value = arr[i];
+    if (typeof value === 'number'){
+      parent = (value >= 0) ? s.nodes[value] : s.branches[-value];
+      value = arr[++i]; // note the index skip
+      s.add(value, parent);
+    } else {
+      s.add(value);
+    }
+  }
+  return s;
+}
+
+/**
+ * Reconstitute the stree from a string representation.
+ * inverse is toString().
+ * private.
+ *
+ * @param str
+ * @param reducer
+ * @returns stree
+ */
+function fromString(str, reducer){
+  return fromArray(parseWithFunctions(str), reducer);
+}
+
+export {stree, fromArray, fromString}

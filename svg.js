@@ -206,7 +206,14 @@ const isPointInPoly = (poly, point) => {
 const xpath = (strExpr, doc=d) => doc.evaluate(strExpr, doc, null, XPathResult.ANY_TYPE, null);
 
 const $ = document.querySelectorAll.bind(document);
-const elt = id => document.getElementById(id);
+const elt = (idOrClass, parent) => {
+  if (parent){
+    return parent.getElementsByClassName(idOrClass)[0];
+  } else {
+    return document.getElementById(idOrClass);
+  }
+
+}
 
 let lastClockId = 0;
 /**
