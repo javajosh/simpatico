@@ -137,7 +137,47 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
     conn.send(msg);
     return conn;
   }
+  // close the demo code to not confuse readers
+  document.querySelectorAll('details:nth-of-type(1), details:nth-of-type(2)').forEach(detail => detail.removeAttribute('open'));
 ```
+
+# Address Book
+Your address book is where you store your Simpatico contacts.
+It is initialized with an entry for yourself.
+That entry can generate an invite.
+You add a contact with an invitation link which they accept by accessing it.
+You can add arbitrary values to the contact, such as name, notes, birthday, or whatever else is useful to you.
+Once you have a set of active contacts, you can select them and message them individually.
+If they are online, the message is sent immediately.
+If they are offline, the message can be queued for later sending.
+
+## Data sketch
+```js
+// modelled as an stree, the address book reserves the first row for yourself
+const me = {
+  address: "Hx464RfvNMOrrdVskMPwjzuXj8vY5/yMHmXTRPZ1YLk=",
+}
+// subsequent rows are created with an one-time invite
+const invited = {
+  link: 'https://simpatico.local:8443/chat.md#Hx464RfvNMOrrdVskMPwjzuXj8vY5/yMHmXTRPZ1YLk=,s3cret',
+  secret: 's3cret',
+  timestamp: 1707867458787,
+  expires: 1707867459787,
+  via: 'qrcode', //optional field indicating how you got the link to them, qrcode, sms, signal, email, etc.
+  info: {}, //optional fields like name, context of meeting, etc can go here.
+}
+
+// contacts become accepted when they successfully send you a message that encrypts the secret with their private key and your public key
+// note that anyone can send you a message if they have your address, but the message is dropped if not valid.
+// this means that a single message must be matched against all pending invites.
+// alternatively, we can do this work in the server to avoid extra client work, at the cost of reducing the flexibility of the client.
+const accepted = {
+  address: "fXHkT7u25M0aBCTvExF83uEjWt+QoECF0COV5UxTHHs="
+}
+```
+
+
+
 
 # UI options
 Note about UI: I've not yet implemented a UI for this.
