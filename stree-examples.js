@@ -15,7 +15,7 @@ const objOps = [
   0, {name: 'bob', age: 30},
   0, {name: 'charlie', age: 40},
   1, {notes: 'alice is great'},
-  3, {notes: 'bob is also pretty great'},
+  2, {notes: 'bob is also pretty great'},
 ];
 
 // Here's a more usual set of handlers
