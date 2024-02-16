@@ -11,7 +11,6 @@ const html1 = (svgClass='visualize-stree', inspectorClass ='residue-inspector', 
   <g  transform="translate(30,0)">
     <rect width ="10" height = "10" fill="white"/>
     <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
-
       <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
         <h3 style="color:black">Inspector</h3>
         <code><pre class="${inspectorClass}">
@@ -25,8 +24,8 @@ To restart the animation, click outside a node.
   </g>
 
   <g>
-    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC"/>
-    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
+    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC" />
+    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" style="pointer-events: none;">0</text>
   </g>
 
 </svg>
@@ -39,6 +38,8 @@ const colors1 = {
   inc: "Orchid",
   dec: "MediumPurple",
   mul: "BlueViolet",
+  invite: "BlueViolet",
+  acceptInvite: "MediumPurple",
   msg: "MediumSeaGreen",
 };
 
@@ -81,8 +82,6 @@ const renderStree = (
     if (sibling.tagName.toLowerCase() === 'details' && count--) sibling.removeAttribute('open'); //hide 2 details tags
   })
 
-
-
   // Config
   const DEBUG = true;
   const W = 40, H = 10;
@@ -95,7 +94,6 @@ const renderStree = (
 
   // begin node render, either fast or slow
   if (animate) animateAdd(); else fastAdd();
-
 
   // add click handler that displays residue or rerenders
   scene.addEventListener('click', (e) => {
