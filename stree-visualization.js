@@ -25,7 +25,7 @@ To restart the animation, click outside a node.
 
   <g>
     <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC"/>
-    <text x=".492" y=".525" alignment-baseline="middle" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
+    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5">0</text>
   </g>
 
 </svg>
