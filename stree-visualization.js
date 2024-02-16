@@ -5,7 +5,8 @@ const html1 = (svgClass='visualize-stree', inspectorClass ='residue-inspector', 
 <svg class="${svgClass}"
   viewBox="0 0 40 10"
   width="800px" height="200px"
-  style="border: 1px solid gray"
+  style="border: 1px solid gray; pointer-events: visible;"
+
 >
   <g  transform="translate(30,0)">
     <rect width ="10" height = "10" fill="white"/>
@@ -47,12 +48,21 @@ const classes1 = {
   colorKey: 'color-key',
 };
 
+/**
+ *
+ * @param s - the stree to render
+ * @param parent - the parent DOM elt; this will replace innerHTML
+ * @param animate - true if we animate, false if we add all at once
+ * @param colors - the colors used to fill nodes - todo we need to make this more dynamic
+ * @param classes - object that defines class names used in the HTML, svg, inspector and colorKey
+ * @param html - a function that returns custom html
+ */
 const renderStree = (
   s,
   parent,
-  classes = classes1,
-  colors = colors1,
   animate = true,
+  colors = colors1,
+  classes = classes1,
   html = html1,
 ) => {
 
