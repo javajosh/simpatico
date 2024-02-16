@@ -64,8 +64,13 @@ const renderStree = (
   const residueOutput = svg.elt(classes.inspector, parent);
   const colorKey = svg.elt(classes.colorKey, parent);
 
-  // Hide the visualization code TODO: this only closes the first two details in the document; we want to close the two details that follow the "scene" element.
-  parent.parentElement.querySelectorAll('details:nth-of-type(1), details:nth-of-type(2)').forEach(detail => detail.removeAttribute('open'));
+  // Hide the visualization code - the two details after the parent elt. sadly I could not find a good way to do this with selectors
+  let count = 0;
+  Array.from(parent.parentElement.children).forEach(sibling => {
+    if (sibling === parent) count = 2; // should only happen once
+    if (sibling.tagName.toLowerCase() === 'details' && count--) sibling.removeAttribute('open'); //hide 2 details tags
+  })
+
 
 
   // Config
@@ -92,7 +97,6 @@ const renderStree = (
       residueOutput.innerText = tryToStringify({
         id: node.id,
         value: node.value,
-        msgs: node.msgs,
         residue,
         parent: node.parent ? node.parent.id : 'null',
       });
