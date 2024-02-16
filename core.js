@@ -41,6 +41,7 @@ const assertThrows = async fn => {
 const tryToStringify = obj => {
   const seen = new WeakSet();
   const detectCircular = (key, value) => {
+    if (is.sym(value)) return value.toString();
     if (value !== null && typeof value === 'object') {
       if (seen.has(value)) return '<Circular>';
       seen.add(value);
@@ -113,6 +114,7 @@ const TYPES = {
   BOOL: "boolean",
   FUN: "function",
   OBJ: "object",
+  SYM: "symbol",
 
   // Useful but synthetic built in types
   ARR: "array",
@@ -160,7 +162,7 @@ const inferType = (str) => {
 
 const size = (a) => {
   const t = getType(a);
-  const {UNDEF,NUL,NUM,STR,FUN,OBJ,ARR,ELT,HANDLER,MSG} = TYPES;
+  const {UNDEF,NUL,NUM,STR,FUN,OBJ,ARR,ELT,HANDLER,MSG,SYM} = TYPES;
   switch (t){
     case NUM:
       return a;
@@ -176,6 +178,7 @@ const size = (a) => {
     case UNDEF:
     case NUL:
     case ELT:
+    case SYM:
       return 0;
   }
 };
@@ -206,6 +209,7 @@ const cast = (str, type=inferType(str)) => {
 const is = mapObject(TYPES, ([k, v]) =>
   [k.toLowerCase(), a => getType(a) === v]
 )
+is.fun = (a) => (a instanceof Function) || (typeof a == 'function')
 is.int = (a) => is.num(a) && (Math.floor(a) === a);
 is.scalar = (a) => !is.arr(a) && !is.obj(a);
 is.exists = exists;
@@ -331,12 +335,15 @@ const safeSetItem = (key, value, ls=window.localStorage) => {
 function stringifyWithFunctions(obj) {
   return JSON.stringify(obj, function (key, value) {
     let fnBody;
-    if (value instanceof Function || typeof value == 'function') {
+    if (is.fun(value)) {
       fnBody = value.toString();
       if (fnBody.length < 8 || fnBody.substring(0, 8) !== 'function') { //this is ES6 Arrow Function
         return '_ArrowF_' + fnBody;
       }
       return fnBody;
+    }
+    if (is.sym(value)){
+      return '_Symbol_' + Symbol.keyFor(value);
     }
     return value;
   });
@@ -356,6 +363,9 @@ function parseWithFunctions(str) {
     }
     if (prefix === '_ArrowF_') {
       return eval(value.slice(8));
+    }
+    if (prefix === '_Symbol_') {
+      return Symbol.for(value.slice(8));
     }
     return value;
   });

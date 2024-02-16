@@ -1,6 +1,8 @@
 import {assertHandler, logHandler} from "/handlers.js";
+import {DELETE} from './combine.js';
 
 // it would be nice to support non-object values in stree, however this conflicts with both fromArray and other things.
+// the trailing empty strings allow branching off the last node, ensuring a new row per word.
 const trieOps = [
   'he', '',
   0, 'y', '',
@@ -16,6 +18,8 @@ const objOps = [
   0, {name: 'charlie', age: 40},
   1, {notes: 'alice is great'},
   2, {notes: 'bob is also pretty great'},
+  5, {notes: DELETE},
+  3, {notes: 'charlie is so so'},
 ];
 
 // Here's a more usual set of handlers

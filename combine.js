@@ -9,10 +9,13 @@ const tryToStringify = obj => {
   });
 };
 
+const DELETE = Symbol.for('DeleteProperty');
+
 const isObj =     a => typeof a === 'object' && !Array.isArray(a);
-const isCore =    a => typeof a === 'object' && a.hasOwnProperty('handlers') && typeof a['handlers'] === 'object';
-const isHandler = a => typeof a === 'object' && a.hasOwnProperty('handle')   && typeof a['handle'  ] === 'function';
-const isMsg =     a => typeof a === 'object' && a.hasOwnProperty('handler')  && typeof a['handler' ] === 'string';
+const isCore =    a => typeof a === 'object' && typeof a['handlers'] === 'object';
+const isHandler = a => typeof a === 'object' && typeof a['handle'  ] === 'function';
+const isMsg =     a => typeof a === 'object' && typeof a['handler' ] === 'string';
+const isDelete =  a =>  a === DELETE;
 
 class HandlerError extends Error {
   constructor(handlerResult) {
@@ -22,16 +25,6 @@ class HandlerError extends Error {
   }
 }
 
-/**
- * An interesting idea to get insight into the message cascade, however this fails if calls to combine are interleaved since module scoped values are shared.
- * @type {*[]}
- */
-let msgs = [];
-function getMessages(){
-  const result = [...msgs];
-  msgs = [];
-  return result;
-}
 
 /**
  * Combines two values, a and b, based on their types and properties.
@@ -57,9 +50,8 @@ function combine(a, b, rules = () => {}) {
   const tb = typeof b;
   let error;
 
-
   if (ta === 'undefined' || a === null) return b; // 'something is better than nothing'
-  if (tb === 'undefined') return a;               // 'avoid special cases and let nothing compose as a noop'
+  if (tb === 'undefined') return a;               // do nothing if b is undefined; see object combination where undefined property is 'delete'
   if (b === null) {                               // 'use null as a signal to set a type-dependent zero
     if (Array.isArray(a)) return [];
     if (ta === 'object')  return {};
@@ -79,7 +71,6 @@ function combine(a, b, rules = () => {}) {
     return [...a, b];
   }
 
-
   if (isCore(a) && isMsg(b)){
     if (!isHandler(a.handlers[b.handler])) {
       throw new Error(`Unable to find valid handler ${b.handler} in core ${tryToStringify(a)}`);
@@ -87,37 +78,33 @@ function combine(a, b, rules = () => {}) {
     // invoke the handler
     let result = a.handlers[b.handler].handle(a, b);
 
+    // non-array results treated as an error
     if (!Array.isArray(result)) {
-      error = new HandlerError(result);
-      msgs.push(error);
-      throw error;
+      throw new HandlerError(result);
     }
 
-    if (msgs !== []) msgs = [...msgs, ...result];
     // recursively combine results back with a
     result.every(obj => a = combine(a, obj, rules));
-
     return a;
   }
 
   if (isObj(a) && isObj(b)) {
     // ordinary object combination - behave like a recursive Object.assign()
-    const result = {};
+    const result = {...b};
     for (const key of Object.keys(a)) {
       result[key] = a[key];
       if (key in b) {
-        result[key] = combine(a[key], b[key], rules);
-      }
-    }
-    for (const key of Object.keys(b)) {
-      if (!(key in a)) {
-        result[key] = b[key];
+        if (isDelete(b[key])) {
+          delete result[key];
+        } else {
+          result[key] = combine(a[key], b[key], rules);
+        }
       }
     }
     return result;
   }
 
-  // allow override of rules
+  // allow override of scalar rules
   if (rules && typeof rules === 'function'){
     const result = rules(a,b);
     if (typeof result !== 'undefined'){
@@ -132,7 +119,6 @@ function combine(a, b, rules = () => {}) {
   if (ta === 'number'   && tb === 'number'  ) return a + b;
 
   error = new Error(`unable to combine ${tryToStringify(a)} and ${tryToStringify(b)} types ${ta} ${tb}`);
-  msgs.push(error);
   throw error;
 }
 
@@ -156,5 +142,5 @@ export {
   combineReducer,
   combine as combineRules,
   HandlerError,
-  getMessages,
+  DELETE,
 }

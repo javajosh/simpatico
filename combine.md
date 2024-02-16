@@ -66,10 +66,22 @@ assertEquals({a: 1, b: 2}, Object.assign({}, {a: 1}, {b: 2}), 'Object.assign mer
  `Object.assign` is shallow, `combine()` is deep:
 
 ```js
-  import {combine} from "/combine.js";
+  import {combine, DELETE} from "/combine.js";
 
 assertEquals({a: {b: 2}}, combine({a: {b: 1}}, {a: {b: 1}}), 'combine is deep');
 assertEquals({a: {b: 1}}, Object.assign({}, {a: {b: 1}}, {a: {b: 1}}), 'Object.assign is shallow');
+```
+## Deleting
+Ideally we could use a type like 'undefined' to delete object properties.
+However javascript cannot differentiate between missing and undefined properties.
+Null indicates zero.
+A `Symbol` would work, but cannot be easily de/serialized. (We might do `Symbol(DELETE)`, however)
+So we pick a special string and export it from `combine`.
+
+```js
+  import {combine, DELETE} from "/combine.js";
+
+  assertEquals({}, combine({a:1}, {a: DELETE}), 'special delete token deletes');
 ```
 _________________________________________________________
 # Combining with Handlers
