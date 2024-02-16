@@ -656,6 +656,7 @@ const ops = [
 // to interact with it, assign the output to window.stree or simiar.
 // Note: this example was exported to 'stree-examples.js' as 'arithmeticOps'
 stree3(ops);
+
 ```
 
 ```html
@@ -665,10 +666,9 @@ stree3(ops);
 import {trieOps} from "./stree-examples.js";
 import {stree, renderStree, svg} from './simpatico.js';
 
-const trieParent = svg.elt('trie-render');
+const renderParent = svg.elt('trie-render');
 const s = stree(trieOps, (a,b)=> ({a: a.a + b.a}));
-renderStree(s, trieParent);
-
+renderStree(s, renderParent);
 
 ```
 ```html
@@ -678,8 +678,9 @@ renderStree(s, trieParent);
 import {objOps} from "./stree-examples.js";
 import {stree, renderStree, svg} from './simpatico.js';
 
-const objParent = svg.elt('obj-render');
+const renderParent = svg.elt('obj-render');
 const s = stree(objOps);
-renderStree(s, objParent);
+renderStree(s, renderParent);
 
 ```
+
