@@ -4,22 +4,119 @@
 See:
 [home](/),
 [litmd](/lit.md),
-[chat](/chat.md),
+[crypto](/crypto.md),
 [reflector](/reflector.md)
 
-# Ephemeral chat client
-An ephemeral chat client lives only as long as the DOM - as long as the browser tab.
+# Simple secure chat system
+On load, create a public/private key pair for the browser tab.
+This means you create a new, isolated address with each tab or iframe process.
 
-The client boots and provides a URL that encodes it's address.
-Open the link in a new tab, and you get two things: a new address, and a connection between the two.
-This change requires a [reflector](reflector) change, wrapping the wss reference with metadata, the addresses,
-and a reverse lookup that maps addresses to a wss reference.
-The key property of the wss reference is the existence of a `send()` method so we can model our solution in the browser.
+To test chat between processes, create tab via an invitation link.
+Each process can generate a unique invitation link by adding it's public key signature and a secret in the link hash.
+The guest process will generate its keypair, add a peer record, and then message the peer process.
+When the host process receives the guest message, it will convert it's guest record into a peer record.
 
-Note that to get this to work you need to run `npm install` to add the qr code library; however this uses `node_gyp` which is problematic, so I've committed the bundle to avoid this necessity.
+At this point the guest and host can communicate as peers.
+Note that only if both processes are currently connected can they message each other.
 
-Note also that this is incomplete: symmetric keys are not being shared, and messages are not encrypted yet.
-HTML is sanitized, but [prototype pollution will eventually be possible](https://portswigger.net/daily-swig/google-engineers-plot-to-mitigate-prototype-pollution).
+Server-side routing is done via public key signature.
+This data-structure is ephemeral and dies with the server, and built back up when clients reconnect.
+TODO: explore server-side verification of message route validity before routing.
+
+## Keep the websocket connection alive
+Websockets naturally die after a time-out period (where is this set?).
+Clients will have a keep-alive timer that periodically pings the server.
+As a side-effect, we can accurately measure round-trip client-server lag over time.
+A connection that dies will be reconnected periodically.
+
+## Process states
+Transient states:
+  1. The local process is always alive and always has a valid keypair.
+  1. A process may or may not be currently connected to the websocket server.
+  1. A remote process can be invited but not accepted.
+  1. A remote process can be invited and accepted.
+
+In the steady state:
+  1. A local process can send a message to a remote process.
+  1. A remote process can send a message to a local process.
+
+## STree process state sketch
+Row 0 describes the local process, rows 1-3 describe remote processes.
+In row 0, we see that we connect, disconnect, and reconnect.
+When disconnected we cannot send or receive messages, but can generate invite links.
+When connected we can send and receive messages to any accepted remote.
+A remote may fail to accept a message, so it moves into an offline state.
+
+The first row can invite() with the special property that it always generates a new row.
+Branching peer rows may or may not be useful, grouping messages into "sessions".
+```js
+/*
+    - {process} {address}
+  0 - {process} {local} {connect, disconnect, invite, keepalive}{connected}{disconnected}{connected}
+  1 - {process} {remote} {invited, accepted, send, recieve}
+  2 - {invited} {accepted} {to:msg} {from:msg}
+  2 - {invited} {accepted} {to:msg} {offline}
+  3 - {invite}
+*/
+```
+In this stree, we have a root process, which has an address.
+Process branches to local, which adds connection and invitation handlers.
+Responsibility of the local process is to manage the websocket connection and add invites.
+It measures lag and tries to keep the connection alive.
+
+Process branches to remote, which adds accepted, send/receive handlers.
+Responsibility of remote processes is to accept invitations, source {from} and sink {to}.
+It measures reachability.
+
+The remaining branches are instances of remote, created with a local invite.
+
+## Attempt to visualize this structure
+Focus on the tricky parts revolving around sending and accepting invites.
+
+```html
+<div id="process-render"></div>
+```
+
+```js
+import {stree, renderStree, svg} from './simpatico.js';
+
+const renderParent = svg.elt('process-render');
+
+const s = stree();
+let n1 = s.add({type: 'process'});
+let n2 = s.add({address: 'localaddress'}, n1);
+let n3 = s.add({address: 'remoteAddress'}, n1);
+
+// This is a hack - we need a better way to do intra-row operations
+// We also eventually need a less verbose way to install handlers
+let n4 = s.add({handlers: {invite: { handle: function(ctx,msg){
+    const invited = { from: ctx.address, secret: Math.random()};
+    s.add(invited, n3);
+    return [];
+}}}}, n2);
+
+// let the remote accept the invite.
+let n5 = s.add({handlers: {acceptInvite: { handle: function(ctx,msg){
+    if (is.equals(ctx.secret, msg.secret)){
+        return [{accepted: Date.now(), address: msg.address}];
+    } else {
+        return [{fail: 'secrets did not match'}];
+    }
+}}}}, n3);
+
+// send two invites
+let n6 = s.add({handler: 'invite', note: 'nice man at conferance, bob', msg: 'hello from alice please join me'}, n2);
+let n7 = s.add({handler: 'invite', note: 'nice lady at the dealership, crista', msg: 'hello from alice please join me'}, n2);
+// accept one correctly, and one incorrectly
+let n8 = s.add({handler: 'acceptInvite', secret: 's3cret', address:'remoteBob'}, n6);
+let n9 = s.add({handler: 'acceptInvite', secret: 'wrong', address: 'remoteCrista'}, n7);
+
+// TODO: fix clickability in the visualization
+// TODO: figure out why the secret is not always present in residue. this may be related to my annoyingly flat calling convention, and the raw data is being combined into residue
+// TODO: figure out a way to avoid the persnickity nodal structure - for example, designating rows as "types" (can only modify handlers) and some as "instances" (cannot modify handlers)
+
+renderStree(s, renderParent);
+```
 
 ## Client
 
@@ -32,7 +129,7 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
   </li>
 </ol>
 
-<!-- Idiosyncratic dependencies. -->
+<!-- Idiosyncratic, global dependencies. -->
 <!-- npm install && cp ./node_modules/qrcode/build/qrcode.js . -->
 <script src="qrcode.js"></script>
 <!-- curl https://raw.githubusercontent.com/chancejs/chancejs/master/chance.js > chance.js -->
@@ -46,7 +143,7 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
 ```
 
 ```js
-  import * as wcb from './webcryptobox.js';
+  import * as wcb from './node_modules/webcryptobox/index.js';
 
   // Bind to UI elts
   const chatApp = document.getElementById('chat-app');
@@ -60,8 +157,9 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
     pubKeyFingerprint: c.base64EncodeBuffer(await wcb.sha256Fingerprint(keyPair.publicKey)),
   };
 
-  const address = keyPairPem.pubKeyFingerprint;
-  const addressLink = window.location.href.split('#')[0] + '#' + address;
+  const myAddress = keyPairPem.pubKeyFingerprint;
+  // remove the prev hash (present in invite links) and add my fingerprint
+  const myAddressLink = window.location.href.split('#')[0] + '#' + myAddress;
 
   // Get an address out of the hash
   let parentAddress='';
@@ -69,15 +167,15 @@ HTML is sanitized, but [prototype pollution will eventually be possible](https:/
     parentAddress = window.location.hash;
   } else {
     // For now, just send messages to ourself.
-    parentAddress = address;
+    parentAddress = myAddress;
   }
 
   addListItem(`<pre>${JSON.stringify(keyPairPem, null, 2)}</pre>`);
-  addListItem(`<a href="${addressLink}">${addressLink}</a>`);
+  addListItem(`<a href="${myAddressLink}">${myAddressLink}</a>`);
   addListItem(`parentAddress: ${parentAddress}`);
   addListItem(`address QR code: <canvas id="qr"></canvas>`);
 
-  QRCode.toCanvas(document.getElementById('qr'), addressLink, debug);
+  QRCode.toCanvas(document.getElementById('qr'), myAddressLink, debug);
 
   const profile = {
     address: keyPairPem.pubKeyFingerprint,
@@ -177,9 +275,12 @@ const accepted = {
 ```
 
 
-
-
 # UI options
 Note about UI: I've not yet implemented a UI for this.
 [hugging face](https://github.com/huggingface/chat-ui) released theirs recently, and it looks good.
 It's made with [svelte](https://svelte.dev/) (which I like) over [Mongo](https://www.mongodb.com/) (which I don't particularly like).
+
+# Notes
+The `qrcode` library is problematic to use with `npm install`. It uses `node_gyp` which fails for me, so I've committed the bundle as a workaround.
+
+HTML is sanitized, but [prototype pollution](https://portswigger.net/daily-swig/google-engineers-plot-to-mitigate-prototype-pollution) will eventually be possible when handlers flow over the wire.
