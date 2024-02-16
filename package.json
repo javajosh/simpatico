@@ -20,6 +20,7 @@
     "dompurify": "^3.0.8",
     "mermaid": "^10.8.0",
     "qrcode": "^1.5.3",
+    "webcryptobox": "^4.0.0",
     "ws": "8.11.0"
   }
 }

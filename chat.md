@@ -148,7 +148,7 @@ That entry can generate an invite.
 You add a contact with an invitation link which they accept by accessing it.
 You can add arbitrary values to the contact, such as name, notes, birthday, or whatever else is useful to you.
 Once you have a set of active contacts, you can select them and message them individually.
-If they are online, the message is sent immediately.
+If they are online, send the message.
 If they are offline, the message can be queued for later sending.
 
 ## Data sketch
@@ -172,7 +172,7 @@ const invited = {
 // this means that a single message must be matched against all pending invites.
 // alternatively, we can do this work in the server to avoid extra client work, at the cost of reducing the flexibility of the client.
 const accepted = {
-  address: "fXHkT7u25M0aBCTvExF83uEjWt+QoECF0COV5UxTHHs="
+  address: "fXHkT7u25M0aBCTvExF83uEjWt+QoECF0COV5UxTHHs=",
 }
 ```
 
