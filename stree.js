@@ -17,7 +17,7 @@ function stree(value = {}, reducer = combineReducer) {
     return fromString(value, reducer);
   }
 
-  const root = {value, parent: null, residue: value, branchIndex: 0, id: 0};
+  const root = {value, parent: null, residue: value, branchIndex: 0, id: 0, leaf:true};
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
@@ -43,15 +43,19 @@ function stree(value = {}, reducer = combineReducer) {
       const node = {value, parent}; //residue, branchIndex, and id added below
 
       const parentResidue = parent.residue;
-      if (parentResidue) {
+
+      if (parent.leaf) {
         node.residue = reducer(parentResidue, node.value);
         node.branchIndex = parent.branchIndex;
         // replace parent node in branches with the child
         branches[parent.branchIndex] = node;
-        delete parent.residue; //deleting saves some memory and time computing residue. it also presence also signals "branchness".
+        node.leaf = true;
+        parent.leaf = false;
+        // delete parent.residue; //deleting saves some memory and time computing residue. it also presence also signals "branchness".
       } else {
         node.residue = residue(node);
         node.branchIndex = branches.length;
+        node.leaf = true;
         branches.push(node);
       }
       lastNode = node;
