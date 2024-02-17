@@ -489,12 +489,11 @@ function isCompressedImage(fileName) {
   }).on('change', fileName => {
     const path = process.cwd() + '/' + fileName;
     delete cache[path];
-    let clickableFilename;
     // markdown is a test harness for js, so print the md url as well
     if (fileName.endsWith('.js')) {
-      clickableFilename = fileName.replace('.js', '.md') + ` based on ${fileName}`;
+      fileName = fileName.replace('.js', '.md') + ` based on ${fileName}`;
     }
-    log(`cache invalidated "change" ${url}/${clickableFilename}`);
+    log(`cache invalidated "change" ${url}/${fileName}`);
   })
   .on('unlink', fileName => {
     const path = process.cwd() + '/' + fileName;
