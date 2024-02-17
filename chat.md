@@ -51,8 +51,7 @@ The first row can invite() with the special property that it always generates a 
 Branching peer rows may or may not be useful, grouping messages into "sessions".
 ```js
 /*
-    - {process} {address}
-  0 - {process} {local} {connect, disconnect, invite, keepalive}{connected}{disconnected}{connected}
+    - {process} {local} {connect, disconnect, invite, keepalive}{connected}{disconnected}{connected}
   1 - {process} {remote} {invited, accepted, send, recieve}
   2 - {invited} {accepted} {to:msg} {from:msg}
   2 - {invited} {accepted} {to:msg} {offline}
@@ -82,34 +81,50 @@ import {stree, renderStree, svg} from './simpatico.js';
 
 const renderParent = svg.elt('process-render');
 
-const s = stree();
-let n1 = s.add({type: 'process'});
-let n2 = s.add({address: 'localaddress'}, n1);
-let n3 = s.add({address: 'remoteAddress'}, n1);
+const secret = 's3cret';
+const address  = (process, {address}) => [{ address }]; // address shorthand for publicKey, privateKey, pubKeySig
+const invite  = (process, {secret, msg, notes}) => [{ secret, msg, notes }];
+// const error  = (process, {error}) => [{ error }];
+const acceptInvitation = (process, {address, secret}) => {
+  if (process.secret === secret) return [{ handler:'address', address }];
+  else return [{error: `secrets didn't match ${process.secret} !== ${secret} ` }]
+}
+// wrap these functions for easier addition to core. TODO add support for bare function handlers in combine()
+const h = (fn) => {
+    const result = {handlers:{}};
+    result.handlers[fn.name] = {handle: fn};
+    return result;
+}
 
-// This is a hack - we need a better way to do intra-row operations
-// We also eventually need a less verbose way to install handlers
-let n4 = s.add({handlers: {invite: { handle: function(ctx,msg){
-    const invited = { from: ctx.address, secret: Math.random()};
-    s.add(invited, n3);
-    return [];
-}}}}, n2);
 
-// let the remote accept the invite.
-let n5 = s.add({handlers: {acceptInvite: { handle: function(ctx,msg){
-    if (is.equals(ctx.secret, msg.secret)){
-        return [{accepted: Date.now(), address: msg.address}];
-    } else {
-        return [{fail: 'secrets did not match'}];
-    }
-}}}}, n3);
+const s = stree([h(address), h(invite), h(acceptInvitation)]);
+s.add({
+  handler: 'address',
+  address: 'localAddress'
+});
+s.add({
+  handler: 'invite',
+  secret,
+  note: 'nice man at conferance, bob',
+  msg: 'hello from alice please join me',
+}, 2);
+s.add({
+  handler: 'acceptInvitation',
+  secret,
+  address:'remoteBob'
+});
+s.add({handler: 'invite',
+  secret,
+  note: 'nice woman at dealership, christi',
+  msg: 'hello from alice please join me',
+}, 2);
+s.add({
+  handler: 'acceptInvitation',
+  secret: 'wrong',
+  address: 'remoteChristi'
+});
 
-// send two invites
-let n6 = s.add({handler: 'invite', note: 'nice man at conferance, bob', msg: 'hello from alice please join me'}, n2);
-let n7 = s.add({handler: 'invite', note: 'nice lady at the dealership, crista', msg: 'hello from alice please join me'}, n2);
-// accept one correctly, and one incorrectly
-let n8 = s.add({handler: 'acceptInvite', secret: 's3cret', address:'remoteBob'}, n6);
-let n9 = s.add({handler: 'acceptInvite', secret: 'wrong', address: 'remoteCrista'}, n7);
+
 
 // TODO: fix clickability in the visualization
 // TODO: figure out why the secret is not always present in residue. this may be related to my annoyingly flat calling convention, and the raw data is being combined into residue

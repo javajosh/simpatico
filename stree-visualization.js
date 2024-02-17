@@ -38,8 +38,9 @@ const colors1 = {
   inc: "Orchid",
   dec: "MediumPurple",
   mul: "BlueViolet",
+  address: "Orchid",
   invite: "BlueViolet",
-  acceptInvite: "MediumPurple",
+  acceptInvitation: "MediumPurple",
   msg: "MediumSeaGreen",
 };
 
