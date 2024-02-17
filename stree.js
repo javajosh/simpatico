@@ -37,7 +37,11 @@ function stree(value = {}, reducer = combineReducer) {
    */
     function add(value, parent = lastNode) {
       if (typeof parent === 'number'){
-        parent = nodes[parent];
+        if (parent === Number.POSITIVE_INFINITY){
+          parent = branches[0];
+        } else {
+          parent = parent >= 0 ? nodes[parent] : branches[-parent];
+        }
       }
       Object.freeze(value);
       const node = {value, parent}; //residue, branchIndex, and id added below
