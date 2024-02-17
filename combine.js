@@ -137,10 +137,18 @@ function combineAll(...args) {
   }
 }
 
+// wrap these functions for easier addition to core. TODO add support for bare function handlers in combine()
+const h = (fn) => {
+  const result = {handlers:{}};
+  result.handlers[fn.name] = {handle: fn};
+  return result;
+}
+
 export {
   combineAll as combine,
   combineReducer,
   combine as combineRules,
   HandlerError,
   DELETE,
+  h,
 }
