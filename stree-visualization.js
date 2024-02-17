@@ -24,6 +24,7 @@ To restart the animation, click outside a node.
   </g>
 
   <g>
+<!--  TODO fix clickability problem in this visualization. maybe move to html -->
     <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC" />
     <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" style="pointer-events: none;">0</text>
   </g>
@@ -41,6 +42,7 @@ const colors1 = {
   address: "Orchid",
   invite: "BlueViolet",
   acceptInvitation: "MediumPurple",
+  logger: "MediumPurple",
   msg: "MediumSeaGreen",
 };
 

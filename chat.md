@@ -77,47 +77,45 @@ Focus on the tricky parts revolving around sending and accepting invites.
 ```
 
 ```js
-import {stree, renderStree, svg} from './simpatico.js';
+import {stree, renderStree, svg, h} from './simpatico.js';
 
 const renderParent = svg.elt('process-render');
 
 const secret = 's3cret';
+const error  = (process, {error}) => [{ error }];
 const address  = (process, {address}) => [{ address }]; // address shorthand for publicKey, privateKey, pubKeySig
 const invite  = (process, {secret, msg, notes}) => [{ secret, msg, notes }];
-// const error  = (process, {error}) => [{ error }];
 const acceptInvitation = (process, {address, secret}) => {
   if (process.secret === secret) return [{ handler:'address', address }];
   else return [{error: `secrets didn't match ${process.secret} !== ${secret} ` }]
 }
-// wrap these functions for easier addition to core. TODO add support for bare function handlers in combine()
-const h = (fn) => {
-    const result = {handlers:{}};
-    result.handlers[fn.name] = {handle: fn};
-    return result;
-}
 
+const s = stree([ h(error), h(address), h(invite), h(acceptInvitation), ]);
 
-const s = stree([h(address), h(invite), h(acceptInvitation)]);
-s.add({
+const localProcessNode = s.add({
   handler: 'address',
   address: 'localAddress'
 });
+
+// invite bob with successful acceptance
+// target the penultimate node of row 0 to force a branch
 s.add({
   handler: 'invite',
   secret,
   note: 'nice man at conferance, bob',
   msg: 'hello from alice please join me',
-}, 2);
+}, localProcessNode.parent);
 s.add({
   handler: 'acceptInvitation',
   secret,
   address:'remoteBob'
 });
+// invite christi with unsuccessful acceptance.
 s.add({handler: 'invite',
   secret,
   note: 'nice woman at dealership, christi',
   msg: 'hello from alice please join me',
-}, 2);
+}, localProcessNode.parent);
 s.add({
   handler: 'acceptInvitation',
   secret: 'wrong',
@@ -125,13 +123,34 @@ s.add({
 });
 
 
+renderStree(s, renderParent);
+```
 
-// TODO: fix clickability in the visualization
-// TODO: figure out why the secret is not always present in residue. this may be related to my annoyingly flat calling convention, and the raw data is being combined into residue
-// TODO: figure out a way to avoid the persnickity nodal structure - for example, designating rows as "types" (can only modify handlers) and some as "instances" (cannot modify handlers)
+## Connection
+Creating a side-effect like creating a websocket is a natural thing to want to do inside a handler.
+But this violates the requirement that combine() is pure.
+If you recompute residue for a given node, you'll trigger the side-effect again.
+One way to avoid this is store residue at every node in the stree, such that combine() need not be computed again.
+Maybe mitigate the memory load by labelling the handler as requiring a residue store.
+
+Consider this stree that is all logging statements (e.g. side-effects).
+```html
+<div id="core-render"></div>
+```
+```js
+import {stree, renderStree, svg, h} from './simpatico.js';
+
+const renderParent = svg.elt('core-render');
+
+const logger = (core, {msg}) => [log(msg), {msg}];
+const s = stree([h(logger)]);
+s.add({handler: 'logger', msg: 'hey there 1'})
+s.add({handler: 'logger', msg: 'hey there 2'})
+s.add({handler: 'logger', msg: 'hey there 3'},1)
 
 renderStree(s, renderParent);
 ```
+
 
 ## Client
 
