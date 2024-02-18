@@ -24,7 +24,7 @@ To restart the animation, click outside a node.
   </g>
 
   <g>
-<!--  TODO fix clickability problem in this visualization. maybe move to html -->
+<!--  TODO fix clickability problem in this visualization. maybe try html spans and overflow-x: scroll -->
     <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC" />
     <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" style="pointer-events: none;">0</text>
   </g>
@@ -64,51 +64,22 @@ const renderStree = (
   const residueOutput = svg.elt(classes.inspector, parent);
   const colorKey = svg.elt(classes.colorKey, parent);
 
-  // Hide the visualization code - the two details after the parent elt. sadly I could not find a good way to do this with selectors
-  let count = 0;
-  Array.from(parent.parentElement.children).forEach(sibling => {
-    if (sibling === parent) count = 2; // should only happen once
-    if (sibling.tagName.toLowerCase() === 'details' && count--) sibling.removeAttribute('open'); //hide 2 details tags
-  })
 
   // Config
   const DEBUG = true;
   const W = 40, H = 10;
   const dx = 1, dy = 1;
+  const staticChildrenCount = scene.children.length;
 
-  const colors = {
-    handlers: "DodgerBlue",
-    msg: 'Blue',
-  };
-
-  function* generateDarkerColor([h, s, l] = [260, 50, 50], step=5) {
-    for (let i = 1; ; i++) {
-      yield `hsl(${h}, ${s}%, ${l - i * step}%)`;
-    }
-  }
-  const colorGenerator = generateDarkerColor([260, 50, 50], 5);
-
-  // create a color key based on the handlers present in the stree
-  s.nodes.forEach(node => {
-    if (node.value.hasOwnProperty('handlers')){
-      Object.keys(node.value.handlers).forEach(name => {
-        if (name === 'log')    colors[name] = 'Coral';
-        if (name === 'assert') colors[name] = 'Orange';
-        if (!colors[name])     colors[name] = colorGenerator.next().value;
-      });
-    }
-  });
-
-
-  // display key
-  colorKey.innerHTML = Object.entries(colors).map(([key, color]) =>
-    `<span style="padding: 3px;color: black; border-radius:10px;background-color: ${color}">${key}</span> `)
-    .reduce((a, b) => a + b, '');
+  // Hide code and display color key
+  hideCode(parent);
+  const colors = generateColors(s);
+  displayColorKey(colorKey, colors);
 
   // begin node render, either fast or slow
   if (animate) animateAdd(); else fastAdd();
 
-  // add click handler that displays residue or rerenders
+  // steady-state input - support click to inspect a node and rerender
   scene.addEventListener('click', (e) => {
     const target = e.target.closest('g');
     if (target && target.node) {
@@ -126,8 +97,52 @@ const renderStree = (
     }
   });
 
+  // remainder are support functions
+
+  // Hide the visualization code - the two details after the parent elt. sadly I could not find a good way to do this with selectors
+  function hideCode(parent=parent){
+    let count = 0;
+    Array.from(parent.parentElement.children).forEach(sibling => {
+      if (sibling === parent) count = 2; // should only happen once
+      if (sibling.tagName.toLowerCase() === 'details' && count--) sibling.removeAttribute('open'); //hide 2 details tags
+    })
+  }
+
+  function generateColors(s = s){
+    const colors = {
+      handlers: "DodgerBlue",
+      msg: 'Blue',
+    };
+
+    // See also https://gka.github.io/chroma.js/
+    function* generateDarkerColor([h, s, l] = [260, 50, 50], step=5) {
+      for (let i = 1; ; i++) {
+        yield `hsl(${h}, ${s}%, ${l - i * step}%)`;
+      }
+    }
+    const colorGenerator = generateDarkerColor([260, 50, 50], 5);
+
+    // create a color key based on the handlers present in the stree
+    s.nodes.forEach(node => {
+      if (node.value.hasOwnProperty('handlers')){
+        Object.keys(node.value.handlers).forEach(name => {
+          if (name === 'log')    colors[name] = 'Coral';
+          if (name === 'assert') colors[name] = 'Orange';
+          if (!colors[name])     colors[name] = colorGenerator.next().value;
+        });
+      }
+    });
+    return colors;
+  }
+
+  function displayColorKey(colorKeyElt, colors = colors){
+    colorKeyElt.innerHTML = Object.entries(colors).map(([key, color]) =>
+      `<span style="padding: 3px;color: black; border-radius:10px;background-color: ${color}">${key}</span> `)
+      .reduce((a, b) => a + b, '');
+  }
+
   function fastAdd() {
-    while (scene.children.length > 2) {
+    while (scene.children.length > staticChildrenCount) {
       scene.removeChild(scene.lastElementChild);
     }
     for (let i = 0; i < s.nodes.length; i++) {
@@ -137,7 +152,7 @@ const renderStree = (
 
   function animateAdd(clock=svg.clock(20, -1)) {
     // reset scene
-    while (scene.children.length > 2) {
+    while (scene.children.length > staticChildrenCount) {
       scene.removeChild(scene.lastElementChild);
     }
     // reset clock
@@ -152,8 +167,8 @@ const renderStree = (
   }
 
 
-// Keep cloning the last child, asigning it a new position and color
-// To avoid a memory leak we remove the oldest child when we hit the limit
+  // Keep cloning the last child, asigning it a new position and color
+  // To avoid a memory leak we remove the oldest child when we hit the limit
   function renderNode(node) {
     const clone = cloneLast(scene);
     const pos = nodePosition(node);
