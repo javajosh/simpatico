@@ -32,23 +32,7 @@ To restart the animation, click outside a node.
 </svg>
 `;
 
-const colors1 = {
-  handlers: "DodgerBlue",
-  assert: "Coral",
-  log: "Orange",
-  inc: "Orchid",
-  dec: "MediumPurple",
-  mul: "BlueViolet",
-  connect: "Orange",
-  send: "Orchid",
-  receive: "MediumPurple",
-  close: "BlueViolet",
-  address: "Orchid",
-  invite: "BlueViolet",
-  acceptInvitation: "MediumPurple",
-  logger: "MediumPurple",
-  msg: "MediumSeaGreen",
-};
+
 
 const classes1 = {
   svg : 'visualize-stree',
@@ -61,7 +45,6 @@ const classes1 = {
  * @param s - the stree to render
  * @param parent - the parent DOM elt; this will replace innerHTML
  * @param animate - true if we animate, false if we add all at once
- * @param colors - the colors used to fill nodes - todo we need to make this more dynamic
  * @param classes - object that defines class names used in the HTML, svg, inspector and colorKey
  * @param html - a function that returns custom html
  */
@@ -69,7 +52,6 @@ const renderStree = (
   s,
   parent,
   animate = true,
-  colors = colors1,
   classes = classes1,
   html = html1,
 ) => {
@@ -94,7 +76,31 @@ const renderStree = (
   const W = 40, H = 10;
   const dx = 1, dy = 1;
 
-// display key
+  const colors = {
+    handlers: "DodgerBlue",
+    msg: 'Blue',
+  };
+
+  function* generateDarkerColor([h, s, l] = [260, 50, 50], step=5) {
+    for (let i = 1; ; i++) {
+      yield `hsl(${h}, ${s}%, ${l - i * step}%)`;
+    }
+  }
+  const colorGenerator = generateDarkerColor([260, 50, 50], 5);
+
+  // create a color key based on the handlers present in the stree
+  s.nodes.forEach(node => {
+    if (node.value.hasOwnProperty('handlers')){
+      Object.keys(node.value.handlers).forEach(name => {
+        if (name === 'log')    colors[name] = 'Coral';
+        if (name === 'assert') colors[name] = 'Orange';
+        if (!colors[name])     colors[name] = colorGenerator.next().value;
+      });
+    }
+  });
+
+
+  // display key
   colorKey.innerHTML = Object.entries(colors).map(([key, color]) =>
     `<span style="padding: 3px;color: black; border-radius:10px;background-color: ${color}">${key}</span> `)
     .reduce((a, b) => a + b, '');
@@ -168,13 +174,9 @@ const renderStree = (
   function nodeColor(node) {
     let color;
     const v = node.value;
-    if (v.handlers) {
-      color = colors.handlers;
-    } else if (v.handler) {
-      color = colors[v.handler]
-    } else {
-      color = colors.msg;
-    }
+    if (v.handlers) color = colors.handlers;
+    else if (v.handler) color = colors[v.handler]
+    else color = colors.msg;
     return color;
   }
 
