@@ -43,7 +43,7 @@ function stree(value = {}, reducer = combineReducer) {
           parent = parent >= 0 ? nodes[parent] : branches[-parent];
         }
       }
-      // Object.freeze(value);
+      Object.freeze(value);
       const node = {value, parent}; //residue, branchIndex, and id added below
 
       const parentResidue = parent.residue;
@@ -109,10 +109,6 @@ function stree(value = {}, reducer = combineReducer) {
    * @returns a new stree
    */
   function fromArray(arr, reducer) {
-    const root = arr[0];
-    const replay = typeof root === 'object';
-    // Do not execute side-effects
-    if (replay) root.replay = true;
     const s = stree(arr[0], reducer);
     let value, parent;
     for (let i = 1; i < arr.length; i++) {
@@ -125,8 +121,6 @@ function stree(value = {}, reducer = combineReducer) {
         s.add(value);
       }
     }
-    // clean-up the global flag
-    if (replay) s.nodes.forEach(n => delete n.value.replay && delete n.residue.replay);
     return s;
   }
 
