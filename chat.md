@@ -370,6 +370,13 @@ const accepted = {
 }
 ```
 
+# Random thoughts
+It would be useful to visualize every state change to a connection, even if it is "indirect", part of the message cascade, and resolved by `combine()`.
+One invasive solution would be to move the recursion up a level and do it in stree rather than combine.
+A less invasive solution would be to have a version of combine (behind a flag?) that doesn't resolve secondary handler calls but stores them in residue ('nextHandlers' or something) and then stree is responsible for checking that part of residue and generating the next messages. Sounds clunky, but the value of seeing intermediate states in some cases is undeniable. In fact it may be useful in all cases, but I'd like to use stree to model more things, particularly various types of games, before making the call.
+
+It turns out that it's a difficult problem making side-effects deterministic. Who knew? Other than almost everyone, including myself. I guess I just wanted to see how it would fail.
+There are various solutions, one of which is to partition the stree into serializable and non-serializable parts. It's not pretty and not as nice as a unified stree for all types and all instances, but its also not the end of the world. Also I've not given up hope that side-effects cannot be made deterministic, even if it requires adding a proxy layer and feeding it deterministic results "from the outside".
 
 # UI options
 Note about UI: I've not yet implemented a UI for this.
