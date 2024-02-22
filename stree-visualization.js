@@ -2,13 +2,14 @@ import {svg, log, tryToStringify} from '/simpatico.js';
 
 const html1 = (svgClass='visualize-stree', inspectorClass ='residue-inspector', colorKeyClass = 'color-key') => `
 <p>key: <span class="${colorKeyClass}"></span></p>
-<svg class="${svgClass}"
+<svg xmlns="http://www.w3.org/2000/svg"
+  class="${svgClass}"
   viewBox="0 0 40 10"
   width="800px" height="200px"
   style="border: 1px solid gray; pointer-events: visible;"
 
 >
-  <g  transform="translate(30,0)">
+  <g transform="translate(30,0)">
     <rect width ="10" height = "10" fill="white"/>
     <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
       <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
@@ -23,10 +24,10 @@ To restart the animation, click outside a node.
     </foreignObject>
   </g>
 
-  <g>
+  <g ">
 <!--  TODO fix clickability problem in this visualization. maybe try html spans and overflow-x: scroll -->
-    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC" />
-    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" style="pointer-events: none;">0</text>
+    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC" style="pointer-events: none;" />
+    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" >0</text>
   </g>
 
 </svg>
@@ -84,7 +85,7 @@ const renderStree = (
     const target = e.target.closest('g');
     if (target && target.node) {
       const node = target.node;
-      // log(node);
+      log(node);
       const {handlers, ...residue} = s.residue(node);
       residueOutput.innerText = tryToStringify({
         id: node.id,
@@ -115,12 +116,12 @@ const renderStree = (
     };
 
     // See also https://gka.github.io/chroma.js/
-    function* generateDarkerColor([h, s, l] = [260, 50, 50], step=5) {
+    function* generateDarkerColor([h, s, l] = [260, 50, 80], step=5) {
       for (let i = 1; ; i++) {
-        yield `hsl(${h}, ${s}%, ${l - i * step}%)`;
+        yield `hsl(${h - 10* i * step}, ${s}%, ${l - i * step}%)`;
       }
     }
-    const colorGenerator = generateDarkerColor([260, 50, 50], 5);
+    const colorGenerator = generateDarkerColor();
 
     // create a color key based on the handlers present in the stree
     s.nodes.forEach(node => {
