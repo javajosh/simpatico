@@ -171,7 +171,7 @@ const isConnReady = (conn) =>  (conn !== undefined) && (conn.readyState === conn
 const {CONNECTING, OPEN, CLOSING, CLOSED} = WebSocket;
 const states = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
 
-// events target the same stree row as the connection lives. for now target root with a special number, +infinity (0 is reserved for root node)
+
 // note that calling s.add inside this handler does not constitute a side-effect, and so is allowed
 const connect = (ctx, {websocketURL, row}) => {
   const connection = new WebSocket(websocketURL);
@@ -193,7 +193,6 @@ const send = (ctx, {msg}) => {
   } catch (e){
       return {error: e}
   }
-
   return [{out: msg}];
 };
 
@@ -212,6 +211,24 @@ setTimeout(() => s.add({handler: 'send', msg: 'hello from stree'}), 1000);
 renderStree(s, renderParent);
 ```
 
+## Protocol
+The client connection is open.
+The first message identifies the client:
+```js
+///
+const initialMessage = {
+  publicKey : `-----BEGIN PUBLIC KEY-----
+  MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBbbOAxXIGd8BeG1u2mZJauB+hAI0F
+  sbMiMMGjomFrKyaxo7sT3kXJ9HzoDdkkUrUEhs3wElH4FpVAy1KxI2zeXzABmNpZ
+  trKSvCY/QB3nxXwTZmIbFI/YxYC0lBN9bRo/185vU7rxYWvaZSRDIQ5x3+FAnNb9
+  kQ0RvLKKuAdQ72p12T8=
+  -----END PUBLIC KEY-----"`,
+  publicKeySignature : 'PZPUKbUisUg1hBRpoiRvTqU53wT/xUVKceZIybpY3Ag=',
+  timestamp: 1708529753933,
+  encryptedTimestamp:
+
+}
+```
 
 ## Client
 
@@ -238,7 +255,6 @@ renderStree(s, renderParent);
 ```
 
 ```js
-///
   import * as wcb from './node_modules/webcryptobox/index.js';
 
   // Bind to UI elts

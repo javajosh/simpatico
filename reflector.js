@@ -8,11 +8,13 @@ import crypto from 'node:crypto';
 
 import WebSocket, { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
+import * as wcb from "webcryptobox";
 
 import { info, error, debug, mapObject, hasProp, parseObjectLiteralString, peek } from './core.js';
 import { combine } from './combine.js';
 import { stree as stree } from './stree.js';
 import { buildHtmlFromLiterateMarkdown } from './litmd.js';
+import {validate} from "./friendly.js";
 
 const log = (...args) => {
   if (config.debug)
@@ -521,7 +523,28 @@ function findRecentFile(directoryPath=process.cwd()) {
   return mostRecentFile;
 }
 
+// Generate a new keypair for the server on startup, part of the work-around for ECDH keys not supporting ECDSA signatures
+const keyPair = await wcb.generateKeyPair();
+const keyPairPem = {
+  publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
+  privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
+};
+const MAX_MESSAGE_LENGTH = 4 * 1024;
+const REGISTRATION_PATTERN = {
+  publicKey: ['string', 'between', 200, 300],
+  publicKeySig: ['string', 'between', 40, 50],
+  timestamp: ['number'],
+  encryptedTimestamp: ['string'],
+}
+
+const MESSAGE_PATTERN = {
+  from: ['string', 'between', 40, 50 ],
+  to: ['string', 'between', 40, 50 ],
+  encryptedMessage : ['string'],
+}
+
 const connections = stree({});
+const signatureRowMap = {};
 /**
  * This is the main entry point for the chat server, triggered by a new connection.
  * This method makes use of global 'connections'
@@ -530,47 +553,86 @@ const connections = stree({});
  */
 function chatServerLogic(ws) {
   // Register the connection, always branch from root
-  const conn = connections.add({ws}, 0);
+  const connectionNode = connections.add({ws}, 0);
+
+  // Send the server public key
+  ws.send(keyPairPem.publicKeyPem);
 
   // Register a strategy for handling incoming messages in the steady state.
-  ws.on('message', msg => handleMessage(msg, conn.branchIndex));
+  ws.on('message', msg => handleMessage(msg, connectionNode));
 }
 
 
-function handleMessage(message, branchIndex){
-  const residues = connections.residues();
-  const connection = residues[branchIndex];
+function handleMessage(message, connectionNode){
+  const connection = connections.branches[connectionNode.branchIndex];
 
   // Ignore long messages
-  if (message.length > 300) {
-    connection.ws.send('your message was too long');
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    connection.ws.send(`your message was longer than ${MAX_MESSAGE_LENGTH} and is ignored`);
     return;
   }
-  // Broadcast to all connections
-  //  NB: using a for-loop instead of foreach makes the stack traces nicer.
-  for (let i = 0; i < residues.length; i++) {
-    let conn = residues[i].ws;
-    // normally we skip the sender, but for testing we can echo back to the sender.
-    if (conn.ws === connection.ws) return;
-    try{
-      // Delete dead connections
-      if (typeof conn === 'undefined' || conn.readyState !== WebSocket.OPEN) {
-        log(`connection ${i} died, deleting`);
-        delete connections[i];
-        continue;
-      }
-      // Prepend the sender id to the message.
-      const msg = `${branchIndex} > ${message}`;
-      // Send and log
-      conn.send(msg);
-      log('chatServerLogic', 'branchIndex', branchIndex, 'to', i, 'message', message + '');
 
-    } catch(e) {
-      // Q: what all can go wrong here?
-      console.error(e);
+  let envelope;
+  try{envelope = JSON.parse(message)} catch {
+    connection.ws.send(`your message must be contained in a parsable JSON envelope`);
+    return;
+  }
+
+  if (!connection.registered) {
+    const invalidRegistrationFields = validate(REGISTRATION_PATTERN, envelope);
+    if (invalidRegistrationFields){
+      connection.ws.send(`you must register your connection's {publicKey, publicKeySig, timestamp, encryptedTimestamp} before sending`);
+      // TODO add timeout logic
+      return;
     }
+
+    if (signatureRowMap.hasOwnProperty(envelope.publicKeySig)){
+      connection.ws.send(`public key already registered`);
+      // connection.ws.close();
+      return;
+    }
+    // mark the connection as registered
+    connections.add({registered: true, ...envelope}, connection);
+    // add the publicKeysig to a fast-lookup map
+    signatureRowMap[envelope.publicKeySig] = {
+      row: connectionNode.branchIndex,
+      publicKey: envelope.publicKey,
+    };
+    connection.ws.send(`public key registered`);
+    return;
+  }
+
+  // we are properly registered, so read the message as an envelope for sending
+  const invalidMessageFields = validate(MESSAGE_PATTERN, envelope)
+  if (invalidMessageFields){
+    connection.ws.send(`your message is malformed, it should conform to ${MESSAGE_PATTERN}`);
+    // TODO add timeout logic
+    return;
+  }
+  // make sure from and to exist in the map
+  const from = signatureRowMap[envelope.from];
+  const to = signatureRowMap[envelope.to];
+  if (connection.publicKeySig !== envelope.from) {
+    connection.ws.send(`your message is malformed, the from field should describe your public key signature`);
+  }
+  if (!from) {
+    connection.ws.send(`internal error: your public key signature was not found in an internal lookup table.`);
+    return;
+  }
+  if (!to) {
+    connection.ws.send(`the public key signature you're trying to message is offline`);
+    return;
+  }
+  const toConnection = connections.branches[to.row];
+  try {
+    toConnection.ws.send(envelope);
+    connection.ws.send('Message sent');
+  } catch (e) {
+    connection.ws.send(`Message unable to send ${e}`);
+    log(e);
   }
 }
+
 
 const failWhale = `
  ___        _  _       __      __ _           _

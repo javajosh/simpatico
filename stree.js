@@ -99,6 +99,10 @@ function stree(value = {}, reducer = combineReducer) {
   function residues() {
     return branches.map(a => a.residue);
   }
+
+  function branchIndex(){
+    return lastNode.branchIndex;
+  }
   /**
    * Produce an stree from the given array.
    * The inverse of toArray().
