@@ -94,6 +94,7 @@ const defaultHtmlHeader = (fileName) => {
       id = heading.id;
       indent = (level - 1) * 20; // Adjust the foo size as needed
       if (id) {
+        // note: don't use string interpolation here since we're already in an interpolated string
         toc += '<li style="margin-left: ' + indent + 'px;"><a href="#' + id + '">' + title + '</a></li>';
         // heading.innerHTML = '<a name="' + id + '">' + title + '</a>';
       }
