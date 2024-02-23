@@ -23,6 +23,16 @@ function stree(value = {}, reducer = combineReducer) {
   let lastNode = root;
 
 
+  function nodeByNumber(num){
+    let node;
+    if (num === Number.POSITIVE_INFINITY){
+      node = branches[0];
+    } else {
+      node = node >= 0 ? nodes[num] : branches[-num];
+    }
+    return node;
+  }
+
   /**
    * Add a value to an n-ary tree.
    * Return the node that wraps these parameters.
@@ -37,11 +47,7 @@ function stree(value = {}, reducer = combineReducer) {
    */
     function add(value, parent = lastNode) {
       if (typeof parent === 'number'){
-        if (parent === Number.POSITIVE_INFINITY){
-          parent = branches[0];
-        } else {
-          parent = parent >= 0 ? nodes[parent] : branches[-parent];
-        }
+        parent = nodeByNumber(parent);
       }
       Object.freeze(value);
       const node = {value, parent}; //residue, branchIndex, and id added below
@@ -91,7 +97,7 @@ function stree(value = {}, reducer = combineReducer) {
    */
   function residue(node = lastNode) {
     if (typeof node === 'number'){
-      node = nodes[node];
+      node = nodeByNumber(node);
     }
     return node.residue ? node.residue : nodePath(node).map(n => n.value).reduce(reducer);
   }
@@ -114,7 +120,7 @@ function stree(value = {}, reducer = combineReducer) {
     for (let i = 1; i < arr.length; i++) {
       value = arr[i];
       if (typeof value === 'number'){
-        parent = (value >= 0) ? s.nodes[value] : s.branches[-value];
+        parent = nodeByNumber(value);
         value = arr[++i]; // note the index skip
         s.add(value, parent);
       } else {
