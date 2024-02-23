@@ -146,9 +146,7 @@ const renderStree = (
     while (scene.children.length > staticChildrenCount) {
       scene.removeChild(scene.lastElementChild);
     }
-    for (let i = 0; i < s.nodes.length; i++) {
-      renderNode(s.nodes[i++]);
-    }
+    s.nodes.forEach(renderNode)
   }
 
   function animateAdd(clock=svg.clock(20, -1)) {
