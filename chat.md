@@ -3,7 +3,7 @@
 
 See:
 [home](/),
-[litmd](/lit.md),
+[websocket](/websocket.md),
 [crypto](/crypto.md),
 [reflector](/reflector.md)
 
@@ -154,63 +154,6 @@ renderStree(s, renderParent);
 ```
 
 
-### Connection
-
-Modelling a websocket connection with stree.
-
-```html
-<div id="connection-render"></div>
-```
-```js
-import {stree, renderStree, svg, h} from './simpatico.js';
-
-const renderParent = svg.elt('connection-render');
-
-const websocketURL = window.location.toString().replace(/^http/, 'ws').split('#')[0];
-const isConnReady = (conn) =>  (conn !== undefined) && (conn.readyState === conn.OPEN);
-const {CONNECTING, OPEN, CLOSING, CLOSED} = WebSocket;
-const states = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-
-// events target the same stree row as the connection lives. for now target root with a special number, +infinity (0 is reserved for root node)
-// note that calling s.add inside this handler does not constitute a side-effect, and so is allowed
-const connect = (ctx, {websocketURL, row}) => {
-  const connection = new WebSocket(websocketURL);
-  if (row === 0 ) row = Number.POSITIVE_INFINITY;
-  connection.onclose = (e) => s.add({open: false, state: CLOSING, connection: null}, row);
-  connection.onerror = (e) => s.add({error: e}, row);
-  connection.onopen = (e) => s.add({open: true, state: OPEN}, row);
-  connection.onmessage = (e) => s.add({handler: 'receive', msg: e.data}, row);
-  return [{websocketURL, connection, open: false, state: CONNECTING}];
-}
-
-// todo: support retry
-const send = (ctx, {msg}) => {
-  // we can also check ctx state for this, eventually
-  if (!ctx.connection) throw 'connection is does not exist';
-  if (!ctx.open) throw `connection is not ready, in state ${states[ctx.state]}`;
-  try{
-    ctx.connection.send(msg);
-  } catch (e){
-      return {error: e}
-  }
-
-  return [{out: msg}];
-};
-
-const receive = (ctx, {msg}) => [{in: msg}];
-const close = (ctx, _) => [ctx.connection.close()];
-
-// add the handlers
-const s = stree([h(connect),h(close),h(send),h(receive)]);
-
-//trigger a connect. we know our connection is row 0
-s.add({handler: 'connect', websocketURL, row: 0});
-
-// wait a second, and then send a message
-setTimeout(() => s.add({handler: 'send', msg: 'hello from stree'}), 1000);
-
-renderStree(s, renderParent);
-```
 
 
 ## Client
