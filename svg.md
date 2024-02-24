@@ -632,6 +632,8 @@ A good list of tools here: https://github.com/sw-yx/spark-joy/blob/master/README
 
 Useful looking background tools include [Hero patterns](https://heropatterns.com/) and [SVG Backgrounds](https://www.svgbackgrounds.com/). Here is another cool [Penrose Tile Generator.](https://misc.0o0o.org/penrose/) (Veritasium has a [good video about Penrose tiles](https://www.youtube.com/watch?v=48sCx-wBs34)).
 
+https://css-tricks.com/6-common-svg-fails-and-how-to-fix-them/
+
 Natural Units
 -------------
 
