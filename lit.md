@@ -1,7 +1,7 @@
 # Simpatico: Literate Markdown
 See also [litmd online](https://simpatico.io/litmd.md), [reflector](/reflector.md), [other literate programming tools](http://literateprogramming.com)
 
-[![Aperiodic tile with one tile](/img/aperiodic_monotiling.svg =500x500)](https://arxiv.org/abs/2303.10798)
+[![Aperiodic tile with one tile](/img/aperiodic-green.svg =500x500)](https://arxiv.org/abs/2303.10798)
 
 HTML will always be the primary authoring tool.
 But it is difficult to write *about* code in HTML.

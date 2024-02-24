@@ -579,34 +579,55 @@ _______________________________
 
 See [A guy who makes great SVGs for technical illustration](https://en.wikipedia.org/wiki/User:Cmglee/Dynamic_SVG_for_Wikimedia_projects)
 
-## Referencing an svg as a separate resource:
+## SVG Image
 These three ways:
 
 ```html
-<img id="wizard1" width="200px" src="/img/wizard.svg" alt="simpatico wizard" /> This is just html, supports all attributes, but no dom.
-<object id="wizard2" data="/img/wizard.svg" width="100" height="100" type="image/svg+xml"></object> This is html, supports all attributes, and supports dom
-<!-- ![simpatico wizard](/img/wizard.svg =200x200) This is markdown with height and width, but no id and no dom. -->
+<img id="wizard1" width="200px" src="/img/wizard.svg" alt="simpatico wizard" /> This is html img, supports all attributes, but no dom.
+<object id="wizard2" data="/img/wizard.svg" width="100" height="100" type="image/svg+xml"></object> This is html object, supports all attributes, and supports dom
 ```
+```md
+This is markdown with height and width, but no id and no dom.
+ ![wizard](/img/wizard.svg =200x200){#wizard3}
+```
+![wizard](/img/wizard.svg =200x200){#wizard3}
 
 To get to the img svg DOM, you must use the `<object>` tag.
 The svg element is at `contentDocument.documentElement` property:
 ```js
 import {svg} from '/simpatico.js';
-assertEquals(false, svg.elt('wizard1').hasOwnProperty('contentDocument'));
-const wizard = svg.elt('wizard2').contentDocument.documentElement;
-console.log('wizard', wizard);
+
+// todo figure out what's wrong with this code. none of the onload handlers seem to fire
+
+const wizard1 = svg.elt('wizard1');
+const wizard2 = svg.elt('wizard2');
+console.log('hi there', wizard1, wizard2)
+const f1 = () => assertEquals(false, wizard1.hasOwnProperty('contentDocument'));
+const f2 = () => {
+    console.log('hi there');
+  assertEquals(true, wizard2.hasOwnProperty('contentDocument'));
+  assertEquals(true, wizard2.contentDocument.hasOwnProperty(documentElement));
+}
+wizard1.onload = f1;
+if (wizard1.complete) f1();
+
+wizard2.onload = f2;
+if (wizard2.complete) f2();
+
+
 ```
 
 Here is an aperiodic thing
 
 ```md
-![aperiodic.svg](/kata/aperiodic.svg =200x200)
+![aperiodic.svg](/img/aperiodic-green.svg =200x200)
 ```
-![aperiodic.svg](/kata/aperiodic.svg =200x200)
+![aperiodic.svg](/img/aperiodic-green.svg =200x200)
 
 # Different ways to use HTML in SVG
 Clickable iframes.
 Using `foreignObject` and position a `rect` in front of the iframe to intercept the click event. Works great!
+I use this pattern in the [acceptance tests](/acceptance.md).
 
 ```html
 <svg xmlns="http://www.w3.org/2000/svg"
@@ -678,7 +699,7 @@ https://css-tricks.com/6-common-svg-fails-and-how-to-fix-them/
 Natural Units
 -------------
 
-Scalable Vector Graphics, or SVG, is an important component of Simpatico. The browser also offers Canvas and WebGL, and of course DOM manipulation, as other ways to draw. We pick SVG and drive toward a state where _drawing_ is done statically, and program state is characterized by a list of vectors interpreted to move these shapes. One particularly interesting application is drawing an [stree](/stree) visualization, and then animating it under various conditions.
+Scalable Vector Graphics, or SVG, is an important component of Simpatico. The browser also offers Canvas and WebGL, and of course DOM manipulation, as other ways to draw. We pick SVG and drive toward a state where _drawing_ is done statically, and program state is characterized by a list of vectors interpreted to move these shapes. One particularly interesting application is drawing an [stree](/ stree) visualization, and then animating it under various conditions.
 
 Building up to that, we build up a few techniques
 
