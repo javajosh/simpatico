@@ -85,37 +85,37 @@ const defaultHtmlHeader = (fileName) => {
 
       // Add a table of contents
       const headings = document.querySelectorAll('h1, h2, h3');
-  if (headings.length > 0) {
-    let toc = '<h2>Table of Contents</h2><ul>';
-    let level, title, id, indent;
-    headings.forEach(function (heading) {
-      level = heading.tagName[1];
-      title = heading.textContent;
-      id = heading.id;
-      indent = (level - 1) * 20; // Adjust the foo size as needed
-      if (id) {
-        // note: don't use string interpolation here since we're already in an interpolated string
-        toc += '<li style="margin-left: ' + indent + 'px;"><a href="#' + id + '">' + title + '</a></li>';
-        // heading.innerHTML = '<a name="' + id + '">' + title + '</a>';
-      }
-    });
-    toc += '</ul>';
+      if (headings.length > 0) {
+        let toc = '<h2>Table of Contents</h2><ul>';
+        let level, title, id, indent;
+        headings.forEach(function (heading) {
+          level = heading.tagName[1];
+          title = heading.textContent;
+          id = heading.id;
+          indent = (level - 1) * 20; // Adjust the foo size as needed
+          if (id) {
+            // note: don't use string interpolation here since we're already in an interpolated string
+            toc += '<li style="margin-left: ' + indent + 'px;"><a href="#' + id + '">' + title + '</a></li>';
+            // heading.innerHTML = '<a name="' + id + '">' + title + '</a>';
+          }
+        });
+        toc += '</ul>';
 
-    const tocDiv = document.createElement('div');
-    tocDiv.id = 'toc';
-    tocDiv.innerHTML = toc;
+        const tocDiv = document.createElement('div');
+        tocDiv.id = 'toc';
+        tocDiv.innerHTML = toc;
 
-    // Insert the tocDiv as the 3rd element under main
-    const mainTag = document.querySelector('main');
-    if (mainTag) {
-      const children = mainTag.children;
-      if (children.length >= 3) {
-        mainTag.insertBefore(tocDiv, children[3]);
-      } else {
-        mainTag.appendChild(tocDiv);
+        // Insert the tocDiv as the 3rd element under main
+        const mainTag = document.querySelector('main');
+        if (mainTag) {
+          const children = mainTag.children;
+          if (children.length >= 3) {
+            mainTag.insertBefore(tocDiv, children[3]);
+          } else {
+            mainTag.appendChild(tocDiv);
+          }
+        }
       }
-    }
-  }
     });
   </script>
 </head>
