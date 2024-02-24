@@ -607,6 +607,50 @@ Here is an aperiodic thing
 ```
 ![aperiodic.svg](/kata/aperiodic.svg =200x200)
 
+# Different ways to use HTML in SVG
+Clickable iframes.
+Using `foreignObject` and position a `rect` in front of the iframe to intercept the click event. Works great!
+
+```html
+<svg xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 40 10"
+  width="800px" height="200px"
+  style="border: 1px solid gray; pointer-events: visible;"
+>
+  <g>
+    <rect width ="10" height = "10" fill="white" fill-opacity="1"/>
+    <foreignObject id="embedded-html" width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
+        <h3 style="color:black">Embedded HTML in svg with white rectangle</h3>
+
+      </div>
+    </foreignObject>
+  </g>
+
+  <g transform="translate(11,0)">
+    <rect class="iframe-background" width ="10" height = "10" fill="white" fill-opacity="1"/>
+    <foreignObject id="embedded-iframe" width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
+      <iframe width="100%" height="100%" src="lit.md"></iframe>
+    </foreignObject>
+    <rect class="iframe-foreground" onclick="console.log('iframe clicked')" width ="10" height = "10" fill-opacity="0"/>
+  </g>
+</svg>
+```
+
+```js
+import {svg} from './simpatico.js';
+const embeddedHTML = svg.elt('embedded-html');
+embeddedHTML.addEventListener('click', ()=>{
+  log('embedded html clicked');
+});
+
+// This doesn't work. Instead we position an svg rect over the iframe to intercept clicks
+const embeddedIframe = svg.elt('embedded-iframe');
+embeddedIframe.addEventListener('click', ()=>{
+  log('embedded iframe clicked');
+});
+```
+
 ## Referencing an svg with built-in styles and javascript
 
 
