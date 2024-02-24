@@ -1,5 +1,23 @@
 /* MVP.css v1.12 - https://github.com/andybrewer/mvp */
 
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 300px;
+  border-radius: 8px;
+  border: 2px solid black;
+}
+#toc {
+  border: 1px solid #777;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
 :root {
     --active-brightness: 0.85;
     --border-radius: 5px;

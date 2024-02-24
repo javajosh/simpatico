@@ -34,90 +34,14 @@ const defaultHtmlHeader = (fileName) => {
       <rect width='1' height='1' fill='DodgerBlue' />
   </svg>"/>
   <script src="/testable.js" type="module"></script>
+  <script src="/litmd-header.js" type="module"></script>
 
   <title>${title}</title>
+
   <meta name="keywords" content="JavaScript, ES6, functional, simpatico, minimalist">
   <meta name="author" content="jbr">
   <link rel="stylesheet" type="text/css" href="/style.css">
   <link rel="stylesheet" href="/kata/highlight.github-dark.css">
-  <style>
-    .dialog {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      width: 300px;
-      border-radius: 8px;
-      border: 2px solid black;
-    }
-    #toc {
-      border: 1px solid #777;
-      padding: 10px;
-      margin-bottom: 20px;
-    }
-  </style>
-  <script type="module">
-    import hljs from '/kata/highlight.min.js';
-    import javascript from '/kata/highlight.javascript.min.js';
-
-    hljs.registerLanguage('javascript', javascript);
-    document.addEventListener('DOMContentLoaded', () => {
-      // add syntax highlighting
-      document.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
-
-      // Support clickable definitions on mobile, which does cannot hover
-      document.querySelectorAll('span[title]').forEach(span => {
-        span.addEventListener('click', function() {
-          const dialog = document.createElement('div');
-          dialog.textContent = span.getAttribute('title');
-          dialog.classList.add('dialog');
-          document.body.appendChild(dialog);
-          dialog.addEventListener('click', function(e) {
-            dialog.remove();
-          });
-        });
-      });
-
-      // Add a table of contents
-      const headings = document.querySelectorAll('h1, h2, h3');
-      if (headings.length > 0) {
-        let toc = '<h2>Table of Contents</h2><ul>';
-        let level, title, id, indent;
-        headings.forEach(function (heading) {
-          level = heading.tagName[1];
-          title = heading.textContent;
-          id = heading.id;
-          indent = (level - 1) * 20; // Adjust the foo size as needed
-          if (id) {
-            // note: don't use string interpolation here since we're already in an interpolated string
-            toc += '<li style="margin-left: ' + indent + 'px;"><a href="#' + id + '">' + title + '</a></li>';
-            // heading.innerHTML = '<a name="' + id + '">' + title + '</a>';
-          }
-        });
-        toc += '</ul>';
-
-        const tocDiv = document.createElement('div');
-        tocDiv.id = 'toc';
-        tocDiv.innerHTML = toc;
-
-        // Insert the tocDiv as the 3rd element under main
-        const mainTag = document.querySelector('main');
-        if (mainTag) {
-          const children = mainTag.children;
-          if (children.length >= 3) {
-            mainTag.insertBefore(tocDiv, children[3]);
-          } else {
-            mainTag.appendChild(tocDiv);
-          }
-        }
-      }
-    });
-  </script>
 </head>
 <body>
 <header>
