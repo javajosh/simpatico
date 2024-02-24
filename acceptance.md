@@ -1,73 +1,41 @@
 # acceptance
 
-```css
-.iframe-container {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
+```html
+<svg xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 40 20"
+  width="800px" height="400px"
+  style="border: 1px solid gray; pointer-events: visible; overflow:auto; max-width: 100%; height: auto;"
+  id="iframe-svg"
+>
+</svg>
+```
+
+```js
+import {svg} from './simpatico.js';
+
+const iframeSvg = svg.elt('iframe-svg');
+
+const urls = ['chat','combine', 'core', 'crypto', 'friendly', 'stree', 'svg', 'websocket'];
+
+const clickableIframe = (url, {x,y}) => `
+  <g transform="translate(${x} ${y})">
+    <foreignObject id="embedded-iframe" width="500px" height="500px" transform="scale(.02)">
+      <iframe width="500px" height="500px" src="${url}"></iframe>
+    </foreignObject>
+    <rect onclick="window.location='${url}'" width="10" height="10" fill-opacity="0"/>
+  </g>
+`;
+
+const pos = (index, cols=4, W=10, H=10) => {
+  const x = index % cols * W;
+  const y = Math.floor(index / cols) * H;
+  return { x, y };
 }
-
-.iframe-wrapper {
-  flex: 0 0 50%;
-  box-sizing: border-box;
-  padding: 10px;
-}
-
-iframe {
-  width: 100%;
-  height: 200px; /* Adjust height as needed */
-}
-
-.caption {
-  display: block;
-  margin-top: 10px;
-  text-align: center;
-}
-
-
+const iframeAtIndex = (url, i) => clickableIframe(url, pos(i));
+const html = urls.map(iframeAtIndex).reduce((a,b) => a + b, '');
+iframeSvg.innerHTML = html;
 
 ```
-<div id="iframe-container">
-<div class="iframe-wrapper">
-  <iframe src="/index.html"></iframe>
-  <a class="caption" href="/index.html">/index.html</a>
-</div>
-
-<div class="iframe-wrapper">
-  <iframe src="/core"></iframe>
-  <a class="caption" href="/core">/core</a>
-</div>
-
-<div class="iframe-wrapper">
-  <iframe src="/combine"></iframe>
-  <a class="caption" href="/combine">/combine</a>
-</div>
-
-<div class="iframe-wrapper">
-  <iframe src="/stree"></iframe>
-  <a class="caption" href="/stree">/stree</a>
-</div>
-
-<div class="iframe-wrapper">
-  <iframe src="/crypto"></iframe>
-  <a class="caption" href="/crypto">/crypto</a>
-</div>
-
-<div class="iframe-wrapper">
-  <iframe src="/friendly"></iframe>
-  <a class="caption" href="/friendly">/friendly</a>
-</div>
-
-<div class="iframe-wrapper">
-  <iframe src="/svg"></iframe>
-  <a class="caption" href="/svg">/svg</a>
-</div>
-
-<div class="iframe-wrapper">
-  <iframe src="/chat"></iframe>
-  <a class="caption" href="/chat">/chat</a>
-</div>
-</div>
 
 # About
 

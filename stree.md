@@ -1,7 +1,7 @@
-# Simpatico/Summary Tree: STree3
+# STree
 *javajosh 2023*
 
-See [home](/), [combine](/combine.md), [stree](/stree.md)
+See [home](/), [combine](/combine.md)
 
 # Intro
 With stree I'm taking a page from [Introduction to Algorithms](https://en.wikipedia.org/wiki/Introduction_to_Algorithms) and using a more formal, terse specification.

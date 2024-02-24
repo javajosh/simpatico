@@ -39,9 +39,9 @@ const arithmeticOps = [
   assertHandler.install(),
   logHandler.install(), has({debug: true, lastOutput: ''}),
   {handlers: {inc: incHandler, dec: decHandler, mul: mulHandler}},
-  {a: 10}, has({a: 10}),
+  {a: 10}, has({a: 10}), // nodes 5 and 6
   inc(), has({a: 11}),
-  dec(), has({a: 10}),
+  dec(), has({a: 10}), // nodes 9 and 10
   dec(), has({a: 9}),
   mul(5), has({a: 45}),
   loggy('okay, lets backtrack and start from an earlier node.'),
