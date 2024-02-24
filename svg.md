@@ -582,13 +582,11 @@ See [A guy who makes great SVGs for technical illustration](https://en.wikipedia
 ## Referencing an svg as a separate resource:
 These three ways:
 
-```md
+```html
 <img id="wizard1" width="200px" src="/img/wizard.svg" alt="simpatico wizard" /> This is just html, supports all attributes, but no dom.
-![simpatico wizard](/img/wizard.svg =200x200) This is markdown with height and width, but no id and no dom.
 <object id="wizard2" data="/img/wizard.svg" width="100" height="100" type="image/svg+xml"></object> This is html, supports all attributes, and supports dom
+<!-- ![simpatico wizard](/img/wizard.svg =200x200) This is markdown with height and width, but no id and no dom. -->
 ```
-<img id="wizard1" width="1px" src="/img/wizard.svg" alt="simpatico wizard" />
-<object id="wizard2" data="/img/wizard.svg" width="100" height="100" type="image/svg+xml"></object>
 
 To get to the img svg DOM, you must use the `<object>` tag.
 The svg element is at `contentDocument.documentElement` property:
@@ -596,7 +594,6 @@ The svg element is at `contentDocument.documentElement` property:
 import {svg} from '/simpatico.js';
 assertEquals(false, svg.elt('wizard1').hasOwnProperty('contentDocument'));
 const wizard = svg.elt('wizard2').contentDocument.documentElement;
-window.wizard = wizard;
 console.log('wizard', wizard);
 ```
 
