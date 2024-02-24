@@ -22,17 +22,6 @@ function stree(value = {}, reducer = combineReducer) {
   const nodes = [root];
   let lastNode = root;
 
-
-  function nodeByNumber(num){
-    let node;
-    if (num === Number.POSITIVE_INFINITY){
-      node = branches[0];
-    } else {
-      node = node >= 0 ? nodes[num] : branches[-num];
-    }
-    return node;
-  }
-
   /**
    * Add a value to an n-ary tree.
    * Return the node that wraps these parameters.
@@ -105,6 +94,17 @@ function stree(value = {}, reducer = combineReducer) {
   function residues() {
     return branches.map(a => a.residue);
   }
+
+  function nodeByNumber(num){
+    let node;
+    if (num === Number.POSITIVE_INFINITY){
+      node = branches[0];
+    } else {
+      node = num >= 0 ? nodes[num] : branches[-num];
+    }
+    return node;
+  }
+
   /**
    * Produce an stree from the given array.
    * The inverse of toArray().
@@ -120,7 +120,7 @@ function stree(value = {}, reducer = combineReducer) {
     for (let i = 1; i < arr.length; i++) {
       value = arr[i];
       if (typeof value === 'number'){
-        parent = nodeByNumber(value);
+        parent = s.nodeByNumber(value);
         value = arr[++i]; // note the index skip
         s.add(value, parent);
       } else {
@@ -176,7 +176,7 @@ function stree(value = {}, reducer = combineReducer) {
   }
 
 
-  return {add, nodePath, residue, residues, toArray, toString, branches, nodes, root};
+  return {add, nodePath, residue, residues, toArray, toString, nodeByNumber, branches, nodes, root};
 }
 
 
