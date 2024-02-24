@@ -2,7 +2,7 @@
 
 See:
 [home](/),
-[combine2](combine.md),
+[combine](/combine.md),
 [litmd](/lit.md),
 [audience](/audience.md)
 
@@ -261,7 +261,7 @@ const rotatingSquaresAnimation = document.getElementById('rotating-squares-anima
 // Configure the observer
 // Set INSPECT to true to see the mutations
 const INSPECT = false;
-const observeDuration = 500;
+const observeDuration = 1000;
 const config = {
   attributes: true,
   childList: true,
