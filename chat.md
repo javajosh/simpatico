@@ -170,8 +170,7 @@ renderStree(s, renderParent);
 <!-- Idiosyncratic, global dependencies. -->
 <!-- npm install && cp ./node_modules/qrcode/build/qrcode.js . -->
 <script src="qrcode.js"></script>
-<!-- curl https://raw.githubusercontent.com/chancejs/chancejs/master/chance.js > chance.js -->
-<script src="./node_modules/chance/dist/chance.min.js"></script>
+<!-- cute but way too big curl https://raw.githubusercontent.com/chancejs/chancejs/master/chance.js > chance.js -->
 <!--
   Sadly only Chrome supports setHTML(). We need DOMPurify as a polyfill
   See : https://developer.mozilla.org/en-US/docs/Web/API/Element/setHTML
@@ -218,10 +217,6 @@ renderStree(s, renderParent);
 
   const profile = {
     address: keyPairPem.pubKeyFingerprint,
-    name: chance.name({ prefix: true }),
-    color: chance.color({format: 'hex'}),
-    animal: chance.animal(),
-    roll: chance.d20(),
   }
 
   // strip the hash because websocket urls cannot have a hash

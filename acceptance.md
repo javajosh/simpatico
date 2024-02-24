@@ -1,10 +1,9 @@
-# acceptance
+# Acceptance Tests
 
 ```html
 <svg xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 40 20"
-  width="800px" height="400px"
-  style="border: 1px solid gray; pointer-events: visible; overflow:auto; max-width: 100%; height: auto;"
+  viewBox="0 0 40 30"
+  style="border: 1px solid gray; pointer-events: visible; max-width: 100%; height: auto"
   id="iframe-svg"
 >
 </svg>
@@ -14,13 +13,13 @@
 import {svg} from './simpatico.js';
 
 const iframeSvg = svg.elt('iframe-svg');
-
-const urls = ['chat','combine', 'core', 'crypto', 'friendly', 'stree', 'svg', 'websocket'];
+// NB: adjust viewbox of svg to add more rows of content
+const urls = ['index', 'chat','combine', 'core', 'crypto', 'friendly', 'reflector', 'lit.md', 'stree', 'svg', 'websocket'];
 
 const clickableIframe = (url, {x,y}) => `
   <g transform="translate(${x} ${y})">
     <foreignObject id="embedded-iframe" width="500px" height="500px" transform="scale(.02)">
-      <iframe width="500px" height="500px" src="${url}"></iframe>
+      <iframe width="500px" height="500px" src="${url}" style="overflow:hidden" scrolling="no"></iframe>
     </foreignObject>
     <rect onclick="window.location='${url}'" width="10" height="10" fill-opacity="0"/>
   </g>
