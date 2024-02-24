@@ -9,7 +9,7 @@ See:
 # Introduction
 Model a websocket with combine, then allow branching (and multiple websockets) in stree.
 
-## MockWebSocket
+# MockWebSocket
 We want to work with websockets locally so mock one up. (For another approach, see [jest-websocket-mock](https://www.npmjs.com/package/jest-websocket-mock))
 ```js
 class MockWebSocket {
@@ -118,7 +118,7 @@ setTimeout(() => ws.remoteClose(), delay * 5);
 
 ```
 
-## Wrapping a Websocket in an Stree
+# Wrapping a Websocket in an Stree
 The idea here is to represent both passive and active events as objects targeting handlers.
 The `connect()` function creates a new websocket, adds a reference to residue and adds all event listeners, which are themselves adding objects back into the stree.
 This approach requires stable access to stree rows, which is accomplished here by adding an explicit row id to the connect handler.
@@ -196,8 +196,19 @@ setTimeout(()=>s.residue(-2).ws.remoteClose(), delay * 5 );
 renderStree(s, renderParent);
 ```
 
+# Building the protocol
+The Simpatico chat protocol has three parts: registering a client connection's public key, inviting other public keys to be your 'friend', and the message protocol which describes the steady-state flow of messages between connections.
+
+An unusual quality of Simpatico chat (Simpatichat) is its simplicity.
+We think in terms of communicating processes, with each process having one websocket connection to one server, and the potential to message any registered connection.
+
+The design balances the threat of malefactors with ease of implementation and the ability to run on modest server hardware.
+PKI is famously compute-intensive and so we rely on clients to ver
+
 ## Connection Registration Protocol
 Simpatico requires a challenge/response protocol to register your public key.
+The challenge exists to prove that your public key is "real" in the sense it can be used to encrypt from and to another public key. Without this challenge, a malicious client can connect and associate their connection with an arbitrary string.
+
 The server sends its public key, and then expects a response with your public key and a clear-text message and that same message encrypted by your private key to its public key.
 We pick as that message a simple timestamp from Date.now(), which is ms from the Epoch and can be used to measure client/server time-skew.
 WebSockets support text, but we will want more structure so every message must be wrapped in an unencrypted JSON envelope.
@@ -306,7 +317,7 @@ const serverChallenge = (ctx, {challenge}) => {
   return [{handler: 'send', msg: JSON.stringify(challengeResponse)}];
 }
 const serverChallengeResponse = (ctx, {}) => {
-  // todo deal with failure case
+  // todo deal with failure case - although perhaps the server will just close the connection
   return [{registered: true}];
 }
 
