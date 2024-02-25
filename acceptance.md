@@ -65,7 +65,9 @@ This code combines the results of all tests into an overall "pass/fail" on *this
 
   // Here we interact with the iframes indirectly, by listening for events the iframes may emit.
 // Communicate with the outside world if in headless chrome through the DOM.
+  let failed = false;
   window.addEventListener('test-failure', (e) => {
+    failed = true;
     favicon.href = svgIcon('red');
     document.body.style.backgroundColor = 'red';
     if (headless){
@@ -73,7 +75,7 @@ This code combines the results of all tests into an overall "pass/fail" on *this
     }
   })
   window.addEventListener('test-success', () => {
-    favicon.href = svgIcon('green');
+    if (!failed) favicon.href = svgIcon('green');
     if (headless && (--testCount === 0)){
       document.body.innerText = '';
     }
