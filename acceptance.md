@@ -8,13 +8,25 @@
 >
 </svg>
 ```
+# Running in the browser
+Our approach is to add a list of `iframes` to an `svg` and position a `rect` in front that responds to click events.
+(Without this, the click would be consumed by the underlying iframe.
+Intercepting clicks to iframes is almost impossible in regular DOM.)
+Since the iframes are not interactive we remove the scrollbar with `scrolling="no"` (which was certainly new to me!)
+
+The svg container is reactive to page width, and the pixel height is computed based on .
+To adjust the logical height use `viewBox` parameters.
 
 ```js
 import {svg} from './simpatico.js';
 
 const iframeSvg = svg.elt('iframe-svg');
 // NB: adjust viewbox of svg to add more rows of content
-const urls = ['index', 'chat','combine', 'core', 'crypto', 'friendly', 'reflector', 'lit.md', 'stree', 'svg', 'websocket'];
+const urls = [
+  'index', 'chat','combine', 'core',
+  'crypto', 'friendly', 'reflector', 'lit.md',
+  'stree', 'svg', 'websocket'
+];
 
 const clickableIframe = (url, {x,y}) => `
   <g transform="translate(${x} ${y})">
@@ -35,15 +47,10 @@ const html = urls.map(iframeAtIndex).reduce((a,b) => a + b, '');
 iframeSvg.innerHTML = html;
 
 ```
-The above code adds a list of `iframes` to an `svg` and positions a `rect` in front that responds to click events. Without this, the click would be consumed by the underlying iframe. Intercepting clicks to iframes is almost impossible in regular DOM. Since the iframes are not interactive we remove the scrollbar with `scrolling="no"` which was certainly new to me!
-
-The svg container is reactive to page width, and the pixel height is computed based on .
-To adjust the logical height use `viewBox` parameters.
 
 
-# Running the browser
+# Headless execution
 If your test suite is self-executing html pages, then including them as an `iframe` with [testable.js](testable.js) and visually checking their background color works great.
-The above code gives you the ability to click on a failing iframe and navigate to it to inspect the failure.
 
 This code combines the results of all tests into an overall "pass/fail" on *this* page:
 
@@ -75,12 +82,13 @@ This code combines the results of all tests into an overall "pass/fail" on *this
 
 In the future I'd like to capture logging output and put it in the DOM to support command-line usage a little better. Instead of printing out 'success' we'd see the output of all tests, which is a nice check that the tests actually ran.
 
-# Running from the command line
+## Invoking headless chrome
 Note the check `/\bHeadlessChrome\//.test(navigator.userAgent);` in the code in the previous section.
 If you run this page in headless chrome, overall test success is indicated by removing the document body.
 For convenience, the [acceptance.js script](acceptance.js) invokes headless chrome with the correct command line options and checks the dom dump for the appropriate emptiness (invoke with `node acceptance.js` after running the server):
 
-```node
+```js
+/// DO NOT EXECUTE - this is node code
 import { exec } from 'child_process';
 
 // Headless chrome is invoked with the dump-dom flag, which we'll use to check results.
