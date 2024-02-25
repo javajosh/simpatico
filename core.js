@@ -1,5 +1,6 @@
 const now = () => Date.now() // e.g. 1678023832587
 const date = () => new Date().toISOString() // e.g. 2023-01-29T03:40:21.319Z
+// Add the filename to the log output. Downside is it obscures the browser's ability to tell where it was natively called.
 const log = (...args) => {
   if (typeof process !== 'undefined' && process.versions && process.versions.node) {
     console.log(...args);

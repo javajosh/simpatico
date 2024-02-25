@@ -17,7 +17,6 @@ To that end I've added basic litmd support to the [reflector](/reflector.js).
   - [x] header section doesn't render on github
 
 **WARNING**:
-This is a work in progress.
 Pages render but do not execute properly on Github.
 ______________________________________________________________
 ## Markdown test
