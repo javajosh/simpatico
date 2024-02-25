@@ -1,5 +1,7 @@
-# Simpaticode: chat
-2023
+# Chat.js
+2024
+
+A simple, secure isomorphic javascript chat infrastructure.
 
 See:
 [home](/),

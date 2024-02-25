@@ -1,5 +1,12 @@
-# Simpatico: Literate Markdown
-See also [litmd online](https://simpatico.io/litmd.md), [reflector](/reflector.md), [other literate programming tools](http://literateprogramming.com)
+# Literate Markdown
+2024
+
+Make markdown come alive as easily authorable, executable, communicative resources you edit with your favorite tools.
+
+See also
+[litmd online](https://simpatico.io/litmd.md),
+[reflector](/reflector.md),
+[other literate programming tools](http://literateprogramming.com)
 
 [![Aperiodic tile with one tile](/img/aperiodic-green.svg =500x500)](https://arxiv.org/abs/2303.10798)
 

@@ -1,7 +1,7 @@
 # Core.js
-javajosh 2023
+2024
 
-A handful of comprehensive helper functions to make working with ES6 more functional. To avoid ambiguity core functions are prefixed with `c.`.
+A handful of comprehensive helper functions to make working with ES6 more functional. Focus is on types, predicates, assertions, functional helpers and general utilites.
 
 ## Logging
 

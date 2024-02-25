@@ -1,12 +1,8 @@
-# Reflector
-See: [home](/index.html)
+# Reflector.js
+2024
 
 The [reflector](/reflector.js) is the server component of simpatico.
-It's a small, almost single file 450 line node program, written in modular, modern style that serves as a:
-  1. Static file server
-    1. file reads are cached and invalidated with a file watcher.
-    1. [Literate Markdown] renderer.
-    1. tls
+It's a small, almost single file 450 line node program, written in modular, modern style that serves as static file server and [Literate Markdown](lit.md) renderer.
 
 Installation and running is handled in the [readme](readme.md).
 

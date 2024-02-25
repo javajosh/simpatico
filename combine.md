@@ -1,5 +1,7 @@
-# Simpaticode: combine()
-jbr 2023
+# combine()
+2024
+
+A generalization of `Object.assign` that supports reduction, adding/removing properties and invoking functions.
 
 See:
 [home](/),

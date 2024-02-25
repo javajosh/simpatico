@@ -1,4 +1,7 @@
-# Simpatico: SVG
+# SVG
+2024
+
+Scalable Vector Graphics (SVG) is a powerful, low-entropy, programmable representation of images. This is an exploration of the tech and an experiment in a novel "scatter/gather" method of doing animation.
 
 See:
 [home](/),

@@ -1,5 +1,5 @@
 # Friendly Functions
-created *27 Jan 2019* last updated *20 June 2022* by jbr
+2024
 
 A friendly function is one that tells you how to call it, and if there is an argument which part of the argument is wrong.
 

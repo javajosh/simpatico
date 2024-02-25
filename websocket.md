@@ -1,5 +1,9 @@
 # Websocket
-2023
+2024
+
+Modeling client and server websocket connections in an [stree](stree.md) with both real and mock WebSockets.
+Also explore state transitions related to the [chat](chat.md) protocol.
+
 
 See:
 [home](/),

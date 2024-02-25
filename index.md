@@ -35,6 +35,7 @@ The server is called the [reflector](reflector.md), and features:
   3. File-watching, in memory cache of all content.
   3. Aggressive client-caching headers are standard for all resources.
   3. Cache-busting sub-resource URLs (*coming soon*).
+  3. Support for URLs with or without file extension.
   4. A *single process* and (almost) a single file, 500-line node program.
   5. Support for [automatic Let's Encrypt TLS certificate renewal](/devops/certbot.md).
   5. Terminates TLS natively - no need for a proxy.

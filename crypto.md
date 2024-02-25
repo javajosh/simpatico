@@ -1,11 +1,14 @@
-# Simpaticode: crypto
-2023
+# Crypto.js
+2024
+
+Exploring the modern browser's native cryptography libraries for doing public/private key encryption.
 
 See:
 [home](/),
-[chat](/chat.md)
-[reflector](/reflector.md)
+[chat](/chat.md),
+[reflector](/reflector.md),
 [litmd](/lit.md),
+[crypto](/notes/crypto.md),
 
 # Goals
    1. Generate keypair

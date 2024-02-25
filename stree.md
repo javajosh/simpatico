@@ -1,7 +1,9 @@
 # STree
-*javajosh 2023*
+2024
 
-See [home](/), [combine](/combine.md)
+An n-arry tree that associates a reduction-from-root (called 'residue') with each node. Allows visualizable multiverse programming.
+
+See [combine](/combine.md)
 
 # Intro
 With stree I'm taking a page from [Introduction to Algorithms](https://en.wikipedia.org/wiki/Introduction_to_Algorithms) and using a more formal, terse specification.
