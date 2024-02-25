@@ -51,7 +51,7 @@ These are sample experiments users have created that show how Simpatico works. F
 1. [`core`](https://simpatico.io/core). Very generic, convenience functions that smooth over the JavaScript runtime.
    Of particular importance is the definition of a comprehensive set of predicates/assertions.
    Nothing in this module is specific to Simpatico, although it is a good example of my preferred style of ES6 programming -> functional and minimal.
-2. [`combine`](https://simpatico.io/combine2). The function used to produce a new state from a previous state plus an input.
+2. [`combine`](https://simpatico.io/combine). The function used to produce a new state from a previous state plus an input.
    `combine()` is a generalization of `Object.assign()` and previously published as [combine-keys](https://github.com/javajosh/combine-keys).
    Defines handler invocation and the message cascade.
 3. [`stree`](https://simpatico.io/stree). A data structure that organizes inputs into chains that result in different, related states.
@@ -68,8 +68,7 @@ More detail about each module is available in the test harness `html` file, and 
 1. Install a recent version of [NodeJS](https://nodejs.org/en/download/current) (See [nvm](https://github.com/nvm-sh/nvm), the best way to install [node](https://nodejs.org) with `$ nvm install 20 && nvm use 20`)
 2. Clone this repository: `git clone https://github.com/javajosh/simpatico`
 3. Install the dependencies: `cd simpatico && npm install`
-4. (Optional) generate self-signed certificate to run local TLS
-5. Run the reflector `npm start`
-6. Navigate to [http://localhost:8080](http://localhost:8080)
+4. Generate self-signed certificate to run local TLS (see [devops/deploy.sh](devops/deploy.sh#generateSelfSignedCert))
+5. Run the reflector `node reflector.js`
+6. Navigate to [https://localhost:8080](https://localhost:8080)
 
-See [notes](/notes/simpatico.md) for more information.

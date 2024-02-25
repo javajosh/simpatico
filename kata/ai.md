@@ -1,2 +1,0 @@
-  - https://github.com/mlc-ai/web-stable-diffusion
-  - https://github.com/javajosh/llama.cpp

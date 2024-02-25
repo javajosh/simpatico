@@ -47,9 +47,9 @@ const defaultHtmlHeader = (fileName) => {
 <header>
   <nav>
     <a href="https://simpatico.io"><img alt="logo" src="/img/wizard.svg" height="70"></a>
+    <a href="https://simpatico.io"><span style="font-family: 'Arial', sans-serif; font-size: 30px; color: #eee; margin-left: 10px;">Simpatico</span></a>
     <ul>
-      <li>Home</li>
-      <li><a href="/simpatico">Docs</a></li>
+      <li><a href="/acceptance">Examples</a></li>
       <li><a href="/services">Services</a></li>
       <li><a href="https://www.github.com/javajosh/simpatico/" target="_blank">GitHub ↗</a></li>
     </ul>

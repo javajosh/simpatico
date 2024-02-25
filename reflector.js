@@ -43,6 +43,8 @@ info("File server format is [iso date] [req.socket.remoteAddress] [req.headers[u
 info(`Initialization complete. Open ${url}/${findRecentFile()} or ${url}/acceptance)}`);
 
 if (process.send) process.send(config);
+// use to measure pure startup delay with 'time'
+// process.exit()
 
 // ================================================================
 // The remainder of the file are supporting functions for the above
