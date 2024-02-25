@@ -249,20 +249,17 @@ function fileServerLogic() {
     const result = {};
     const isPrimaryResource = filename.endsWith('.html') || filename.endsWith('.md');
 
-    if (isPrimaryResource){
-      // Tell the browser check for updates before using the cached version.
-      // It will get a 304 not modified if the etag matches.
-      result["ETag"] = crypto.createHash("sha256").update(fileData).digest("hex");
-      result["Cache-Control"] = "no-cache";
-    } else {
-      // The browser caches sub-resources forever
-      // We rely on cache-busting urls to update them.
-      if (config.superCacheEnabled) {
-        result["Cache-Control"] = "public, max-age=31536000, immutable";
-      } else {
-        result["Cache-Control"] = "no-cache";
-      }
+    // Tell the browser check for updates before using the cached version.
+    // It will get a 304 not modified if the etag matches.
+    result["ETag"] = crypto.createHash("sha256").update(fileData).digest("hex");
+    result["Cache-Control"] = "no-cache";
+
+    // The browser caches sub-resources forever
+    // We rely on cache-busting urls to update them.
+    if (config.superCacheEnabled && !isPrimaryResource) {
+      result["Cache-Control"] = "public, max-age=31536000, immutable";
     }
+
     return result;
   }
 
@@ -415,7 +412,8 @@ function readProcessCache(fileName) {
   data = buildHtmlFromLiterateMarkdown(data, fileName);
 
   // 2. In html, replace sub-resource links with cache-busting urls
-  if (config.superCacheEnabled) data = replaceSubResourceLinks(data, fileName);
+  if (config.superCacheEnabled)
+    data = replaceSubResourceLinks(data, fileName);
 
   // 3. Gzip not already compressed resources.
   if (config.useGzip && !isCompressedImage(fileName))
@@ -430,7 +428,7 @@ function readProcessCache(fileName) {
 
 /**
  * find all the links to sub-resources and replace them with cache-busting urls
- * this is too ambiguous so we rely on the author to signal when to do this.
+ * this is too ambiguous so we rely on the author to signal when to do this by adding ?### to any resource that needs caching
  *
  * @param maybeHTML
  * @param fileName
