@@ -28,7 +28,8 @@ const defaultHtmlHeader = (fileName) => {
 <head >
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <!-- TODO: parameterize host.   -->
+  <link rel="alternate" type="application/rss+xml" href="https://simpatico.io/rss.xml" title="Simpatico Blog">
   <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
       <rect width='1' height='1' fill='DodgerBlue' />
