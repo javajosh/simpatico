@@ -1,5 +1,5 @@
 # A Wev Server for Idealists
-Self-hosted, privacy preserving, minimalist approach to writing code.
+Self-hosted, privacy preserving, [minimalist](notes/minimalism.md) approach to writing code.
 No front-end build, no frameworks.
 Support a very fast *and* minimalist build-test-debug cycle
 [Literate Markdown](lit.md).
@@ -68,18 +68,25 @@ The server is called the [reflector](reflector.md), and features:
 Use this, in combination with the assertion library in [core](core.md) and the functions in [testable](testable.js), as the foundation of a simple but powerful test harness.
 Combine all the tests in a single place, [acceptance](acceptance.md), for a "go"/"no go" deployment decision.
 
-An important application, currently in development, is [Chat](chat.md): the basis for a privacy-preserving E2EE structured-chat platform. *Coming soon*.
+## Chat
+[Chat](chat.md) the basis for a privacy-preserving E2EE structured-chat platform. *Coming soon*.
 
-## Explore and exercise Browser APIs
+## Static site generator
+[Static site generator](/notes) a very simple site generator, with the ability to [load all content at once](/notes/blog.md).
+
+# Explore and exercise Browser APIs
 Explore [svg authoring and animation](svg.md), and [subtle.crypto](crypto.md) for browser-native PKI.
 
 Wrap a client-side [websocket](websocket.md) in an [stree](stree.md).
 
-## Write new libraries
-   - Write [core](core.md), a pure js library that defines comprehensive predicates and assertions.
-   - Write [friendly](friendly.md), a 200-line runtime-type checker, comparable to [Zod](https://zod.dev/) but it is pure javascript.
-   - Write [combine](combine.md), a generalization of `Object.assign()` that is a smaller, less verbose [Redux](https://redux.js.org/).
-   - Write [stree](stree.md), a generalization of a trie-structure over arbitrary objects. Visualize it and use it to model a [websocket](websocket.md), for use in [chat](chat.md).
+# Write new libraries
+[core](core.md) - a pure js library that defines comprehensive predicates and assertions.
+
+[friendly](friendly.md) - a 200-line runtime-type checker, comparable to [Zod](https://zod.dev/) but it is pure javascript.
+
+[combine](combine.md) - a generalization of `Object.assign()` that is a smaller, less verbose [Redux](https://redux.js.org/).
+
+[stree](stree.md) - a generalization of a trie-structure over arbitrary objects. Visualize it and use it to model a [websocket](websocket.md), for use in [chat](chat.md).
 
 ## Deeply enjoy a fast *and* minimalist build-test-debug cycle
 

@@ -1,25 +1,14 @@
-<!DOCTYPE html>
-<!-- Note the omission of optional HTML5 tags! -->
-<meta charset="utf-8">
-<title>Draw with the mouse</title>
+# Draw with the mouse
 
-<style>
-    path {
-        fill: none;
-        stroke: cornflowerblue;
-        stroke-width: 5px;
-        stroke-linejoin: round;
-        stroke-linecap: round;
-    }
-</style>
 
-<p>Draw with the mouse
-<svg width="960" height="500">
+```html
+<script src="lib/d3.v5.js"></script>
+<svg width="100%" height="500">
     <rect fill="#fff" width="100%" height="100%"></rect>
 </svg>
+```
 
-<script src="lib/d3.v5.js"></script>
-<script>
+```js
   const line = d3.line().curve(d3.curveBasis);
 
   const dragstarted = () => {
@@ -49,4 +38,15 @@
       })
       .on("start", dragstarted)
   );
-</script>
+```
+
+```css
+path {
+    fill: none;
+    stroke: cornflowerblue;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+```

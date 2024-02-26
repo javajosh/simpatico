@@ -13,6 +13,10 @@ const currentDate = new Date().toLocaleDateString();
 const noteTitle = `# ${authorName} from ${authorLocation} on ${currentDate}\n\n`;
 const NOTE_FILE_PATTERN = /^([0-9]*)(?:-(?:.*))?\.md$/; //capture the number prefix, ignore stub after optional dash
 
+const blogHeader = `# ${blogTitle}
+Click [here](blog.md) to see ALL entries at once.
+`;
+
 const peek = (arr, fallback=null) => (arr && arr.length) ? arr[arr.length-1] : fallback;
 const getMaxValue = (max=0, num) => (num > max) ? num : max;
 const extractNoteNumber = (filename, notePattern) => +peek(filename.match(notePattern), 0);
@@ -20,7 +24,7 @@ const findGreatestNoteNumber = (fileNames, notePattern) => fileNames.map(nn => e
 
 const generateIndexFile = (fileNames) => {
   const content = fileNames.map((fileName, index) => `${index + 1}. [${fileName.replace('.md', '')}](${urlPathPrefix + fileName})`).join('\n');
-  fs.writeFileSync(`index.md`, `# ${blogTitle} \n\n${content}`);
+  fs.writeFileSync(`index.md`, blogHeader + content);
 };
 
 // TODO add a description by looking at filecontents
@@ -30,7 +34,7 @@ const generateRssFile = (fileNames) => {
           <channel>
               <title>${blogTitle}</title>
               <link>${blogURL}</link>
-              <description>RSS feed for my notes</description>
+              <description>${blogDescription}</description>
               ${fileNames.map((fileName, index) => {
                 const timestamp = new Date().toUTCString(); // Get current timestamp
                 return `<item><title>${fileName.replace('.md', '')}</title>
@@ -50,9 +54,10 @@ const fileName = noteId + '.md';
 fs.writeFileSync(fileName, `${noteTitle}`);
 
 // regenerate index and rss files
-generateIndexFile(fileNames);
-generateRssFile(fileNames);
+generateIndexFile(fileNames.concat(fileName));
+generateRssFile(fileNames.concat(fileName));
 
 // load the new blog post in an editor
 if (preferredEditor) child_process.spawn(preferredEditor, [fileName]);
 console.log(`created ${fileName}`);
+console.log(fileNames.map(f => `'${f}'`).join(','))
