@@ -1,0 +1,113 @@
+
+      <rss version="2.0">
+          <channel>
+              <title>Simpatico Kata Blog</title>
+              <link>https://simpatico.io/blog/</link>
+              <description>Logging my thoughts as I develop Simpatico</description>
+              <item><title>angular</title>
+                      <link>https://simpatico.io/blog/angular.md</link>
+                      <description>angular.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>asynchrony</title>
+                      <link>https://simpatico.io/blog/asynchrony.md</link>
+                      <description>asynchrony.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>blog</title>
+                      <link>https://simpatico.io/blog/blog.md</link>
+                      <description>blog.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>css</title>
+                      <link>https://simpatico.io/blog/css.md</link>
+                      <description>css.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>d3</title>
+                      <link>https://simpatico.io/blog/d3.md</link>
+                      <description>d3.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>docker</title>
+                      <link>https://simpatico.io/blog/docker.md</link>
+                      <description>docker.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>head</title>
+                      <link>https://simpatico.io/blog/head.md</link>
+                      <description>head.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>html.html</title>
+                      <link>https://simpatico.io/blog/html.html</link>
+                      <description>html.html</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>htmx</title>
+                      <link>https://simpatico.io/blog/htmx.md</link>
+                      <description>htmx.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>index.html</title>
+                      <link>https://simpatico.io/blog/index.html</link>
+                      <description>index.html</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>index</title>
+                      <link>https://simpatico.io/blog/index.md</link>
+                      <description>index.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>kata</title>
+                      <link>https://simpatico.io/blog/kata.md</link>
+                      <description>kata.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>lint</title>
+                      <link>https://simpatico.io/blog/lint.md</link>
+                      <description>lint.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>markdown.html</title>
+                      <link>https://simpatico.io/blog/markdown.html</link>
+                      <description>markdown.html</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>mermaid.html</title>
+                      <link>https://simpatico.io/blog/mermaid.html</link>
+                      <description>mermaid.html</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>mvp.html</title>
+                      <link>https://simpatico.io/blog/mvp.html</link>
+                      <description>mvp.html</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>physics</title>
+                      <link>https://simpatico.io/blog/physics.md</link>
+                      <description>physics.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>postgres</title>
+                      <link>https://simpatico.io/blog/postgres.md</link>
+                      <description>postgres.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>proximity-coherence</title>
+                      <link>https://simpatico.io/blog/proximity-coherence.md</link>
+                      <description>proximity-coherence.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>qr.html</title>
+                      <link>https://simpatico.io/blog/qr.html</link>
+                      <description>qr.html</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>regex</title>
+                      <link>https://simpatico.io/blog/regex.md</link>
+                      <description>regex.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>time.html</title>
+                      <link>https://simpatico.io/blog/time.html</link>
+                      <description>time.html</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>tls</title>
+                      <link>https://simpatico.io/blog/tls.md</link>
+                      <description>tls.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>tmux</title>
+                      <link>https://simpatico.io/blog/tmux.md</link>
+                      <description>tmux.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>video</title>
+                      <link>https://simpatico.io/blog/video.md</link>
+                      <description>video.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+<item><title>1</title>
+                      <link>https://simpatico.io/blog/1.md</link>
+                      <description>1.md</description>
+                      <pubDate>Mon, 26 Feb 2024 01:56:14 GMT</pubDate></item>
+          </channel>
+      </rss>
+  
