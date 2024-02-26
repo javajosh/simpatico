@@ -33,6 +33,7 @@ const defaultHtmlHeader = (fileName) => {
   <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'>
       <rect width='1' height='1' fill='DodgerBlue' />
   </svg>"/>
+  <link rel="alternate" type="application/rss+xml" href="rss.xml" title="Simpatico Blog">
   <script src="/testable.js" type="module"></script>
   <script src="/litmd-header.js" type="module"></script>
 
@@ -157,7 +158,7 @@ function makeMarkdownConverter (options={}) {
  * @param fileName  the full path to the file, used to generate a default title if the markdownString doesn't have one.
  * @returns {string}
  */
-function buildHtmlFromLiterateMarkdown(maybeMarkdownString, fileName=''){
+function buildHtmlFromLiterateMarkdown(maybeMarkdownString, fileName='', hostname){
 
   if (typeof maybeMarkdownString === 'string' || !fileName.endsWith('.md')){
     return maybeMarkdownString;
