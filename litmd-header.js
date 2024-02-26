@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Add a table of contents
+  // Add a table of contents - but only if there are more than 3 headings
   const headings = document.querySelectorAll('h1, h2, h3');
-  if (headings.length > 0) {
+  if (headings.length > 3) {
     let toc = '<h2>Table of Contents</h2><ul>';
     let level, title, id, indent;
     headings.forEach(function (heading) {
