@@ -212,6 +212,7 @@ function fileServerLogic() {
     "jpg" : "image/jpeg",
     "jpeg": "image/jpeg",
     "woff2": "font/woff2", // see https://github.com/w3c/woff
+    "xml": "application/rss+xml",
   }
   /**
    * Required for most browsers to use SharedArrayBuffer and load wasm.
