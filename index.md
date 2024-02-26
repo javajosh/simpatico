@@ -26,7 +26,7 @@ Install the server (see the [readme](readme.md) for more details):
   3. Install the dependencies: `cd simpatico && npm install`
   4. Usen OpenSSL to generate a self-signed certificate to run local TLS (see [devops/deploy.sh](devops/deploy.sh#generateSelfSignedCert))
   5. Run the reflector `node reflector.js`
-  6. Navigate to [https://localhost:8080](https://localhost:8080)
+  6. Navigate to https://localhost:8080
 
 ## Features
 The server is called the [reflector](reflector.md), and features:
