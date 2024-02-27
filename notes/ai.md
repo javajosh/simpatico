@@ -16,6 +16,8 @@ tag projects with #WebAI #WebML
 via [Jax AI Meetup](https://www.meetup.com/jax-ai/events/298932620)
 
 ## Initial code
+Note: this will only run in Chrome 113+ because it requires WebGPU support.
+
 ```bash
 npm install @tensorflow/tfjs @tensorflow/tfjs-backend-webgpu esm
 ```
@@ -24,7 +26,7 @@ npm install @tensorflow/tfjs @tensorflow/tfjs-backend-webgpu esm
 <script src="/node_modules/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.min.js"></script>
 ```
 ```js
-// This didn't work somehow
+// todo figure out how to import like this
 // import * as tf from '/node_modules/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.min.js';
 // import * as tf from '/node_modules/@tensorflow/tfjs/dist/tf.min.js';
 
