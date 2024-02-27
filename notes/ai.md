@@ -11,7 +11,7 @@ One lead is [this guy](https://www.youtube.com/watch?v=kCc8FmEb1nY). It's a long
 
 ## 2/26/24 Meetup about Tensorflow.js
 Jason Mayes, [@jason_mayes](https://twitter.com/jason_mayes) Web AI Lead at Google
-[Linked In](linkedin.com/in/WebAI).
+[Linked In](https://linkedin.com/in/WebAI).
 tag projects with #WebAI #WebML
 via [Jax AI Meetup](https://www.meetup.com/jax-ai/events/298932620)
 
@@ -43,7 +43,6 @@ init();
 ### Links
 - Tensorflow low-code [Visual Blocks](https://visualblocks.withgoogle.com/#/demo)
 - [TensorFlow.js](https://www.tensorflow.org/js)
-- [goo.gle/made-with-tfs](https://goo.gle/made-with-tfs)
 - [cdn.jsdelivr.net/npm/@tensorflow/tfjs](https://cdn.jsdelivr.net/npm/@tensorflow/tfjs)
 - [@tensorflow-models/qna](https://github.com/tensorflow/tfjs-models/tree/master/qna)
 - [TensorFlow](https://www.tensorflow.org/)
@@ -60,5 +59,6 @@ init();
   - [2 minute papers](https://www.youtube.com/@TwoMinutePapers)
   - [learning tenserflow book oreilley](https://www.oreilly.com/library/view/learning-tensorflowjs/9781492090786/)
   - [deep learning in js manning](https://www.manning.com/books/deep-learning-with-javascript)
- - Code assist
-  [mlc.ai mlc llm browser coding assistant](https://mlc.ai/) also a [youtube channel](https://www.youtube.com/@mlc-ai2867) (not really sure how this is a code assistant - this seems more foundational tutorial)
+ - Code assist?
+  [mlc.ai mlc llm browser coding assistant](https://mlc.ai/) also a [youtube channel](https://www.youtube.com/@mlc-ai2867)
+   - possibly impressive in-browser demo of chat with various models, including Llama 7b and Gemma from Google https://webllm.mlc.ai/. However it didn't load and run for me in Chrome 122 on Windows 10 with an nvidia 8G GPU.
