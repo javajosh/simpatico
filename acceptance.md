@@ -195,3 +195,33 @@ This test will give a 500:
 ```bash
   curl 'https://simpatico.local:8443/' -H 'User-Agent: '
 ```
+
+# An idea to cover the iframes not in a rect but in another foreignObject, a single anchor, so that the user sees the URL on hover
+```html
+<!---DOCTYPE html>
+<html>
+<head>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        a {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background-color: #f0f0f0; /* Set your desired background color */
+            text-align: center;
+            line-height: 100vh;
+            text-decoration: none;
+            color: transparent; /* Make the text color transparent */
+        }
+    </style>
+</head>
+<body>
+    <a href="#">This is a link that takes up the entire viewport</a>
+</body>
+</html>
+
+```

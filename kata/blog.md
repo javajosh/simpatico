@@ -27,6 +27,9 @@ Currently `blog.js` does NOT:
   4. Override config on the command line (you must edit the script)
   5. Not generating a new file by default (need to add a 'new' command)
 
+## Links
+  1. [How to add rss to your site](https://www.xul.fr/en-xml-rss.html)
+
 ## Test harness generating code
 ```js
 import {svg} from '/simpatico.js';
