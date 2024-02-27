@@ -45,24 +45,20 @@ init();
 - [TensorFlow.js](https://www.tensorflow.org/js)
 - [goo.gle/made-with-tfs](https://goo.gle/made-with-tfs)
 - [cdn.jsdelivr.net/npm/@tensorflow/tfjs](https://cdn.jsdelivr.net/npm/@tensorflow/tfjs)
-- [@tensorflow-models/qna](https://github.com/tensorflow/tfjs-models/tree/main/qna)
+- [@tensorflow-models/qna](https://github.com/tensorflow/tfjs-models/tree/master/qna)
 - [TensorFlow](https://www.tensorflow.org/)
-- Facemesh model
-- Depth information
-- [goo.gle/3Jf8k9z - Face Modeling](https://goo.gle/3Jf8k9z)
-- [goo.gle/36r5YWq - Hand Gesture](https://goo.gle/36r5YWq)
-- Full body segmentation
-- Selfie segmentation
-- [goo.gle/Learn-WebML](https://goo.gle/Learn-WebML)
-
-whisper web turbo
-hugging face hired the maker.
-cloud.next - making custom nodes
-
-  [learning tenserflow book oreilley](https://www.oreilly.com/library/view/learning-tensorflowjs/9781492090786/)
-  [deep learning in js manning](https://www.manning.com/books/deep-learning-with-javascript)
-
-Where to learn about stuff
-[2 minute papers](https://www.youtube.com/@TwoMinutePapers)
-
-[mlc.ai mlc llm browser coding assistant](https://mlc.ai/) also a [youtube channel](https://www.youtube.com/@mlc-ai2867)
+    - Facemesh model
+    - Depth information
+    - [Face Modeling Demo](https://storage.googleapis.com/tfjs-models/demos/face-landmarks-detection/index.html?model=mediapipe_face_mesh)
+    - [Hand Gesture Code](https://github.com/tensorflow/tfjs-models/tree/master/hand-pose-detection)
+    - Full body segmentation
+    - Selfie segmentation
+    - speech-to-text with [whisper web turbo](https://github.com/FL33TW00D/whisper-turbo?tab=readme-ov-file)
+    - see also a [huge gallery of tfjs demos](https://github.com/tensorflow/tfjs/blob/master/GALLERY.md)
+- Learning
+  - Jason's course: [goo.gle/Learn-WebML](https://goo.gle/Learn-WebML)
+  - [2 minute papers](https://www.youtube.com/@TwoMinutePapers)
+  - [learning tenserflow book oreilley](https://www.oreilly.com/library/view/learning-tensorflowjs/9781492090786/)
+  - [deep learning in js manning](https://www.manning.com/books/deep-learning-with-javascript)
+ - Code assist
+  [mlc.ai mlc llm browser coding assistant](https://mlc.ai/) also a [youtube channel](https://www.youtube.com/@mlc-ai2867) (not really sure how this is a code assistant - this seems more foundational tutorial)
