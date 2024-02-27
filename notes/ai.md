@@ -42,6 +42,9 @@ const init = async () => {
 init();
 
 ```
+## Getting available RAM with WebGPU
+Reading the [specs](https://www.w3.org/TR/webgpu/#programming-model-resource-usages) it seems like there are two options: interrogating the device, and empirically by ramping up allocations.
+Both fail, and the second one crashes the browser so neither execute.
 ```js
 /// DO NOT EXECUTE, will crash your browser
 /**
