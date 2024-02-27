@@ -1,0 +1,129 @@
+
+      <rss version="2.0">
+          <channel>
+              <title>Simpatico Blog</title>
+              <link>https://simpatico.io/</link>
+              <description>Logging my thoughts as I develop Simpatico</description>
+              
+                <item>
+                  <title>acceptance</title>
+                  <link>https://simpatico.io/acceptance.md</link>
+                  <description>acceptance.md</description>
+                </item>
+
+                <item>
+                  <title>audience</title>
+                  <link>https://simpatico.io/audience.md</link>
+                  <description>audience.md</description>
+                </item>
+
+                <item>
+                  <title>chat</title>
+                  <link>https://simpatico.io/chat.md</link>
+                  <description>chat.md</description>
+                </item>
+
+                <item>
+                  <title>combine</title>
+                  <link>https://simpatico.io/combine.md</link>
+                  <description>combine.md</description>
+                </item>
+
+                <item>
+                  <title>core</title>
+                  <link>https://simpatico.io/core.md</link>
+                  <description>core.md</description>
+                </item>
+
+                <item>
+                  <title>crypto</title>
+                  <link>https://simpatico.io/crypto.md</link>
+                  <description>crypto.md</description>
+                </item>
+
+                <item>
+                  <title>friendly</title>
+                  <link>https://simpatico.io/friendly.md</link>
+                  <description>friendly.md</description>
+                </item>
+
+                <item>
+                  <title>index</title>
+                  <link>https://simpatico.io/index.md</link>
+                  <description>index.md</description>
+                </item>
+
+                <item>
+                  <title>lit</title>
+                  <link>https://simpatico.io/lit.md</link>
+                  <description>lit.md</description>
+                </item>
+
+                <item>
+                  <title>readme</title>
+                  <link>https://simpatico.io/readme.md</link>
+                  <description>readme.md</description>
+                </item>
+
+                <item>
+                  <title>reflector</title>
+                  <link>https://simpatico.io/reflector.md</link>
+                  <description>reflector.md</description>
+                </item>
+
+                <item>
+                  <title>services</title>
+                  <link>https://simpatico.io/services.md</link>
+                  <description>services.md</description>
+                </item>
+
+                <item>
+                  <title>simpatico.html</title>
+                  <link>https://simpatico.io/simpatico.html</link>
+                  <description>simpatico.html</description>
+                </item>
+
+                <item>
+                  <title>stree</title>
+                  <link>https://simpatico.io/stree.md</link>
+                  <description>stree.md</description>
+                </item>
+
+                <item>
+                  <title>svg</title>
+                  <link>https://simpatico.io/svg.md</link>
+                  <description>svg.md</description>
+                </item>
+
+                <item>
+                  <title>todo</title>
+                  <link>https://simpatico.io/todo.md</link>
+                  <description>todo.md</description>
+                </item>
+
+                <item>
+                  <title>types</title>
+                  <link>https://simpatico.io/types.md</link>
+                  <description>types.md</description>
+                </item>
+
+                <item>
+                  <title>websocket</title>
+                  <link>https://simpatico.io/websocket.md</link>
+                  <description>websocket.md</description>
+                </item>
+
+                <item>
+                  <title>working</title>
+                  <link>https://simpatico.io/working.md</link>
+                  <description>working.md</description>
+                </item>
+
+                <item>
+                  <title>wp.html</title>
+                  <link>https://simpatico.io/wp.html</link>
+                  <description>wp.html</description>
+                </item>
+          </channel>
+      </rss>
+  
