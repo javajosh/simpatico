@@ -38,6 +38,93 @@ const init = async () => {
 };
 
 init();
+
+```
+```js
+/// DO NOT EXECUTE, will crash your browser
+/**
+ * How much GPU Ram is available?
+ *
+ * Note: always fails with "Error retrieving GPU RAM: Error: Device properties not available"
+ * @returns {Promise<number>}
+ */
+async function getGPUMemoryInfo() {
+  const gpu = navigator.gpu;
+  if (!gpu) {
+    console.error('WebGPU is not supported in this browser.');
+    return;
+  }
+
+  const adapter = await gpu.requestAdapter();
+  if (!adapter) {
+    console.error('No GPU adapter found.');
+    return;
+  }
+
+  const device = await adapter.requestDevice();
+  const memoryInfo = device.properties.deviceMemorySize;
+
+  console.log('GPU Memory Size: ' + memoryInfo + ' bytes');
+}
+
+/**
+ * Try to ramp up buffer allocation in 2GB increments until it fails.
+ * This one will crash your browser.
+ * @returns {Promise<number>}
+ */
+async function getMaxGPUMemorySize2() {
+  const gpu = navigator.gpu;
+  if (!gpu) {
+    console.error('WebGPU is not supported in this browser.');
+    return;
+  }
+
+  const adapter = await gpu.requestAdapter();
+  if (!adapter) {
+    console.error('No GPU adapter found.');
+    return;
+  }
+
+  const device = await adapter.requestDevice();
+
+  let bufferSize = 2048; // Initial buffer size
+  let maxBufferSize = bufferSize;
+
+  try {
+    while (true) {
+      const buffer = device.createBuffer({
+        size: bufferSize,
+        usage: GPUBufferUsage.STORAGE
+      });
+      buffer.destroy();
+      maxBufferSize = bufferSize;
+      bufferSize += 2048; // Double the buffer size for the next iteration
+    }
+  } catch (error) {
+    console.log('Maximum GPU Memory Size: ' + maxBufferSize + ' bytes');
+    return maxBufferSize;
+  }
+}
+
+```
+
+If things go wrong, it's useful to check your versions
+```bash
+#!/bin/bash
+
+# Get Windows Version
+windowsVersion=$(lsb_release -ds)
+
+# Get Chrome Version via Registry
+chromeVersion=$(reg query 'HKLM\SOFTWARE\Wow6432Node\Google\Chrome\BLBeacon' /v version | grep version | awk '{print $NF}')
+
+# Get GPU Information
+gpuInfo=$(lspci | grep -i vga)
+
+echo "Windows Version: $windowsVersion"
+echo "Chrome Version: $chromeVersion"
+echo "GPU Info: $gpuInfo"
+
 ```
 
 ### Links
