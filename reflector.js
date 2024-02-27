@@ -485,7 +485,7 @@ function isCompressedImage(fileName) {
   // fs.watch('.', {recursive: true, persistent: false}, (eventType, filename) => {delete cache[filename]});
   // Sigh, this doesn't work on linux will need to use https://github.com/paulmillr/chokidar instead
   chokidar.watch(watchRecursive, {
-    ignored: /(^|[\/\\])\../, // ignore dotfiles
+    ignored: /(^|[\/\\])\..|node_modules/, // ignore dotfiles and node_modules, because there are too many files
     persistent: true,
   }).on('change', fileName => {
     const path = process.cwd() + '/' + fileName;
