@@ -42,6 +42,7 @@ console.log(urls.length/4);
 
 const clickableIframe = (url, {x,y}) => `
   <g transform="translate(${x} ${y})">
+    <rect width="10" height="10" fill="white"/>
     <foreignObject id="embedded-iframe" width="500px" height="500px" transform="scale(.02)">
       <iframe width="500px" height="500px" src="${url}" style="overflow:hidden" scrolling="no"></iframe>
     </foreignObject>
@@ -68,11 +69,11 @@ import child_process from 'child_process';
 
 // Define parameters - todo support command line override
 const authorName = 'Josh';
-const authorLocation= 'the East Coast of USA';
-const blogURL = 'https://simpatico.io/blog/';
-const blogTitle = 'Simpatico Blog';
-const blogDescription = 'Logging my thoughts as I develop Simpatico';
+const authorLocation= 'USA';
 const urlPathPrefix = '/notes/';
+const blogURL = 'https://simpatico.io' + urlPathPrefix;
+const blogTitle = 'Simpatico Notes';
+const blogDescription = 'Notes about Simpatico development';
 const preferredEditor = '';
 const currentDate = new Date().toLocaleDateString();
 const noteTitle = `# ${authorName} from ${authorLocation} on ${currentDate}\n\n`;
