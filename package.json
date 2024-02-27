@@ -13,15 +13,18 @@
   "license": "MIT",
   "private": false,
   "type": "module",
-  "scripts" : {
-    "blog" : "node blog.js",
-    "server" : "node reflector.js"
+  "scripts": {
+    "blog": "node blog.js",
+    "server": "node reflector.js"
   },
   "dependencies": {
     "@esm-bundle/rxjs": "^7.8.1",
+    "@tensorflow/tfjs": "^4.17.0",
+    "@tensorflow/tfjs-backend-webgpu": "^4.17.0",
     "chance": "^1.1.11",
     "chokidar": "^3.6.0",
     "dompurify": "^3.0.8",
+    "esm": "^3.2.25",
     "mermaid": "^10.8.0",
     "qrcode": "^1.5.3",
     "webcryptobox": "^4.0.0",

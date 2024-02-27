@@ -1,59 +1,68 @@
-ChatGPT 3.5 is cool, I've read that [4 is even cooler](https://cdn.openai.com/papers/gpt-4.pdf).
-Github Copilot is...uneven.
+# Artificial Intelligence
+
+ChatGPT is very cool, as is Github Copilot.
 
 One thing I'd like to do is get a model working locally.
-My desktop has a beefy CPU and GPU, I think it could run one of these programs. But how to get it to run?
-
 One lead is [this guy](https://www.youtube.com/watch?v=kCc8FmEb1nY). It's a long video (I'm still working through it) but he goes into the nuts and bolts of making ChatGPT from its constituent parts. It feels fluent to a non-python expert, although he does come in at a fairly high level - assuming knowledge of specific libraries, datasets, algorithms and datastructures.
 
-## Using ChatGPT as a DM
+## Fun applications
 
-https://obie.medium.com/my-kids-and-i-just-played-d-d-with-chatgpt4-as-the-dm-43258e72b2c6
+[Using ChatGPT as a DM](https://obie.medium.com/my-kids-and-i-just-played-d-d-with-chatgpt4-as-the-dm-43258e72b2c6) I would have liked to see the non-combat areas stressed.
 
-Although I would have liked to see the non-combat areas stressed.
-
-# 2/26/24 Meetup about Tensorflow.js
+## 2/26/24 Meetup about Tensorflow.js
 Jason Mayes, [@jason_mayes](https://twitter.com/jason_mayes) Web AI Lead at Google
-[Linked In](linkedin.com/in/WebAI), tag projects with #WebAI #WebML
+[Linked In](linkedin.com/in/WebAI).
+tag projects with #WebAI #WebML
 via [Jax AI Meetup](https://www.meetup.com/jax-ai/events/298932620)
 
-
+## Initial code
+```bash
+npm install @tensorflow/tfjs @tensorflow/tfjs-backend-webgpu esm
+```
+```html
+<script src="/node_modules/@tensorflow/tfjs/dist/tf.min.js"></script>
+<script src="/node_modules/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.min.js"></script>
+```
 ```js
-// import * as tf from '@tensorflow/tfjs-backend-webgpu';
+// This didn't work somehow
+// import * as tf from '/node_modules/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.min.js';
+// import * as tf from '/node_modules/@tensorflow/tfjs/dist/tf.min.js';
 
 const init = async () => {
-    await tf.ready();
+  await tf.ready();
 
-    // Now we can create tensors and run ops.
-    tf.matMul(a, b).print();
+  // Define the values for tensors a and b
+  const a = tf.tensor([[1, 2], [3, 4]]);
+  const b = tf.tensor([[5, 6], [7, 8]]);
+  tf.matMul(a, b).print();
 };
 
 init();
 ```
 
-Tensorflow low-code [Visual Blocks](https://visualblocks.withgoogle.com/#/demo)
-
-tensorflow.js
-goo.gle/made-with-tfs
-cdn.jsdelivr.net/npm/@tensorflow/tfjs
-@tensorflow-models/qna
-tensorflow
-facemesh model
-depth information
-goo.gle/3Jf8k9z - face modeling
-goo.gle/36r5YWq - hand gesture
-full body segmentation
-selfie segmentation
-goo.gle/Learn-WebML
+### Links
+- Tensorflow low-code [Visual Blocks](https://visualblocks.withgoogle.com/#/demo)
+- [TensorFlow.js](https://www.tensorflow.org/js)
+- [goo.gle/made-with-tfs](https://goo.gle/made-with-tfs)
+- [cdn.jsdelivr.net/npm/@tensorflow/tfjs](https://cdn.jsdelivr.net/npm/@tensorflow/tfjs)
+- [@tensorflow-models/qna](https://github.com/tensorflow/tfjs-models/tree/main/qna)
+- [TensorFlow](https://www.tensorflow.org/)
+- Facemesh model
+- Depth information
+- [goo.gle/3Jf8k9z - Face Modeling](https://goo.gle/3Jf8k9z)
+- [goo.gle/36r5YWq - Hand Gesture](https://goo.gle/36r5YWq)
+- Full body segmentation
+- Selfie segmentation
+- [goo.gle/Learn-WebML](https://goo.gle/Learn-WebML)
 
 whisper web turbo
 hugging face hired the maker.
 cloud.next - making custom nodes
 
-learning tenserflow book oreilley
-deep learning in js manning
+  [learning tenserflow book oreilley](https://www.oreilly.com/library/view/learning-tensorflowjs/9781492090786/)
+  [deep learning in js manning](https://www.manning.com/books/deep-learning-with-javascript)
 
-"make things with impact" to get into google.
-2 minute papers
-blogs that are well-known
-mlc.ai mlc llm browser
+Where to learn about stuff
+[2 minute papers](https://www.youtube.com/@TwoMinutePapers)
+
+[mlc.ai mlc llm browser coding assistant](https://mlc.ai/) also a [youtube channel](https://www.youtube.com/@mlc-ai2867)
