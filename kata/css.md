@@ -5,6 +5,26 @@ See [kata](kata.md), [mvp](mvp.html)
 
 The basics:
 
+Remember: [CSS is Logical](https://geoffgraham.me/css-is-logical/).
+
+    1. Documents flow in the direction of the writing mode.
+    1. Elements flow in block and inline directions.
+    1. The block and inline directions are based on the writing mode.
+    1. Relatively positioned elements have a reserved space in the document flow while absolutely positioned elements are pulled out of it.
+    1. Screens are measured in viewport units.
+    1. Parent elements are measured in container units.
+    1. Em and rem units evaluate relative to their elemental and root contexts.
+    1. Setting z-index creates a new stacking context for managing the way elements visually overlap one another.
+    1. The Cascade organizes selectors in [prioritized layers](https://css-tricks.com/the-c-in-css-the-cascade/) that can be re-organized into customized Cascade Layers.
+    1. Selectors are evaluated by a specificity score.
+    1. The applied style when two selectors match is the one that appears lowest in the Cascade when they share the same origin.
+    1. If one property is invalid, the next matched property in a matching selector is used.
+    1. [width looks up the tree while height looks down the tree.](https://geoffgraham.me/width-looks-outward-height-looks-inward/)
+    1. Specific properties can be declared based on whether or not a browser @supports it.
+    1. An element can be selected if it :is() a certain selector, is :not() a certain selector, :has() another element, or :where() it meets a certain condition.
+
+Lots of CSS packages exist out there, like from the [US Government](https://designsystem.digital.gov/documentation/developers/#install-the-package-directly-from-github).
+
 ```css
 html {
   font-family: Palatino, Georgia, Lucida Bright, Book Antiqua, serif;

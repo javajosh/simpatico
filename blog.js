@@ -90,8 +90,11 @@ const handleCommands = (commands) => {
     generateRssFile(fileNames);
   }
   if (commands.includes('edit')) {
-    if (conf.preferredEditor && fileName)
+    if (conf.preferredEditor && fileName){
+      // See https://www.jetbrains.com/help/idea/working-with-the-ide-features-from-command-line.html for how to get 'idea' working as an editor
       child_process.spawn(conf.preferredEditor, [fileName]);
+    }
+
   }
 };
 

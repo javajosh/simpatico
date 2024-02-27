@@ -12,6 +12,7 @@ See:
 
 # Introduction
 Model a websocket with combine, then allow branching (and multiple websockets) in stree.
+Perhaps one day [redbean will get websockets](https://github.com/jart/cosmopolitan/pull/967).
 
 # MockWebSocket
 We want to work with websockets locally so mock one up. (For another approach, see [jest-websocket-mock](https://www.npmjs.com/package/jest-websocket-mock))
