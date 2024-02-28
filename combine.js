@@ -43,9 +43,10 @@ class HandlerError extends Error {
  * @param {any} a - The first value to be combined.
  * @param {any} b - The second value to be combined.
  * @param rules - optionally add some rules; return undefined to allow pass through
+ * @param addMsgsToResidue - add a msgs array to residue tracking the message cascade. default to false
  * @returns {any} The result of combining the two values.
  */
-function combine(a, b, rules = () => {}) {
+function combine(a, b, rules = () => {}, addMsgsToResidue=false ) {
   const ta = typeof a;
   const tb = typeof b;
   let error;
@@ -83,9 +84,10 @@ function combine(a, b, rules = () => {}) {
       throw new HandlerError(result);
     }
 
-    // track the message cascade - will create the msgs property if it doesn't exist
-    if (result.some(obj => obj && obj.hasOwnProperty('handler')))
-      a.msgs = a.msgs ? [...a.msgs, ...result] : [b, ...result] ;
+    // Add a msgs field to track the message cascade - will create the msgs property if it doesn't exist
+    if (addMsgsToResidue && result.some(obj => obj && obj.hasOwnProperty('handler'))){
+      a.msgs = a.msgs ? [...a.msgs, ...result] : [b, ...result];
+    }
 
     // recursively combine results back with a
     result.every(obj => a = combine(a, obj, rules));

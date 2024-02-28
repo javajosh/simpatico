@@ -1,5 +1,5 @@
 import {stringifyWithFunctions, parseWithFunctions} from "./core.js";
-import {combineReducer} from "./combine.js";
+import {combineRules} from "./combine.js";
 
 /**
  * Create a serializable n-ary tree with a well defined reduction defined on all nodes.
@@ -8,7 +8,7 @@ import {combineReducer} from "./combine.js";
  * @param reducer reducer used to compute the residue of a node. default is combine
  * @returns {[]|string|*}
  */
-function stree(value = {}, reducer = combineReducer) {
+function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
   // handle special values, array and string, for deserialization initialization
   if (Array.isArray(value)) {
     return fromArray(value, reducer);
