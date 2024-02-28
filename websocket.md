@@ -227,7 +227,6 @@ The client expects the first server message after connection to be the challenge
 <div id="registration-protocol-render"></div>
 ```
 ```js
-
 import * as wcb from './node_modules/webcryptobox/index.js';
 import {stree, renderStree, svg, h} from './simpatico.js';
 import { validate } from "./friendly.js";
@@ -339,7 +338,7 @@ s.add({handler: 'connect', row: -1}, node);
 setTimeout(()=>s.residue(-1).ws.receive(JSON.stringify({publicKey: 'foobar', timestamp: Date.now()})), delay * 4 );
 
 
-renderStree(s, renderParent);
+setTimeout(()=>renderStree(s, renderParent), delay * 5);
 ```
 ### Aside: weakness in the visualization
 For a few days I've been thinking about this, and working on other, more [workmanlike things](/blog.js).
@@ -354,7 +353,7 @@ Another approach is to modify `combine` to return a list of objects generated du
 This would mean reserving a property of residue, say 'msgs', that basically tells the caller "what happened" during the call, aka the "message cascade".
 This complicates the visualization because now each node does not correspond to only a world event - they also describe elements of the message cascade.
 `combine` can differentiate between external and internal calls by the presence of the 'msgs' property in the residue: if it's not there, it's a world event.
-Then the [stree visualization](/stree-visualization.js) would render additional elements based on the `{handler}` entries in `residue.msgs`.
+Then the [stree visualization](/stree-visualization.md) would render additional elements based on the `{handler}` entries in `residue.msgs`.
 
 ## Invitation Protocol
 Simpatico supports sharing a public key signature via URL, which must be sent out-of-band (email, instant message, QR code, etc.)
