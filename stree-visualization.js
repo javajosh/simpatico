@@ -24,7 +24,7 @@ To restart the animation, click outside a node.
     </foreignObject>
   </g>
 
-  <g ">
+  <g>
 <!--  TODO fix clickability problem in this visualization. maybe try html spans and overflow-x: scroll -->
     <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC" style="pointer-events: none;" />
     <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" >0</text>
@@ -32,8 +32,6 @@ To restart the animation, click outside a node.
 
 </svg>
 `;
-
-
 
 const classes1 = {
   svg : 'visualize-stree',
@@ -52,9 +50,9 @@ const classes1 = {
 const renderStree = (
   s,
   parent,
-  animate = true,
+  animate = false,
   classes = classes1,
-  html = html1,
+  html = html1
 ) => {
 
   // add the html
@@ -77,8 +75,8 @@ const renderStree = (
   const colors = generateColors(s);
   displayColorKey(colorKey, colors);
 
-  // begin node render, either fast or slow
-  if (animate) animateAdd(); else fastAdd();
+  // begin node render
+  render(animate);
 
   // steady-state input - support click to inspect a node and rerender
   scene.addEventListener('click', (e) => {
@@ -93,8 +91,6 @@ const renderStree = (
         residue,
         parent: node.parent ? node.parent.id : 'null',
       });
-    } else {
-      if (animate) animateAdd(); else fastAdd();
     }
   });
 
@@ -142,52 +138,45 @@ const renderStree = (
       .reduce((a, b) => a + b, '');
   }
 
-  function fastAdd() {
-    while (scene.children.length > staticChildrenCount) {
-      scene.removeChild(scene.lastElementChild);
+  // TODO add animation support with conditional setTimeout around makeCircle
+  function render(animate=false) {
+    // log('rendering ', s);
+    const rowAddPosition = Array.from({ length: s.nodes.length }, () => 0);
+    let x, y, color, node, node2;
+    for (node of s.nodes){
+      y = node.branchIndex;
+      x = rowAddPosition[node.branchIndex];
+      color = nodeColor(node);
+      makeCircle(x * dx, y * dy, color, node.id, node);
+
+      rowAddPosition[node.branchIndex] = ++x;
+      // render secondary nodes
+      let msgs = node.msgs ? node.msgs : [];
+      log('primary', {x, y}, color, msgs, msgs.length);
+
+      for (let j = 0; j < msgs.length; j++) {
+        node2 = {...node, value: msgs[j]}; // give the node the values of the parent to ease rendering
+        const label = String.fromCharCode((j % 26) + 97);
+        color = nodeColor(node2);
+        log('secondary', j, {x, y}, color, node2);
+        makeCircle(x * dx,y * dx, color, label, node2);
+        rowAddPosition[node.branchIndex] = ++x;
+      }
+
     }
-    s.nodes.forEach(renderNode)
   }
 
-  function animateAdd(clock=svg.clock(20, -1)) {
-    // reset scene
-    while (scene.children.length > staticChildrenCount) {
-      scene.removeChild(scene.lastElementChild);
-    }
-    // reset clock
-    clock.stop();
-    clock = svg.clock(20, -1);
 
-    // do the animation
-    let i = 0;
-    window.addEventListener(clock.clockId, () => {
-      if (i < s.nodes.length) renderNode(s.nodes[i++])
-    });
-  }
-
-
-  // Keep cloning the last child, asigning it a new position and color
-  // To avoid a memory leak we remove the oldest child when we hit the limit
-  function renderNode(node) {
+  function makeCircle (x, y, fill, label='0', node) {
     const clone = cloneLast(scene);
-    const pos = nodePosition(node);
-    // log(node, pos, clone);
-    svg.scatter(clone, {...pos, text: node.id, fill: nodeColor(node), "data-node": node});
-  }
-
-  function nodePosition(node) {
-    let x = 0;
-    while (node.parent && (node.branchIndex === node.parent.branchIndex)) {
-      node = node.parent;
-      x += dx;
-    }
-    const y = dy * node.branchIndex;
-    return {x, y};
+    clone.node = node;
+    svg.scatter(clone, {x, y, text: label, fill});
+    return clone;
   }
 
   function nodeColor(node) {
     let color;
-    const v = node.value;
+    const v = node.value || node; // secondary nodes are bare handler calls TODO visually distinguish secondary colors
     if (v.handlers) color = colors.handlers;
     else if (v.handler) color = colors[v.handler]
     else color = colors.msg;

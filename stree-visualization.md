@@ -446,9 +446,18 @@ const s = stree(arithmeticOps);
 renderStree2(s, renderParent, false);
 
 ```
-## Simplify further
-The key problem is that the "hot" position for each row is now dynamic, and cannot be computed from the node index.
-So we have to store that (horizontal) hot position for each stree row.
+## One more time with imports
+Now that it's working right, lets make sure the shared code is okay.
+```html
+<div id="arithmetic-render3"></div>
+```
 ```js
-const rowAddPosition = []; //
+import {arithmeticOps} from "/stree-examples.js";
+import {renderStree} from "/simpatico.js";
+import {stree, svg} from '/simpatico.js';
+
+const renderParent = svg.elt('arithmetic-render3');
+const s = stree(arithmeticOps);
+renderStree(s, renderParent, false);
+
 ```
