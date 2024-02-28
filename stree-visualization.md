@@ -236,21 +236,42 @@ It makes life easier to move away from "clone and scatter" and instead use simpl
 ```js
 import {svg, tryToStringify} from '/simpatico.js';
 
-const html1 = (svgClass='visualize-stree', inspectorClass ='residue-inspector', colorKeyClass = 'color-key') => `
-<p>key: <span class="${colorKeyClass}"></span></p>
+const html1 = ({svg, scene, inspector, colorKey}) => `
+<p>key: <span class="${colorKey}"></span></p>
 <svg xmlns="http://www.w3.org/2000/svg"
-  class="${svgClass}"
+  class="${svg}"
   viewBox="0 0 40 10"
   width="800px" height="200px"
   style="border: 1px solid gray; pointer-events: visible;"
-
 >
+<g class="${scene}"></g>
+<g class="${inspector}" transform="translate(30,0)">  </g>
 </svg>
 `;
+
+function makeCircle (x, y, fill, label=0, payload='') {
+  return `<g transform="translate(${x} ${y})" data-payload="${payload}">
+    <circle cx=".5" cy=".5" r=".48" fill="${fill}" style="pointer-events: none;" />
+    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" >${label}</text>
+  </g>`;
+}
+
+function makeInspector(text){
+  return `
+    <rect width ="10" height = "10" fill="white"/>
+    <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
+        <h3 style="color:black">Inspector</h3>
+        <code>${text}</code>
+      </div>
+    </foreignObject>
+`
+}
 
 const classes1 = {
   svg : 'visualize-stree',
   inspector: 'residue-inspector',
+  scene: 'scene',
   colorKey: 'color-key',
 };
 
@@ -271,38 +292,40 @@ const renderStree = (
 ) => {
 
   // add the html
-  parent.innerHTML = html(classes.svg, classes.inspector, classes.colorKey);
+  parent.innerHTML = html(classes);
 
   // Bind to elements
-  const scene = svg.elt(classes.svg, parent);
-  const residueOutput = svg.elt(classes.inspector, parent);
-  const colorKey = svg.elt(classes.colorKey, parent);
+  const svgElt = svg.elt(classes.svg, parent);
+  const sceneElt = svg.elt(classes.scene, parent);
+  const residueElt = svg.elt(classes.inspector, parent);
+  const colorKeyElt = svg.elt(classes.colorKey, parent);
+  log(svgElt, sceneElt, residueElt, colorKeyElt)
 
 
   // Config
   const DEBUG = true;
   const W = 40, H = 10;
   const dx = 1, dy = 1;
-  const staticChildrenCount = scene.children.length;
 
   // Hide code and display color key
   hideCode(parent);
   const colors = generateColors(s);
-  displayColorKey(colorKey, colors);
+  displayColorKey(colorKeyElt, colors);
 
   // begin node render, either fast or slow
   if (animate) animateAdd(); else render();
 
   // steady-state input - support click to inspect a node and rerender
-  scene.addEventListener('click', (e) => {
+  sceneElt.addEventListener('click', (e) => {
     let output;
     const target = e.target.closest('g');
-    if (target && target.dataset.payload) {
+    const payload = target.dataset['payload'];
+    if (payload) {
       if (payload[0] === '{'){
         output = payload;
       } else {
-        const nodeId = +target.dataset.id;
-        const node = stree.nodes[nodeId];
+        const nodeId = +payload;
+        const node = s.nodes[nodeId];
         log(node);
         // factor out handlers
         const {handlers, ...residue} = s.residue(node);
@@ -314,7 +337,7 @@ const renderStree = (
         });
       }
     }
-    residueOutput.innerText;
+    residueElt.innerText = makeInspector(output);
   });
 
   // remainder are support functions
@@ -329,14 +352,9 @@ const renderStree = (
   }
 
   function generateColors(s = s){
-    const coralColor = 'hsl(16.11, 100%, 65.69)';
-    const orangeColor = 'hsl(12.67, 77.03%, 59.02)';
-    const blueColor = 'hsl(240, 100%, 50%)';
-    const dodgerBlueColor = 'hsl(209.6, 100%, 55.9)';
-
     const colors = {
-      handlers: dodgerBlueColor,
-      msg: blueColor,
+      handlers: "DodgerBlue",
+      msg: 'Blue',
     };
 
     // See also https://gka.github.io/chroma.js/
@@ -351,8 +369,8 @@ const renderStree = (
     s.nodes.forEach(node => {
       if (node.value.hasOwnProperty('handlers')){
         Object.keys(node.value.handlers).forEach(name => {
-          if (name === 'log')    colors[name] = coralColor;
-          if (name === 'assert') colors[name] = orangeColor;
+          if (name === 'log')    colors[name] = 'Coral';
+          if (name === 'assert') colors[name] = 'Orange';
           if (!colors[name])     colors[name] = colorGenerator.next().value;
         });
       }
@@ -371,11 +389,9 @@ const renderStree = (
     let html = '';
     let x,y,color, node;
     for (node of s.nodes){
-      log(node);
       y = node.branchIndex;
       x = rowAddPosition[node.branchIndex];
       color = nodeColor(node);
-
       html += makeCircle(x * dx, y * dy, color, node.id, node.id);
       log('primary', {x, y},color)
       rowAddPosition[node.branchIndex] = ++x;
@@ -391,33 +407,10 @@ const renderStree = (
       }
     }
     log(s);
-    scene.innerHTML = makeInspector() + html;
+    sceneElt.innerHTML = html;
   }
 
-  function makeCircle (x, y, fill, label=0, payload='') {
-    return `<g transform="translate(${x} ${y})" data-payload="${payload}">
-    <circle cx=".5" cy=".5" r=".48" fill="${fill}" style="pointer-events: none;" />
-    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" >${label}</text>
-  </g>`;
-  }
 
-  function makeInspector(inspectorClass=classes.inspector){
-      return `
-        <g transform="translate(30,0)">
-    <rect width ="10" height = "10" fill="white"/>
-    <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
-      <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
-        <h3 style="color:black">Inspector</h3>
-        <code><pre class="${inspectorClass}">
-Click on a node on the left.
-This region will display information about the node.
-Note that the display is animated.
-To restart the animation, click outside a node.
-        </pre></code>
-      </div>
-    </foreignObject>
-  </g>`
-  }
 
   function lightenColor(hslString, amount) {
     const hslRegex = /hsl\(\s*(\d+)\s*,\s*(\d+%)\s*,\s*(\d+%)\s*\)/;
