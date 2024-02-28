@@ -43,8 +43,14 @@ function stree(value = {}, reducer = combineReducer) {
 
       const parentResidue = parent.residue;
 
+
       if (parent.leaf) {
         node.residue = reducer(parentResidue, node.value);
+        // Move msgs up to the stree node to not interfere with future residues.
+        if (node.residue.msgs){
+          node.msgs = node.residue.msgs;
+          delete node.residue.msgs;
+        }
         node.branchIndex = parent.branchIndex;
         // replace parent node in branches with the child
         branches[parent.branchIndex] = node;

@@ -1,5 +1,5 @@
 import {assertHandler, logHandler} from "/handlers.js";
-import {DELETE} from './combine.js';
+import {DELETE, h} from './combine.js';
 
 // it would be nice to support non-object values in stree, however this conflicts with both fromArray and other things.
 // the trailing empty strings allow branching off the last node, ensuring a new row per word.
@@ -28,7 +28,8 @@ const decHandler = {handle: () => [{a: -1}], call: () => ({handler: 'dec'})};
 const mulHandler = {
   handle: (core, msg) => [{a: null}, {a: msg.factor * core.a}],
   call: a => ({handler: 'mul', factor: a})
-};
+}
+const inc2 = () => [{handler: 'inc'}, {handler: 'inc'}];
 
 // These are convenience methods for authoring; we're still just adding objects together.
 // note that assertHandler and logHandler are auto-imported from combine2. however they are small and inlinable.
@@ -51,6 +52,7 @@ const arithmeticOps = [
   loggy('now lets backtrack to node 10 and '),
   10, has({a: 9}),
   mul(20), has({a: 180}),
+  h(inc2), {handler: 'inc2'}, has({a:182})//demo late adding handlers and an alternative authoring method
 ];
 
 // build up an arbitrary very simple stree. the values don't matter, only the structure

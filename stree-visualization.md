@@ -223,7 +223,7 @@ import {arithmeticOps} from "/stree-examples.js";
 import {stree, svg} from '/simpatico.js';
 
 const renderParent = svg.elt('arithmetic-render');
-const s = stree(arithmeticOps, (a,b)=> ({a: a.a + b.a}));
+const s = stree(arithmeticOps);
 renderStree1(s, renderParent);
 
 ```
@@ -236,42 +236,42 @@ It makes life easier to move away from "clone and scatter" and instead use simpl
 ```js
 import {svg, tryToStringify} from '/simpatico.js';
 
-const html1 = ({svg, scene, inspector, colorKey}) => `
-<p>key: <span class="${colorKey}"></span></p>
+const html1 = (svgClass='visualize-stree', inspectorClass ='residue-inspector', colorKeyClass = 'color-key') => `
+<p>key: <span class="${colorKeyClass}"></span></p>
 <svg xmlns="http://www.w3.org/2000/svg"
-  class="${svg}"
+  class="${svgClass}"
   viewBox="0 0 40 10"
   width="800px" height="200px"
   style="border: 1px solid gray; pointer-events: visible;"
+
 >
-<g class="${scene}"></g>
-<g class="${inspector}" transform="translate(30,0)">  </g>
-</svg>
-`;
-
-function makeCircle (x, y, fill, label=0, payload='') {
-  return `<g transform="translate(${x} ${y})" data-payload="${payload}">
-    <circle cx=".5" cy=".5" r=".48" fill="${fill}" style="pointer-events: none;" />
-    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" >${label}</text>
-  </g>`;
-}
-
-function makeInspector(text){
-  return `
+  <g transform="translate(30,0)">
     <rect width ="10" height = "10" fill="white"/>
     <foreignObject width="500" height="500" transform="scale(.02)" style="overflow-y:auto;">
       <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:15px; color:black; padding-left: 10px">
         <h3 style="color:black">Inspector</h3>
-        <code>${text}</code>
+        <code><pre class="${inspectorClass}">
+Click on a node on the left.
+This region will display information about the node.
+Note that the display is animated.
+To restart the animation, click outside a node.
+        </pre></code>
       </div>
     </foreignObject>
-`
-}
+  </g>
+
+  <g>
+<!--  TODO fix clickability problem in this visualization. maybe try html spans and overflow-x: scroll -->
+    <circle cx=".5" cy=".5" r=".48" fill="#1A4DBC" style="pointer-events: none;" />
+    <text x=".492" y=".525" dominant-baseline="central" text-anchor="middle" font-family="Arial" font-size=".5" >0</text>
+  </g>
+
+</svg>
+`;
 
 const classes1 = {
   svg : 'visualize-stree',
   inspector: 'residue-inspector',
-  scene: 'scene',
   colorKey: 'color-key',
 };
 
@@ -292,52 +292,44 @@ const renderStree = (
 ) => {
 
   // add the html
-  parent.innerHTML = html(classes);
+  parent.innerHTML = html(classes.svg, classes.inspector, classes.colorKey);
 
   // Bind to elements
-  const svgElt = svg.elt(classes.svg, parent);
-  const sceneElt = svg.elt(classes.scene, parent);
-  const residueElt = svg.elt(classes.inspector, parent);
-  const colorKeyElt = svg.elt(classes.colorKey, parent);
-  log(svgElt, sceneElt, residueElt, colorKeyElt)
+  const scene = svg.elt(classes.svg, parent);
+  const residueOutput = svg.elt(classes.inspector, parent);
+  const colorKey = svg.elt(classes.colorKey, parent);
 
 
   // Config
   const DEBUG = true;
   const W = 40, H = 10;
   const dx = 1, dy = 1;
+  const staticChildrenCount = scene.children.length;
 
   // Hide code and display color key
   hideCode(parent);
   const colors = generateColors(s);
-  displayColorKey(colorKeyElt, colors);
+  displayColorKey(colorKey, colors);
 
-  // begin node render, either fast or slow
-  if (animate) animateAdd(); else render();
+  // begin node render
+  render(animate);
 
   // steady-state input - support click to inspect a node and rerender
-  sceneElt.addEventListener('click', (e) => {
-    let output;
+  scene.addEventListener('click', (e) => {
     const target = e.target.closest('g');
-    const payload = target.dataset['payload'];
-    if (payload) {
-      if (payload[0] === '{'){
-        output = payload;
-      } else {
-        const nodeId = +payload;
-        const node = s.nodes[nodeId];
-        log(node);
-        // factor out handlers
-        const {handlers, ...residue} = s.residue(node);
-        output = tryToStringify({
-          id: node.id,
-          value: node.value,
-          residue,
-          parent: node.parent ? node.parent.id : 'null',
-        });
-      }
+    let output;
+    if (target && target.node) {
+      const node = target.node;
+      log(node);
+      residueOutput.innerText = tryToStringify(node);
+      // const residue = node.handlers ? s.residue(node) : node;
+      // residueOutput.innerText = tryToStringify({
+      //   id: node.id,
+      //   value: node.value,
+      //   residue,
+      //   parent: node.parent ? node.parent.id : 'null',
+      // });
     }
-    residueElt.innerText = makeInspector(output);
   });
 
   // remainder are support functions
@@ -384,49 +376,58 @@ const renderStree = (
       .reduce((a, b) => a + b, '');
   }
 
-  function render() {
+  // TODO add animation support with conditional setTimeout around makeCircle
+  function render(animate=false) {
+    // log('rendering ', s);
     const rowAddPosition = Array.from({ length: s.nodes.length }, () => 0);
-    let html = '';
-    let x,y,color, node;
+    let x, y, color, node, node2;
     for (node of s.nodes){
       y = node.branchIndex;
       x = rowAddPosition[node.branchIndex];
       color = nodeColor(node);
-      html += makeCircle(x * dx, y * dy, color, node.id, node.id);
-      log('primary', {x, y},color)
+      makeCircle(x * dx, y * dy, color, node.id, node);
+
       rowAddPosition[node.branchIndex] = ++x;
-      if (node.msgs){
-        for (let i = 0; i++; i < node.msgs.length){
-          const label = String.fromCharCode(((i - 1) % 26) + 96);
-          node = node.msgs[i];
-          color = nodeColor(node);
-          log('secondary', {x, y},color);
-          html += makeCircle(x * dx,y * dx, color, label, tryToStringify(node));
-          rowAddPosition[node.branchIndex] = ++x;
-        }
+      // render secondary nodes
+      let msgs = node.msgs ? node.msgs : [];
+      log('primary', {x, y}, color, msgs, msgs.length);
+
+      for (let j = 0; j < msgs.length; j++) {
+        // debugger;
+        node2 = {value: msgs[j]};
+        const label = String.fromCharCode((j % 26) + 97);
+        color = nodeColor(node2);
+        log('secondary', j, {x, y}, color, node2);
+        makeCircle(x * dx,y * dx, color, label, node2);
+        rowAddPosition[node.branchIndex] = ++x;
       }
+
     }
-    log(s);
-    sceneElt.innerHTML = html;
   }
 
 
-
-  function lightenColor(hslString, amount) {
-    const hslRegex = /hsl\(\s*(\d+)\s*,\s*(\d+%)\s*,\s*(\d+%)\s*\)/;
-    const [, hue, saturation, lightness] = hslString.match(hslRegex).map(parseFloat);
-    let newLightness = lightness + amount;
-    newLightness = Math.min(100, Math.max(0, newLightness));
-    return `hsl(${hue}, ${saturation}, ${newLightness}%)`;
+  function makeCircle (x, y, fill, label='0', node) {
+    const clone = cloneLast(scene);
+    clone.node = node;
+    svg.scatter(clone, {x, y, text: label, fill});
+    return clone;
   }
 
   function nodeColor(node) {
     let color;
-    const v = node.value ? node.value : node;
+    const v = node.value || node; // secondary nodes are bare handler calls TODO visually distinguish secondary colors
     if (v.handlers) color = colors.handlers;
     else if (v.handler) color = colors[v.handler]
     else color = colors.msg;
     return color;
+  }
+
+// Clone the last element in the svg and add it to the svg
+  function cloneLast(scene) {
+    const last = scene.lastElementChild;
+    const clone = last.cloneNode(true);
+    scene.appendChild(clone);
+    return clone;
   }
 }
 
@@ -441,8 +442,8 @@ import {arithmeticOps} from "/stree-examples.js";
 import {stree, svg} from '/simpatico.js';
 
 const renderParent = svg.elt('arithmetic-render2');
-const s = stree(arithmeticOps, (a,b)=> ({a: a.a + b.a}));
-renderStree2(s, renderParent);
+const s = stree(arithmeticOps);
+renderStree2(s, renderParent, false);
 
 ```
 ## Simplify further
