@@ -48,3 +48,6 @@ This was only possible because of careful, frugal system design.
 ## Myself
 How much value can I create for $5/mo?
 I'm not sure, but I'm going to find out.
+
+# Examples
+[Airfoil](https://ciechanow.ski/airfoil/) Beautifully done interactive online essay.

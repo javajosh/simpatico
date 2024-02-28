@@ -661,6 +661,7 @@ stree3(ops);
 
 ```
 
+## Visualizations
 ```html
 <div id="trie-render"></div>
 ```
