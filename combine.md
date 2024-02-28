@@ -402,6 +402,14 @@ assertEquals({a: 6}, combineRules({a:2},{a:3}, (a,b) => a * b));
 const mulCombine = (a,b) => combineRules(a,b,(a,b) => a * b);
 assertEquals(16, [2,2,2,2].reduce(mulCombine, 1));
 ```
+Note that in a [previous version](/notes/combine.md) combine rules were specified as a ruleset, and so easily replaced without function composition.
+
+# Message Cascade with msgs
+It is sometimes useful to expose the message cascade to calling code.
+This only applies when a handler calls another handler.
+In this case, `combine` will add a `msgs` property to the residue, and include a simple, linear representation of the message cascade.
+
+TODO add a code example
 
 
 

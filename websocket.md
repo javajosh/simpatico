@@ -338,9 +338,23 @@ s.add({handler: 'connect', row: -1}, node);
 // after connect, the server responds with a challenge
 setTimeout(()=>s.residue(-1).ws.receive(JSON.stringify({publicKey: 'foobar', timestamp: Date.now()})), delay * 4 );
 
+
 renderStree(s, renderParent);
 ```
+### Aside: weakness in the visualization
+For a few days I've been thinking about this, and working on other, more [workmanlike things](/blog.js).
+It's clear that, at least for visualization, we want the [stree](/stree.md) to report all handler invocations.
+These are currently hidden from `stree` because [combine](/combine.md) handles the recursion internally.
 
+One approach would be to further couple `stree` and `combine` such that combine does NOT resolve recursive handler calls, but instead returns the results of the handler call.
+This version of combine no longer a reducer in the presence of handlers, only the combination of stree and combine would be.
+I'm reluctant to lose the generality and independence of both stree and combine to achieve this gaol.
+
+Another approach is to modify `combine` to return a list of objects generated during its topmost invocation (rooted at the "world event").
+This would mean reserving a property of residue, say 'msgs', that basically tells the caller "what happened" during the call, aka the "message cascade".
+This complicates the visualization because now each node does not correspond to only a world event - they also describe elements of the message cascade.
+`combine` can differentiate between external and internal calls by the presence of the 'msgs' property in the residue: if it's not there, it's a world event.
+Then the [stree visualization](/stree-visualization.js) would render additional elements based on the `{handler}` entries in `residue.msgs`.
 
 ## Invitation Protocol
 Simpatico supports sharing a public key signature via URL, which must be sent out-of-band (email, instant message, QR code, etc.)

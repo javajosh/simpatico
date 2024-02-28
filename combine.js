@@ -83,6 +83,10 @@ function combine(a, b, rules = () => {}) {
       throw new HandlerError(result);
     }
 
+    // track the message cascade - will create the msgs property if it doesn't exist
+    if (result.some(obj => obj.hasOwnProperty('handler')))
+      a.msgs = a.msgs ? [...a.msgs, ...result] : [b, ...result] ;
+
     // recursively combine results back with a
     result.every(obj => a = combine(a, obj, rules));
     return a;
