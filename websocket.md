@@ -26,7 +26,7 @@ class MockWebSocket {
   static CLOSED = 4;
   static NEXT_ID = 0;
 
-  constructor(url, delay=1000) {
+  constructor(url, delay=1000, clientSocket) {
     this.url = url;
     this.delay = delay;
     this.id = MockWebSocket.NEXT_ID++;
@@ -35,8 +35,11 @@ class MockWebSocket {
     this.onmessage = null;
     this.onclose = null;
     this.onerror = null;
+    this.isClientSocket = !!clientSocket;
 
-    this.connect();
+    if (!this.clientSocket) {
+
+    }
   }
 
   connect() {
@@ -283,9 +286,21 @@ const sanitize = msg =>{
 }
 
 // redefine handlers here to take advantage of s closure.
-const connect = (ctx, {row}) => {
+const clientConnect = (ctx, {clientRow, serverRow}) => {
+  // as a side effect, add serverConnect with the mirror of this websocket
   const websocketURL = ctx.websocketURL;
   const ws = new MockWebSocket(ctx.websocketURL, delay);
+  if (clientRow === 0 ) clientRow = Number.POSITIVE_INFINITY;
+  ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, clientRow);
+  ws.onerror = (e) => s.add({error: e}, clientRow);
+  ws.onopen = (e) => s.add({open: true, state: OPEN}, clientRow);
+  ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, clientRow);
+  return [{websocketURL, ws, open: false, state: CONNECTING}];
+}
+
+// The server version of connection
+const serverConnect = (ctx, {ws}) => {
+  // TODO assert websocket is in good shape
   if (row === 0 ) row = Number.POSITIVE_INFINITY;
   ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, row);
   ws.onerror = (e) => s.add({error: e}, row);
@@ -312,7 +327,7 @@ const receive = (ctx, msg) => {
 const close = (ctx, _) => [ctx.ws.close()];
 
 // the register handler gets client properties from residue, and server values from message contents.
-const serverChallenge = (ctx, challenge) => {
+const clientChallenge = (ctx, challenge) => {
   const {publicKey: serverPublicKey, timestamp: serverTimestamp} = challenge;
   const {publicKey: clientPublicKey, privateKey: clientPrivateKey, publicKeySig} = ctx;
   const timestamp = Date.now();
@@ -320,36 +335,65 @@ const serverChallenge = (ctx, challenge) => {
   const encryptedTimestamp = 'gibberish';
 
   // This is not rendered! It's sent to the 'server' in an embedded message
-  const clientChallengeResponse = {
-    handler: 'clientChallengeResponse',
+  const serverClientChallengeResponse = {
+    handler: 'serverClientChallengeResponse',
     publicKey: clientPublicKey,
     publicKeySig,
     timestamp,
     encryptedTimestamp,
   }
 
-  return [{handler: 'send', msg: clientChallengeResponse}];
+  return [{handler: 'send', msg: serverClientChallengeResponse}];
 }
-const serverChallengeResult = (ctx, {registered}) => {
+const serverClientChallengeResponse = (ctx, {
+  handler,
+  publicKey,
+  publicKeySig,
+  timestamp,
+  encryptedTimestamp}) => {
+    // todo actually check validity
+    const clientChallengeResult = {handler: 'clientChallengeResult', registered: true}
+
+  return [{handler: 'send', msg: clientChallengeResult}];
+}
+
+// This handler may be unnecessary. We'll see.
+const clientChallengeResult = (ctx, {registered}) => {
   // todo deal with failure case - although perhaps the server will just close the connection
   return [{registered}];
 }
 
-const s = stree([h(connect),h(close),h(send),h(receive),h(serverChallenge),h(serverChallengeResult)]);
-const node = s.add({
+const cap = {desc: 'this object forces new rows to branch from root'};
+// Shared handlers - row 0
+const s = stree([h(close),h(send),h(receive)]);
+const sharedNode = s.nodes[s.nodes.length-1];
+s.add(cap);
+
+// server
+s.add(h(serverConnect), sharedNode);
+const serverNode = s.add(h(serverClientChallengeResponse));
+const serverRow = -serverNode.branchIndex;
+
+// client
+s.add(h(clientConnect), sharedNode);
+s.add(h(clientChallenge));
+const clientNode = s.add(h(clientChallengeResult));
+
+
+// Config the client
+const clientRow = -s.add({
   websocketURL: 'wss://example.com',
   registered: false,
   publicKey: clientKeyPair.publicKey,
   privateKey: clientKeyPair.privateKey,
-});
-s.add({desc: 'this object forces new rows to branch from root'});
-s.add({handler: 'connect', row: -1}, node);
+}, clientNode).branchIndex;
+s.add({handler: 'clientConnect', clientRow, serverRow}, clientRow);
 
 // after connect, the server responds with a challenge
 setTimeout(()=>{
-    const ws = s.residue(-1).ws;
+    const ws = s.residue(clientRow).ws;
     const msg = JSON.stringify({
-      handler: 'serverChallenge',
+      handler: 'clientChallenge',
       publicKey: 'foobar',
       timestamp: Date.now(),
     });
@@ -359,9 +403,9 @@ setTimeout(()=>{
 
 // the client responded, simulate that it was accepted
 setTimeout(()=>{
-    const ws = s.residue(-1).ws;
+    const ws = s.residue(clientRow).ws;
     const msg = JSON.stringify({
-      handler: 'serverChallengeResult',
+      handler: 'clientChallengeResult',
       registered: true, // change this for the failure case
     });
     ws.receive(msg);
