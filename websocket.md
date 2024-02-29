@@ -287,7 +287,7 @@ const connect = (ctx, {row}) => {
   const websocketURL = ctx.websocketURL;
   const ws = new MockWebSocket(ctx.websocketURL, delay);
   if (row === 0 ) row = Number.POSITIVE_INFINITY;
-  ws.onclose = (e) => s.add({open: false, state: CLOSING, ws: null}, row);
+  ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, row);
   ws.onerror = (e) => s.add({error: e}, row);
   ws.onopen = (e) => s.add({open: true, state: OPEN}, row);
   ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, row);
@@ -305,12 +305,11 @@ const send = (ctx, msg) => {
   return [{out: msg.msg}];
 };
 
-const close = (ctx, _) => [ctx.ws.close()];
-
-//
 const receive = (ctx, msg) => {
-  return [{in: msg}, msg.msg];
+  return [{in: msg.msg}, msg.msg];
 };
+
+const close = (ctx, _) => [ctx.ws.close()];
 
 // the register handler gets client properties from residue, and server values from message contents.
 const serverChallenge = (ctx, challenge) => {
@@ -367,12 +366,17 @@ setTimeout(()=>{
     });
     ws.receive(msg);
 }, delay * 4 );
-log(s);
+
 
 setTimeout(()=>renderStree(s, renderParent), delay * 5);
 ```
 ### Aside
 It's not pretty, but it works.
+This has turned into a stateful, RPC-ish 3-way handshake.
+It might be better to model this as an (external) state-machine, like that described in [bgp.js](/notes/bgp.js), using the stree only to document state changes.
+We'll see if it breaks down with more complexity.
+With any luck the branching capability of the stree will help map out the various cases.
+(The tight coupling with an external resource complicates this. It's almost certainly a bad idea to embed a handle to a websocket in residue like this, but we'll see.)
 
 ## Invitation Protocol
 Simpatico supports sharing a public key signature via URL, which must be sent out-of-band (email, instant message, QR code, etc.)
