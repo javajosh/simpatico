@@ -154,9 +154,10 @@ const renderStree = (
       let msgs = node.msgs ? node.msgs : [];
       log('primary', {x, y}, color, msgs, msgs.length);
 
-      for (let j = 0; j < msgs.length; j++) {
+      // Skip the first msg which is the initial handler call itself, which is already rendered.
+      for (let j = 1; j < msgs.length; j++) {
         node2 = {...node, value: msgs[j]}; // give the node the values of the parent to ease rendering
-        const label = String.fromCharCode((j % 26) + 97);
+        const label = String.fromCharCode((j-1 % 26) + 97);
         color = nodeColor(node2);
         log('secondary', j, {x, y}, color, node2);
         makeCircle(x * dx,y * dx, color, label, node2);

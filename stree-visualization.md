@@ -3,6 +3,24 @@
 
 Various approaches to visualizing stree with SVG.
 
+### Note: Weaknesses in the visualization
+For a few days I've been thinking about this, and working on other, more [workmanlike things](/blog.js).
+It's clear that, at least for visualization, we want the [stree](/stree.md) to report all handler invocations.
+These are currently hidden from `stree` because [combine](/combine.md) handles the recursion internally.
+
+One approach would be to further couple `stree` and `combine` such that combine does NOT resolve recursive handler calls, but instead returns the results of the handler call.
+This version of combine no longer a reducer in the presence of handlers, only the combination of stree and combine would be.
+I'm reluctant to lose the generality and independence of both stree and combine to achieve this gaol.
+
+Another approach is to modify `combine` to return a list of objects generated during its topmost invocation (rooted at the "world event").
+This would mean reserving a property of residue, say 'msgs', that basically tells the caller "what happened" during the call, aka the "message cascade".
+This complicates the visualization because now each node does not correspond to only a world event - they also describe elements of the message cascade.
+`combine` can differentiate between external and internal calls by the presence of the 'msgs' property in the residue: if it's not there, it's a world event.
+Then the [stree visualization](/stree-visualization.md) would render additional elements based on the `{handler}` entries in `residue.msgs`.
+
+Afterword: this ended up working pretty well, and the coupling between combine and stree was less than I expected. The key insight was to hoist `msgs` from residue to the stree node.
+
+
 ## Clone and scatter without msgs render
 This is the first iteration of the visualation code.
 It assumes that every rendered elt is a node in the stree.

@@ -253,21 +253,34 @@ const clientKeyPairPem = {
 
 // protocol definitions
 const MAX_MESSAGE_LENGTH = 4 * 1024;
-const CHALLENGE_PATTERN = {
-  publicKey: ['string', 'between', 200, 300],
-  timestamp: ['number'],
+
+const SERVER_CHALLENGE_PATTERN = {
+  handler: 'serverChallenge',
+  publicKey: ['str', 'between', 200, 300],
+  timestamp: ['num'],
 };
-const CHALLENGE_RESPONSE_PATTERN = {
-  publicKey: ['string', 'between', 200, 300],
-  publicKeySig: ['string', 'between', 40, 50],
-  timestamp: ['number'],
-  encryptedTimestamp: ['string'],
+const CLIENT_CHALLENGE_PATTERN = {
+  handler: 'clientChallenge',
+  publicKey: ['str', 'between', 200, 300],
+  publicKeySig: ['str', 'between', 40, 50],
+  timestamp: ['num'],
+  encryptedTimestamp: ['str'],
+};
+const SERVER_CHALLENGE_RESULT_PATTERN = {
+  handler: 'serverChallengeResult',
+  registered : ['bool']
 };
 const MESSAGE_PATTERN = {
-  from: ['string', 'between', 40, 50 ],
-  to: ['string', 'between', 40, 50 ],
-  encryptedMessage : ['string'],
+  from: ['str', 'between', 40, 50 ],
+  to: ['str', 'between', 40, 50 ],
+  encryptedMessage : ['str'],
 };
+
+const sanitize = msg =>{
+    if (msg.length > MAX_MESSAGE_LENGTH) throw `msg too long ${msg.length}`;
+    const parsed = JSON.parse(msg);
+    return parsed;
+}
 
 // redefine handlers here to take advantage of s closure.
 const connect = (ctx, {row}) => {
@@ -277,55 +290,53 @@ const connect = (ctx, {row}) => {
   ws.onclose = (e) => s.add({open: false, state: CLOSING, ws: null}, row);
   ws.onerror = (e) => s.add({error: e}, row);
   ws.onopen = (e) => s.add({open: true, state: OPEN}, row);
-  ws.onmessage = (e) => s.add({handler: 'receive', msg: e.data}, row);
+  ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, row);
   return [{websocketURL, ws, open: false, state: CONNECTING}];
 }
 
-const send = (ctx, {msg}) => {
-  // we can also check ctx state for this, eventually
-  if (!ctx.ws) throw 'ws is does not exist';
-  if (!ctx.open) throw `ws is not ready, in state ${stateNamesByIndex[ctx.state]}`;
+const send = (ctx, msg) => {
   try{
-    ctx.ws.send(msg);
+    if (!ctx.ws) throw 'ws is does not exist';
+    if (!ctx.open) throw `ws is not ready, in state ${stateNamesByIndex[ctx.state]}`;
+    ctx.ws.send(JSON.stringify(msg.msg));
   } catch (e){
     return {error: e}
   }
-  return [{out: msg}];
+  return [{out: msg.msg}];
 };
 
 const close = (ctx, _) => [ctx.ws.close()];
 
-// override receive handler to trigger serverChallenge handler as long as we aren't registered
-const receive = (ctx, {msg}) => {
-  if (!ctx.registered){ // todo: i want this to be a new node in the stree
-    return [{handler: 'serverChallenge', challenge: msg}]
-  }
-  return [{in: msg}];
+//
+const receive = (ctx, msg) => {
+  return [{in: msg}, msg.msg];
 };
 
 // the register handler gets client properties from residue, and server values from message contents.
-const serverChallenge = (ctx, {challenge}) => {
+const serverChallenge = (ctx, challenge) => {
   const {publicKey: serverPublicKey, timestamp: serverTimestamp} = challenge;
   const {publicKey: clientPublicKey, privateKey: clientPrivateKey, publicKeySig} = ctx;
   const timestamp = Date.now();
   // const encryptedTimestamp = await wcb.encryptTo(timestamp, clientPrivateKey, serverPublicKey);
   const encryptedTimestamp = 'gibberish';
 
-  const challengeResponse = {
+  // This is not rendered! It's sent to the 'server' in an embedded message
+  const clientChallengeResponse = {
+    handler: 'clientChallengeResponse',
     publicKey: clientPublicKey,
     publicKeySig,
     timestamp,
     encryptedTimestamp,
   }
 
-  return [{handler: 'send', msg: JSON.stringify(challengeResponse)}];
+  return [{handler: 'send', msg: clientChallengeResponse}];
 }
-const serverChallengeResponse = (ctx, {}) => {
+const serverChallengeResult = (ctx, {registered}) => {
   // todo deal with failure case - although perhaps the server will just close the connection
-  return [{registered: true}];
+  return [{registered}];
 }
 
-const s = stree([h(connect),h(close),h(send),h(receive),h(serverChallenge),h(serverChallengeResponse)]);
+const s = stree([h(connect),h(close),h(send),h(receive),h(serverChallenge),h(serverChallengeResult)]);
 const node = s.add({
   websocketURL: 'wss://example.com',
   registered: false,
@@ -334,26 +345,34 @@ const node = s.add({
 });
 s.add({desc: 'this object forces new rows to branch from root'});
 s.add({handler: 'connect', row: -1}, node);
-// after connect, the server responds with a challenge
-setTimeout(()=>s.residue(-1).ws.receive(JSON.stringify({publicKey: 'foobar', timestamp: Date.now()})), delay * 4 );
 
+// after connect, the server responds with a challenge
+setTimeout(()=>{
+    const ws = s.residue(-1).ws;
+    const msg = JSON.stringify({
+      handler: 'serverChallenge',
+      publicKey: 'foobar',
+      timestamp: Date.now(),
+    });
+    ws.receive(msg);
+}, delay * 3 );
+
+
+// the client responded, simulate that it was accepted
+setTimeout(()=>{
+    const ws = s.residue(-1).ws;
+    const msg = JSON.stringify({
+      handler: 'serverChallengeResult',
+      registered: true, // change this for the failure case
+    });
+    ws.receive(msg);
+}, delay * 4 );
+log(s);
 
 setTimeout(()=>renderStree(s, renderParent), delay * 5);
 ```
-### Aside: weakness in the visualization
-For a few days I've been thinking about this, and working on other, more [workmanlike things](/blog.js).
-It's clear that, at least for visualization, we want the [stree](/stree.md) to report all handler invocations.
-These are currently hidden from `stree` because [combine](/combine.md) handles the recursion internally.
-
-One approach would be to further couple `stree` and `combine` such that combine does NOT resolve recursive handler calls, but instead returns the results of the handler call.
-This version of combine no longer a reducer in the presence of handlers, only the combination of stree and combine would be.
-I'm reluctant to lose the generality and independence of both stree and combine to achieve this gaol.
-
-Another approach is to modify `combine` to return a list of objects generated during its topmost invocation (rooted at the "world event").
-This would mean reserving a property of residue, say 'msgs', that basically tells the caller "what happened" during the call, aka the "message cascade".
-This complicates the visualization because now each node does not correspond to only a world event - they also describe elements of the message cascade.
-`combine` can differentiate between external and internal calls by the presence of the 'msgs' property in the residue: if it's not there, it's a world event.
-Then the [stree visualization](/stree-visualization.md) would render additional elements based on the `{handler}` entries in `residue.msgs`.
+### Aside
+It's not pretty, but it works.
 
 ## Invitation Protocol
 Simpatico supports sharing a public key signature via URL, which must be sent out-of-band (email, instant message, QR code, etc.)
