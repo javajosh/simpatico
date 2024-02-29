@@ -58,12 +58,12 @@ Adapted from [Implementing RSA from Scratch](https://coderoasis.com/implementing
 // the browser doesn't need this but node does
 // const BigInt = require('big-integer');
 
-const gcd = (a, b) => (b === 0n ? a : gcd(b, a % b));
+const gcd = (a, b) => extendedEuclidean(a,b)[0];
 const lcm = (x, y) => (x * y) / gcd(x, y);
 
 function extendedEuclidean(a, b) {
-  if (a === BigInt(0)) {
-    return [b, BigInt(0), BigInt(1)];
+  if (a === 0n) {
+    return [b, 0n, 1n];
   }
 
   let [gcd, x1, y1] = extendedEuclidean(b % a, a);
@@ -76,7 +76,7 @@ function extendedEuclidean(a, b) {
 
 function modularInverse(a, m) {
   let [gcd, x, y] = extendedEuclidean(a, m);
-  if (gcd !== BigInt(1)) {
+  if (gcd !== 1n) {
     return null;
   } else {
     x = (x % m + m) % m;
@@ -85,9 +85,9 @@ function modularInverse(a, m) {
 }
 
 function modularExponentiation(base, exponent, modulus) {
-  if (modulus === BigInt(1)) return BigInt(0);
+  if (modulus === 1n) return 0n;
 
-  let result = BigInt(1);
+  let result = 1n;
   base = base % modulus;
 
   while (exponent > 0) {
@@ -105,7 +105,7 @@ function modularExponentiation(base, exponent, modulus) {
 function generateRSAKeys(p, q) {
   let n = p * q;
   let lambdaN = lcm(p - 1n, q - 1n);
-  let e = BigInt(65537);
+  let e = 65537n;
   let d = extendedEuclidean(e, lambdaN)[0];
   if (d < 0) d = d + lambdaN;
   return { publicKey: { e, n }, privateKey: { d, n } };
@@ -120,10 +120,10 @@ function decrypt(ciphertext, privateKey) {
 }
 
 // Testing
-let keys = generateRSAKeys(BigInt(31337), BigInt(31357));
+let keys = generateRSAKeys(31337n, 31357n);
 let publicKey = keys.publicKey;
 let privateKey = keys.privateKey;
-let message = BigInt(80087);
+let message = 80087n;
 let encrypted = encrypt(message, publicKey);
 let decrypted = decrypt(encrypted, privateKey);
 
