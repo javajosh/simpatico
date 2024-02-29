@@ -35,10 +35,18 @@ class MockWebSocket {
     this.onmessage = null;
     this.onclose = null;
     this.onerror = null;
-    this.isClientSocket = !!clientSocket;
+    this.onsend = null;
 
-    if (!this.clientSocket) {
-
+    if (this.clientSocket) {
+      // mutually attach onsend/onmessage in both directions
+      clientSocket.onsend = this.onmessage;
+      this.onsend = clientSocket.onmessage;
+      // defer server connect until the client opens
+      // note that if the server connection isn't created within `delay`, it will never be in open state
+      const oldOpen = clientSocket.onopen;
+      clientSocket.onopen = a => oldOpen(a) && this.connect();
+      // This means a clientSocket won't connect on its own; it must have a serverSocket associated, first.
+      clientSocket.connect();
     }
   }
 
@@ -55,8 +63,12 @@ class MockWebSocket {
   }
 
   send(data) {
+    if (typeof data !== 'string'){
+        throw new Error(`data is of type ${typeof data} but it must be a string`)
+    }
     if (this.readyState === MockWebSocket.OPEN) {
-      console.log('Sent:', data);
+      console.log(this.id + 'sent:', data);
+      if (this.onsend) this.onsend(data);
     } else {
       console.error('Error: Connection not open.');
     }
@@ -288,8 +300,8 @@ const sanitize = msg =>{
 // redefine handlers here to take advantage of s closure.
 const clientConnect = (ctx, {clientRow, serverRow}) => {
   // as a side effect, add serverConnect with the mirror of this websocket
-  const websocketURL = ctx.websocketURL;
-  const ws = new MockWebSocket(ctx.websocketURL, delay);
+  const websocketURL = 'mock/client:' + ctx.websocketURL;
+  const ws = new MockWebSocket(websocketURL, delay);
   if (clientRow === 0 ) clientRow = Number.POSITIVE_INFINITY;
   ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, clientRow);
   ws.onerror = (e) => s.add({error: e}, clientRow);
@@ -299,13 +311,14 @@ const clientConnect = (ctx, {clientRow, serverRow}) => {
 }
 
 // The server version of connection
-const serverConnect = (ctx, {ws}) => {
-  // TODO assert websocket is in good shape
-  if (row === 0 ) row = Number.POSITIVE_INFINITY;
-  ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, row);
-  ws.onerror = (e) => s.add({error: e}, row);
-  ws.onopen = (e) => s.add({open: true, state: OPEN}, row);
-  ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, row);
+const serverConnect = (ctx, {clientRow, serverRow, clientSocket}) => {
+  const websocketURL = 'mock/server:' + clientSocket.url;
+  const ws = new MockWebSocket( websocketURL, clientSocket.delay, clientSocket);
+  if (serverRow === 0 ) serverRow = Number.POSITIVE_INFINITY;
+  ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, serverRow);
+  ws.onerror = (e) => s.add({error: e}, serverRow);
+  ws.onopen = (e) => s.add({open: true, state: OPEN}, serverRow);
+  ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, serverRow);
   return [{websocketURL, ws, open: false, state: CONNECTING}];
 }
 
@@ -364,52 +377,65 @@ const clientChallengeResult = (ctx, {registered}) => {
 }
 
 const cap = {desc: 'this object forces new rows to branch from root'};
+
 // Shared handlers - row 0
-const s = stree([h(close),h(send),h(receive)]);
-const sharedNode = s.nodes[s.nodes.length-1];
-s.add(cap);
+const s = stree([h(close),h(send),h(receive), cap]);
+const sharedNode = s.nodes[s.nodes.length -2];
+log(sharedNode, s)
 
-// server
+// server specific handlers
 s.add(h(serverConnect), sharedNode);
-const serverNode = s.add(h(serverClientChallengeResponse));
-const serverRow = -serverNode.branchIndex;
+s.add(h(serverClientChallengeResponse));
+s.add(cap);
+const serverNode = s.nodes[s.nodes.length -2];
 
-// client
+// client specific handlers
 s.add(h(clientConnect), sharedNode);
 s.add(h(clientChallenge));
-const clientNode = s.add(h(clientChallengeResult));
+s.add(h(clientChallengeResult));
+const clientNode = s.nodes[s.nodes.length -2];
 
 
-// Config the client
+// begin a client row
 const clientRow = -s.add({
   websocketURL: 'wss://example.com',
   registered: false,
   publicKey: clientKeyPair.publicKey,
   privateKey: clientKeyPair.privateKey,
 }, clientNode).branchIndex;
-s.add({handler: 'clientConnect', clientRow, serverRow}, clientRow);
 
-// after connect, the server responds with a challenge
-setTimeout(()=>{
-    const ws = s.residue(clientRow).ws;
-    const msg = JSON.stringify({
-      handler: 'clientChallenge',
-      publicKey: 'foobar',
-      timestamp: Date.now(),
-    });
-    ws.receive(msg);
-}, delay * 3 );
+// begin a server row
+const serverRow = -s.add({
+  websocketURL: 'wss://example.com',
+  publicKey: clientKeyPair.publicKey,
+  privateKey: clientKeyPair.privateKey,
+}, serverNode).branchIndex;
 
+// connect the client and server
+const clientSocket = s.add({handler: 'clientConnect', clientRow, serverRow}, clientRow).residue.ws;
+const serverSocket = s.add({handler: 'serverConnect', clientRow, serverRow, clientSocket}, serverRow).residue.ws;
 
-// the client responded, simulate that it was accepted
-setTimeout(()=>{
-    const ws = s.residue(clientRow).ws;
-    const msg = JSON.stringify({
-      handler: 'clientChallengeResult',
-      registered: true, // change this for the failure case
-    });
-    ws.receive(msg);
-}, delay * 4 );
+// // after connect, the server responds with a challenge
+// setTimeout(()=>{
+//     const ws = s.residue(clientRow).ws;
+//     const msg = JSON.stringify({
+//       handler: 'clientChallenge',
+//       publicKey: 'foobar',
+//       timestamp: Date.now(),
+//     });
+//     ws.receive(msg);
+// }, delay * 3 );
+//
+//
+// // the client responded, simulate that it was accepted
+// setTimeout(()=>{
+//     const ws = s.residue(clientRow).ws;
+//     const msg = JSON.stringify({
+//       handler: 'clientChallengeResult',
+//       registered: true, // change this for the failure case
+//     });
+//     ws.receive(msg);
+// }, delay * 4 );
 
 
 setTimeout(()=>renderStree(s, renderParent), delay * 5);
