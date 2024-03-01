@@ -33,7 +33,7 @@ const clickableIframe = (url, {x,y}) => `
     <foreignObject id="embedded-iframe" width="500px" height="500px" transform="scale(.02)">
       <iframe width="500px" height="500px" src="${url}" style="overflow:hidden" scrolling="no"></iframe>
     </foreignObject>
-    <rect onclick="window.location='${url}'" width="10" height="10" fill-opacity="0"/>
+    <rect onclick="window.open('${url}','_blank')" width="10" height="10" fill-opacity="0"/>
   </g>
 `;
 
