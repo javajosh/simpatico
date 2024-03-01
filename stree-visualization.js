@@ -152,14 +152,14 @@ const renderStree = (
       rowAddPosition[node.branchIndex] = ++x;
       // render secondary nodes
       let msgs = node.msgs ? node.msgs : [];
-      log('primary', {x, y}, color, msgs, msgs.length);
+      // log('primary', {x, y}, color, msgs, msgs.length);
 
       // Skip the first msg which is the initial handler call itself, which is already rendered.
       for (let j = 1; j < msgs.length; j++) {
         node2 = {...node, value: msgs[j]}; // give the node the values of the parent to ease rendering
         const label = String.fromCharCode((j-1 % 26) + 97);
         color = nodeColor(node2);
-        log('secondary', j, {x, y}, color, node2);
+        // log('secondary', j, {x, y}, color, node2);
         makeCircle(x * dx,y * dx, color, label, node2);
         rowAddPosition[node.branchIndex] = ++x;
       }

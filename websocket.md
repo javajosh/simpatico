@@ -36,6 +36,7 @@ class MockWebSocket {
     this.onclose = null;
     this.onerror = null;
     this.onsend = null;
+    this.clientSocket = clientSocket;
 
     if (this.clientSocket) {
       // mutually attach onsend/onmessage in both directions
@@ -311,13 +312,16 @@ const clientConnect = (ctx, {clientRow, serverRow}) => {
 }
 
 // The server version of connection
-const serverConnect = (ctx, {clientRow, serverRow, clientSocket}) => {
+const serverConnect = ({publicKey}, {clientRow, serverRow, clientSocket}) => {
   const websocketURL = 'mock/server:' + clientSocket.url;
   const ws = new MockWebSocket( websocketURL, clientSocket.delay, clientSocket);
   if (serverRow === 0 ) serverRow = Number.POSITIVE_INFINITY;
   ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, serverRow);
   ws.onerror = (e) => s.add({error: e}, serverRow);
-  ws.onopen = (e) => s.add({open: true, state: OPEN}, serverRow);
+  ws.onopen = (e) => {
+      s.add({open: true, state: OPEN}, serverRow);
+      s.add({handler: 'send', msg: {handler: 'clientChallenge', publicKey}}, serverRow)
+  }
   ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, serverRow);
   return [{websocketURL, ws, open: false, state: CONNECTING}];
 }
@@ -339,7 +343,7 @@ const receive = (ctx, msg) => {
 
 const close = (ctx, _) => [ctx.ws.close()];
 
-// the register handler gets client properties from residue, and server values from message contents.
+
 const clientChallenge = (ctx, challenge) => {
   const {publicKey: serverPublicKey, timestamp: serverTimestamp} = challenge;
   const {publicKey: clientPublicKey, privateKey: clientPrivateKey, publicKeySig} = ctx;
@@ -380,20 +384,20 @@ const cap = {desc: 'this object forces new rows to branch from root'};
 
 // Shared handlers - row 0
 const s = stree([h(close),h(send),h(receive), cap]);
-const sharedNode = s.nodes[s.nodes.length -2];
-log(sharedNode, s)
+const sharedNode = s.nodes[s.nodes.length - 2];
 
 // server specific handlers
 s.add(h(serverConnect), sharedNode);
 s.add(h(serverClientChallengeResponse));
 s.add(cap);
-const serverNode = s.nodes[s.nodes.length -2];
+const serverNode = s.nodes[s.nodes.length - 2];
 
 // client specific handlers
 s.add(h(clientConnect), sharedNode);
 s.add(h(clientChallenge));
 s.add(h(clientChallengeResult));
-const clientNode = s.nodes[s.nodes.length -2];
+s.add(cap);
+const clientNode = s.nodes[s.nodes.length - 2];
 
 
 // begin a client row
@@ -407,8 +411,8 @@ const clientRow = -s.add({
 // begin a server row
 const serverRow = -s.add({
   websocketURL: 'wss://example.com',
-  publicKey: clientKeyPair.publicKey,
-  privateKey: clientKeyPair.privateKey,
+  publicKey: serverKeyPair.publicKey,
+  privateKey: serverKeyPair.privateKey,
 }, serverNode).branchIndex;
 
 // connect the client and server
