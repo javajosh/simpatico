@@ -69,6 +69,14 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
       return node;
     }
 
+    function addAll(arrValue, parent = lastNode){
+      if (typeof parent === 'number'){
+        parent = nodeByNumber(parent);
+      }
+      for (value of arrValue){
+        parent = add(value, parent)
+      }
+    }
   /**
    * The array of all nodes from root to the specified node, inclusive.
    *
@@ -182,7 +190,7 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
   }
 
 
-  return {add, nodePath, residue, residues, toArray, toString, nodeByNumber, branches, nodes, root};
+  return {add, addAll, nodePath, residue, residues, toArray, toString, nodeByNumber, branches, nodes, root};
 }
 
 
