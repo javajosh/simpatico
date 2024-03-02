@@ -14,142 +14,64 @@ See:
 Model a websocket with combine, then allow branching (and multiple websockets) in stree.
 Perhaps one day [redbean will get websockets](https://github.com/jart/cosmopolitan/pull/967).
 
-# MockWebSocket
-We want to work with websockets locally so mock one up. (For another approach, see [jest-websocket-mock](https://www.npmjs.com/package/jest-websocket-mock))
-```js
-class MockWebSocket {
-
-  static CONNECTING = 0;
-  static OPENING = 1;
-  static OPEN = 2;
-  static CLOSING = 3;
-  static CLOSED = 4;
-  static NEXT_ID = 0;
-
-  constructor(url, delay=1000, clientSocket) {
-    this.url = url;
-    this.delay = delay;
-    this.id = MockWebSocket.NEXT_ID++;
-    this.readyState = MockWebSocket.CONNECTING;
-    this.onopen = null;
-    this.onmessage = null;
-    this.onclose = null;
-    this.onerror = null;
-    this.onsend = null;
-    this.clientSocket = clientSocket;
-
-    if (this.clientSocket) {
-      // mutually attach onsend/onmessage in both directions
-      clientSocket.onsend = this.onmessage;
-      this.onsend = clientSocket.onmessage;
-      // defer server connect until the client opens
-      // note that if the server connection isn't created within `delay`, it will never be in open state
-      const oldOpen = clientSocket.onopen;
-      clientSocket.onopen = a => oldOpen(a) && this.connect();
-      // This means a clientSocket won't connect on its own; it must have a serverSocket associated, first.
-      clientSocket.connect();
-    }
-  }
-
-  connect() {
-    setTimeout(() => {
-      this.readyState = MockWebSocket.OPENING;
-      if (this.onopen) {
-        setTimeout(() => {
-          this.readyState = MockWebSocket.OPEN;
-          this.onopen();
-        }, this.delay); // Simulating delay between OPENING and OPEN
-      }
-    }, this.delay); // Simulating connection delay
-  }
-
-  send(data) {
-    if (typeof data !== 'string'){
-        throw new Error(`data is of type ${typeof data} but it must be a string`)
-    }
-    if (this.readyState === MockWebSocket.OPEN) {
-      console.log(this.id + 'sent:', data);
-      if (this.onsend) this.onsend(data);
-    } else {
-      console.error('Error: Connection not open.');
-    }
-  }
-
-  close() {
-    if (this.readyState === MockWebSocket.OPEN) {
-      this.readyState = MockWebSocket.CLOSING;
-      console.log('Socket closing');
-      setTimeout(() => {
-        this.readyState = MockWebSocket.CLOSED;
-      }, this.delay); // Simulating delay between CLOSING and CLOSED
-    } else {
-      console.error('Error: Connection not open.');
-    }
-  }
-
-  // Simulate a message receipt
-  receive(message) {
-    if (this.readyState === MockWebSocket.OPEN && this.onmessage) {
-      this.onmessage({ data: message });
-    }
-  }
-
-  // Simulate a remote message close
-  remoteClose() {
-    if (this.readyState === MockWebSocket.OPEN) {
-      this.readyState = MockWebSocket.CLOSING;
-
-      setTimeout(() => {
-        this.readyState = MockWebSocket.CLOSED;
-        if (this.onclose) {
-          this.onclose();
-        }
-      }, this.delay); // Simulating delay between CLOSING and CLOSED
-    }
-  }
-}
-
-// export {MockWebSocket}
-window.MockWebSocket = MockWebSocket;
-
-```
-Ordinary usage (not executed):
-
-```js
-/// import {MockWebSocket} from "./chat.js";
-const MockWebSocket = window.MockWebSocket;
-const delay = 100;
-const ws = new MockWebSocket('wss://example.com', delay);
-
-ws.onopen = () => {
-  console.log('Connection opened');
-};
-
-ws.onmessage = (event) => {
-  console.log('Received:', event.data);
-};
-
-ws.onclose = () => {
-  console.log('Connection closed');
-};
-
-setTimeout(() => ws.receive('Hi there from the server'), delay * 3);
-setTimeout(() => ws.send('Hi there from the client'), delay * 4);
-setTimeout(() => ws.remoteClose(), delay * 5);
-
-```
-
 # Wrapping a Websocket in an Stree
-The idea here is to represent both passive and active events as objects targeting handlers.
-The `connect()` function creates a new websocket, adds a reference to residue and adds all event listeners, which are themselves adding objects back into the stree.
-This approach requires stable access to stree rows, which is accomplished here by adding an explicit row id to the connect handler.
-(A better approach would be to add a "virtual node" to each row that always points to the last element to [stree](/stree.md) but that's not done yet.)
 
-Future work: support message storage/retry, support keepAlive with round-trip lag measurement.
+Start with a thin wrapper around websocket.
+Call active methods (`connect`, `close`, and `send`) with objects.
+Record passive callbacks (`onopen`, `onclose`, `onmessage` and `onerror`) with objects.
+We ONLY send and receive (JSON) objects.
 
 ```html
 <div id="connection-render"></div>
 ```
+
+```js
+import {stree, renderStree, svg, h, DELETE} from './simpatico.js';
+import {MockWebSocket} from "./websocket.js";
+
+const renderParent = svg.elt('connection-render');
+
+const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
+const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+const delay = 50;
+
+const connect = (_ , {websocketURL, row, delay}) => {
+  const ws = new MockWebSocket(websocketURL, delay);
+  if (row === 0 ) row = Number.POSITIVE_INFINITY;
+  ws.onclose =   (e) => s.add({state: CLOSED}, row);
+  ws.onerror =   (e) => s.add({error: e}, row);
+  ws.onopen =    (e) => s.add({state: OPEN}, row);
+  ws.onmessage = (e) => s.addAll([ {input: null}, {output: null}, {input: e.data}, JSON.parse(e.data) ], row);
+  return [{ws, state: CONNECTING}];
+}
+
+const send = ({ws}, {msg}) => {
+  ws.send(JSON.stringify(msg));
+  return [{input: null, output: null},{output: msg}];
+};
+
+const receive = ({input}, _) => {
+  const receivedMessage = JSON.parse(input);
+  return [receivedMessage];
+};
+
+const websocketURL = 'wss://example.com';
+const s = new stree([h(connect), h(send), h(receive)]);
+s.add({a:1});
+s.add({handler: 'connect', websocketURL, row:0, delay:10});
+let ws;
+[
+  ()=>{ws = s.residue().ws}, // get a handle on the mock
+  ()=>s.add({handler: 'send', msg: {a:1}}), //send a message, verify that output is the msg.
+  ()=>ws.receive(JSON.stringify({a:1})), //recieve a message, verify a:2
+  ()=>renderStree(s, renderParent), // render the stree, always last
+].forEach((fn)=>setTimeout(fn, delay * s.nodes.length))
+
+```
+
+
+
+
 
 ```js
 ///
@@ -243,6 +165,7 @@ The client expects the first server message after connection to be the challenge
 <div id="registration-protocol-render"></div>
 ```
 ```js
+///
 import * as wcb from './node_modules/webcryptobox/index.js';
 import {stree, renderStree, svg, h} from './simpatico.js';
 import { validate } from "./friendly.js";
