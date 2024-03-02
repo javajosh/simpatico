@@ -19,9 +19,7 @@ const isDelete =  a =>  a === DELETE;
 
 class HandlerError extends Error {
   constructor(handlerResult) {
-    super("Handler returned an error");
-    this.name = "HandlerError";
-    this.customData = handlerResult;
+    super('handler error: ' + JSON.stringify(handlerResult));
   }
 }
 
