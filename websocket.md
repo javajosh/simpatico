@@ -41,13 +41,13 @@ const connect = (_ , {websocketURL, row, delay}) => {
   ws.onclose =   (e) => s.add({state: CLOSED}, row);
   ws.onerror =   (e) => s.add({error: e}, row);
   ws.onopen =    (e) => s.add({state: OPEN}, row);
-  ws.onmessage = (e) => s.addAll([ {input: null, output: null}, {input: e.data}, JSON.parse(e.data) ], row);
+  ws.onmessage = (e) => s.addAll([{input: e.data}, JSON.parse(e.data) ], row);
   return [{ws, state: CONNECTING}];
 }
 
 const send = ({ws}, {msg}) => {
   ws.send(JSON.stringify(msg));
-  return [{input: null, output: null},{output: msg}];
+  return [{output: msg}];
 };
 
 const receive = ({input}, _) => {
@@ -56,14 +56,24 @@ const receive = ({input}, _) => {
 };
 
 const websocketURL = 'wss://example.com';
-const s = new stree([h(connect), h(send), h(receive)]);
-s.add({a:1});
-s.add({handler: 'connect', websocketURL, row:0, delay:10});
-let ws;
+const s = new stree([h(connect), h(send), h(receive), {cap: 'force branch'}]);
+const row1 = -s.add({a:1}, 2).branchIndex;
+s.add({handler: 'connect', websocketURL, row:row1, delay:10});
+
+const row2 = -s.add({b:1}, 2).branchIndex;
+s.add({handler: 'connect', websocketURL, row:row2, delay:10});
+
+
+let ws1, ws2;
 [
-  ()=>{ws = s.residue().ws}, // get a handle on the mock
-  ()=>s.add({handler: 'send', msg: {a:1}}), //send a message, verify that output is the msg.
-  ()=>ws.receive(JSON.stringify({a:1})), //recieve a message, verify a:2
+  ()=>{ws1 = s.residue(row1).ws}, // get a handle on the mock
+  ()=>s.add({handler: 'send', msg: {a:1}}, row1), //send a message, verify that output is the msg.
+  ()=>ws1.receive(JSON.stringify({a:1})),  //recieve a message, verify a:
+
+  ()=>{ws2 = s.residue(row2).ws}, // get a handle on the mock
+  ()=>s.add({handler: 'send', msg: {b:1}}, row2), //send a message, verify that output is the msg.
+  ()=>ws2.receive(JSON.stringify({b:1})), //recieve a message, verify a:2
+
   ()=>renderStree(s, renderParent), // render the stree, always last
 ].forEach((fn)=>setTimeout(fn, delay * s.nodes.length))
 
