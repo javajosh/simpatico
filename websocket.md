@@ -35,19 +35,19 @@ const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
 const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
 const delay = 50;
 
-const connect = (_ , {websocketURL, conn, delay}) => {
+const connect = (_ , {websocketURL, conn, remote, delay}) => {
   const ws = new MockWebSocket(websocketURL, delay);
   ws.onopen =    (e) => conn.addLeaf({state: OPEN});
   ws.onclose =   (e) => conn.addLeaf({state: CLOSED});
   ws.onmessage = (e) => conn.addLeaf({input: e.data}).add(JSON.parse(e.data));
   ws.onerror =   (e) => conn.addLeaf({error: e});
-  return [{ws, state: CONNECTING}];
+  return [{ws, state: CONNECTING, remote}];
 }
 
-const send = ({ws}, {msg, target}) => {
+const send = ({ws, remote}, {msg}) => {
   const msgString = JSON.stringify(msg);
   ws.send(msgString);
-  if (target) target.receive(msgString); //purely for testing
+  if (remote) remote.getLeaf().residue.ws.receive(msgString); //purely for testing
   return [{output: msg}];
 };
 
@@ -63,26 +63,31 @@ conn.add({cap: 'force branch'});
 
 // Make two connections
 const conn1 = conn.add({a:1});
-conn1.add({handler: 'connect', websocketURL, conn:conn1, delay:10});
+const conn2 = conn.add({b:2});
+conn1.add({handler: 'connect', websocketURL, conn:conn1, remote:conn2, delay:10});
+conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay:10});
 
-const conn2 = conn.add({b:1});
-conn2.add({handler: 'connect', websocketURL, conn:conn2, delay:10});
 
 // Send and recieve similar messages to both connections
 [
-  ()=>conn1.addLeaf({handler: 'send', msg: {a:1}, target: conn2.getLeaf().residue.ws}),
-  ()=>conn1.getLeaf().residue.ws.receive(JSON.stringify({a:1})),
-
-  ()=>conn2.addLeaf({handler: 'send', msg: {b:1}}),
-  ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
-  ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
+  ()=>conn1.addLeaf({handler: 'send', msg: {value: 'hey from conn 1!', a:1, b:1}}),
+  ()=>conn2.addLeaf({handler: 'send', msg: {value: 'wassup from conn 2!', a:2, b:2}}),
+  // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
 
   ()=>renderStree(s, renderParent), // render the stree, always last
 ].forEach((fn, i)=>setTimeout(fn, delay * i + delay));
 
 ```
+## Afterword
+I like the leaf stuff, it makes working with rows much nicer.
+The "cap" convention to force a branch seems a bit hacky, however I suspect there's something to this naive approach so I'm not coding around it for now.
+In particular, there's something to be said for explicitly indicating "this row is done, and I don't want you adding to it" without building that into stree.
 
+Having the remote connection in residue is interesting. But it really doesn't belong in residue, as I don't want it combined over.
 
+Now that we can send messages across a websocket, and have a good handle on branching with handlers, we can flesh out the registration protocol
+
+This work begins to replace libraries like socket.io and it's ilk, uws, deepstream.io, SocketCluster, Primus, Faye, SockJS etc. It may also take the place of certain RxJS and Redux Toolkit models.
 
 
 ```js
