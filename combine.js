@@ -20,6 +20,7 @@ const isDelete =  a =>  a === DELETE;
 class HandlerError extends Error {
   constructor(handlerResult) {
     super('handler error: ' + JSON.stringify(handlerResult));
+    this.customData = handlerResult;
   }
 }
 
