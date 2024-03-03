@@ -64,8 +64,8 @@ conn.add({cap: 'force branch'});
 // Make two connections
 const conn1 = conn.add({a:1});
 const conn2 = conn.add({b:2});
-conn1.add({handler: 'connect', websocketURL, conn:conn1, remote:conn2, delay:10});
-conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay:10});
+conn1.add({handler: 'connect', websocketURL, conn:conn1, remote:conn2, delay});
+conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
 
 
 // Send and recieve similar messages to both connections
@@ -75,7 +75,7 @@ conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay:10}
   // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
 
   ()=>renderStree(s, renderParent), // render the stree, always last
-].forEach((fn, i)=>setTimeout(fn, delay * i + delay));
+].forEach((fn, i)=>setTimeout(fn, delay*(i+5)));
 
 ```
 ## Afterword
@@ -87,7 +87,9 @@ Having the remote connection in residue is interesting. But it really doesn't be
 
 Now that we can send messages across a websocket, and have a good handle on branching with handlers, we can flesh out the registration protocol
 
-This work begins to replace libraries like socket.io and it's ilk, uws, deepstream.io, SocketCluster, Primus, Faye, SockJS etc. It may also take the place of certain RxJS and Redux Toolkit models.
+This work begins to replace libraries like socket.io and it's ilk, uws, deepstream.io, SocketCluster, Primus, Faye, SockJS etc. And services like Firebase or Jamsocket. It may also take the place of certain RxJS and Redux Toolkit models.
+
+Another more serious need is to only add an object once a condition is reached. This is something like a modification of add() that takes a predicate. The initial conception is a one-shot, but it also has the flavor of an observer. I'm seeing unstable order, which is not deterministic and not what you want to see especially in test suites (and it doesn't seem to get fixed with additional delay). The problem, I think, is that stree is recursing, which it shouldn't ever do. It's doing this because when the sockets are connected you get an stree add within an stree add. So I'll probably back out of this change.
 
 
 ```js
