@@ -17,7 +17,13 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
     return fromString(value, reducer);
   }
 
-  const root = {value, parent: null, residue: value, branchIndex: 0, id: 0, leaf:true};
+  const root = {value, parent: null, residue: value, branchIndex: 0, id: 0, leaf:true,
+    add:      a =>add(a, node),
+    addAll:   a =>addAll(a, node),
+    addLeaf:  a =>addLeaf(a, node),
+    addLeafs: a =>addLeafs(a, node),
+    getLeaf: () =>getLeaf(node),
+  };
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
@@ -39,7 +45,13 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
         parent = nodeByNumber(parent);
       }
       Object.freeze(value);
-      const node = {value, parent}; //residue, branchIndex, and id added below
+      const node = {value, parent, //residue, branchIndex, and id added below
+        add: a =>add(a, node),
+        addAll: a =>addAll(a, node),
+        addLeaf: a =>addLeaf(a, node),
+        addLeafs: a => addLeaf(a, node),
+        getLeaf: () => getLeaf(node),
+      };
 
       const parentResidue = parent.residue;
 
@@ -76,6 +88,29 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
       for (value of arrValue){
         parent = add(value, parent)
       }
+      return parent;
+    }
+
+    /**
+     * Add a value as a leaf of the branch containing node
+     * @param value
+     * @param node
+     */
+    function addLeaf(value, node){
+      const parent = branches[node.branchIndex];
+      return add(value, parent);
+    }
+    /**
+     * Add several values as a leaf of the branch containing node
+     * @param value - an array of values
+     * @param node
+     */
+    function addLeafs(values, node){
+      const parent = branches[node.branchIndex];
+      return addAll(values, parent);
+    }
+    function getLeaf(node){
+      return branches[node.branchIndex];
     }
   /**
    * The array of all nodes from root to the specified node, inclusive.
