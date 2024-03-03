@@ -699,6 +699,8 @@ Useful looking background tools include [Hero patterns](https://heropatterns.com
 
 https://css-tricks.com/6-common-svg-fails-and-how-to-fix-them/
 
+https://github.com/enkimute/ganja.js demo https://enkimute.github.io/ganja.js/examples/coffeeshop.html#c2dga_curves
+
 Natural Units
 -------------
 
