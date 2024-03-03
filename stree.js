@@ -18,11 +18,11 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
   }
 
   const root = {value, parent: null, residue: value, branchIndex: 0, id: 0, leaf:true,
-    add:      a =>add(a, node),
-    addAll:   a =>addAll(a, node),
-    addLeaf:  a =>addLeaf(a, node),
-    addLeafs: a =>addLeafs(a, node),
-    getLeaf: () =>getLeaf(node),
+    add:      a =>add(a, root),
+    addAll:   a =>addAll(a, root),
+    addLeaf:  a =>addLeaf(a, root),
+    addLeafs: a =>addLeafs(a, root),
+    getLeaf: () =>getLeaf(root),
   };
   const branches = [root];
   const nodes = [root];
@@ -53,18 +53,15 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
         getLeaf: () => getLeaf(node),
       };
 
-      const parentResidue = parent.residue;
-
-
       if (parent.leaf) {
-        node.residue = reducer(parentResidue, node.value);
+        node.residue = reducer(parent.residue, node.value);
         // Move msgs up to the stree node to not interfere with future residues.
         if (node.residue.msgs){
           node.msgs = node.residue.msgs;
           delete node.residue.msgs;
         }
         node.branchIndex = parent.branchIndex;
-        // replace parent node in branches with the child
+        // replace branch node
         branches[parent.branchIndex] = node;
         node.leaf = true;
         parent.leaf = false;
