@@ -41,7 +41,7 @@ const connect = (_ , {websocketURL, row, delay}) => {
   ws.onclose =   (e) => s.add({state: CLOSED}, row);
   ws.onerror =   (e) => s.add({error: e}, row);
   ws.onopen =    (e) => s.add({state: OPEN}, row);
-  ws.onmessage = (e) => s.addAll([ {input: null}, {output: null}, {input: e.data}, JSON.parse(e.data) ], row);
+  ws.onmessage = (e) => s.addAll([ {input: null, output: null}, {input: e.data}, JSON.parse(e.data) ], row);
   return [{ws, state: CONNECTING}];
 }
 
