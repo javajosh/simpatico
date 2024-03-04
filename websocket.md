@@ -54,13 +54,19 @@ const send = ({ws, remote}, {msg}) => {
   return [{output: msg}];
 };
 
+// Eventually we'll use this to sanitize and parse. For now, that's done in-line in the onmessage handler in connect
+// const receive = ({input}, _) => {
+//   const receivedMessage = JSON.parse(input);
+//   return [receivedMessage];
+// };
+
 const state = ({ws, state:prev}, {state:curr, active=false}) => {
   const result = [];
   log('state', prev, curr);
 
   // Put state-machine here
   if (prev !== OPEN && curr === OPEN){
-    // kick off the protocol from the server connection
+    // kick off the protocol from the server connection; test harness only
     if (ws.id === 1) result.push({handler: 'invite1'})
   }
 
@@ -81,18 +87,8 @@ const invite4 = () => {
   return [{state2: VERIFIED}];
 }
 
-const send = ({ws, remote}, {msg}) => {
-  const msgString = JSON.stringify(msg);
-  ws.send(msgString);
-  if (remote) remote.getLeaf().residue.ws.receive(msgString); //purely for testing
-  return [{output: msg}];
-};
 
-// Eventually we'll use this to sanitize and parse. For now, that's done in-line in the onmessage handler in connect
-// const receive = ({input}, _) => {
-//   const receivedMessage = JSON.parse(input);
-//   return [receivedMessage];
-// };
+
 
 const websocketURL = 'wss://example.com';
 const s = new stree();
@@ -125,72 +121,38 @@ These are handlers with two special properties: they execute after the message c
 Such an observer facility would make the visualization a lot better in a lot of ways, since the triggering value will be added before, not after, the secondary effects.
 In fact, a good way to do it is to add an `observers` field to residue, which is ignored by combine but used in `stree.add()` to generate more msgs.
 An observer is a function that takes prev and curr residue and produces an array of msgs.
+But before implementing this, I want to see how far I can get with just handlers.
+
+# Async handlers
+The real invitation protocol requires both sync and async computation from the client and server.
+The sync computation can and should be handled out of the stree, and the results added to context.
+The async computation is trickier - one solution is to return something that indicates computation was requested, and in the promise then() use the computation to *really* react.
 
 ```js
-///
-import {stree, renderStree, svg, h} from './simpatico.js';
-// import {MockWebSocket} from "./chat.js";
-const MockWebSocket = window.MockWebSocket;
+import {stree, h} from '/simpatico.js';
+import * as wcb from './node_modules/webcryptobox/index.js';
 
-const renderParent = svg.elt('connection-render');
-
-const delay = 100;
-const websocketURL = window.location.toString().replace(/^http/, 'ws').split('#')[0];
-const {CONNECTING, OPEN, CLOSING, CLOSED} = WebSocket;
-const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-
-// events target the same stree row as the connection lives. for now target root with a special number, +infinity (0 is reserved for root node)
-// note that calling s.add inside this handler does not constitute a side-effect, and so is allowed
-const connect = (ctx, {row}) => {
-  const ws = new MockWebSocket(websocketURL, delay);
-  if (row === 0 ) row = Number.POSITIVE_INFINITY;
-  ws.onclose = (e) => s.add({open: false, state: CLOSED, ws: null}, row) && console.log('connection closed ' + row);
-  ws.onerror = (e) => s.add({error: e}, row);
-  ws.onopen = (e) => s.add({open: true, state: OPEN}, row);
-  ws.onmessage = (e) => s.add({handler: 'receive', msg: e.data}, row);
-  return [{websocketURL, ws, open: false, state: CONNECTING}];
-}
-
-// todo: support retry
-const send = (ctx, {msg}) => {
-  // we can also check ctx state for this, eventually
-  if (!ctx.ws) throw 'ws is does not exist';
-  if (!ctx.open) throw `ws is not ready, in state ${stateNamesByIndex[ctx.state]}`;
-  try{
-    ctx.ws.send(msg);
-  } catch (e){
-      return {error: e}
-  }
-
-  return [{out: msg}];
+const compute = ({},{node}) => {
+  wcb.generateKeyPair().then(keyPair => {
+    return {
+      publicKeyPem: wcb.exportPublicKeyPem(keyPair.publicKey),
+      privateKeyPem: wcb.exportPrivateKeyPem(keyPair.privateKey),
+    };
+  }).then(keyPairPem => {
+    const t1 = node.getLeaf().residue.t1;
+    const t2 = Date.now();
+    const dt = t2-t1;
+    node.addLeaf({result: keyPairPem, dt})
+  });
+  return [{result: {}, t1: Date.now()}];
 };
-
-const receive = (ctx, {msg}) => {
-  console.log('Recieved: ' + msg)
-  return [{in: msg}];
-};
-// do we need one handler to trigger client close, and another to detect server close
-const close = (ctx, _) => [ctx.ws.close()];
-
-// add the handlers
-const s = stree([h(connect),h(close),h(send),h(receive)]);
-const node = s.add({websocketURL});
-s.add({desc: 'this object forces new rows to branch from root'});
-
-s.add({handler: 'connect', row: -1}, node);
-s.add({handler: 'connect', row: -2}, node);
-
-setTimeout(()=>s.add({handler: 'send', msg: 'hello from client 1'}, -1), delay * 3 );
-setTimeout(()=>s.residue(-1).ws.receive('hello from server 1'), delay * 4 );
-setTimeout(()=>s.residue(-1).ws.remoteClose(), delay * 5 );
-
-setTimeout(()=>s.add({handler: 'send', msg: 'hello from client 2'}, -2), delay * 3 );
-setTimeout(()=>s.residue(-2).ws.receive('hello from server 2'), delay * 4 );
-setTimeout(()=>s.residue(-2).ws.remoteClose(), delay * 5 );
-
-// setTimeout(()=>renderStree(s, renderParent, false), delay * 6 );
-renderStree(s, renderParent);
+const s = stree(h(compute));
+const node = s.add({});
+s.add({handler: 'compute', node});
+window.s = s;
 ```
+
+#
 
 # Building the protocol
 The Simpatico chat protocol has three parts: registering a client connection's public key, inviting other public keys to be your 'friend', and the message protocol which describes the steady-state flow of messages between connections.
