@@ -41,21 +41,30 @@ const connect = (_ , {websocketURL, conn, remote, delay}) => {
   const ws = new MockWebSocket(websocketURL, delay);
   ws.onopen =    (e) => conn.addLeaf({handler: 'state', conn, state: OPEN});
   ws.onclose =   (e) => conn.addLeaf({handler: 'state', conn, state: CLOSED});
-  ws.onmessage = (e) => conn.addLeaf({input: e.data}).add(JSON.parse(e.data));
+  // setTimeout prevents reentrance into stree.add()
+  ws.onmessage = (e) => setTimeout(()=>conn.addLeaf({input: e.data}).add(JSON.parse(e.data)), 0);
   ws.onerror =   (e) => conn.addLeaf({error: e});
   return [{ws, state: CONNECTING, remote}];
 }
 
-const state = (ctx, {state, conn, active=false}) => {
+const send = ({ws, remote}, {msg}) => {
+  const msgString = JSON.stringify(msg);
+  ws.send(msgString);
+  if (remote) remote.getLeaf().residue.ws.receive(msgString); //purely for testing
+  return [{output: msg}];
+};
+
+const state = ({ws, state:prev}, {state:curr, active=false}) => {
   const result = [];
-  const prev = ctx.state;
-  const id = conn.getLeaf().residue.ws.id;
+  log('state', prev, curr);
+
   // Put state-machine here
-  if (prev !== OPEN && state === OPEN){
-    if (conn.id == 1) result.push({handler: 'invite1'})
+  if (prev !== OPEN && curr === OPEN){
+    // kick off the protocol from the server connection
+    if (ws.id === 1) result.push({handler: 'invite1'})
   }
 
-  result.push({state});
+  result.push({state: curr});
   return result;
 }
 
@@ -79,14 +88,15 @@ const send = ({ws, remote}, {msg}) => {
   return [{output: msg}];
 };
 
-const receive = ({input}, _) => {
-  const receivedMessage = JSON.parse(input);
-  return [receivedMessage];
-};
+// Eventually we'll use this to sanitize and parse. For now, that's done in-line in the onmessage handler in connect
+// const receive = ({input}, _) => {
+//   const receivedMessage = JSON.parse(input);
+//   return [receivedMessage];
+// };
 
 const websocketURL = 'wss://example.com';
 const s = new stree();
-const conn = s.addAll([h(connect), h(send), h(receive), h(state), h(invite1), h(invite2), h(invite3), h(invite4)]);
+const conn = s.addAll([h(connect), h(send), h(state), h(invite1), h(invite2), h(invite3), h(invite4)]);
 conn.add({cap: 'force branch'});
 
 // Make two connections
@@ -101,24 +111,20 @@ conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
   // ()=>conn1.addLeaf({handler: 'send', msg: {value: 'hey from conn 1!', a:1, b:1}}),
   // ()=>conn2.addLeaf({handler: 'send', msg: {value: 'wassup from conn 2!', a:2, b:2}}),
   // Trigger our simple 4-way handshake
-  ()=>conn1.addLeaf({handler: 'send', msg: {handler: 'invite1'}}),
+  // ()=>conn1.addLeaf({handler: 'send', msg: {handler: 'invite1'}}),
   // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
 
-  ()=>renderStree(s, renderParent), // render the stree, always last
+  ()=>renderStree(s, renderParent),
 ].forEach((fn, i)=>setTimeout(fn, delay*(i+5)));
 
 ```
 ## Thoughts
-The good: 4-way handshake is executing on connect, and in a compelling way, with both sides calling handlers on the other, in turn.
-The bad: Stree is not re-entrant (add should not be called within another add) and we see clearly why: residue is confused in these intermediate states.
-You see this with the out-of-order values, and the (incorrect) final state - it is incorrect because the earlier residues are not seen by later values, in this case.
-
-One way to mitigate the bad is to simply try this "for real" with two separate strees divided by a websocket.
-
 Another (potentially more useful) way to mitigate is to add an 'observers' facility to *stree*.
 These are handlers with two special properties: they execute after the message cascade, and are triggered by residue changes.
-(It's tempting to want to define them in *combine* but the requirement to "wait" for cascade resolution prevents this.)
+(It's tempting to want to define/use them in *combine* but the requirement to "wait" for cascade resolution prevents this.)
 Such an observer facility would make the visualization a lot better in a lot of ways, since the triggering value will be added before, not after, the secondary effects.
+In fact, a good way to do it is to add an `observers` field to residue, which is ignored by combine but used in `stree.add()` to generate more msgs.
+An observer is a function that takes prev and curr residue and produces an array of msgs.
 
 ```js
 ///
