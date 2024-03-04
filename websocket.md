@@ -33,15 +33,43 @@ const renderParent = svg.elt('connection-render');
 
 const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
 const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR'];
+const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR] = state2;
 const delay = 50;
 
 const connect = (_ , {websocketURL, conn, remote, delay}) => {
   const ws = new MockWebSocket(websocketURL, delay);
-  ws.onopen =    (e) => conn.addLeaf({state: OPEN});
-  ws.onclose =   (e) => conn.addLeaf({state: CLOSED});
+  ws.onopen =    (e) => conn.addLeaf({handler: 'state', conn, state: OPEN});
+  ws.onclose =   (e) => conn.addLeaf({handler: 'state', conn, state: CLOSED});
   ws.onmessage = (e) => conn.addLeaf({input: e.data}).add(JSON.parse(e.data));
   ws.onerror =   (e) => conn.addLeaf({error: e});
   return [{ws, state: CONNECTING, remote}];
+}
+
+const state = (ctx, {state, conn, active=false}) => {
+  const result = [];
+  const prev = ctx.state;
+  const id = conn.getLeaf().residue.ws.id;
+  // Put state-machine here
+  if (prev !== OPEN && state === OPEN){
+    if (conn.id == 1) result.push({handler: 'invite1'})
+  }
+
+  result.push({state});
+  return result;
+}
+
+const invite1 = () => {
+  return [{state2: CHALLENGED}, {handler: 'send', msg: {handler: 'invite2'}}];
+}
+const invite2 = () => {
+  return [{state2: RESPONDED},{handler: 'send', msg: {handler: 'invite3'}}];
+}
+const invite3 = () => {
+  return [{state2: VERIFIED},{handler: 'send', msg: {handler: 'invite4'}}];
+}
+const invite4 = () => {
+  return [{state2: VERIFIED}];
 }
 
 const send = ({ws, remote}, {msg}) => {
@@ -58,7 +86,7 @@ const receive = ({input}, _) => {
 
 const websocketURL = 'wss://example.com';
 const s = new stree();
-const conn = s.addAll([h(connect), h(send), h(receive)]);
+const conn = s.addAll([h(connect), h(send), h(receive), h(state), h(invite1), h(invite2), h(invite3), h(invite4)]);
 conn.add({cap: 'force branch'});
 
 // Make two connections
@@ -70,27 +98,27 @@ conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
 
 // Send and recieve similar messages to both connections
 [
-  ()=>conn1.addLeaf({handler: 'send', msg: {value: 'hey from conn 1!', a:1, b:1}}),
-  ()=>conn2.addLeaf({handler: 'send', msg: {value: 'wassup from conn 2!', a:2, b:2}}),
+  // ()=>conn1.addLeaf({handler: 'send', msg: {value: 'hey from conn 1!', a:1, b:1}}),
+  // ()=>conn2.addLeaf({handler: 'send', msg: {value: 'wassup from conn 2!', a:2, b:2}}),
+  // Trigger our simple 4-way handshake
+  ()=>conn1.addLeaf({handler: 'send', msg: {handler: 'invite1'}}),
   // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
 
   ()=>renderStree(s, renderParent), // render the stree, always last
 ].forEach((fn, i)=>setTimeout(fn, delay*(i+5)));
 
 ```
-## Afterword
-I like the leaf stuff, it makes working with rows much nicer.
-The "cap" convention to force a branch seems a bit hacky, however I suspect there's something to this naive approach so I'm not coding around it for now.
-In particular, there's something to be said for explicitly indicating "this row is done, and I don't want you adding to it" without building that into stree.
+## Thoughts
+The good: 4-way handshake is executing on connect, and in a compelling way, with both sides calling handlers on the other, in turn.
+The bad: Stree is not re-entrant (add should not be called within another add) and we see clearly why: residue is confused in these intermediate states.
+You see this with the out-of-order values, and the (incorrect) final state - it is incorrect because the earlier residues are not seen by later values, in this case.
 
-Having the remote connection in residue is interesting. But it really doesn't belong in residue, as I don't want it combined over.
+One way to mitigate the bad is to simply try this "for real" with two separate strees divided by a websocket.
 
-Now that we can send messages across a websocket, and have a good handle on branching with handlers, we can flesh out the registration protocol
-
-This work begins to replace libraries like socket.io and it's ilk, uws, deepstream.io, SocketCluster, Primus, Faye, SockJS etc. And services like Firebase or Jamsocket. It may also take the place of certain RxJS and Redux Toolkit models.
-
-Another more serious need is to only add an object once a condition is reached. This is something like a modification of add() that takes a predicate. The initial conception is a one-shot, but it also has the flavor of an observer. I'm seeing unstable order, which is not deterministic and not what you want to see especially in test suites (and it doesn't seem to get fixed with additional delay). The problem, I think, is that stree is recursing, which it shouldn't ever do. It's doing this because when the sockets are connected you get an stree add within an stree add. So I'll probably back out of this change.
-
+Another (potentially more useful) way to mitigate is to add an 'observers' facility to *stree*.
+These are handlers with two special properties: they execute after the message cascade, and are triggered by residue changes.
+(It's tempting to want to define them in *combine* but the requirement to "wait" for cascade resolution prevents this.)
+Such an observer facility would make the visualization a lot better in a lot of ways, since the triggering value will be added before, not after, the secondary effects.
 
 ```js
 ///
