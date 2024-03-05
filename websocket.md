@@ -61,17 +61,36 @@ const send = ({ws, remote}, {msg}) => {
 //   return [receivedMessage];
 // };
 
-const state = ({ws, conn, state:prevState}, {state:currState, active=false}) => {
+const getRandomProperty = (obj, omitKey) => {
+  const keys = Object.keys(obj);
+  if (keys.length === 0) throw 'empty object'
+  let found;
+  // while (found !== omitKey)
+    found = keys[ keys.length * Math.random() << 0];
+  return obj[found];
+}
+
+const state = ({ws, conn, remote, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2, active=false}) => {
   const result = [];
   // log('state', prevState, currState);
 
   // Put rest of the state-machine here
+  // kick off the protocol from the server connection
   if (prevState !== OPEN && currState === OPEN && conn.residue.server){
-    // kick off the protocol from the server connection
     result.push({handler: 'register1'})
   }
+  // send a message to another random client
+  if (prevState2 !== VERIFIED && currState2 === VERIFIED && !conn.residue.server){
+    const clients = remote.summary;
+    if (Object.keys(clients).length >= 2 ) {
+      const target = getRandomProperty(clients, publicKeySig);
+      log('sending', {handler: 'reflect', from: publicKeySig, to: target.residue.publicKeySig, message: {}});
+      // result.push({handler: 'send', msg: {handler: 'reflect', from: publicKeySig, to: target.residue.publicKeySig, message: {}}})
+    }
+  }
 
-  result.push({state: currState});
+  if (currState) result.push({state: currState});
+  if (currState2) result.push({state2: currState2});
   return result;
 }
 
@@ -89,7 +108,7 @@ const generateKeyPair = async () => {
 // Executed by the server onopen - send server public key
 const register1 = ({publicKeyPem}) => {
   const t1 = Date.now();
-  return [{state2: CHALLENGED, t1}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1}}];
+  return [{handler: 'state', state2: CHALLENGED}, {t1}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1}}];
 }
 
 // Executed by the client - use server public key and client private key to encrypt a message back
@@ -101,12 +120,12 @@ const register2 = ({publicKey: clientPublicKey, publicKeyPem: clientPublicKeyPem
   wcb.importPublicKeyPem(serverPublicKeyPem)
     .then(serverPublicKey => wcb.encryptTo({message: messageArray, privateKey, publicKey: serverPublicKey}))
     .then(box => wcb.encodeHex(box))
-    .then(encoded => conn.addLeaf({state2: RESPONDED}).add({handler: 'send', msg: {handler: 'register3', clearText: messageText, cypherText: encoded, publicKeySig, publicKey: clientPublicKeyPem}}))
+    .then(encoded => conn.addLeaf({handler: 'state', state2: RESPONDED}).add({handler: 'send', msg: {handler: 'register3', clearText: messageText, cypherText: encoded, publicKeySig, publicKey: clientPublicKeyPem}}))
     .catch(error => {
       log(error)
-      conn.addLeaf({state2: ERROR, error})
+      conn.addLeaf({handler: 'state', state2: ERROR, error})
     });
-  return [{state2: COMPUTING, serverPublicKeyPem}];
+  return [{handler: 'state', state2: COMPUTING, serverPublicKeyPem}];
 }
 
 // Executed by the server - decrypt the message and compare with the clear text version.
@@ -127,19 +146,19 @@ const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: cl
     .then(box => {
         const obj = JSON.parse(wcb.encodeText(box));
         const state2 = equals(clearObj, obj) && (obj.t1 === t1) ? VERIFIED : UNVERIFIED;
-        conn.addLeaf({state2}).add({handler: 'send', msg: {handler: 'register4', state2}});
+        conn.addLeaf({handler: 'state', state2}).add({handler: 'send', msg: {handler: 'register4', state2}});
     })
     .catch(error => {
       log(error);
-      conn.addLeaf({state2: ERROR, error});
+      conn.addLeaf({handler: 'state', state2: ERROR, error});
       // todo close the connection
     });
-  return [{state2: COMPUTING}];
+  return [{handler: 'state', state2: COMPUTING}];
 }
 
 // Executed by the client - just record verification state.
 const register4 = ({},{state2}) => {
-  return [{state2}];
+  return [{handler: 'state', state2}];
 }
 
 
@@ -171,7 +190,7 @@ const makeConnectionPair = async (websocketURL = 'wss://example.com') => {
   conn1.add({handler: 'connect', websocketURL, conn: conn1, remote: conn2, delay});
   conn2.add({handler: 'connect', websocketURL, conn: conn2, remote: conn1, delay});
 }
-let i = 5;
+let i = 4;
 while (i--) await makeConnectionPair();
 
 
@@ -195,8 +214,10 @@ However we'd need to take care of the `ws` member which shouldn't be shared.
 There's a general issue with keeping references to outside objects in residue that may be resolved with a naming convention like "prepend with _ to ignore"
 
 Simulate multiple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig via `summary`.
+Problem: the rendered results are sometiems different. Some connections don't complete the protocol.
+With any luck this is an artifact of testing, but it is concerning.
 
-After that, we simulate clients communicating with each other.
+Simulate clients communicating with each other. Pick another signature from summary at random and send something. In the test harness we can do this in the state-machine.
 ```html
 <div id="summary-render"></div>
 ```
