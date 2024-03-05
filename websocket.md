@@ -91,8 +91,21 @@ const register1 = ({publicKeyPem}) => {
   const t1 = Date.now();
   return [{state2: CHALLENGED, t1}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1}}];
 }
-const invite2 = () => {
-  return [{state2: RESPONDED},{handler: 'send', msg: {handler: 'invite3'}}];
+// Executed by the client - use server public key and client private key to encrypt a message back
+// In this case we just encrypt two timestamps and their difference
+const register2 = ({publicKey: clientPublicKey, publicKeyPem: clientPublicKeyPem, privateKey, publicKeySig, conn}, {publicKeyPem: serverPublicKeyPem, t1}) => {
+  const t2 = Date.now();
+  const messageText = JSON.stringify({t1, t2, dt: t2-t1});
+  const messageArray = wcb.decodeText(messageText);
+  wcb.importPublicKeyPem(serverPublicKeyPem)
+    .then(serverPublicKey => wcb.encryptTo({message: messageArray, privateKey, publicKey: serverPublicKey}))
+    .then(box => wcb.encodeHex(box))
+    .then(encoded => conn.addLeaf({state2: RESPONDED}).add({handler: 'send', msg: {handler: 'register3', clearText: messageText, cypherText: encoded, publicKeySig, publicKey: clientPublicKeyPem}}))
+    .catch(error => {
+      log(error)
+      conn.addLeaf({state2: ERROR, error})
+    });
+  return [{state2: COMPUTING, serverPublicKeyPem}];
 }
 // Executed by the server - decrypt the message and compare with the clear text version.
 const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: clientPublicKey, publicKeySig}) => {
