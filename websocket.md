@@ -52,7 +52,7 @@ const send = ({ws, remote}, {msg}) => {
   ws.send(msgString);
   // setTimeout prevents reentrance into stree.add(); note this line is only executed in a test environemnt
   if (remote) setTimeout(()=>remote.getLeaf().residue.ws.receive(msgString));
-  return [{output: msg}];
+  return [];
 };
 
 // Eventually we'll use this to sanitize and parse. For now, that's done in-line in the onmessage handler in connect
@@ -88,21 +88,23 @@ const generateKeyPair = async () => {
 
 // Executed by the server onopen - send server public key
 const register1 = ({publicKeyPem}) => {
-  return [{state2: CHALLENGED}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1: Date.now()}}];
+  const t1 = Date.now();
+  return [{state2: CHALLENGED, t1}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1}}];
 }
 const invite2 = () => {
   return [{state2: RESPONDED},{handler: 'send', msg: {handler: 'invite3'}}];
 }
 // Executed by the server - decrypt the message and compare with the clear text version.
-const register3 = ({privateKey, conn},{clearText, cypherText, publicKey: clientPublicKey, publicKeySig}) => {
+const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: clientPublicKey, publicKeySig}) => {
   const clearObj = JSON.parse(clearText);
 
-  wcb.importPublicKeyPem(clientPublicKey)
+  wcb.sha256Fingerprint(clientPublicKey).then(sig => {if (sig !== publicKeySig) throw "signature does not match"})
+    .then(() => wcb.importPublicKeyPem(clientPublicKey))
     .then(clientPublicKey => wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey: clientPublicKey}))
     .then(box => wcb.encodeText(box))
     .then(json => JSON.parse(json))
     .then(obj => {
-        const state2 = equals(clearObj, obj) ? VERIFIED : UNVERIFIED;
+        const state2 = equals(clearObj, obj) && (obj.t1 === t1) ? VERIFIED : UNVERIFIED;
         conn.addLeaf({state2}).add({handler: 'send', msg: {handler: 'register4', state2}});
     })
     .catch(error => {
@@ -155,6 +157,10 @@ It would be cool to branch connections for testing, showing off all the error mo
 However we'd need to take care of the `ws` member which shouldn't be shared.
 There's a general issue with keeping references to outside objects in residue that may be resolved with a naming convention like "prepend with _ to ignore"
 
+Next up is to simulate mutliple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig.
+After that, we simulate clients communicating with each other.
+
+
 # Async handlers
 The real invitation protocol requires both sync and async computation from the client and server.
 The sync computation can and should be handled out of the stree, and the results added to context.
@@ -197,36 +203,7 @@ The goal of the client at this point is to get `{registered: true}`.
 To support this protocol we prep the stree with the data it needs to respond to the server challenge.
 The client expects the first server message after connection to be the challenge, and responds appropriately.
 
-
-```html
-<div id="registration-protocol-render"></div>
-```
 ```js
-///
-import * as wcb from './node_modules/webcryptobox/index.js';
-import {stree, renderStree, svg, h} from './simpatico.js';
-import { validate } from "./friendly.js";
-
-const renderParent = svg.elt('registration-protocol-render');
-const delay = 100;
-const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
-const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-
-// generate information we need
-const serverKeyPair = await wcb.generateKeyPair();
-const serverKeyPairPem = {
-  publicKeyPem:  await wcb.exportPublicKeyPem(serverKeyPair.publicKey),
-  privateKeyPem: await wcb.exportPrivateKeyPem(serverKeyPair.privateKey),
-};
-
-const clientKeyPair = await wcb.generateKeyPair();
-const clientKeyPairPem = {
-  publicKeyPem:  await wcb.exportPublicKeyPem(clientKeyPair.publicKey),
-  privateKeyPem: await wcb.exportPrivateKeyPem(clientKeyPair.privateKey),
-  publicKeySig: 'foobar',
-};
-// clientKeyPairPem.publicKeySig= c.base64EncodeBuffer(await wcb.sha256Fingerprint(clientKeyPairPem.publicKey));
-
 // protocol definitions
 const MAX_MESSAGE_LENGTH = 4 * 1024;
 
@@ -253,164 +230,11 @@ const MESSAGE_PATTERN = {
 };
 
 const sanitize = msg =>{
-    if (msg.length > MAX_MESSAGE_LENGTH) throw `msg too long ${msg.length}`;
-    const parsed = JSON.parse(msg);
-    return parsed;
+  if (msg.length > MAX_MESSAGE_LENGTH) throw `msg too long ${msg.length}`;
+  const parsed = JSON.parse(msg);
+  return parsed;
 }
-
-// redefine handlers here to take advantage of s closure.
-const clientConnect = (ctx, {clientRow, serverRow}) => {
-  // as a side effect, add serverConnect with the mirror of this websocket
-  const websocketURL = 'mock/client:' + ctx.websocketURL;
-  const ws = new MockWebSocket(websocketURL, delay);
-  if (clientRow === 0 ) clientRow = Number.POSITIVE_INFINITY;
-  ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, clientRow);
-  ws.onerror = (e) => s.add({error: e}, clientRow);
-  ws.onopen = (e) => s.add({open: true, state: OPEN}, clientRow);
-  ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, clientRow);
-  return [{websocketURL, ws, open: false, state: CONNECTING}];
-}
-
-// The server version of connection
-const serverConnect = ({publicKey}, {clientRow, serverRow, clientSocket}) => {
-  const websocketURL = 'mock/server:' + clientSocket.url;
-  const ws = new MockWebSocket( websocketURL, clientSocket.delay, clientSocket);
-  if (serverRow === 0 ) serverRow = Number.POSITIVE_INFINITY;
-  ws.onclose = (e) => s.add({open: false, registered: false, state: CLOSING, ws: null}, serverRow);
-  ws.onerror = (e) => s.add({error: e}, serverRow);
-  ws.onopen = (e) => {
-      s.add({open: true, state: OPEN}, serverRow);
-      s.add({handler: 'send', msg: {handler: 'clientChallenge', publicKey}}, serverRow)
-  }
-  ws.onmessage = (e) => s.add({handler: 'receive', msg: sanitize(e.data)}, serverRow);
-  return [{websocketURL, ws, open: false, state: CONNECTING}];
-}
-
-const send = (ctx, msg) => {
-  try{
-    if (!ctx.ws) throw 'ws is does not exist';
-    if (!ctx.open) throw `ws is not ready, in state ${stateNamesByIndex[ctx.state]}`;
-    ctx.ws.send(JSON.stringify(msg.msg));
-  } catch (e){
-    return {error: e}
-  }
-  return [{out: msg.msg}];
-};
-
-const receive = (ctx, msg) => {
-  return [{in: msg.msg}, msg.msg];
-};
-
-const close = (ctx, _) => [ctx.ws.close()];
-
-
-const clientChallenge = (ctx, challenge) => {
-  const {publicKey: serverPublicKey, timestamp: serverTimestamp} = challenge;
-  const {publicKey: clientPublicKey, privateKey: clientPrivateKey, publicKeySig} = ctx;
-  const timestamp = Date.now();
-  // const encryptedTimestamp = await wcb.encryptTo(timestamp, clientPrivateKey, serverPublicKey);
-  const encryptedTimestamp = 'gibberish';
-
-  // This is not rendered! It's sent to the 'server' in an embedded message
-  const serverClientChallengeResponse = {
-    handler: 'serverClientChallengeResponse',
-    publicKey: clientPublicKey,
-    publicKeySig,
-    timestamp,
-    encryptedTimestamp,
-  }
-
-  return [{handler: 'send', msg: serverClientChallengeResponse}];
-}
-const serverClientChallengeResponse = (ctx, {
-  handler,
-  publicKey,
-  publicKeySig,
-  timestamp,
-  encryptedTimestamp}) => {
-    // todo actually check validity
-    const clientChallengeResult = {handler: 'clientChallengeResult', registered: true}
-
-  return [{handler: 'send', msg: clientChallengeResult}];
-}
-
-// This handler may be unnecessary. We'll see.
-const clientChallengeResult = (ctx, {registered}) => {
-  // todo deal with failure case - although perhaps the server will just close the connection
-  return [{registered}];
-}
-
-const cap = {desc: 'this object forces new rows to branch from root'};
-
-// Shared handlers - row 0
-const s = stree([h(close),h(send),h(receive), cap]);
-const sharedNode = s.nodes[s.nodes.length - 2];
-
-// server specific handlers
-s.add(h(serverConnect), sharedNode);
-s.add(h(serverClientChallengeResponse));
-s.add(cap);
-const serverNode = s.nodes[s.nodes.length - 2];
-
-// client specific handlers
-s.add(h(clientConnect), sharedNode);
-s.add(h(clientChallenge));
-s.add(h(clientChallengeResult));
-s.add(cap);
-const clientNode = s.nodes[s.nodes.length - 2];
-
-
-// begin a client row
-const clientRow = -s.add({
-  websocketURL: 'wss://example.com',
-  registered: false,
-  publicKey: clientKeyPair.publicKey,
-  privateKey: clientKeyPair.privateKey,
-}, clientNode).branchIndex;
-
-// begin a server row
-const serverRow = -s.add({
-  websocketURL: 'wss://example.com',
-  publicKey: serverKeyPair.publicKey,
-  privateKey: serverKeyPair.privateKey,
-}, serverNode).branchIndex;
-
-// connect the client and server
-const clientSocket = s.add({handler: 'clientConnect', clientRow, serverRow}, clientRow).residue.ws;
-const serverSocket = s.add({handler: 'serverConnect', clientRow, serverRow, clientSocket}, serverRow).residue.ws;
-
-// // after connect, the server responds with a challenge
-// setTimeout(()=>{
-//     const ws = s.residue(clientRow).ws;
-//     const msg = JSON.stringify({
-//       handler: 'clientChallenge',
-//       publicKey: 'foobar',
-//       timestamp: Date.now(),
-//     });
-//     ws.receive(msg);
-// }, delay * 3 );
-//
-//
-// // the client responded, simulate that it was accepted
-// setTimeout(()=>{
-//     const ws = s.residue(clientRow).ws;
-//     const msg = JSON.stringify({
-//       handler: 'clientChallengeResult',
-//       registered: true, // change this for the failure case
-//     });
-//     ws.receive(msg);
-// }, delay * 4 );
-
-
-setTimeout(()=>renderStree(s, renderParent), delay * 5);
 ```
-### Aside
-It's not pretty, but it works.
-This has turned into a stateful, RPC-ish 3-way handshake.
-It might be better to model this as an (external) state-machine, like that described in [bgp.js](/notes/bgp.js), using the stree only to document state changes.
-We'll see if it breaks down with more complexity.
-With any luck the branching capability of the stree will help map out the various cases.
-(The tight coupling with an external resource complicates this. It's almost certainly a bad idea to embed a handle to a websocket in residue like this, but we'll see.)
 
 ## Invitation Protocol
 Simpatico supports sharing a public key signature via URL, which must be sent out-of-band (email, instant message, QR code, etc.)
