@@ -26,15 +26,16 @@ We ONLY send and receive (JSON) objects.
 ```
 
 ```js
-import {stree, renderStree, svg, h, DELETE} from './simpatico.js';
+import {stree, renderStree, svg, h, DELETE, equals} from './simpatico.js';
 import {MockWebSocket} from "./websocket.js";
+import * as wcb from './node_modules/webcryptobox/index.js';
 
 const renderParent = svg.elt('connection-render');
 
 const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
 const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR'];
-const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR] = state2;
+const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR', 'COMPUTING'];
+const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTING] = state2;
 const delay = 50;
 
 const connect = (_ , {websocketURL, conn, remote, delay}) => {
@@ -44,7 +45,7 @@ const connect = (_ , {websocketURL, conn, remote, delay}) => {
   // setTimeout prevents reentrance into stree.add()
   ws.onmessage = (e) => setTimeout(()=>conn.addLeaf({input: e.data}).add(JSON.parse(e.data)), 0);
   ws.onerror =   (e) => conn.addLeaf({error: e});
-  return [{ws, state: CONNECTING, remote}];
+  return [{ws, state: CONNECTING, conn, remote}];
 }
 
 const send = ({ws, remote}, {msg}) => {
@@ -67,37 +68,64 @@ const state = ({ws, state:prev}, {state:curr, active=false}) => {
   // Put state-machine here
   if (prev !== OPEN && curr === OPEN){
     // kick off the protocol from the server connection; test harness only
-    if (ws.id === 1) result.push({handler: 'invite1'})
+    if (ws.id === 1) result.push({handler: 'register1'})
   }
 
   result.push({state: curr});
   return result;
 }
 
-const invite1 = () => {
-  return [{state2: CHALLENGED}, {handler: 'send', msg: {handler: 'invite2'}}];
+const generateKeyPair = async () => {
+  const keyPair = await wcb.generateKeyPair();
+  return {
+    publicKey: keyPair.publicKey,
+    privateKey: keyPair.privateKey,
+    publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
+    privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
+    publicKeySig: await wcb.sha256Fingerprint(keyPair.publicKey),
+  };
+}
+
+// Executed by the server onopen - send server public key
+const register1 = ({publicKeyPem}) => {
+  return [{state2: CHALLENGED}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1: Date.now()}}];
 }
 const invite2 = () => {
   return [{state2: RESPONDED},{handler: 'send', msg: {handler: 'invite3'}}];
 }
-const invite3 = () => {
-  return [{state2: VERIFIED},{handler: 'send', msg: {handler: 'invite4'}}];
+// Executed by the server - decrypt the message and compare with the clear text version.
+const register3 = ({privateKey, conn},{clearText, cypherText, publicKey: clientPublicKey, publicKeySig}) => {
+  const clearObj = JSON.parse(clearText);
+
+  wcb.importPublicKeyPem(clientPublicKey)
+    .then(clientPublicKey => wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey: clientPublicKey}))
+    .then(box => wcb.encodeText(box))
+    .then(json => JSON.parse(json))
+    .then(obj => {
+        const state2 = equals(clearObj, obj) ? VERIFIED : UNVERIFIED;
+        conn.addLeaf({state2}).add({handler: 'send', msg: {handler: 'register4', state2}});
+    })
+    .catch(error => {
+      log(error)
+      conn.addLeaf({state2: ERROR, error})
+    });
+  return [{state2: COMPUTING}];
 }
-const invite4 = () => {
-  return [{state2: VERIFIED}];
+// Executed by the client - just record verification state.
+const register4 = ({},{state2}) => {
+  return [{state2}];
 }
-
-
-
 
 const websocketURL = 'wss://example.com';
 const s = new stree();
-const conn = s.addAll([h(connect), h(send), h(state), h(invite1), h(invite2), h(invite3), h(invite4)]);
+const conn = s.addAll([h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)]);
 conn.add({cap: 'force branch'});
 
 // Make two connections
-const conn1 = conn.add({a:1});
-const conn2 = conn.add({b:2});
+const kp1 = await generateKeyPair();
+const kp2 = await generateKeyPair();
+const conn1 = conn.add(kp1);
+const conn2 = conn.add(kp2);
 conn1.add({handler: 'connect', websocketURL, conn:conn1, remote:conn2, delay});
 conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
 
@@ -152,20 +180,10 @@ s.add({handler: 'compute', node});
 window.s = s;
 ```
 
-#
-
-# Building the protocol
-The Simpatico chat protocol has three parts: registering a client connection's public key, inviting other public keys to be your 'friend', and the message protocol which describes the steady-state flow of messages between connections.
-
-An unusual quality of Simpatico chat (Simpatichat) is its simplicity.
-We think in terms of communicating processes, with each process having one websocket connection to one server, and the potential to message any registered connection.
-
-The design balances the threat of malefactors with ease of implementation and the ability to run on modest server hardware.
-PKI is famously compute-intensive and so we rely on clients to ver
-
 ## Connection Registration Protocol
 Simpatico requires a challenge/response protocol to register your public key.
-The challenge exists to prove that your public key is "real" in the sense it can be used to encrypt from and to another public key. Without this challenge, a malicious client can connect and associate their connection with an arbitrary string.
+The challenge exists to prove that your public key is "real" in the sense it can be used to encrypt from and to another public key.
+Without this challenge, a malicious client could connect and associate their connection with an arbitrary string.
 
 The server sends its public key, and then expects a response with your public key and a clear-text message and that same message encrypted by your private key to its public key.
 We pick as that message a simple timestamp from Date.now(), which is ms from the Epoch and can be used to measure client/server time-skew.

@@ -28,9 +28,10 @@ const bob = await wcb.generateKeyPair()
 const text = 'Test message'
 const message = wcb.decodeText(text)
 const box = await wcb.encryptTo({ message, privateKey: alice.privateKey, publicKey: bob.publicKey })
-const decryptedBox = await wcb.decryptFrom({ box, privateKey: bob.privateKey, publicKey: alice.publicKey })
+const hexBox = wcb.encodeHex(box);
+const decryptedBox = await wcb.decryptFrom({ box: wcb.decodeHex(hexBox), privateKey: bob.privateKey, publicKey: alice.publicKey })
 const decryptedText = wcb.encodeText(decryptedBox)
-
+assertEquals(decryptedText, text);
 // Now do key export and import with alice's keys
 const alicePubExported = await wcb.exportPublicKeyPem(alice.publicKey);
 const alicePrivExported = await wcb.exportPrivateKeyPem(alice.privateKey);
