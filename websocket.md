@@ -42,8 +42,7 @@ const connect = (_ , {websocketURL, conn, remote, delay}) => {
   const ws = new MockWebSocket(websocketURL, delay);
   ws.onopen =    (e) => conn.addLeaf({handler: 'state', conn, state: OPEN});
   ws.onclose =   (e) => conn.addLeaf({handler: 'state', conn, state: CLOSED});
-  // setTimeout prevents reentrance into stree.add()
-  ws.onmessage = (e) => setTimeout(()=>conn.addLeaf({input: e.data}).add(JSON.parse(e.data)), 0);
+  ws.onmessage = (e) => conn.addLeaf(JSON.parse(e.data)); //eventually call receive
   ws.onerror =   (e) => conn.addLeaf({error: e});
   return [{ws, state: CONNECTING, conn, remote}];
 }
@@ -51,7 +50,8 @@ const connect = (_ , {websocketURL, conn, remote, delay}) => {
 const send = ({ws, remote}, {msg}) => {
   const msgString = JSON.stringify(msg);
   ws.send(msgString);
-  if (remote) remote.getLeaf().residue.ws.receive(msgString); //purely for testing
+  // setTimeout prevents reentrance into stree.add(); note this line is only executed in a test environemnt
+  if (remote) setTimeout(()=>remote.getLeaf().residue.ws.receive(msgString));
   return [{output: msg}];
 };
 
@@ -150,6 +150,10 @@ Such an observer facility would make the visualization a lot better in a lot of 
 In fact, a good way to do it is to add an `observers` field to residue, which is ignored by combine but used in `stree.add()` to generate more msgs.
 An observer is a function that takes prev and curr residue and produces an array of msgs.
 But before implementing this, I want to see how far I can get with just handlers.
+
+It would be cool to branch connections for testing, showing off all the error modes.
+However we'd need to take care of the `ws` member which shouldn't be shared.
+There's a general issue with keeping references to outside objects in residue that may be resolved with a naming convention like "prepend with _ to ignore"
 
 # Async handlers
 The real invitation protocol requires both sync and async computation from the client and server.
