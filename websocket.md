@@ -42,7 +42,7 @@ const connect = (_ , {websocketURL, conn, remote, delay}) => {
   const ws = new MockWebSocket(websocketURL, delay);
   ws.onopen =    (e) => conn.addLeaf({handler: 'state', conn, state: OPEN});
   ws.onclose =   (e) => conn.addLeaf({handler: 'state', conn, state: CLOSED});
-  ws.onmessage = (e) => conn.addLeaf(JSON.parse(e.data)); //eventually call receive
+  ws.onmessage = (e) => conn.addLeaf(JSON.parse(e.data)); //eventually call receive handler
   ws.onerror =   (e) => conn.addLeaf({error: e});
   return [{ws, state: CONNECTING, conn, remote}];
 }
@@ -61,17 +61,17 @@ const send = ({ws, remote}, {msg}) => {
 //   return [receivedMessage];
 // };
 
-const state = ({ws, state:prev}, {state:curr, active=false}) => {
+const state = ({ws, conn, state:prevState}, {state:currState, active=false}) => {
   const result = [];
-  log('state', prev, curr);
+  // log('state', prevState, currState);
 
-  // Put state-machine here
-  if (prev !== OPEN && curr === OPEN){
-    // kick off the protocol from the server connection; test harness only
-    if (ws.id === 0) result.push({handler: 'register1'})
+  // Put rest of the state-machine here
+  if (prevState !== OPEN && currState === OPEN && conn.residue.server){
+    // kick off the protocol from the server connection
+    result.push({handler: 'register1'})
   }
 
-  result.push({state: curr});
+  result.push({state: currState});
   return result;
 }
 
@@ -91,6 +91,7 @@ const register1 = ({publicKeyPem}) => {
   const t1 = Date.now();
   return [{state2: CHALLENGED, t1}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1}}];
 }
+
 // Executed by the client - use server public key and client private key to encrypt a message back
 // In this case we just encrypt two timestamps and their difference
 const register2 = ({publicKey: clientPublicKey, publicKeyPem: clientPublicKeyPem, privateKey, publicKeySig, conn}, {publicKeyPem: serverPublicKeyPem, t1}) => {
@@ -107,6 +108,7 @@ const register2 = ({publicKey: clientPublicKey, publicKeyPem: clientPublicKeyPem
     });
   return [{state2: COMPUTING, serverPublicKeyPem}];
 }
+
 // Executed by the server - decrypt the message and compare with the clear text version.
 const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: clientPublicKey, publicKeySig}) => {
   const clearObj = JSON.parse(clearText);
@@ -134,6 +136,7 @@ const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: cl
     });
   return [{state2: COMPUTING}];
 }
+
 // Executed by the client - just record verification state.
 const register4 = ({},{state2}) => {
   return [{state2}];
@@ -142,6 +145,7 @@ const register4 = ({},{state2}) => {
 
 const summarize = (summary, node) => {
   if (node.id === 0) return {};
+  if (node.residue.server) return summary;
   const parent = node.parent;
   const residue = node.residue;
   if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
@@ -158,21 +162,23 @@ const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
 const conn = s.addAll([h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)]);
 conn.add({cap: 'force branch'});
 
-// Make two connections
-const kp1 = await generateKeyPair();
-const kp2 = await generateKeyPair();
-const conn1 = conn.add(kp1);
-const conn2 = conn.add(kp2);
-const websocketURL = 'wss://example.com';
-conn1.add({handler: 'connect', websocketURL, conn:conn1, remote:conn2, delay});
-conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
+// Make two connections - the first one is a server, the second the client
+const serverKeyPair = await generateKeyPair();
+const makeConnectionPair = async (websocketURL = 'wss://example.com') => {
+  const clientKeyPair = await generateKeyPair();
+  const conn1 = conn.add({server: true, ...serverKeyPair});
+  const conn2 = conn.add({server: false, ...clientKeyPair});
+  conn1.add({handler: 'connect', websocketURL, conn: conn1, remote: conn2, delay});
+  conn2.add({handler: 'connect', websocketURL, conn: conn2, remote: conn1, delay});
+}
+let i = 5;
+while (i--) await makeConnectionPair();
 
 
 // Send and recieve similar messages to both connections
 [
   // ()=>conn1.addLeaf({handler: 'send', msg: {value: 'hey from conn 1!', a:1, b:1}}),
   // ()=>conn2.addLeaf({handler: 'send', msg: {value: 'wassup from conn 2!', a:2, b:2}}),
-  // Trigger our simple 4-way handshake
   // ()=>conn1.addLeaf({handler: 'send', msg: {handler: 'invite1'}}),
   // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
 
@@ -184,19 +190,12 @@ window.registrationHandlers = [h(connect), h(send), h(state), h(register1), h(re
 
 ```
 ## Thoughts
-Another (potentially more useful) way to mitigate is to add an 'observers' facility to *stree*.
-These are handlers with two special properties: they execute after the message cascade, and are triggered by residue changes.
-(It's tempting to want to define/use them in *combine* but the requirement to "wait" for cascade resolution prevents this.)
-Such an observer facility would make the visualization a lot better in a lot of ways, since the triggering value will be added before, not after, the secondary effects.
-In fact, a good way to do it is to add an `observers` field to residue, which is ignored by combine but used in `stree.add()` to generate more msgs.
-An observer is a function that takes prev and curr residue and produces an array of msgs.
-But before implementing this, I want to see how far I can get with just handlers.
-
 It would be cool to branch connections for testing, showing off all the error modes.
 However we'd need to take care of the `ws` member which shouldn't be shared.
 There's a general issue with keeping references to outside objects in residue that may be resolved with a naming convention like "prepend with _ to ignore"
 
-Next up is to simulate multiple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig.
+Simulate multiple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig via `summary`.
+
 After that, we simulate clients communicating with each other.
 ```html
 <div id="summary-render"></div>

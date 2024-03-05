@@ -52,7 +52,7 @@ class MockWebSocket {
 
   send(data) {
     if (this.readyState === MockWebSocket.OPEN) {
-      console.log('Sent:', data);
+      console.log(`connection ${this.id} send data.length ${data.length}`);
     } else {
       console.error('Error: Connection not open.');
     }
