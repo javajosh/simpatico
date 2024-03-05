@@ -98,9 +98,9 @@ const invite2 = () => {
 const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: clientPublicKey, publicKeySig}) => {
   const clearObj = JSON.parse(clearText);
 
-  wcb.sha256Fingerprint(clientPublicKey).then(sig => {if (sig !== publicKeySig) throw "signature does not match"})
-    .then(() => wcb.importPublicKeyPem(clientPublicKey))
-    .then(clientPublicKey => wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey: clientPublicKey}))
+  wcb.importPublicKeyPem(clientPublicKey)
+    // TODO .then(() => wcb.sha256Fingerprint(clientPublicKey).then(sig => {if (sig !== publicKeySig) throw "signature does not match"}))
+    .then(publicKey => wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey}))
     .then(box => wcb.encodeText(box))
     .then(json => JSON.parse(json))
     .then(obj => {
@@ -120,6 +120,7 @@ const register4 = ({},{state2}) => {
 
 const websocketURL = 'wss://example.com';
 const s = new stree();
+// we could separate handlers between client and server, but don't bother.
 const conn = s.addAll([h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)]);
 conn.add({cap: 'force branch'});
 
@@ -143,6 +144,8 @@ conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
   ()=>renderStree(s, renderParent),
 ].forEach((fn, i)=>setTimeout(fn, delay*(i+5)));
 
+window.registrationHandlers = [h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)];
+
 ```
 ## Thoughts
 Another (potentially more useful) way to mitigate is to add an 'observers' facility to *stree*.
@@ -157,8 +160,20 @@ It would be cool to branch connections for testing, showing off all the error mo
 However we'd need to take care of the `ws` member which shouldn't be shared.
 There's a general issue with keeping references to outside objects in residue that may be resolved with a naming convention like "prepend with _ to ignore"
 
-Next up is to simulate mutliple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig.
+Next up is to simulate multiple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig.
 After that, we simulate clients communicating with each other.
+```html
+<div id="connection-render"></div>
+```
+
+```js
+import {stree, renderStree, svg, h, DELETE, equals} from './simpatico.js';
+import {MockWebSocket} from "./websocket.js";
+import * as wcb from './node_modules/webcryptobox/index.js';
+
+const renderParent = svg.elt('connection-render');
+
+```
 
 
 # Async handlers
