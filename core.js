@@ -404,6 +404,29 @@ function base64EncodeBuffer(buffer, debug=false){
   return btoa(chars.join(''));
 }
 
+
+const encodeBase64URL = data => {
+  return btoa(String.fromCharCode(...new Uint8Array(data)))
+    .replace(/\//g, "_")
+    .replace(/\+/g, "-")
+    .replace(/=+$/, "");
+}
+// A base64 encoding that's URL safe
+const decodeBase64URL = base64URL => {
+  let base64 = base64URL
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+
+  const d = atob(base64.trim()), b = new Uint8Array(d.length)
+  for (let i = 0; i < d.length; i++) b[i] = d.charCodeAt(i)
+  return b
+}
+
+
+
 export {
   is, as, getType, size, cast, TYPES,
   now, log, debug, info, error, date,
@@ -415,5 +438,5 @@ export {
   RNG, shuffle,
   tryToStringify, parseObjectLiteralString, regex,
   safeSetItem, parseWithFunctions, stringifyWithFunctions,
-  deepId, base64EncodeBuffer,
+  deepId, base64EncodeBuffer, encodeBase64URL, decodeBase64URL,
 }

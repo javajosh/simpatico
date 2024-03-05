@@ -26,7 +26,7 @@ We ONLY send and receive (JSON) objects.
 ```
 
 ```js
-import {combineRules, stree, renderStree, svg, h, DELETE, equals} from './simpatico.js';
+import {combineRules, stree, renderStree, svg, h, DELETE, equals, encodeBase64URL, decodeBase64URL} from './simpatico.js';
 import {MockWebSocket} from "./websocket.js";
 import * as wcb from './node_modules/webcryptobox/index.js';
 
@@ -101,7 +101,7 @@ const generateKeyPair = async () => {
     privateKey: keyPair.privateKey,
     publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
     privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
-    publicKeySig: wcb.encodeBase64(await wcb.sha256Fingerprint(keyPair.publicKey)),
+    publicKeySig: encodeBase64URL(await wcb.sha256Fingerprint(keyPair.publicKey)),
   };
 }
 
@@ -138,7 +138,7 @@ const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: cl
         wcb.sha256Fingerprint(publicKey),
     ]))
     .then(([publicKey, sig]) => {
-        const encodedSig =  wcb.encodeBase64(sig);
+        const encodedSig =  encodeBase64URL(sig);
         if (encodedSig !== publicKeySig) throw 'signature inconsistent with public key';
         if (conn.summary[encodedSig]) throw 'signature is not unique';
         return wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey})
