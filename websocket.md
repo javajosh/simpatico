@@ -36,6 +36,8 @@ const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
 const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
 const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR', 'COMPUTING'];
 const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTING] = state2;
+const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
+const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid name conflict
 const delay = 10;
 
 const connect = (_ , {websocketURL, conn, remote, delay}) => {
@@ -70,39 +72,29 @@ const getRandomProperty = (obj, omitKey) => {
   return obj[found];
 }
 
+// Put rest of the state-machine here
 const state = ({ws, conn, remote, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2, active=false}) => {
   const result = [];
-  // log('state', prevState, currState);
 
-  // Put rest of the state-machine here
   // kick off the protocol from the server connection
   if (prevState !== OPEN && currState === OPEN && conn.residue.server){
     result.push({handler: 'register1'})
   }
-  // send a message to another random client
+  // testing only: send a message to another random client on verification
+  // note that the first connection cannot send because its the only one in summary
+  // summary is updated AFTER the state handler, so summary never includes the current connection
   if (prevState2 !== VERIFIED && currState2 === VERIFIED && !conn.residue.server){
     const clients = remote.summary;
     if (Object.keys(clients).length >= 2 ) {
       const target = getRandomProperty(clients, publicKeySig);
-      log('sending', {handler: 'reflect', from: publicKeySig, to: target.residue.publicKeySig, message: {}});
-      // result.push({handler: 'send', msg: {handler: 'reflect', from: publicKeySig, to: target.residue.publicKeySig, message: {}}})
+      log('sending', {handler: 'sendEnvelop', from: publicKeySig, to: target.residue.publicKeySig, message: {}});
+      result.push({handler: 'sendEnvelop', from: publicKeySig, to: target.residue.publicKeySig, message: {}});
     }
   }
 
   if (currState) result.push({state: currState});
   if (currState2) result.push({state2: currState2});
   return result;
-}
-
-const generateKeyPair = async () => {
-  const keyPair = await wcb.generateKeyPair();
-  return {
-    publicKey: keyPair.publicKey,
-    privateKey: keyPair.privateKey,
-    publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
-    privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
-    publicKeySig: encodeBase64URL(await wcb.sha256Fingerprint(keyPair.publicKey)),
-  };
 }
 
 // Executed by the server onopen - send server public key
@@ -161,6 +153,77 @@ const register4 = ({},{state2}) => {
   return [{handler: 'state', state2}];
 }
 
+// Executed by the client. From and to are public key signatures; the message is an object
+const sendEnvelop = ({privateKey, friends, conn, state3}, {from, to, message}) => {
+  const publicKey = conn.summary[to].residue.publicKeyPem; // eventually pick out of friendsfor now just pick something at random
+  const messageText = JSON.stringify(message);
+  const messageArray = wcb.decodeText(messageText);
+  wcb.importPublicKeyPem(publicKey)
+    .then(publicKey => wcb.encryptTo({message: messageArray, privateKey, publicKey}))
+    .then(box => wcb.encodeHex(box))
+    .then(box => {
+        conn.addLeaf({handler: 'state', state3: SENT });
+        conn.addLeaf({handler: 'send', msg: {handler: 'deliverEnvelop', from, to, box}});
+    })
+    .catch(error => {
+      log(error);
+      conn.addLeaf({handler: 'state', state3: ERROR, error});
+    });
+
+  return [{handler: 'state', state3: SENDING}];
+}
+
+// Executed by the client TODO something is going wrong, not sure what yet
+const acceptEnvelop = ({privateKey, friends, conn, state3}, {from, to, box}) => {
+  //TODO consider caching binary public keys for self and friends
+  const publicKey = conn.summary[from].residue.publicKeyPem;
+  Promise.all([
+    wcb.importPublicKeyPem(publicKey),
+    wcb.decodeHex(box),
+  ])
+    .then(([publicKey, box]) => {
+        return wcb.decryptFrom({box, privateKey, publicKey});
+    })
+    .then(unencrypted => {
+      const jsonString = wcb.encodeText(unencrypted);
+      const obj = JSON.stringify(jsonString);
+      conn.addLeaf({handler: 'state', state3: RECEIVED });
+      conn.addLeaf({recieved: obj});
+      conn.addLeaf(obj);
+    })
+    .catch(error => {
+      log(error);
+      conn.addLeaf({handler: 'state', state3: ERROR, error});
+    });
+
+  return [{handler: 'state', state3: RECEIVING}];
+}
+
+// executed by the server
+const deliverEnvelop = ({conn, remote}, {from, to, box}) => {
+  const conns = conn.summary;
+  const conn1 = conns[from];
+  const conn2 = conns[to];
+  if (!conn1) throw 'from not found in registry';
+  if (!conn2) throw 'to not found in registry';
+  // if (conn1.residue.ws !== conn.residue.ws) throw 'connections can only send with your own public key';
+  conn2.addLeaf({handler: 'send', msg: {handler: 'acceptEnvelop', from, to, box}});
+
+  // todo we may want to tell conn1 that the envelope was delivered.
+  return []
+
+}
+
+const generateKeyPair = async () => {
+  const keyPair = await wcb.generateKeyPair();
+  return {
+    publicKey: keyPair.publicKey,
+    privateKey: keyPair.privateKey,
+    publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
+    privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
+    publicKeySig: encodeBase64URL(await wcb.sha256Fingerprint(keyPair.publicKey)),
+  };
+}
 
 const summarize = (summary, node) => {
   if (node.id === 0) return {};
@@ -177,8 +240,11 @@ const summarize = (summary, node) => {
 }
 
 const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
-// we could separate handlers between client and server, but don't bother.
-const conn = s.addAll([h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)]);
+// we could separate handlers between client and server, but don't bother for now
+const conn = s.addAll([
+  h(connect), h(send), h(state),
+  h(register1), h(register2), h(register3), h(register4),
+  h(deliverEnvelop), h(sendEnvelop), h(acceptEnvelop)]);
 conn.add({cap: 'force branch'});
 
 // Make two connections - the first one is a server, the second the client
