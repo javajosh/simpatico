@@ -26,7 +26,7 @@ We ONLY send and receive (JSON) objects.
 ```
 
 ```js
-import {stree, renderStree, svg, h, DELETE, equals} from './simpatico.js';
+import {combineRules, stree, renderStree, svg, h, DELETE, equals} from './simpatico.js';
 import {MockWebSocket} from "./websocket.js";
 import * as wcb from './node_modules/webcryptobox/index.js';
 
@@ -36,7 +36,7 @@ const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
 const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
 const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR', 'COMPUTING'];
 const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTING] = state2;
-const delay = 50;
+const delay = 10;
 
 const connect = (_ , {websocketURL, conn, remote, delay}) => {
   const ws = new MockWebSocket(websocketURL, delay);
@@ -68,7 +68,7 @@ const state = ({ws, state:prev}, {state:curr, active=false}) => {
   // Put state-machine here
   if (prev !== OPEN && curr === OPEN){
     // kick off the protocol from the server connection; test harness only
-    if (ws.id === 1) result.push({handler: 'register1'})
+    if (ws.id === 0) result.push({handler: 'register1'})
   }
 
   result.push({state: curr});
@@ -82,7 +82,7 @@ const generateKeyPair = async () => {
     privateKey: keyPair.privateKey,
     publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
     privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
-    publicKeySig: await wcb.sha256Fingerprint(keyPair.publicKey),
+    publicKeySig: wcb.encodeBase64(await wcb.sha256Fingerprint(keyPair.publicKey)),
   };
 }
 
@@ -112,17 +112,25 @@ const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: cl
   const clearObj = JSON.parse(clearText);
 
   wcb.importPublicKeyPem(clientPublicKey)
-    // TODO .then(() => wcb.sha256Fingerprint(clientPublicKey).then(sig => {if (sig !== publicKeySig) throw "signature does not match"}))
-    .then(publicKey => wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey}))
-    .then(box => wcb.encodeText(box))
-    .then(json => JSON.parse(json))
-    .then(obj => {
+    .then(publicKey => Promise.all([
+        publicKey,
+        wcb.sha256Fingerprint(publicKey),
+    ]))
+    .then(([publicKey, sig]) => {
+        const encodedSig =  wcb.encodeBase64(sig);
+        if (encodedSig !== publicKeySig) throw 'signature inconsistent with public key';
+        if (conn.summary[encodedSig]) throw 'signature is not unique';
+        return wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey})
+    })
+    .then(box => {
+        const obj = JSON.parse(wcb.encodeText(box));
         const state2 = equals(clearObj, obj) && (obj.t1 === t1) ? VERIFIED : UNVERIFIED;
         conn.addLeaf({state2}).add({handler: 'send', msg: {handler: 'register4', state2}});
     })
     .catch(error => {
-      log(error)
-      conn.addLeaf({state2: ERROR, error})
+      log(error);
+      conn.addLeaf({state2: ERROR, error});
+      // todo close the connection
     });
   return [{state2: COMPUTING}];
 }
@@ -131,8 +139,21 @@ const register4 = ({},{state2}) => {
   return [{state2}];
 }
 
-const websocketURL = 'wss://example.com';
-const s = new stree();
+
+const summarize = (summary, node) => {
+  if (node.id === 0) return {};
+  const parent = node.parent;
+  const residue = node.residue;
+  if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
+    summary[node.residue.publicKeySig] = node;
+  }
+  if (parent.residue.state2 === VERIFIED && residue.state2 !== VERIFIED) {
+    delete summary[node.residue.publicKeySig];
+  }
+  return summary;
+}
+
+const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
 // we could separate handlers between client and server, but don't bother.
 const conn = s.addAll([h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)]);
 conn.add({cap: 'force branch'});
@@ -142,6 +163,7 @@ const kp1 = await generateKeyPair();
 const kp2 = await generateKeyPair();
 const conn1 = conn.add(kp1);
 const conn2 = conn.add(kp2);
+const websocketURL = 'wss://example.com';
 conn1.add({handler: 'connect', websocketURL, conn:conn1, remote:conn2, delay});
 conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
 
@@ -155,6 +177,7 @@ conn2.add({handler: 'connect', websocketURL, conn:conn2, remote:conn1, delay});
   // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
 
   ()=>renderStree(s, renderParent),
+  ()=>log('connection summary', s.summary),
 ].forEach((fn, i)=>setTimeout(fn, delay*(i+5)));
 
 window.registrationHandlers = [h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)];
@@ -176,7 +199,7 @@ There's a general issue with keeping references to outside objects in residue th
 Next up is to simulate multiple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig.
 After that, we simulate clients communicating with each other.
 ```html
-<div id="connection-render"></div>
+<div id="summary-render"></div>
 ```
 
 ```js
@@ -184,7 +207,21 @@ import {stree, renderStree, svg, h, DELETE, equals} from './simpatico.js';
 import {MockWebSocket} from "./websocket.js";
 import * as wcb from './node_modules/webcryptobox/index.js';
 
-const renderParent = svg.elt('connection-render');
+const summarize = (summary, node) => {
+  if (node.id === 0) return {};
+  const parent = node.parent;
+  const residue = node.residue;
+  if (parent.residue.state !== VERIFIED && residue.state === VERIFIED) {
+    summary[node.residue.publicKeySig] = node;
+  }
+  if (parent.residue.state === VERIFIED && residue.state !== VERIFIED) {
+    delete summary[node.residue.publicKeySig];
+  }
+  return summary;
+}
+const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
+
+const renderParent = svg.elt('summary-render');
 
 ```
 

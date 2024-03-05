@@ -6,9 +6,10 @@ import {combineRules} from "./combine.js";
  *
  * @param value if an array or string, reconstitute stree from contents. if other, use as root.
  * @param reducer reducer used to compute the residue of a node. default is combine
+ * @param summarize an optional function that updates summary based on the new node
  * @returns {[]|string|*}
  */
-function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
+function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summarize = (summary, node)=>node) {
   // handle special values, array and string, for deserialization initialization
   if (Array.isArray(value)) {
     return fromArray(value, reducer);
@@ -17,17 +18,20 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
     return fromString(value, reducer);
   }
 
+  let summary;
+
   const root = {value, parent: null, residue: value, branchIndex: 0, id: 0, leaf:true,
     add:      a =>add(a, root),
     addAll:   a =>addAll(a, root),
     addLeaf:  a =>addLeaf(a, root),
     addLeafs: a =>addLeafs(a, root),
     getLeaf: () =>getLeaf(root),
+    summary,
   };
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
-
+  summary = summarize(null, root);
   /**
    * Add a value to an n-ary tree.
    * Return the node that wraps these parameters.
@@ -51,6 +55,7 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
         addLeaf: a =>addLeaf(a, node),
         addLeafs: a => addLeaf(a, node),
         getLeaf: () => getLeaf(node),
+        summary,
       };
 
       if (parent.leaf) {
@@ -72,6 +77,9 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
         node.leaf = true;
         branches.push(node);
       }
+
+      summary = summarize(summary, node);
+
       lastNode = node;
       node.id = nodes.length;
       nodes.push(node);
@@ -222,7 +230,7 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true)) {
   }
 
 
-  return {add, addAll, nodePath, residue, residues, toArray, toString, nodeByNumber, branches, nodes, root};
+  return {add, addAll, nodePath, residue, residues, toArray, toString, nodeByNumber, branches, nodes, root, summary};
 }
 
 
