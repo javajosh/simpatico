@@ -9,7 +9,7 @@ import {combineRules} from "./combine.js";
  * @param summarize an optional function that updates summary based on the new node
  * @returns {[]|string|*}
  */
-function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summarize = (summary, node)=>node) {
+function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summarize) {
   // handle special values, array and string, for deserialization initialization
   if (Array.isArray(value)) {
     return fromArray(value, reducer);
@@ -31,7 +31,7 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summa
   const branches = [root];
   const nodes = [root];
   let lastNode = root;
-  summary = summarize(null, root);
+  if (summarize) summary = summarize(null, root);
   /**
    * Add a value to an n-ary tree.
    * Return the node that wraps these parameters.
@@ -78,7 +78,7 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summa
         branches.push(node);
       }
 
-      summary = summarize(summary, node);
+      if (summarize) summary = summarize(summary, node);
 
       lastNode = node;
       node.id = nodes.length;

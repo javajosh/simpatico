@@ -27,234 +27,25 @@ We ONLY send and receive (JSON) objects.
 
 ```js
 import {combineRules, stree, renderStree, svg, h, DELETE, equals, encodeBase64URL, decodeBase64URL} from './simpatico.js';
-import {MockWebSocket} from "./websocket.js";
+import {connect, send, register1, register2, register3, register4, sendEnvelop, deliverEnvelop, acceptEnvelop, state, summarize, generateKeyPair} from "./websocket.js";
 import * as wcb from './node_modules/webcryptobox/index.js';
 
 const renderParent = svg.elt('connection-render');
 
-const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
-const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR', 'COMPUTING'];
-const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTING] = state2;
-const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
-const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid name conflict
-const delay = 10;
-
-const connect = (_ , {websocketURL, conn, remote, delay}) => {
-  const ws = new MockWebSocket(websocketURL, delay);
-  ws.onopen =    (e) => conn.addLeaf({handler: 'state', conn, state: OPEN});
-  ws.onclose =   (e) => conn.addLeaf({handler: 'state', conn, state: CLOSED});
-  ws.onmessage = (e) => conn.addLeaf(JSON.parse(e.data)); //eventually call receive handler
-  ws.onerror =   (e) => conn.addLeaf({error: e});
-  return [{ws, state: CONNECTING, conn, remote}];
-}
-
-const send = ({ws, remote}, {msg}) => {
-  const msgString = JSON.stringify(msg);
-  ws.send(msgString);
-  // setTimeout prevents reentrance into stree.add(); note this line is only executed in a test environemnt
-  if (remote) setTimeout(()=>remote.getLeaf().residue.ws.receive(msgString));
-  return [];
-};
-
-// Eventually we'll use this to sanitize and parse. For now, that's done in-line in the onmessage handler in connect
-// const receive = ({input}, _) => {
-//   const receivedMessage = JSON.parse(input);
-//   return [receivedMessage];
-// };
-
-const getRandomProperty = (obj, omitKey) => {
-  const keys = Object.keys(obj);
-  if (keys.length === 0) throw 'empty object'
-  let found;
-  // while (found !== omitKey)
-    found = keys[ keys.length * Math.random() << 0];
-  return obj[found];
-}
-
-// Put rest of the state-machine here
-const state = ({ws, conn, remote, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2, active=false}) => {
-  const result = [];
-
-  // kick off the protocol from the server connection
-  if (prevState !== OPEN && currState === OPEN && conn.residue.server){
-    result.push({handler: 'register1'})
-  }
-  // testing only: send a message to another random client on verification
-  // note that the first connection cannot send because its the only one in summary
-  // summary is updated AFTER the state handler, so summary never includes the current connection
-  if (prevState2 !== VERIFIED && currState2 === VERIFIED && !conn.residue.server){
-    const clients = remote.summary;
-    if (Object.keys(clients).length >= 2 ) {
-      const target = getRandomProperty(clients, publicKeySig);
-      log('sending', {handler: 'sendEnvelop', from: publicKeySig, to: target.residue.publicKeySig, message: {}});
-      result.push({handler: 'sendEnvelop', from: publicKeySig, to: target.residue.publicKeySig, message: {}});
-    }
-  }
-
-  if (currState) result.push({state: currState});
-  if (currState2) result.push({state2: currState2});
-  return result;
-}
-
-// Executed by the server onopen - send server public key
-const register1 = ({publicKeyPem}) => {
-  const t1 = Date.now();
-  return [{handler: 'state', state2: CHALLENGED}, {t1}, {handler: 'send', msg: {handler: 'register2', publicKeyPem, t1}}];
-}
-
-// Executed by the client - use server public key and client private key to encrypt a message back
-// In this case we just encrypt two timestamps and their difference
-const register2 = ({publicKey: clientPublicKey, publicKeyPem: clientPublicKeyPem, privateKey, publicKeySig, conn}, {publicKeyPem: serverPublicKeyPem, t1}) => {
-  const t2 = Date.now();
-  const messageText = JSON.stringify({t1, t2, dt: t2-t1});
-  const messageArray = wcb.decodeText(messageText);
-  wcb.importPublicKeyPem(serverPublicKeyPem)
-    .then(serverPublicKey => wcb.encryptTo({message: messageArray, privateKey, publicKey: serverPublicKey}))
-    .then(box => wcb.encodeHex(box))
-    .then(encoded => conn.addLeaf({handler: 'state', state2: RESPONDED}).add({handler: 'send', msg: {handler: 'register3', clearText: messageText, cypherText: encoded, publicKeySig, publicKey: clientPublicKeyPem}}))
-    .catch(error => {
-      log(error)
-      conn.addLeaf({handler: 'state', state2: ERROR, error})
-    });
-  return [{handler: 'state', state2: COMPUTING, serverPublicKeyPem}];
-}
-
-// Executed by the server - decrypt the message and compare with the clear text version.
-const register3 = ({privateKey, conn, t1}, {clearText, cypherText, publicKey: clientPublicKey, publicKeySig}) => {
-  const clearObj = JSON.parse(clearText);
-
-  wcb.importPublicKeyPem(clientPublicKey)
-    .then(publicKey => Promise.all([
-        publicKey,
-        wcb.sha256Fingerprint(publicKey),
-    ]))
-    .then(([publicKey, sig]) => {
-        const encodedSig =  encodeBase64URL(sig);
-        if (encodedSig !== publicKeySig) throw 'signature inconsistent with public key';
-        if (conn.summary[encodedSig]) throw 'signature is not unique';
-        return wcb.decryptFrom({box: wcb.decodeHex(cypherText), privateKey, publicKey})
-    })
-    .then(box => {
-        const obj = JSON.parse(wcb.encodeText(box));
-        const state2 = equals(clearObj, obj) && (obj.t1 === t1) ? VERIFIED : UNVERIFIED;
-        conn.addLeaf({handler: 'state', state2}).add({handler: 'send', msg: {handler: 'register4', state2}});
-    })
-    .catch(error => {
-      log(error);
-      conn.addLeaf({handler: 'state', state2: ERROR, error});
-      // todo close the connection
-    });
-  return [{handler: 'state', state2: COMPUTING}];
-}
-
-// Executed by the client - just record verification state.
-const register4 = ({},{state2}) => {
-  return [{handler: 'state', state2}];
-}
-
-// Executed by the client. From and to are public key signatures; the message is an object
-const sendEnvelop = ({privateKey, friends, conn, state3}, {from, to, message}) => {
-  const publicKey = conn.summary[to].residue.publicKeyPem; // eventually pick out of friendsfor now just pick something at random
-  const messageText = JSON.stringify(message);
-  const messageArray = wcb.decodeText(messageText);
-  wcb.importPublicKeyPem(publicKey)
-    .then(publicKey => wcb.encryptTo({message: messageArray, privateKey, publicKey}))
-    .then(box => wcb.encodeHex(box))
-    .then(box => {
-        conn.addLeaf({handler: 'state', state3: SENT });
-        conn.addLeaf({handler: 'send', msg: {handler: 'deliverEnvelop', from, to, box}});
-    })
-    .catch(error => {
-      log(error);
-      conn.addLeaf({handler: 'state', state3: ERROR, error});
-    });
-
-  return [{handler: 'state', state3: SENDING}];
-}
-
-// Executed by the client TODO something is going wrong, not sure what yet
-const acceptEnvelop = ({privateKey, friends, conn, state3}, {from, to, box}) => {
-  //TODO consider caching binary public keys for self and friends
-  const publicKey = conn.summary[from].residue.publicKeyPem;
-  Promise.all([
-    wcb.importPublicKeyPem(publicKey),
-    wcb.decodeHex(box),
-  ])
-    .then(([publicKey, box]) => {
-        return wcb.decryptFrom({box, privateKey, publicKey});
-    })
-    .then(unencrypted => {
-      const jsonString = wcb.encodeText(unencrypted);
-      const obj = JSON.stringify(jsonString);
-      conn.addLeaf({handler: 'state', state3: RECEIVED });
-      conn.addLeaf({recieved: obj});
-      conn.addLeaf(obj);
-    })
-    .catch(error => {
-      log(error);
-      conn.addLeaf({handler: 'state', state3: ERROR, error});
-    });
-
-  return [{handler: 'state', state3: RECEIVING}];
-}
-
-// executed by the server
-const deliverEnvelop = ({conn, remote}, {from, to, box}) => {
-  const conns = conn.summary;
-  const conn1 = conns[from];
-  const conn2 = conns[to];
-  if (!conn1) throw 'from not found in registry';
-  if (!conn2) throw 'to not found in registry';
-  // if (conn1.residue.ws !== conn.residue.ws) throw 'connections can only send with your own public key';
-  conn2.addLeaf({handler: 'send', msg: {handler: 'acceptEnvelop', from, to, box}});
-
-  // todo we may want to tell conn1 that the envelope was delivered.
-  return []
-
-}
-
-const generateKeyPair = async () => {
-  const keyPair = await wcb.generateKeyPair();
-  return {
-    publicKey: keyPair.publicKey,
-    privateKey: keyPair.privateKey,
-    publicKeyPem:  await wcb.exportPublicKeyPem(keyPair.publicKey),
-    privateKeyPem: await wcb.exportPrivateKeyPem(keyPair.privateKey),
-    publicKeySig: encodeBase64URL(await wcb.sha256Fingerprint(keyPair.publicKey)),
-  };
-}
-
-const summarize = (summary, node) => {
-  if (node.id === 0) return {};
-  if (node.residue.server) return summary;
-  const parent = node.parent;
-  const residue = node.residue;
-  if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
-    summary[node.residue.publicKeySig] = node;
-  }
-  if (parent.residue.state2 === VERIFIED && residue.state2 !== VERIFIED) {
-    delete summary[node.residue.publicKeySig];
-  }
-  return summary;
-}
 
 const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
-// we could separate handlers between client and server, but don't bother for now
-const conn = s.addAll([
-  h(connect), h(send), h(state),
-  h(register1), h(register2), h(register3), h(register4),
-  h(deliverEnvelop), h(sendEnvelop), h(acceptEnvelop)]);
-conn.add({cap: 'force branch'});
 
-// Make two connections - the first one is a server, the second the client
+const conn = s.addAll([h(connect), h(send), h(state)]); conn.add({cap: 'common handlers'});
+  const server = conn.addAll([ h(register1),  h(register3), h(deliverEnvelop) ]); server.add({cap: 'server handlers'});
+  const client = conn.addAll([ h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop) ]); client.add({cap: 'client handlers'});
+
 const serverKeyPair = await generateKeyPair();
-const makeConnectionPair = async (websocketURL = 'wss://example.com') => {
+const makeConnectionPair = async (websocketURL = 'wss://example.com', delay=50) => {
   const clientKeyPair = await generateKeyPair();
-  const conn1 = conn.add({server: true, ...serverKeyPair});
-  const conn2 = conn.add({server: false, ...clientKeyPair});
-  conn1.add({handler: 'connect', websocketURL, conn: conn1, remote: conn2, delay});
-  conn2.add({handler: 'connect', websocketURL, conn: conn2, remote: conn1, delay});
+  const connServer = server.add({server: true, ...serverKeyPair});
+  const connClient = client.add({server: false, ...clientKeyPair});
+  connServer.add({handler: 'connect', websocketURL, conn: connServer, remote: connClient, delay});
+  connClient.add({handler: 'connect', websocketURL, conn: connClient, remote: connServer, delay});
 }
 let i = 4;
 while (i--) await makeConnectionPair();
@@ -269,9 +60,7 @@ while (i--) await makeConnectionPair();
 
   ()=>renderStree(s, renderParent),
   ()=>log('connection summary', s.summary),
-].forEach((fn, i)=>setTimeout(fn, delay*(i+5)));
-
-window.registrationHandlers = [h(connect), h(send), h(state), h(register1), h(register2), h(register3), h(register4)];
+].forEach((fn, i)=>setTimeout(fn, 50*(i+5)));
 
 ```
 ## Thoughts
