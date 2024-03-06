@@ -32,7 +32,7 @@ ______________________________________________________________
 ~~This is a test strikethrough~~
 *This is a test italic*
 **This is a test bold**
-______________________________________________________________
+_____________________________________
 | Item         | Price | # In stock |
 |--------------|:-----:|-----------:|
 | Juicy Apples |  1.99 |        739 |
@@ -45,6 +45,9 @@ To get images that work on github, either crop the image or use html.
 ![alt text](img url =widthxheight)
 
 ```
+
+## A note about fonts
+Only browser built-in fonts, to avoid the download cost, the compute cost, and [minimize surface area for threats](https://news.ycombinator.com/item?id=39612484#39618368).
 ______________________________________________________________
 ## Inline code tests
 

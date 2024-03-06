@@ -7,6 +7,7 @@ let DEBUG = false;
 const dontExecuteScript = '///';
 const dontExecuteHtml = '<!---';
 const dontExecuteCss = '/***';
+const dontExecuteMd = '###';
 
 const markdownDefaultImports= `
   import * as c from "/core.js";
@@ -121,6 +122,34 @@ const cssPassThroughExtension = {
   }
 };
 
+const vanillaConverter = new showdown.Converter({
+  backslashEscapesHTMLTags: true,
+  parseImgDimensions: true,
+  strikethrough: true,
+  simpleLineBreaks: false,
+  tables: true,
+  flavor: 'github',
+});
+
+const mdPassThroughExtension = {
+  type: 'output',
+  filter:  (htmlDocument, converter, options) => {
+    return htmlDocument.replace(/<pre><code class="md.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
+      // showdown tags html as js for some reason, so we use a heuristic to distinguish.
+      const displayString = `<details open><summary>md</summary><pre><code class="md language-md">${code}</code></pre></details>`;
+      code = code.trim();
+      code = unescapeHtml(code);
+      const doNotExecute = code.startsWith(dontExecuteMd);
+      const executeString = vanillaConverter.makeHtml(code);
+      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
+
+      if (DEBUG) console.log('litmd.js: cssPassThroughExtension', output);
+      return output;
+    })
+  }
+};
+
+
 // Instantiate a singleton litmd converter that lives as long as the module/app.
 const litmd = makeMarkdownConverter();
 
@@ -128,6 +157,7 @@ function makeMarkdownConverter (options={}) {
   showdown.extension('scriptPassThroughExtension', scriptPassThroughExtension);
   showdown.extension('htmlPassThroughExtension', htmlPassThroughExtension);
   showdown.extension('cssPassThroughExtension', cssPassThroughExtension);
+  showdown.extension('mdPassThroughExtension', mdPassThroughExtension);
 
   const result = new showdown.Converter(
     Object.assign({
@@ -141,7 +171,12 @@ function makeMarkdownConverter (options={}) {
         ghMentions: true,
         ghMentionsLink: 'https://twitter.com/{u}/profile',
         defaultImport: markdownDefaultImports,
-        extensions: ['scriptPassThroughExtension', 'htmlPassThroughExtension', 'cssPassThroughExtension'],
+        extensions: [
+          'scriptPassThroughExtension',
+          'htmlPassThroughExtension',
+          'cssPassThroughExtension',
+          'mdPassThroughExtension',
+        ],
       },
       options)
   );
