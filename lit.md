@@ -85,6 +85,7 @@ Code doesn't execute when they start with special textual signals:
 1. html  `<!---`
 2. css   `/***`
 3. js    `///`
+3. md    `###`
 
 ### HTML doesn't execute:
 
@@ -145,8 +146,18 @@ window.hello = 1;
 Make sure it doesn't execute:
 ```js
 assertEquals(undefined, window.hello, 'window.hello should not exist');
+
 ```
 
+### Markdown doesn't execute:
+```md
+### Don't execute this
+_____________________________________
+| Item         | Price | # In stock |
+|--------------|:-----:|-----------:|
+| Juicy Apples |  1.99 |        739 |
+| Bananas      |  1.89 |          6 |
+```
 ______________________________________________________________
 ## JavaScript default imports
 In this test we have a custom import that conflicts with the default imports.

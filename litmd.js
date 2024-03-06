@@ -66,61 +66,6 @@ const defaultHtmlFooter = (author='SimpatiCorp', year=new Date().getFullYear()) 
   return `<p>Copyright ${author} ${year}</p>`;
 }
 
-const scriptPassThroughExtension = {
-  type: 'output',
-  filter:  (htmlDocument, converter, options) => {
-    return htmlDocument.replace(/<pre><code class="js.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
-      const displayString = `<details open><summary>js</summary><pre><code class="js language-js">${code}</code></pre></details>`;
-      code = code.trim();
-      code = unescapeHtml(code);
-      const doNotExecute = code.startsWith(dontExecuteScript);
-      const executeString = `
-        <script type="module">
-          ${options.defaultImport}
-          ${code}
-        </script>
-      `;
-      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
-      if (DEBUG) console.log('litmd.js: scriptPassThroughExtension', output);
-      return output;
-    });
-  }
-};
-
-const htmlPassThroughExtension = {
-  type: 'output',
-  filter:  (htmlDocument, converter, options) => {
-    return htmlDocument.replace(/<pre><code class="html.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
-      // showdown tags html as js for some reason, so we use a heuristic to distinguish.
-      const displayString = `<details open><summary>html</summary><pre><code class="html language-html">${code}</code></pre></details>`;
-      code = code.trim();
-      const executeString = unescapeHtml(code);
-      const doNotExecute = executeString.startsWith(dontExecuteHtml);
-      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
-
-      if (DEBUG) console.log('litmd.js: htmlPassThroughExtension', output);
-      return output;
-    })
-  }
-};
-
-const cssPassThroughExtension = {
-  type: 'output',
-  filter:  (htmlDocument, converter, options) => {
-    return htmlDocument.replace(/<pre><code class="css.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
-      // showdown tags html as js for some reason, so we use a heuristic to distinguish.
-      const displayString = `<details open><summary>css</summary><pre><code class="css language-css">${code}</code></pre></details>`;
-      code = code.trim();
-      code = unescapeHtml(code);
-      const doNotExecute = code.startsWith(dontExecuteCss);
-      const executeString = `<style>${code}</style>`;
-      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
-
-      if (DEBUG) console.log('litmd.js: cssPassThroughExtension', output);
-      return output;
-    })
-  }
-};
 
 const vanillaConverter = new showdown.Converter({
   backslashEscapesHTMLTags: true,
@@ -131,22 +76,29 @@ const vanillaConverter = new showdown.Converter({
   flavor: 'github',
 });
 
-const mdPassThroughExtension = {
-  type: 'output',
-  filter:  (htmlDocument, converter, options) => {
-    return htmlDocument.replace(/<pre><code class="md.*>([\s\S]+?)<\/code><\/pre>/gm, (match, code) => {
-      // showdown tags html as js for some reason, so we use a heuristic to distinguish.
-      const displayString = `<details open><summary>md</summary><pre><code class="md language-md">${code}</code></pre></details>`;
-      code = code.trim();
-      code = unescapeHtml(code);
-      const doNotExecute = code.startsWith(dontExecuteMd);
-      const executeString = vanillaConverter.makeHtml(code);
-      const output =  (doNotExecute ? '' : '\n' + executeString) + displayString;
+const createCodePassThroughExtension = (type, dontExecuteCheck) => {
+  return {
+    type: 'output',
+    filter: (htmlDocument, converter, options) => {
+      const regex = new RegExp(`<pre><code class="${type}.*>([\\s\\S]+?)<\\/code><\\/pre>`, 'gm');
+      return htmlDocument.replace(regex, (match, code) => {
+        const displayString = `<details open><summary>${type}</summary><pre><code class="${type} language-${type}">${code}</code></pre></details>`;
 
-      if (DEBUG) console.log('litmd.js: cssPassThroughExtension', output);
-      return output;
-    })
-  }
+        let executeString = '\n';
+        code = code.trim();
+        code = unescapeHtml(code);
+        const doNotExecute = code.startsWith(dontExecuteCheck);
+        if (!doNotExecute){
+          executeString += (type === 'html') ? `${code}` : '';
+          executeString += (type === 'css') ? `<style>${code}</style>` : '';
+          executeString += (type === 'js') ? `<script type="module">${options.defaultImport}${code}</script>` : '';
+          executeString += (type === 'md') ? vanillaConverter.makeHtml(code) : '';
+        }
+
+        return executeString + displayString;
+      });
+    }
+  };
 };
 
 
@@ -154,10 +106,10 @@ const mdPassThroughExtension = {
 const litmd = makeMarkdownConverter();
 
 function makeMarkdownConverter (options={}) {
-  showdown.extension('scriptPassThroughExtension', scriptPassThroughExtension);
-  showdown.extension('htmlPassThroughExtension', htmlPassThroughExtension);
-  showdown.extension('cssPassThroughExtension', cssPassThroughExtension);
-  showdown.extension('mdPassThroughExtension', mdPassThroughExtension);
+  showdown.extension('scriptPassThroughExtension', createCodePassThroughExtension('js', dontExecuteScript));
+  showdown.extension('htmlPassThroughExtension', createCodePassThroughExtension('html', dontExecuteHtml));
+  showdown.extension('cssPassThroughExtension', createCodePassThroughExtension('css', dontExecuteCss));
+  showdown.extension('mdPassThroughExtension', createCodePassThroughExtension('md', dontExecuteMd));
 
   const result = new showdown.Converter(
     Object.assign({
