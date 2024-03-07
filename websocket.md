@@ -20,7 +20,8 @@ Perhaps one day [redbean will get websockets](https://github.com/jart/cosmopolit
 Start with a thin wrapper around websocket.
 Call active methods (`connect`, `close`, and `send`) with objects.
 Record passive callbacks (`onopen`, `onclose`, `onmessage` and `onerror`) with objects.
-We ONLY send and receive (JSON) objects.
+Connection triggers a 4-way registration handshake that ends in a `VERIFIED` state.
+In test, verification triggers a `sendEvelop` to a random peer.
 
 ```html
 <div id="connection-render"></div>
@@ -67,7 +68,7 @@ const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:
     const clients = conn.summary;
     if (Object.keys(clients).length >= 2 ) {
       const to = getRandomKey(clients, publicKeySig);
-      log('sending', {handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
+      // log('sending', {handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
       result.push({handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
     }
   }
@@ -76,12 +77,64 @@ const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:
   return result;
 }
 
+const extractFieldsFromUrl = (url) => {
+  const urlParams = new URLSearchParams(url.split('?')[1]);
+  const publicKeyPem = urlParams.get('publicKeySig');
+  const msg = urlParams.get('msg');
+  return { publicKeySig, msg };
+}
+
+// Executed by the host client. Add a friend branch with a private message
+// Note: invite message is cleartext!
+const invite1 =({conn, publicKeySig},{msg}) => {
+  const link = `https://${ window.location.host }/chat/?publicKeySig${ publicKeySig }&msg=${msg}`;
+  conn.parent.addLeaf({handler: 'state', state4: 'INVITED'})
+    .add({msg, link});
+}
+
+// used by the guest. Add a friend branch and request host public key
+// msg and publicKeySig are embedded in a URL and shared with guest out-of-band
+const invite2 =({conn},{}) => {
+  const {msg, publicKeySig} = extractFieldsFromUrl(window.location);
+  conn.parent.addLeaf({handler: 'state', state4: 'REQUEST_PUBLIC_KEY'})
+    .add({msg, publicKeySig})
+    .add({handler: 'send', msg: {handler: 'invite3', publicKeySig}});
+  return [];
+}
+
+// used by server to dereference the public key signature to a public key
+const invite3 =({conn}, {publicKeySig}) => {
+  const hostConn = conn.summary[publicKeySig];
+  const publicKeyPem = hostConn.publicKeyPem;
+  return [{handler: 'send', msg: {handler: 'invite4', publicKeySig, publicKeyPem}}];
+}
+
+// used by the guest to respond to send an encrypted response to the invite
+const invite4 =({conn, privateKey, publicKeySig: from, publicKeyPem, msg},{publicKeyPem: to}) => {
+  // todo modify acceptEnvelop to accept an optional fromPublicKeyPem and store it in residue
+  return [{handler: 'sendEnvelop', from, to, toPublicKeyPem, box: {handler: 'invite5', msg}}];
+}
+
+// used by host to verify the invite and send the response
+const invite5 =({conn, msg: expected},{msg: actual}) => {
+  const valid = (expected === actual);
+  // can add other checks here, like timeout.
+  return [{handler: 'sendEnvelop', from, to, box: {handler: 'invite6', state4: 'VERIFIED'}}]
+}
+
+const invite6 =({}, {state4}) => {
+  return [{handler: 'state', state4}];
+}
+
 
 const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
 
 const conn = s.addAll([h(connect), h(send), h(state)]); conn.add({cap: 'common handlers'});
-  const server = conn.addAll([ h(register1),  h(register3), h(deliverEnvelop) ]); server.add({cap: 'server handlers'});
-  const client = conn.addAll([ h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop) ]); client.add({cap: 'client handlers'});
+  const server = conn.addAll([ h(register1),  h(register3), h(deliverEnvelop), h(invite3) ]); server.add({cap: 'server handlers'});
+  const client = conn.addAll([
+      h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop) ,
+      h(invite1), h(invite2), h(invite4), h(invite5), h(invite6)
+  ]); client.add({cap: 'client handlers'});
 
 const serverKeyPair = await generateKeyPair();
 const makeConnectionPair = async (websocketURL = 'wss://example.com', delay=50) => {
@@ -111,39 +164,12 @@ while (i--) await makeConnectionPair();
 ## Thoughts
 It would be cool to branch connections for testing, showing off all the error modes.
 However we'd need to take care of the `ws` member which shouldn't be shared.
-There's a general issue with keeping references to outside objects in residue that may be resolved with a naming convention like "prepend with _ to ignore"
+There's a general issue with keeping references to outside objects in residue that may be resolved with a naming convention like "prepend with _ to ignore".
 
-Simulate multiple connecting clients, and have the server side maintain a lookup table by clientPublicKeySig via `summary`.
-Problem: the rendered results are sometiems different. Some connections don't complete the protocol.
-With any luck this is an artifact of testing, but it is concerning.
+Would be useful to adjust the simulation to support scrubbing and insertion. This points to a stateless render, for which I'd probably use d3.
 
-Simulate clients communicating with each other. Pick another signature from summary at random and send something. In the test harness we can do this in the state-machine.
-```html
-<div id="summary-render"></div>
-```
-
-```js
-import {stree, renderStree, svg, h, DELETE, equals} from './simpatico.js';
-import {MockWebSocket} from "./websocket.js";
-import * as wcb from './node_modules/webcryptobox/index.js';
-
-const summarize = (summary, node) => {
-  if (node.id === 0) return {};
-  const parent = node.parent;
-  const residue = node.residue;
-  if (parent.residue.state !== VERIFIED && residue.state === VERIFIED) {
-    summary[node.residue.publicKeySig] = node;
-  }
-  if (parent.residue.state === VERIFIED && residue.state !== VERIFIED) {
-    delete summary[node.residue.publicKeySig];
-  }
-  return summary;
-}
-const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
-
-const renderParent = svg.elt('summary-render');
-
-```
+Next things: incorporate the invitation protocol, and focus more on the client side. Perhaps split into client and server strees.
+Last but not least, add the server stree to reflector.js and try connecting to it from a real client.
 
 
 # Async handlers
@@ -165,9 +191,9 @@ const compute = ({},{node}) => {
     const t1 = node.getLeaf().residue.t1;
     const t2 = Date.now();
     const dt = t2-t1;
-    node.addLeaf({result: keyPairPem, dt})
+    node.addLeaf({state: 'COMPLETE', result: keyPairPem, dt})
   });
-  return [{result: {}, t1: Date.now()}];
+  return [{state: 'COMPUTING', t1: Date.now()}];
 };
 const s = stree(h(compute));
 const node = s.add({});
