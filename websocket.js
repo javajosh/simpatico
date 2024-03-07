@@ -1,4 +1,4 @@
-import { equals, encodeBase64URL, log} from '/simpatico.js';
+import {equals, encodeBase64URL, log, DELETE} from '/simpatico.js';
 import * as wcb from './node_modules/webcryptobox/index.js';
 
 /**
@@ -126,34 +126,15 @@ export const send = ({ws, remote}, {msg}) => {
 
 // Put rest of the state-machine here
 export const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2}) => {
-  const getRandomKey = (obj, omitKey) => {
-    const keys = Object.keys(obj);
-    if (keys.length === 0) throw 'empty object'
-    let found;
-    // while (found !== omitKey)
-    found = keys[ keys.length * Math.random() << 0];
-    return found;
-  }
-  const result = [];
+   const result = [];
+  if (currState) result.push({state: currState});
+  if (currState2) result.push({state2: currState2});
 
   // kick off the protocol from the server connection
   if (prevState !== OPEN && currState === OPEN && server){
-    result.push({handler: 'register1'})
-  }
-  // testing only: send a message to another random client on verification
-  // note that the first connection cannot send because its the only one in summary
-  // summary is updated AFTER the state handler, so summary never includes the current connection
-  if (prevState2 !== VERIFIED && currState2 === VERIFIED && !server){
-    const clients = conn.summary;
-    if (Object.keys(clients).length >= 2 ) {
-      const to = getRandomKey(clients, publicKeySig);
-      log('sending', {handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
-      result.push({handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
-    }
+    result.push({handler: 'register1'});
   }
 
-  if (currState) result.push({state: currState});
-  if (currState2) result.push({state2: currState2});
   return result;
 }
 
@@ -198,6 +179,16 @@ export const register3 = ({privateKey, conn, t1}, {clearText, cypherText, public
     .then(box => {
       const obj = JSON.parse(wcb.encodeText(box));
       const state2 = equals(clearObj, obj) && (obj.t1 === t1) ? VERIFIED : UNVERIFIED;
+      if (state2 === VERIFIED){
+        // swap server keys with client keys
+        conn.addLeaf({
+          publicKey: DELETE,
+          privateKey: DELETE,
+          publicKeyPem:  clientPublicKey,
+          privateKeyPem: DELETE,
+          publicKeySig: publicKeySig,
+        }); //used in summary
+      }
       conn.addLeaf({handler: 'state', state2}).add({handler: 'send', msg: {handler: 'register4', state2}});
     })
     .catch(error => {
@@ -214,7 +205,8 @@ export const register4 = ({},{state2}) => {
 }
 
 // Executed by the client. From and to are public key signatures; the message is an object
-export const sendEnvelop = ({privateKey, friends, conn, state3}, {from, to, message}) => {
+export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, message}) => {
+  if (state2 !== VERIFIED) return [{error: 'cannot send before verification'}];
   const publicKey = conn.summary[to].residue.publicKeyPem; // eventually pick out of friendsfor now just pick something at random
   const messageText = JSON.stringify(message);
   const messageArray = wcb.decodeText(messageText);
@@ -259,39 +251,36 @@ export const acceptEnvelop = ({privateKey, friends, conn, state3}, {from, to, bo
   return [{handler: 'state', state3: RECEIVING}];
 }
 
-// executed by the server
+// Executed by the server
 export const deliverEnvelop = ({conn}, {from, to, box}) => {
-  const conns = conn.summary;
-  const conn1 = conns[from];
-  const conn2 = conns[to];
-  if (!conn1) throw 'from not found in registry';
-  if (!conn2) throw 'to not found in registry';
-  // in simulation, only the client connections are indexed by public key, so get the corresponding server connection.
-  // In production, the server connections would be indexed by remote publicKeySig
-  const conn2Server = conn2.residue.remote;
-  if (!conn2Server) {
-    log ('problem finding remote for ', to, conns[to], conns[to].residue.publicKeySig);
-    return [];
+  const envelop = {handler: 'send', msg: {handler: 'acceptEnvelop', from, to, box}};
+  const conn1 = conn.summary[from];
+  const conn2 = conn.summary[to];
+
+  let error = '';
+  if (!conn1) error += 'from not found in registry. ';
+  if (!conn2) error += 'to not found in registry. ';
+  if (conn1.residue.state2 !== VERIFIED) error += 'from is not verified yet. ';
+  if (conn2.residue.state2 !== VERIFIED) error += 'to is not verified yet. ';
+  if (conn1.residue.publicKeySig !== from) error += 'connections can only send with your own public key.';
+  if (error !== '') {
+    log('error sending envelop', {error, envelop});
+    conn2.addLeaf({error, envelop});
+  } else{
+    conn2.addLeaf(envelop);
   }
-  // if (conn1.residue.publicKeySig !== from) throw 'connections can only send with your own public key';
-  conn2Server.addLeaf({handler: 'send', msg: {handler: 'acceptEnvelop', from, to, box}});
-
-  // todo we may want to tell conn1 that the envelope was delivered.
-  return []
-
+  return [];
 }
 
-// Store a map of client nodes indexed by their public key sig.
+// Store a map of server connections indexed by their public key sig.
 // Only index them if they are verified
 export const summarize = (summary, node) => {
-  // node = node.getLeaf();
   if (node.id === 0) return {};
-  // Don't keep server sockets in the summary; use the client node .remote to access them
-  if (node.residue.server) return summary;
+  // This line is only necessary in simulation
+  if (!node.residue.server) return summary;
   const parent = node.parent;
   const residue = node.residue;
   if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
-    log('summarize', node.residue.server, node.residue.publicKeySig);
     summary[node.residue.publicKeySig] = node;
   }
   if (parent.residue.state2 === VERIFIED && residue.state2 !== VERIFIED) {

@@ -16,6 +16,7 @@ Perhaps one day [redbean will get websockets](https://github.com/jart/cosmopolit
 
 # Wrapping a Websocket in an Stree
 
+
 Start with a thin wrapper around websocket.
 Call active methods (`connect`, `close`, and `send`) with objects.
 Record passive callbacks (`onopen`, `onclose`, `onmessage` and `onerror`) with objects.
@@ -27,10 +28,53 @@ We ONLY send and receive (JSON) objects.
 
 ```js
 import {combineRules, stree, renderStree, svg, h, DELETE, equals, encodeBase64URL, decodeBase64URL} from './simpatico.js';
-import {connect, send, register1, register2, register3, register4, sendEnvelop, deliverEnvelop, acceptEnvelop, state, summarize, generateKeyPair} from "./websocket.js";
+import {connect, send, register1, register2, register3, register4, sendEnvelop, deliverEnvelop, acceptEnvelop, summarize, generateKeyPair, MockWebSocket} from "./websocket.js";
 import * as wcb from './node_modules/webcryptobox/index.js';
 
 const renderParent = svg.elt('connection-render');
+
+// Override the state handler for testing.
+const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
+const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR', 'COMPUTING'];
+const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTING] = state2;
+const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
+const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid name conflict
+
+const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2}) => {
+
+  const getRandomKey = (obj, omitKey) => {
+    const keys = Object.keys(obj);
+    if (keys.length === 0) throw 'empty object';
+    let found;
+    found = keys[ keys.length * Math.random() << 0];
+    // do found = keys[ keys.length * Math.random() << 0]; while (found === omitKey)
+    return found;
+  }
+
+  const result = [];
+  if (currState) result.push({state: currState});
+  if (currState2) result.push({state2: currState2});
+
+  // kick off the protocol from the server connection
+  if (prevState !== OPEN && currState === OPEN && server){
+    result.push({handler: 'register1'})
+  }
+  // testing only: send a message to another random client on verification
+  // note that the first connection cannot send because its the only one in summary
+  // summary is updated AFTER the state handler, so summary never includes the current connection
+  if (prevState2 !== VERIFIED && currState2 === VERIFIED && !server){
+    const clients = conn.summary;
+    if (Object.keys(clients).length >= 2 ) {
+      const to = getRandomKey(clients, publicKeySig);
+      log('sending', {handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
+      result.push({handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
+    }
+  }
+
+
+  return result;
+}
 
 
 const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
@@ -49,6 +93,7 @@ const makeConnectionPair = async (websocketURL = 'wss://example.com', delay=50) 
 }
 let i = 4;
 while (i--) await makeConnectionPair();
+
 
 
 // Send and recieve similar messages to both connections
