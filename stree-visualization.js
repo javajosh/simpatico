@@ -205,9 +205,9 @@ const renderStrees = (
   html = html1
 ) => {
   strees.forEach((stree, i) => {
-    const id  =`stree-${i}-render`;
-    parent.innerHTML += `<div id="${id}"></div>`;
-    const parentElt = svg.elt(id);
+    const parentElt = document.createElement('div');
+    parentElt.id = `stree-${i}-render`;
+    parent.appendChild(parentElt);
     renderStree(stree, parentElt, animate, classes, html);
   });
 }
