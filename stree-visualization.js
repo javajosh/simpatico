@@ -3,11 +3,12 @@ import {svg, log, tryToStringify} from '/simpatico.js';
 const html1 = (
   svgClass='visualize-stree',
   inspectorClass ='residue-inspector',
-  colorKeyClass = 'color-key') => `
+  colorKeyClass = 'color-key',
+  rows = 1, cols = 4) => `
 <p>key: <span class="${colorKeyClass}"></span></p>
 <svg xmlns="http://www.w3.org/2000/svg"
   class="${svgClass}"
-  viewBox="0 0 40 10"
+  viewBox="0 0 ${cols * 10} ${rows * 10}"
   width="100%" height="auto"
   style="border: 1px solid gray; pointer-events: visible;"
 
@@ -20,8 +21,6 @@ const html1 = (
         <code><pre class="${inspectorClass}">
 Click on a node on the left.
 This region will display information about the node.
-Note that the display is animated.
-To restart the animation, click outside a node.
         </pre></code>
       </div>
     </foreignObject>
@@ -83,6 +82,7 @@ const renderStree = (
 
   // steady-state input - support click to inspect a node and rerender
   scene.addEventListener('click', (e) => {
+    log(e);
     const target = e.target.closest('g');
     if (target && target.node) {
       const node = target.node;
@@ -196,4 +196,20 @@ const renderStree = (
   }
 }
 
-export {renderStree}
+// Render multiple strees inside parent. Each stree will have a unique wrapping div.
+const renderStrees = (
+  strees,
+  parent,
+  animate = false,
+  classes = classes1,
+  html = html1
+) => {
+  strees.forEach((stree, i) => {
+    const id  =`stree-${i}-render`;
+    parent.innerHTML += `<div id="${id}"></div>`;
+    const parentElt = svg.elt(id);
+    renderStree(stree, parentElt, animate, classes, html);
+  });
+}
+
+export {renderStree, renderStrees}

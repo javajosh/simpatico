@@ -28,7 +28,7 @@ export class MockWebSocket {
   static CLOSED = 4;
   static NEXT_ID = 0;
 
-  constructor(url, delay=1000) {
+  constructor(url, delay=50) {
     this.url = url;
     this.delay = delay;
     this.id = MockWebSocket.NEXT_ID++;
@@ -96,15 +96,14 @@ export class MockWebSocket {
 }
 
 
-
-
 const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
-const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+const socketState = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+// Registration states
 const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR', 'COMPUTING'];
 const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTING] = state2;
+// Sending/receiving states
 const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
 const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid name conflict
-const delay = 10;
 
 export const connect = (_ , {websocketURL, conn, remote, delay}) => {
   const ws = new MockWebSocket(websocketURL, delay);
@@ -122,7 +121,6 @@ export const send = ({ws, remote}, {msg}) => {
   if (remote) setTimeout(()=>remote.getLeaf().residue.ws.receive(msgString));
   return [];
 };
-
 
 // Put rest of the state-machine here
 export const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2}) => {
@@ -205,7 +203,8 @@ export const register4 = ({},{state2}) => {
 }
 
 // Executed by the client. From and to are public key signatures; the message is an object
-export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, message}) => {
+// In the invite protocol, sendEnvelop is used to send the full public key
+export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, fromPublicKeyPem, message}) => {
   if (state2 !== VERIFIED) return [{error: 'cannot send before verification'}];
   const publicKey = conn.summary[to].residue.publicKeyPem; // eventually pick out of friendsfor now just pick something at random
   const messageText = JSON.stringify(message);
@@ -215,7 +214,7 @@ export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, mess
     .then(box => wcb.encodeHex(box))
     .then(box => {
       conn.addLeaf({handler: 'state', state3: SENT });
-      conn.addLeaf({handler: 'send', msg: {handler: 'deliverEnvelop', from, to, box}});
+      conn.addLeaf({handler: 'send', msg: {handler: 'deliverEnvelop', from, fromPublicKeyPem, to, box}});
     })
     .catch(error => {
       log(error);
@@ -226,7 +225,8 @@ export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, mess
 }
 
 // Executed by the client TODO something is going wrong, not sure what yet
-export const acceptEnvelop = ({privateKey, friends, conn, state3}, {from, to, box}) => {
+// TODO we may want to strip the to field
+export const acceptEnvelop = ({privateKey, friends, conn, state3}, {from, fromPublicKeyPem, to, box}) => {
   //TODO consider caching binary public keys for self and friends
   const publicKey = conn.summary[from].residue.publicKeyPem;
   Promise.all([
@@ -240,7 +240,7 @@ export const acceptEnvelop = ({privateKey, friends, conn, state3}, {from, to, bo
       const jsonString = wcb.encodeText(unencrypted);
       const obj = JSON.parse(jsonString);
       conn.addLeaf({handler: 'state', state3: RECEIVED });
-      // conn.addLeaf({received: obj});
+      if (fromPublicKeyPem) conn.addLeaf({fromPublicKeyPem});
       conn.addLeaf(obj);
     })
     .catch(error => {
@@ -272,9 +272,9 @@ export const deliverEnvelop = ({conn}, {from, to, box}) => {
   return [];
 }
 
-// Store a map of server connections indexed by their public key sig.
+// Generate a map of server connections indexed by their public key sig.
 // Only index them if they are verified
-export const summarize = (summary, node) => {
+export const summarizeServer = (summary, node) => {
   if (node.id === 0) return {};
   // This line is only necessary in simulation
   if (!node.residue.server) return summary;
@@ -286,6 +286,22 @@ export const summarize = (summary, node) => {
   if (parent.residue.state2 === VERIFIED && residue.state2 !== VERIFIED) {
     delete summary[node.residue.publicKeySig];
   }
+  return summary;
+}
+
+// Generate a map of invited friends
+export const summarizeClient = (summary, node) => {
+  if (node.id === 0) return {};
+  // This line is only necessary in simulation
+  // if (!node.residue.server) return summary;
+  // const parent = node.parent;
+  // const residue = node.residue;
+  // if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
+  //   summary[node.residue.publicKeySig] = node;
+  // }
+  // if (parent.residue.state2 === VERIFIED && residue.state2 !== VERIFIED) {
+  //   delete summary[node.residue.publicKeySig];
+  // }
   return summary;
 }
 

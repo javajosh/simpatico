@@ -24,19 +24,20 @@ Connection triggers a 4-way registration handshake that ends in a `VERIFIED` sta
 In test, verification triggers a `sendEvelop` to a random peer.
 
 ```html
-<div id="connection-render"></div>
+<div id="server-tree-render"></div>
+<div id="client-trees-render"></div>
 ```
 
 ```js
-import {combineRules, stree, renderStree, svg, h, DELETE, equals, encodeBase64URL, decodeBase64URL} from './simpatico.js';
-import {connect, send, register1, register2, register3, register4, sendEnvelop, deliverEnvelop, acceptEnvelop, summarize, generateKeyPair, MockWebSocket} from "./websocket.js";
+import {combineRules, stree, renderStree, renderStrees, svg, h, DELETE, equals, encodeBase64URL, decodeBase64URL} from './simpatico.js';
+import {connect, send, register1, register2, register3, register4, sendEnvelop, deliverEnvelop, acceptEnvelop, summarizeServer, summarizeClient, generateKeyPair, MockWebSocket} from "./websocket.js";
 import * as wcb from './node_modules/webcryptobox/index.js';
 
-const renderParent = svg.elt('connection-render');
+const renderServerTreeParent = svg.elt('server-tree-render');
+const renderClientTreesParent = svg.elt('client-trees-render');
 
 // Override the state handler for testing.
 const {CONNECTING, OPEN, CLOSING, CLOSED} = MockWebSocket;
-const stateNamesByIndex = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
 const state2 = ['UNREGISTERED', 'CHALLENGED', 'RESPONDED', 'VERIFIED', 'UNVERIFIED', 'ERROR', 'COMPUTING'];
 const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTING] = state2;
 const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
@@ -54,6 +55,7 @@ const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:
   }
 
   const result = [];
+  // change state first in case any triggered code depends on new state
   if (currState) result.push({state: currState});
   if (currState2) result.push({state2: currState2});
 
@@ -73,7 +75,6 @@ const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:
     }
   }
 
-
   return result;
 }
 
@@ -86,7 +87,7 @@ const extractFieldsFromUrl = (url) => {
 
 // Executed by the host client. Add a friend branch with a private message
 // Note: invite message is cleartext!
-const invite1 =({conn, publicKeySig},{msg}) => {
+const invite1 =({conn, publicKeySig}, {msg}) => {
   const link = `${window.location.href}?publicKeySig=${publicKeySig}&msg=${msg}`;
   conn.parent.addLeaf({handler: 'state', state4: 'INVITED'})
     .add({msg, link});
@@ -94,7 +95,7 @@ const invite1 =({conn, publicKeySig},{msg}) => {
 
 // used by the guest. Add a friend branch and request host public key
 // msg and publicKeySig are embedded in a URL and shared with guest out-of-band
-const invite2 =({conn},{}) => {
+const invite2 =({conn}, {}) => {
   const {msg, publicKeySig} = extractFieldsFromUrl(window.location);
   conn.parent.addLeaf({handler: 'state', state4: 'REQUEST_PUBLIC_KEY'})
     .add({msg, publicKeySig})
@@ -111,12 +112,12 @@ const invite3 =({conn}, {publicKeySig}) => {
 
 // used by the guest to respond to send an encrypted response to the invite
 const invite4 =({conn, privateKey, publicKeySig: from, publicKeyPem, msg},{publicKeyPem: to}) => {
-  // todo modify acceptEnvelop to accept an optional fromPublicKeyPem and store it in residue
-  return [{handler: 'sendEnvelop', from, to, toPublicKeyPem, box: {handler: 'invite5', msg}}];
+    // unusually, this envelop includes the full public key of sender, because the recipient won't have it yet.
+  return [{handler: 'sendEnvelop', from, to, fromPublicKeyPem: publicKeyPem, box: {handler: 'invite5', msg}}];
 }
 
 // used by host to verify the invite and send the response
-const invite5 =({conn, msg: expected},{msg: actual}) => {
+const invite5 =({conn, msg: expected}, {msg: actual}) => {
   const valid = (expected === actual);
   // can add other checks here, like timeout.
   return [{handler: 'sendEnvelop', from, to, box: {handler: 'invite6', state4: 'VERIFIED'}}]
@@ -126,26 +127,47 @@ const invite6 =({}, {state4}) => {
   return [{handler: 'state', state4}];
 }
 
+// Create 1 server and N client strees
 
-const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize);
 
-const conn = s.addAll([h(connect), h(send), h(state)]); conn.add({cap: 'common handlers'});
-  const server = conn.addAll([ h(register1),  h(register3), h(deliverEnvelop), h(invite3) ]); server.add({cap: 'server handlers'});
-  const client = conn.addAll([
-      h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop),
-      h(invite1), h(invite2), h(invite4), h(invite5), h(invite6),
-  ]); client.add({cap: 'client handlers'});
+const sharedHandlers = [h(connect), h(send), h(state)];
+const serverHandlers = [...sharedHandlers, h(register1),  h(register3), h(deliverEnvelop), h(invite3) ];
+const clientHandlers =  [...sharedHandlers, h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop),
+  h(invite1), h(invite2), h(invite4), h(invite5), h(invite6)]
 
+// Make a server
 const serverKeyPair = await generateKeyPair();
+const serverTree = new stree({}, (a,b) => combineRules(a,b,null,true), summarizeServer);
+const server = serverTree.addAll(serverHandlers);
+server.add({cap: 'server handlers'});
+
+// make a server connection and a client stree with a client connection. return the client stree.
 const makeConnectionPair = async (websocketURL = 'wss://example.com', delay=50) => {
-  const clientKeyPair = await generateKeyPair();
+  // add the server connection
   const connServer = server.add({server: true, ...serverKeyPair});
+
+  // generate a client stree and connection
+  const clientKeyPair = await generateKeyPair();
+  const clientStree = new stree({}, (a,b) => combineRules(a,b,null,true), summarizeClient);
+  const client = clientStree.addAll(clientHandlers);
+  clientStree.add({cap: 'client handlers'});
   const connClient = client.add({server: false, ...clientKeyPair});
+
+  // trigger connect on both the client and server
   connServer.add({handler: 'connect', websocketURL, conn: connServer, remote: connClient, delay});
   connClient.add({handler: 'connect', websocketURL, conn: connClient, remote: connServer, delay});
+  return clientStree;
 }
-let i = 4;
-while (i--) await makeConnectionPair();
+
+const makeConnectionPairs = async (numClients = 2) => {
+  const result = [];
+  while (numClients--) result.push(await makeConnectionPair());
+  return result;
+}
+
+const clientStrees = await makeConnectionPairs(2);
+
+// todo render clients renderClientTreesParent
 
 
 
@@ -156,8 +178,9 @@ while (i--) await makeConnectionPair();
   // ()=>conn1.addLeaf({handler: 'send', msg: {handler: 'invite1'}}),
   // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
 
-  ()=>renderStree(s, renderParent),
-  ()=>log('connection summary', s.summary),
+  ()=>renderStree(serverTree, renderServerTreeParent),
+  ()=>renderStrees(clientStrees, renderClientTreesParent),
+  ()=>log('connection summary', serverTree.summary),
 ].forEach((fn, i)=>setTimeout(fn, 50*(i+5)));
 
 ```
