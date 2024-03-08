@@ -1,11 +1,14 @@
 import {svg, log, tryToStringify} from '/simpatico.js';
 
-const html1 = (svgClass='visualize-stree', inspectorClass ='residue-inspector', colorKeyClass = 'color-key') => `
+const html1 = (
+  svgClass='visualize-stree',
+  inspectorClass ='residue-inspector',
+  colorKeyClass = 'color-key') => `
 <p>key: <span class="${colorKeyClass}"></span></p>
 <svg xmlns="http://www.w3.org/2000/svg"
   class="${svgClass}"
   viewBox="0 0 40 10"
-  width="800px" height="200px"
+  width="100%" height="auto"
   style="border: 1px solid gray; pointer-events: visible;"
 
 >
