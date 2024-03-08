@@ -87,7 +87,7 @@ const extractFieldsFromUrl = (url) => {
 // Executed by the host client. Add a friend branch with a private message
 // Note: invite message is cleartext!
 const invite1 =({conn, publicKeySig},{msg}) => {
-  const link = `https://${ window.location.host }/chat/?publicKeySig${ publicKeySig }&msg=${msg}`;
+  const link = `${window.location.href}?publicKeySig=${publicKeySig}&msg=${msg}`;
   conn.parent.addLeaf({handler: 'state', state4: 'INVITED'})
     .add({msg, link});
 }
@@ -127,13 +127,13 @@ const invite6 =({}, {state4}) => {
 }
 
 
-const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize)
+const s = new stree({}, (a,b) => combineRules(a,b,null,true), summarize);
 
 const conn = s.addAll([h(connect), h(send), h(state)]); conn.add({cap: 'common handlers'});
   const server = conn.addAll([ h(register1),  h(register3), h(deliverEnvelop), h(invite3) ]); server.add({cap: 'server handlers'});
   const client = conn.addAll([
-      h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop) ,
-      h(invite1), h(invite2), h(invite4), h(invite5), h(invite6)
+      h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop),
+      h(invite1), h(invite2), h(invite4), h(invite5), h(invite6),
   ]); client.add({cap: 'client handlers'});
 
 const serverKeyPair = await generateKeyPair();
@@ -168,8 +168,23 @@ There's a general issue with keeping references to outside objects in residue th
 
 Would be useful to adjust the simulation to support scrubbing and insertion. This points to a stateless render, for which I'd probably use d3.
 
-Next things: incorporate the invitation protocol, and focus more on the client side. Perhaps split into client and server strees.
-Last but not least, add the server stree to reflector.js and try connecting to it from a real client.
+Next things: incorporate the invitation protocol,
+We can do this ephemerally, in the same stree as the connection state, which *may* be good for btd speed.
+Accessing window.location in the handler may impact testing.
+In prod, there is one server stree summarized over connected clients, and each client has an stree summarized over friends in various states.
+In simulation this means our summary function must serve both purposes, which complicates the function, and complicates accessing the summary.
+The alternative is to split the strees even in simulation.
+Splitting into 1+N strees has the added benefit of (somewhat) ensuring there is no leakage between client and server (although they would both still have full access to the other)
+
+```js
+///
+const combinedSummarySketch = {
+  server:  {'publicKeySig': connectionNode, ...etc},
+  clients: {'publicKeySig': {friends}},
+};
+// server calls like deliverEnvelop and invite3 use the server prop
+// client calls like invite use the clients prop looking up their own sig.
+```
 
 
 # Async handlers
