@@ -30,7 +30,7 @@ In test, verification triggers a `sendEvelop` to a random peer.
 
 ```js
 import {combineRules, stree, renderStree, renderStrees, svg, h, DELETE, equals, encodeBase64URL, decodeBase64URL} from './simpatico.js';
-import {connect, send, register1, register2, register3, register4, sendEnvelop, deliverEnvelop, acceptEnvelop, summarizeServer, summarizeClient, generateKeyPair, MockWebSocket} from "./websocket.js";
+import {state, connect, send, register1, register2, register3, register4, sendEnvelop, deliverEnvelop, acceptEnvelop, summarizeServer, summarizeClient, generateKeyPair, MockWebSocket} from "./websocket.js";
 import * as wcb from './node_modules/webcryptobox/index.js';
 
 const renderServerTreeParent = svg.elt('server-tree-render');
@@ -43,7 +43,9 @@ const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTI
 const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
 const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid name conflict
 
-const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2}) => {
+// Currently this handler is shared clent and server, but we may want to split it, too.
+const clientState = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2}) => {
+
 
   const getRandomKey = (obj, omitKey) => {
     const keys = Object.keys(obj);
@@ -54,28 +56,29 @@ const state = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:
     return found;
   }
 
-  const result = [];
-  // change state first in case any triggered code depends on new state
-  if (currState) result.push({state: currState});
-  if (currState2) result.push({state2: currState2});
 
-  // kick off the protocol from the server connection
-  if (prevState !== OPEN && currState === OPEN && server){
-    result.push({handler: 'register1'})
-  }
-  // testing only: send a message to another random client on verification
-  // note that the first connection cannot send because its the only one in summary
-  // summary is updated AFTER the state handler, so summary never includes the current connection
-  if (prevState2 !== VERIFIED && currState2 === VERIFIED && !server){
-    const clients = conn.summary;
+  // change state first in case any triggered code depends on new state
+  if (currState) conn.addLeaf({state: currState});
+  if (currState2) conn.addLeaf({state2: currState2});
+
+  if (prevState2 !== VERIFIED && currState2 === VERIFIED){
+    // cheat and get clients from the server stree.
+    const clients = remote.summary;
     if (Object.keys(clients).length >= 2 ) {
       const to = getRandomKey(clients, publicKeySig);
       // log('sending', {handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
-      result.push({handler: 'sendEnvelop', from: publicKeySig, to, message: {}});
+      // use the full from and to public keys because we are not in a relationship yet
+      conn.addLeaf({handler: 'sendEnvelop',
+        from: publicKeySig,
+        fromPublicKeyPem: conn.publicKeyPem,
+        to,
+        toPublicKeyPem: clients[to].residue.publicKeyPem,
+        message: {}
+      });
     }
   }
 
-  return result;
+  return [];
 }
 
 const extractFieldsFromUrl = (url) => {
@@ -130,9 +133,9 @@ const invite6 =({}, {state4}) => {
 // Create 1 server and N client strees
 
 
-const sharedHandlers = [h(connect), h(send), h(state)];
-const serverHandlers = [...sharedHandlers, h(register1),  h(register3), h(deliverEnvelop), h(invite3) ];
-const clientHandlers =  [...sharedHandlers, h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop),
+const sharedHandlers = [h(connect), h(send)];
+const serverHandlers = [...sharedHandlers, h(state), h(register1),  h(register3), h(deliverEnvelop), h(invite3) ];
+const clientHandlers =  [...sharedHandlers, h(clientState, 'state'), h(register2),  h(register4), h(sendEnvelop), h(acceptEnvelop),
   h(invite1), h(invite2), h(invite4), h(invite5), h(invite6)]
 
 // Make a server
@@ -165,7 +168,7 @@ const makeConnectionPairs = async (numClients = 2) => {
   return result;
 }
 
-const clientStrees = await makeConnectionPairs(2);
+const clientStrees = await makeConnectionPairs(3);
 
 // todo render clients renderClientTreesParent
 
@@ -180,7 +183,8 @@ const clientStrees = await makeConnectionPairs(2);
 
   ()=>renderStree(serverTree, renderServerTreeParent),
   ()=>renderStrees(clientStrees, renderClientTreesParent),
-  ()=>log('connection summary', serverTree.summary),
+  ()=>log('client trees', clientStrees),
+  ()=>log('server tree summary', serverTree.summary),
 ].forEach((fn, i)=>setTimeout(fn, 50*(i+5)));
 
 ```
@@ -197,7 +201,8 @@ Accessing window.location in the handler may impact testing.
 In prod, there is one server stree summarized over connected clients, and each client has an stree summarized over friends in various states.
 In simulation this means our summary function must serve both purposes, which complicates the function, and complicates accessing the summary.
 The alternative is to split the strees even in simulation.
-Splitting into 1+N strees has the added benefit of (somewhat) ensuring there is no leakage between client and server (although they would both still have full access to the other)
+Splitting into 1+N strees has the added benefit of (somewhat) ensuring there is no leakage between client and server (although they would both still have full access to the other).
+Afterword: the split did not go as cleanly as I'd have liked. Only the last client stree is responsive to clicks - a bug in stree-viz. The sendEnvelop sequence is not triggering. So I'm committing on a branch and hope that it works out. I may need to pinpoint the moment the flow breaks, and break up the changes into smaller steps. It may even be necessary to start with just two client connections, alice and bob, and make sure that works before generalizing to N clients. I'd also like to add assertions to make it easier to detect regressions- which also means making the test flow deterministic (currently it's not because we pick a peer at random to send a message to.) Even the verification flow is flaky - particularly the first client.
 
 ```js
 ///

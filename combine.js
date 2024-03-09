@@ -143,9 +143,10 @@ function combineAll(...args) {
 }
 
 // wrap these functions for easier addition to core. TODO add support for bare function handlers in combine()
-const h = (fn) => {
+const h = (fn, optionalName) => {
   const result = {handlers:{}};
-  result.handlers[fn.name] = {handle: fn};
+  const name = optionalName ? optionalName : fn.name;
+  result.handlers[name] = {handle: fn};
   return result;
 }
 

@@ -204,9 +204,9 @@ export const register4 = ({},{state2}) => {
 
 // Executed by the client. From and to are public key signatures; the message is an object
 // In the invite protocol, sendEnvelop is used to send the full public key
-export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, fromPublicKeyPem, message}) => {
+export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, fromPublicKeyPem, toPublicKeyPem, message}) => {
   if (state2 !== VERIFIED) return [{error: 'cannot send before verification'}];
-  const publicKey = conn.summary[to].residue.publicKeyPem; // eventually pick out of friendsfor now just pick something at random
+  const publicKey = toPublicKeyPem ? toPublicKeyPem : conn.summary[to].residue.publicKeyPem;
   const messageText = JSON.stringify(message);
   const messageArray = wcb.decodeText(messageText);
   wcb.importPublicKeyPem(publicKey)
@@ -226,9 +226,10 @@ export const sendEnvelop = ({privateKey, friends, conn, state2}, {from, to, from
 
 // Executed by the client TODO something is going wrong, not sure what yet
 // TODO we may want to strip the to field
-export const acceptEnvelop = ({privateKey, friends, conn, state3}, {from, fromPublicKeyPem, to, box}) => {
+export const acceptEnvelop = ({privateKey, friends, conn, remote, state3}, {from, fromPublicKeyPem, to, box}) => {
   //TODO consider caching binary public keys for self and friends
-  const publicKey = conn.summary[from].residue.publicKeyPem;
+  // todo remove reference to remote
+  const publicKey = fromPublicKeyPem ? fromPublicKeyPem : remote.summary[from].residue.publicKeyPem;
   Promise.all([
     wcb.importPublicKeyPem(publicKey),
     wcb.decodeHex(box),
@@ -276,8 +277,6 @@ export const deliverEnvelop = ({conn}, {from, to, box}) => {
 // Only index them if they are verified
 export const summarizeServer = (summary, node) => {
   if (node.id === 0) return {};
-  // This line is only necessary in simulation
-  if (!node.residue.server) return summary;
   const parent = node.parent;
   const residue = node.residue;
   if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
@@ -292,16 +291,15 @@ export const summarizeServer = (summary, node) => {
 // Generate a map of invited friends
 export const summarizeClient = (summary, node) => {
   if (node.id === 0) return {};
-  // This line is only necessary in simulation
-  // if (!node.residue.server) return summary;
-  // const parent = node.parent;
-  // const residue = node.residue;
-  // if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
-  //   summary[node.residue.publicKeySig] = node;
-  // }
-  // if (parent.residue.state2 === VERIFIED && residue.state2 !== VERIFIED) {
-  //   delete summary[node.residue.publicKeySig];
-  // }
+  const parent = node.parent;
+  const residue = node.residue;
+
+  if (parent.residue.state2 !== VERIFIED && residue.state2 === VERIFIED) {
+    summary[node.residue.publicKeySig] = node;
+  }
+  if (parent.residue.state2 === VERIFIED && residue.state2 !== VERIFIED) {
+    delete summary[node.residue.publicKeySig];
+  }
   return summary;
 }
 
