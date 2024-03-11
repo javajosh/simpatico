@@ -20,8 +20,8 @@ Perhaps one day [redbean will get websockets](https://github.com/jart/cosmopolit
 Start with a thin wrapper around websocket.
 Call active methods (`connect`, `close`, and `send`) with objects.
 Record passive callbacks (`onopen`, `onclose`, `onmessage` and `onerror`) with objects.
-Connection triggers a 4-way registration handshake that ends in a `VERIFIED` state.
-In test, verification triggers a `sendEvelop` to a random peer.
+Server connection triggers a 4-way registration handshake that ends in a `VERIFIED` state at both ends.
+In test, client `VERIFIED` state triggers a `sendEvelop` to a random peer.
 
 ```html
 <div id="server-tree-render"></div>
@@ -46,7 +46,6 @@ const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid na
 // Currently this handler is shared clent and server, but we may want to split it, too.
 const clientState = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2}) => {
 
-
   const getRandomKey = (obj, omitKey) => {
     const keys = Object.keys(obj);
     if (keys.length === 0) throw 'empty object';
@@ -55,13 +54,7 @@ const clientState = ({ws, conn, remote, server, publicKeySig, state:prevState, s
     // do found = keys[ keys.length * Math.random() << 0]; while (found === omitKey)
     return found;
   }
-
-
-  // change state first in case any triggered code depends on new state
-  if (currState) conn.addLeaf({state: currState});
-  if (currState2) conn.addLeaf({state2: currState2});
-
-  if (prevState2 !== VERIFIED && currState2 === VERIFIED){
+  const sendEnvelopToRandomPeer = () => {
     // cheat and get clients from the server stree.
     const clients = remote.summary;
     if (Object.keys(clients).length >= 2 ) {
@@ -78,6 +71,39 @@ const clientState = ({ws, conn, remote, server, publicKeySig, state:prevState, s
     }
   }
 
+  const sendInviteToRandomPeer = () => {
+    // generate invite at host
+    conn.addLeaf({handler: 'invite1', msg: `hey its ${conn.name}`});
+
+    if (true) return;
+    // get the invite params from client summary
+    const friends = conn.summary;
+
+    // trigger invite2 from the guest
+    const clients = remote.summary;
+    if (Object.keys(clients).length >= 2 ) {
+      const guestSig = getRandomKey(clients, publicKeySig);
+      const guest = clients[guestSig];
+
+      conn.addLeaf({handler: 'sendEnvelop',
+        from: publicKeySig,
+        fromPublicKeyPem: conn.publicKeyPem,
+        to,
+        toPublicKeyPem: clients[to].residue.publicKeyPem,
+        message: {}
+      });
+    }
+  }
+
+
+  // change state first in case any triggered code depends on new state
+  if (currState) conn.addLeaf({state: currState});
+  if (currState2) conn.addLeaf({state2: currState2});
+
+  if (prevState2 !== VERIFIED && currState2 === VERIFIED){
+    sendInviteToRandomPeer();
+  }
+
   return [];
 }
 
@@ -92,8 +118,10 @@ const extractFieldsFromUrl = (url) => {
 // Note: invite message is cleartext!
 const invite1 =({conn, publicKeySig}, {msg}) => {
   const link = `${window.location.href}?publicKeySig=${publicKeySig}&msg=${msg}`;
-  conn.parent.addLeaf({handler: 'state', state4: 'INVITED'})
+  // create a new row for this invite
+  conn.parent.add({handler: 'state', state4: 'INVITED'})
     .add({msg, link});
+  return [];
 }
 
 // used by the guest. Add a friend branch and request host public key
@@ -130,8 +158,6 @@ const invite6 =({}, {state4}) => {
   return [{handler: 'state', state4}];
 }
 
-// Create 1 server and N client strees
-
 
 const sharedHandlers = [h(connect), h(send)];
 const serverHandlers = [...sharedHandlers, h(state), h(register1),  h(register3), h(deliverEnvelop), h(invite3) ];
@@ -144,14 +170,15 @@ const serverTree = new stree({}, (a,b) => combineRules(a,b,null,true), summarize
 const server = serverTree.addAll(serverHandlers);
 server.add({cap: 'server handlers'});
 
+const names = ['alice', 'bob', 'charlie'];
 // make a server connection and a client stree with a client connection. return the client stree.
-const makeConnectionPair = async (websocketURL = 'wss://example.com', delay=50) => {
+const makeConnectionPair = async (name, websocketURL = 'wss://example.com', delay=50) => {
   // add the server connection
   const connServer = server.add({server: true, ...serverKeyPair});
 
   // generate a client stree and connection
   const clientKeyPair = await generateKeyPair();
-  const clientStree = new stree({}, (a,b) => combineRules(a,b,null,true), summarizeClient);
+  const clientStree = new stree({name}, (a,b) => combineRules(a,b,null,true), summarizeClient);
   const client = clientStree.addAll(clientHandlers);
   clientStree.add({cap: 'client handlers'});
   const connClient = client.add({server: false, ...clientKeyPair});
@@ -164,7 +191,9 @@ const makeConnectionPair = async (websocketURL = 'wss://example.com', delay=50) 
 
 const makeConnectionPairs = async (numClients = 2) => {
   const result = [];
-  while (numClients--) result.push(await makeConnectionPair());
+  let i = numClients
+  for (let i = 0; i < numClients; i++ )
+    result.push(await makeConnectionPair(names[i]));
   return result;
 }
 
