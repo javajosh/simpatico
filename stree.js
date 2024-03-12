@@ -7,9 +7,10 @@ import {combineRules} from "./combine.js";
  * @param value if an array or string, reconstitute stree from contents. if other, use as root.
  * @param reducer reducer used to compute the residue of a node. default is combine
  * @param summarize an optional function that updates summary based on the new node
+ * @param observers watches residue for changes and optionally adds values based on that change
  * @returns {[]|string|*}
  */
-function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summarize) {
+function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summarize, observers) {
   // handle special values, array and string, for deserialization initialization
   if (Array.isArray(value)) {
     return fromArray(value, reducer);

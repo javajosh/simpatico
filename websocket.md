@@ -119,8 +119,10 @@ const extractFieldsFromUrl = (url) => {
 const invite1 =({conn, publicKeySig}, {msg}) => {
   const link = `${window.location.href}?publicKeySig=${publicKeySig}&msg=${msg}`;
   // create a new row for this invite
-  conn.parent.add({handler: 'state', state4: 'INVITED'})
-    .add({msg, link});
+  // todo this is not adding at the correct time because state hasn't resolved! this is an artifact of the test harness, but it's also an expressibility problem.
+  // the right solution is to grant the ability of the stree to react to state changes. stree.on({
+  setTimeout(() => conn.parent.add({handler: 'state', state4: 'INVITED'})
+    .add({msg, link}), 500);
   return [];
 }
 

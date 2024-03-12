@@ -84,6 +84,26 @@ const equals = (a, b) => {
   if (aType === 'function') return (a.toString() === b.toString()); else
   return scalarEquals(a, b);
 }
+
+/**
+ *
+ * @param obj1 describes the props you're checking
+ * @param obj2 the object you're checking against
+ * @returns {boolean} true if the props in the first object all appear in the second
+ */
+const objPredicate = (obj1, obj2) => {
+  for (const key in obj1) {
+    if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object') {
+      if (!objPredicate(obj1[key], obj2[key])) {
+        return false;
+      }
+    } else if (obj1[key] !== obj2[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 const exists = (a) => a !== undefined && a !== null;
 // This alone requires node 17+
 const clone = structuredClone;
