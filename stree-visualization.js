@@ -86,7 +86,7 @@ const renderStree = (
     const target = e.target.closest('g');
     if (target && target.node) {
       const node = target.node;
-      log(node);
+      log(node.msgs);
       const {handlers, ...residue} = s.residue(node);
       residueOutput.innerText = tryToStringify({
         id: node.id,

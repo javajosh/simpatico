@@ -44,7 +44,7 @@ const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
 const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid name conflict
 
 // Currently this handler is shared clent and server, but we may want to split it, too.
-const clientState = ({ws, conn, remote, server, publicKeySig, state:prevState, state2:prevState2}, {state:currState, state2:currState2}) => {
+const clientState = ({ws, conn, remote, name, server, publicKeySig, state:prevState, state2:prevState2,state3:prevState3,state4:prevState4}, {state:currState, state2:currState2,state3:currState3,state4:currState4}) => {
 
   const getRandomKey = (obj, omitKey) => {
     const keys = Object.keys(obj);
@@ -73,7 +73,7 @@ const clientState = ({ws, conn, remote, server, publicKeySig, state:prevState, s
 
   const sendInviteToRandomPeer = () => {
     // generate invite at host
-    conn.addLeaf({handler: 'invite1', msg: `hey its ${conn.name}`});
+    conn.addLeaf({handler: 'invite1', msg: `hey its ${name}`});
 
     if (true) return;
     // get the invite params from client summary
@@ -99,6 +99,9 @@ const clientState = ({ws, conn, remote, server, publicKeySig, state:prevState, s
   // change state first in case any triggered code depends on new state
   if (currState) conn.addLeaf({state: currState});
   if (currState2) conn.addLeaf({state2: currState2});
+  if (currState3) conn.addLeaf({state3: currState3});
+  // if (currState4) conn.addLeaf({state4: currState4});
+
 
   if (prevState2 !== VERIFIED && currState2 === VERIFIED){
     sendInviteToRandomPeer();
@@ -119,9 +122,10 @@ const extractFieldsFromUrl = (url) => {
 const invite1 =({conn, publicKeySig}, {msg}) => {
   const link = `${window.location.href}?publicKeySig=${publicKeySig}&msg=${msg}`;
   // create a new row for this invite
-  conn.parent.add({handler: 'state', state4: 'INVITED'})
-    .add({msg, link});
-  return [];
+  log('invited', conn);
+  // conn.addLeaf({handler: 'state', state4: 'INVITED'}).add({msg, link});
+  return [{msg, link},{handler: 'state', state4: 'INVITED'}]
+  // return [];
 }
 
 // used by the guest. Add a friend branch and request host public key
