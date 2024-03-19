@@ -5,6 +5,7 @@ See [maximalism](./maximalism.md)
   1. [Choose Boring Technology](https://mcfunley.com/choose-boring-technology)
   1. [Minifesto](http://minifesto.org/)
   1. [Where have all the hackers gone?](https://morepablo.com/2023/05/where-have-all-the-hackers-gone.html) - soil, surface, atmosphere
+  1. [How web bloat impacts users with slow devices](https://danluu.com/slow-device/)
 
 # Thoughts
 
