@@ -9,7 +9,7 @@ const html1 = (
 <svg xmlns="http://www.w3.org/2000/svg"
   class="${svgClass}"
   viewBox="0 0 ${cols * 10} ${rows * 10}"
-  width="100%" height="auto"
+  width="100%"
   style="border: 1px solid gray; pointer-events: visible;"
 
 >
