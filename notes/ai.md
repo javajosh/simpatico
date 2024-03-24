@@ -154,3 +154,5 @@ echo "GPU Info: $gpuInfo"
  - Code assist?
   [mlc.ai mlc llm browser coding assistant](https://mlc.ai/) also a [youtube channel](https://www.youtube.com/@mlc-ai2867)
    - possibly impressive in-browser demo of chat with various models, including Llama 7b and Gemma from Google https://webllm.mlc.ai/. However it didn't load and run for me in Chrome 122 on Windows 10 with an nvidia 8G GPU.
+   - [Chat over docs](https://github.com/jacoblee93/fully-local-pdf-chatbot)
+   - [LangChain](https://js.langchain.com/docs/get_started/introduction) A way to integrate LLMs into your applications.
