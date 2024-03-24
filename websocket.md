@@ -43,6 +43,8 @@ const [UNREGISTERED, CHALLENGED, RESPONDED, VERIFIED, UNVERIFIED, ERROR, COMPUTI
 const state3 = ['SENDING', 'SENT', 'RECEIVING', 'RECEIVED', 'ERROR'];
 const [SENDING, SENT, RECEIVING, RECEIVED] = state3; // ERROR elided to avoid name conflict
 
+const t1 = Date.now();
+
 // Currently this handler is shared clent and server, but we may want to split it, too.
 const clientState = ({ws, conn, remote, name, server, publicKeySig, state:prevState, state2:prevState2,state3:prevState3,state4:prevState4}, {state:currState, state2:currState2,state3:currState3,state4:currState4}) => {
 
@@ -73,7 +75,7 @@ const clientState = ({ws, conn, remote, name, server, publicKeySig, state:prevSt
 
   const sendInviteToRandomPeer = () => {
     // generate invite at host
-    conn.addLeaf({handler: 'invite1', msg: `hey its ${name}`});
+    // conn.addLeaf({handler: 'invite1', msg: `hey its ${name}`});
 
     if (true) return;
     // get the invite params from client summary
@@ -104,7 +106,10 @@ const clientState = ({ws, conn, remote, name, server, publicKeySig, state:prevSt
 
 
   if (prevState2 !== VERIFIED && currState2 === VERIFIED){
-    sendInviteToRandomPeer();
+    const t2 = Date.now();
+    log('verified', t1, t2, t2-t1);
+    conn.addLeaf({cap: `verified in ${t2-t1}ms`})
+    // sendInviteToRandomPeer();
   }
 
   return [];
@@ -176,7 +181,7 @@ server.add({cap: 'server handlers'});
 
 const names = ['alice', 'bob', 'charlie'];
 // make a server connection and a client stree with a client connection. return the client stree.
-const makeConnectionPair = async (name, websocketURL = 'wss://example.com', delay=50) => {
+const makeConnectionPair = async (name, websocketURL = 'wss://example.com', delay=5) => {
   // add the server connection
   const connServer = server.add({server: true, ...serverKeyPair});
 
@@ -188,6 +193,7 @@ const makeConnectionPair = async (name, websocketURL = 'wss://example.com', dela
   const connClient = client.add({server: false, ...clientKeyPair});
 
   // trigger connect on both the client and server
+  // this will, in turn, cause the registration protocol to complete because of the server state handler
   connServer.add({handler: 'connect', websocketURL, conn: connServer, remote: connClient, delay});
   connClient.add({handler: 'connect', websocketURL, conn: connClient, remote: connServer, delay});
   return clientStree;
@@ -201,7 +207,14 @@ const makeConnectionPairs = async (numClients = 2) => {
   return result;
 }
 
-const clientStrees = await makeConnectionPairs(3);
+const clientTrees = await makeConnectionPairs(3);
+
+clientTrees.forEach(clientTree => {
+  log(clientTree);
+  setTimeout(()=>{
+      clientTree.getLastNode().add({branch: true, handler: 'invite1', msg: `hey its me`})
+  }, 100); // this time must be greater than the verification time
+});
 
 // todo render clients renderClientTreesParent
 
@@ -213,11 +226,11 @@ const clientStrees = await makeConnectionPairs(3);
   // ()=>conn2.addLeaf({handler: 'send', msg: {value: 'wassup from conn 2!', a:2, b:2}}),
   // ()=>conn1.addLeaf({handler: 'send', msg: {handler: 'invite1'}}),
   // ()=>conn2.getLeaf().residue.ws.receive(JSON.stringify({b:1})),
-
+  // ()=>clientTrees[0].addLeaf({handler: 'invite1', msg: `hey its me`}),
   ()=>renderStree(serverTree, renderServerTreeParent),
-  ()=>renderStrees(clientStrees, renderClientTreesParent),
-  ()=>log('client trees', clientStrees),
-  ()=>log('server tree summary', serverTree.summary),
+  ()=>renderStrees(clientTrees, renderClientTreesParent),
+  // ()=>log('client trees', clientTrees),
+  // ()=>log('server tree summary', serverTree.summary),
 ].forEach((fn, i)=>setTimeout(fn, 50*(i+5)));
 
 ```
@@ -236,6 +249,11 @@ In simulation this means our summary function must serve both purposes, which co
 The alternative is to split the strees even in simulation.
 Splitting into 1+N strees has the added benefit of (somewhat) ensuring there is no leakage between client and server (although they would both still have full access to the other).
 Afterword: the split did not go as cleanly as I'd have liked. Only the last client stree is responsive to clicks - a bug in stree-viz. The sendEnvelop sequence is not triggering. So I'm committing on a branch and hope that it works out. I may need to pinpoint the moment the flow breaks, and break up the changes into smaller steps. It may even be necessary to start with just two client connections, alice and bob, and make sure that works before generalizing to N clients. I'd also like to add assertions to make it easier to detect regressions- which also means making the test flow deterministic (currently it's not because we pick a peer at random to send a message to.) Even the verification flow is flaky - particularly the first client.
+
+There is a more general set of problems affecting the stree when used in this way in two ways. One symptom is that the residue does not change as expected across values. Residues are "time-travelling", appearing before they should. The reasons is somewhat subtle, in that the recursive combine calls with handlers mean that the code sees the proper timeline, but the top-level stree does not. I've ignored this because it ends up coming out in the wash, because as the call chain resolves the time travel residues are combined properly. Another face of this symptom is attempting to branch within a handler. In this case, the parent residue is not properly computed yet. Aother variation of this symptom is when reentering stree through something like `conn.addLeaf`. Reentrance was a fire I knew I was playing with, and have (somehow) made it work in this specific case, but the message cascade issue is more concerning. The behavior I'd like is for values to immediately reflect in residue, but I'm now realizing that this requires some form of time-travel (or fixing up the timeline after the top-level add resolves - which as silly as it sounds is something I'm seriously considering).
+
+I've thought through and discarded several approaches to the problem of stree reentrance. Something like adding a defer() method. Or even further modifying combine to optionally not recurse, but rather allow the caller to do the recursion. I think the only thing that may work is for the stree instance to keep state describing its reentrance state. Like an integer that starts at 0 and is incremented each time add() is called before exiting. This stack of commands would then be resolved explicitly in the 0th add call. It seems messy and complex. It feels a bit like dealing with non-linear DEs when linear ones are really much nicer. The solution, I think, is to simplify and built out more tests for stree (and perhaps combine) before returning here.
+
 
 ```js
 ///
