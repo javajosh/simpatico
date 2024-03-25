@@ -55,6 +55,7 @@ const defaultHtmlHeader = (fileName) => {
       <li><a href="/acceptance">Examples</a></li>
       <li><a href="/services">Services</a></li>
       <li><a href="https://www.github.com/javajosh/simpatico/" target="_blank">GitHub ↗</a></li>
+      <li><a href="https://www.patreon.com/simpaticoder" target="_blank">Patreon ↗</a></li>
     </ul>
   </nav>
   </header>
