@@ -20,7 +20,7 @@ Each message type is a different stable color (in this demo there is only one ms
 One fun thing to do is hover over the console output which will select the element in the scene.
 Unlike [d3](/notes/d3-rectangles.html) we don't store the node value in a data attribute.
 
-
+Here is a simple example of what we're making, an stree with arithmetic handlers:
 
 ```html
 <div id="arithmetic-render"></div>
@@ -196,6 +196,64 @@ assertEquals({a:6}, tree2.residue(tree2.branches[0]));
 // reduce over branches
 assertEquals({a:7}, tree2.branches.map(node=>node.value).reduce(combineReducer));
 ```
+
+# Step 2.5: Re-entrance
+In normal operation `handlers` should never call stree functions themselves, directly or indirectly. In special cases it may be useful to do so, particularly if the handler wants to use a pointer to another row in the stree. Because of the nature of the callchain, such a call is confusing to the author because they will expect the handler body to complete before the rentrance call. But this is not the case. The secondary call will complete first. Here is a simple illustration of the problem:
+
+```html
+<div id="reentrance-render"></div>
+```
+
+```js
+import {stree, h, svg, renderStree} from '/simpatico.js';
+
+const reentranceParent = svg.elt('reentrance-render');
+
+const s = stree({a:1});
+const foo = () => {
+  s.add({a:1, inner:true});
+  return [{a:1}];
+}
+s.add(h(foo));
+s.add({handler: 'foo'});
+log(s);
+renderStree(s, reentranceParent);
+```
+The output is not what the author expects: the inner add happens first, gives a residue of 2. The "natural" add happens second, also giving a residue of two.
+
+There are a few ways to deal with this:
+
+  1. Forbid reentrance. This is the default, but re-entrance turns out to be handy and I'd like to recover use of it if possible.
+  2. Add a method to execute before the natural result.
+  3. Add a method to execute after the natural result.
+
+Regarding 1, my original stree concept involved a 4th reduction over residues that would handle inter-row communications. Or a more traditional Observer approach, where the residue would contain another special property "observers" that would be called when residue changes.
+
+Regarding 2 and 3, these would both require special methods on stree that interact with combine. The stree instance would need to keep state regarding 'primary' and 'secondary' additions, and manage passing residues between them.
+
+## Notes from [websocket](/websocket)
+
+There is a more general set of problems affecting the stree when used in this way in two ways.
+One symptom is that the residue does not change as expected according to the current value.
+Residues are "time-travelling", appearing before they should.
+The reasons is somewhat subtle, in that the recursive `combine()` calls with handlers mean that the code sees the proper timeline, but the top-level stree does not.
+Heretofore I've ignored this because it ends up coming out in the wash, because as the call chain resolves the time travel residues are combined properly.
+
+Another face of this symptom is attempting to branch within a handler.
+In this case, the parent residue is not properly computed yet.
+Aother variation of this symptom is when reentering stree through something like `conn.addLeaf`.
+Re-entrance was a fire I knew I was playing with, and have (somehow) made it work in this specific case, but the message cascade issue is more concerning.
+The behavior I'd like is for values to immediately reflect in residue, but I'm now realizing that this requires some form of time-travel (or fixing up the timeline after the top-level add resolves).
+
+I've thought through and discarded several approaches to the problem of stree re-entrance.
+Something like adding a defer() method.
+Or even further modifying combine to optionally not recurse, but rather allow the caller to do the recursion.
+I think the only thing that may work is for the stree instance to keep state describing its re-entrance state.
+Like an integer that starts at 0 and is incremented each time add() is called before exiting.
+This stack of commands would then be resolved explicitly in the 0th add call.
+It seems messy and complex.
+It feels a bit like dealing with non-linear DEs when linear ones are really much nicer.
+The solution, I think, is to simplify and built out more tests for stree (and perhaps combine) before returning here.
 
 # Step 3: Serialization
 Make stree a reducer over an array of ordered pairs, `[[value, parent]]` where parent is replaced by its node index.

@@ -212,7 +212,7 @@ const clientTrees = await makeConnectionPairs(3);
 clientTrees.forEach(clientTree => {
   log(clientTree);
   setTimeout(()=>{
-      clientTree.getLastNode().add({branch: true, handler: 'invite1', msg: `hey its me`})
+      clientTree.add({branch: true, handler: 'invite1', msg: `hey its me`})
   }, 100); // this time must be greater than the verification time
 });
 
@@ -246,13 +246,8 @@ We can do this ephemerally, in the same stree as the connection state, which *ma
 Accessing window.location in the handler may impact testing.
 In prod, there is one server stree summarized over connected clients, and each client has an stree summarized over friends in various states.
 In simulation this means our summary function must serve both purposes, which complicates the function, and complicates accessing the summary.
-The alternative is to split the strees even in simulation.
-Splitting into 1+N strees has the added benefit of (somewhat) ensuring there is no leakage between client and server (although they would both still have full access to the other).
-Afterword: the split did not go as cleanly as I'd have liked. Only the last client stree is responsive to clicks - a bug in stree-viz. The sendEnvelop sequence is not triggering. So I'm committing on a branch and hope that it works out. I may need to pinpoint the moment the flow breaks, and break up the changes into smaller steps. It may even be necessary to start with just two client connections, alice and bob, and make sure that works before generalizing to N clients. I'd also like to add assertions to make it easier to detect regressions- which also means making the test flow deterministic (currently it's not because we pick a peer at random to send a message to.) Even the verification flow is flaky - particularly the first client.
+So we split the strees even in simulation.
 
-There is a more general set of problems affecting the stree when used in this way in two ways. One symptom is that the residue does not change as expected across values. Residues are "time-travelling", appearing before they should. The reasons is somewhat subtle, in that the recursive combine calls with handlers mean that the code sees the proper timeline, but the top-level stree does not. I've ignored this because it ends up coming out in the wash, because as the call chain resolves the time travel residues are combined properly. Another face of this symptom is attempting to branch within a handler. In this case, the parent residue is not properly computed yet. Aother variation of this symptom is when reentering stree through something like `conn.addLeaf`. Reentrance was a fire I knew I was playing with, and have (somehow) made it work in this specific case, but the message cascade issue is more concerning. The behavior I'd like is for values to immediately reflect in residue, but I'm now realizing that this requires some form of time-travel (or fixing up the timeline after the top-level add resolves - which as silly as it sounds is something I'm seriously considering).
-
-I've thought through and discarded several approaches to the problem of stree reentrance. Something like adding a defer() method. Or even further modifying combine to optionally not recurse, but rather allow the caller to do the recursion. I think the only thing that may work is for the stree instance to keep state describing its reentrance state. Like an integer that starts at 0 and is incremented each time add() is called before exiting. This stack of commands would then be resolved explicitly in the 0th add call. It seems messy and complex. It feels a bit like dealing with non-linear DEs when linear ones are really much nicer. The solution, I think, is to simplify and built out more tests for stree (and perhaps combine) before returning here.
 
 
 ```js
