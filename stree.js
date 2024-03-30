@@ -1,4 +1,4 @@
-import {stringifyWithFunctions, parseWithFunctions} from "./core.js";
+import {stringifyWithFunctions, parseWithFunctions, log} from "./core.js";
 import {combineRules} from "./combine.js";
 
 /**
@@ -32,6 +32,8 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summa
   const nodes = [root];
   let lastNode = root;
   if (summarize) summary = summarize(null, root);
+  let callDepth = 0;
+  const deferredAdds = [];
   /**
    * Add a value to an n-ary tree.
    * Return the node that wraps these parameters.
@@ -42,9 +44,16 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summa
    *
    * @param value The value associated with the node. Set to lastNode for future calls. Note that it will be Object.freeze'd
    * @param parent The node considered as a parent. Can be null for root. If it's an integer, treated as index of parent in nodes
-   * @returns {{parent, value, value}}
+   * @returns {{parent, value}|null}
    */
-    function add(value, parent = lastNode) {
+    function add(value, parent = lastNode, ignoreCallDepth = false) {
+      if (!ignoreCallDepth) {
+        callDepth++;
+        if (callDepth > 1) {
+          deferredAdds.push([value, parent]);
+          return null; // maybe return a symbol 'DEFERRED' instead
+        }
+      }
       if (typeof parent === 'number'){
         parent = nodeByNumber(parent);
       }
@@ -83,6 +92,15 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summa
       lastNode = node;
       node.id = nodes.length;
       nodes.push(node);
+
+      callDepth--;
+      if (callDepth === 1 && deferredAdds.length > 0){
+        let lastAdded;
+        for (let [value, parent] of deferredAdds){
+          lastAdded = add(value, parent, true);
+        }
+        return lastAdded;
+      }
       return node;
     }
 

@@ -210,6 +210,7 @@ import {stree, h, svg, renderStree} from '/simpatico.js';
 const reentranceParent = svg.elt('reentrance-render');
 
 const s = stree({a:1});
+// This handler is reentrant because it calls s.add() within its body.
 const foo = () => {
   s.add({a:1, inner:true});
   return [{a:1}];
@@ -219,17 +220,20 @@ s.add({handler: 'foo'});
 log(s);
 renderStree(s, reentranceParent);
 ```
-The output is not what the author expects: the inner add happens first, gives a residue of 2. The "natural" add happens second, also giving a residue of two.
+The output is not what the author expects: the inner add happens first, gives a residue of 2. The "natural" add happens second, also giving a residue of 2. In neither case does the residue give the expected value of 3, and in fact breaks the fundamental contract of the stree: that residue is a pure reduction of values from root to the given node.
 
 There are a few ways to deal with this:
 
   1. Forbid reentrance. This is the default, but re-entrance turns out to be handy and I'd like to recover use of it if possible.
   2. Add a method to execute before the natural result.
   3. Add a method to execute after the natural result.
+  4. Mitigate with special use cases, e.g. only use on other rows.
 
 Regarding 1, my original stree concept involved a 4th reduction over residues that would handle inter-row communications. Or a more traditional Observer approach, where the residue would contain another special property "observers" that would be called when residue changes.
 
-Regarding 2 and 3, these would both require special methods on stree that interact with combine. The stree instance would need to keep state regarding 'primary' and 'secondary' additions, and manage passing residues between them.
+Regarding 2 and 3, these may require special methods on stree that interact with combine. The stree instance would need to keep state regarding 'primary' and 'secondary' additions, and manage passing residues between them. Alternatively we can detect reentrance in `add()`.
+
+Regarding 4, this does not resolve the problem and in fact creates new even more subtle issues around branches. It makes stree unreliable, and should be avoided.
 
 ## Notes from [websocket](/websocket)
 
