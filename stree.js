@@ -96,8 +96,8 @@ function stree(value = {}, reducer = (a,b) => combineRules(a,b,null,true), summa
       callDepth--;
       if (callDepth === 1 && deferredAdds.length > 0){
         let lastAdded;
-        for (let [value, parent] of deferredAdds){
-          lastAdded = add(value, parent, true);
+        for (let [value, _] of deferredAdds){
+          lastAdded = add(value, lastNode, true);
         }
         return lastAdded;
       }
